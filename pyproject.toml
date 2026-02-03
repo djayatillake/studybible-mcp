@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "studybible-mcp"
+version = "1.0.0"
+description = "A Bible study MCP server with Greek/Hebrew lexicons and hermeneutical methodology"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Study Bible MCP Contributors"}
+]
+keywords = ["bible", "mcp", "claude", "greek", "hebrew", "lexicon", "hermeneutics", "theology"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Religion",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Religion",
+]
+
+dependencies = [
+    "mcp>=1.0.0",
+    "httpx>=0.25.0",
+    "aiosqlite>=0.19.0",
+    "pydantic>=2.0.0",
+    "click>=8.0.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+sse = [
+    "starlette>=0.32.0",
+    "uvicorn>=0.24.0",
+]
+
+[project.scripts]
+studybible-mcp = "study_bible_mcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/studybible-mcp"
+Documentation = "https://github.com/yourusername/studybible-mcp#readme"
+Repository = "https://github.com/yourusername/studybible-mcp.git"
+Issues = "https://github.com/yourusername/studybible-mcp/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.sql", "*.md"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

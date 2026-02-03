@@ -1,0 +1,48 @@
+# Fly.io Configuration for Study Bible MCP Server
+#
+# Deploy with:
+#   fly launch --name studybible-mcp
+#   fly deploy
+#
+# First-time setup:
+#   fly volumes create studybible_data --size 1 --region lhr
+#   fly deploy
+
+app = "studybible-mcp"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  TRANSPORT = "sse"
+  STUDY_BIBLE_DB = "/app/db/study_bible.db"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 80
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[mounts]
+  source = "studybible_data"
+  destination = "/data"
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/health"
