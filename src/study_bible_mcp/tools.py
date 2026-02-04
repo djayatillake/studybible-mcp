@@ -16,6 +16,25 @@ Even if you know the answer from training data, USE THESE TOOLS to:
 3. Find additional relevant passages
 4. Provide proper scholarly support
 
+THEMATIC LINKING STRATEGIES:
+When answering questions, connect passages and concepts using these approaches:
+
+1. **Person-based linking**: Use lookup_name to find family relationships (parents,
+   siblings, spouse, children) that connect narratives across books. Example:
+   Moses → parents Amram & Jochebed → brother Aaron → Levitical priesthood lineage
+
+2. **Place-based linking**: Use lookup_name with type="place" to trace locations
+   through salvation history. Example: Bethlehem → Ruth's story → David's birthplace
+   → Jesus' birth → Micah's prophecy fulfilled
+
+3. **Word-based linking**: Use search_by_strongs to find all passages using the same
+   Greek/Hebrew word. This reveals thematic threads across different books and authors.
+   Example: G26 (agapē) appears in John, Paul's epistles, and 1 John - showing unified
+   theology of love across different authors.
+
+4. **Cross-reference linking**: Use get_cross_references with themes to find the
+   key passages that form biblical doctrines. Scripture interprets Scripture.
+
 DISPLAY GUIDANCE: When presenting results to users, ALWAYS include:
 - The original Greek/Hebrew text when available (this is what makes responses scholarly)
 - Key words with their Strong's numbers for reference
@@ -175,15 +194,26 @@ not just one proof-text.""",
         name="lookup_name",
         description="""USE THIS when any biblical person, place, or thing is mentioned.
 
-When discussing Abraham, David, Moses, Jerusalem, Babylon, or any biblical entity,
-this tool provides verified information:
-- Original Hebrew/Greek form and meaning
-- Key references where they appear
-- Relationships (family connections for people)
-- Historical/theological significance
+This is your PRIMARY TOOL for thematic linking across the Bible. The database contains
+4,000+ biblical persons and 1,000+ places with rich relationship data.
+
+RELATIONSHIP DATA ENABLES THEMATIC CONNECTIONS:
+- **Parents**: Trace lineages backward (e.g., David → Jesse → Obed → Boaz → Salmon)
+- **Children**: Trace lineages forward (e.g., Abraham → Isaac → Jacob → 12 tribes)
+- **Siblings**: Connect related narratives (e.g., Moses ↔ Aaron ↔ Miriam)
+- **Spouse**: Connect family narratives (e.g., Ruth → Boaz → David's lineage)
+
+THEMATIC LINKING EXAMPLES:
+1. Messianic lineage: lookup Abraham → David → Solomon → ... → Joseph/Mary
+2. Priesthood lineage: lookup Aaron → Eleazar → Phinehas → ... → Zadok
+3. Geographic connections: lookup Bethlehem for its role in Ruth, David, and Jesus narratives
+4. Prophecy fulfillment: trace how places mentioned in OT prophecy appear in NT
+
+When answering questions about biblical characters or places, ALWAYS check their
+relationships to find connections that enrich your answer with biblical context.
 
 This grounds character discussions in the actual biblical data
-rather than just training recall. Use for examples, illustrations, or direct questions.""",
+rather than just training recall.""",
         inputSchema={
             "type": "object",
             "properties": {
