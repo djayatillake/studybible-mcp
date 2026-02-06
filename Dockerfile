@@ -1,16 +1,20 @@
 # Study Bible MCP Server Dockerfile
 #
 # Multi-stage build:
-# 1. Build stage: Download STEPBible data and build database
-# 2. Runtime stage: Minimal image with pre-built database
+# 1. Build stage: Download STEPBible data, build database, generate embeddings
+# 2. Runtime stage: Minimal image with pre-built database + embeddings
 #
-# Build: docker build -t studybible-mcp .
+# Build: docker build --build-arg OPENAI_API_KEY=sk-... -t studybible-mcp .
 # Run:   docker run -p 8080:8080 studybible-mcp
 
 # ============================================================================
-# Stage 1: Builder - Download data and build database
+# Stage 1: Builder - Download data, build database, generate embeddings
 # ============================================================================
 FROM python:3.11-slim AS builder
+
+# OpenAI API key for embedding generation (required at build time)
+ARG OPENAI_API_KEY
+ENV OPENAI_API_KEY=${OPENAI_API_KEY}
 
 WORKDIR /build
 
@@ -19,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install dependencies
+# Copy requirements and install dependencies (includes sqlite-vec and openai)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -40,6 +44,14 @@ RUN python scripts/download_stepbible.py --data-dir /build/data
 # Build the database
 RUN python scripts/build_database.py --data-dir /build/data --db-path /build/db/study_bible.db
 
+# Generate embeddings for semantic search (~$0.05 API cost, ~5 min)
+RUN if [ -n "$OPENAI_API_KEY" ]; then \
+        echo "Generating embeddings..." && \
+        python scripts/generate_embeddings.py --db-path /build/db/study_bible.db; \
+    else \
+        echo "WARNING: OPENAI_API_KEY not set, skipping embedding generation"; \
+    fi
+
 # Verify database was built
 RUN ls -la /build/db/
 
@@ -55,12 +67,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install
+# Copy requirements and install (includes sqlite-vec for vector search)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Install SSE dependencies
-RUN pip install --no-cache-dir starlette uvicorn
 
 # Copy source code
 COPY pyproject.toml .
