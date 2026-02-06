@@ -52,14 +52,15 @@ Config file locations:
 │                     │     │                                     │
 │  ┌───────────────┐  │ SSE │  ┌─────────────┐  ┌──────────────┐  │
 │  │ User asks a   │──┼─────┼─▶│ MCP Server  │─▶│ SQLite DB    │  │
-│  │ Bible question│  │     │  │ (Python)    │  │ (120MB)      │  │
+│  │ Bible question│  │     │  │ (Python)    │  │ (323MB)      │  │
 │  └───────────────┘  │     │  └─────────────┘  │              │  │
 │                     │     │        │          │ • Lexicons   │  │
 │  ┌───────────────┐  │     │        ▼          │ • Tagged NT  │  │
 │  │ Claude uses   │◀─┼─────┼── Tool Results    │ • Tagged OT  │  │
 │  │ tools to look │  │     │                   │ • Names      │  │
 │  │ up data       │  │     │                   │ • Morphology │  │
-│  └───────────────┘  │     │                   └──────────────┘  │
+│  └───────────────┘  │     │                   │ • Embeddings │  │
+│                     │     │                   └──────────────┘  │
 └─────────────────────┘     └─────────────────────────────────────┘
 ```
 
@@ -72,17 +73,20 @@ When you ask Claude a Bible question:
 
 ### The Database
 
-The server includes a pre-built SQLite database (~120MB) containing:
+The server includes a pre-built SQLite database (~323MB) containing:
 
 | Table | Rows | Content |
 |-------|------|---------|
 | `lexicon` | 20,192 | Greek and Hebrew word definitions with Strong's numbers |
-| `verses` | 447,756 | Every word of the Bible with morphology tags |
-| `names` | 1,131 | Biblical people, places, and things |
+| `verses` | 31,280 | Every verse of the Bible with morphology tags |
+| `passages` | 5,290 | Verses grouped by ancient section markers (¶, פ, ס) |
+| `names` | 4,299 | Biblical people, places, and things |
 | `morphology` | 2,768 | Grammatical parsing code definitions |
 | `thematic_references` | 22 | Core theological theme cross-references |
+| `verse_vectors` | 31,280 | OpenAI embeddings for semantic search |
+| `passage_vectors` | 5,190 | OpenAI embeddings for passage similarity |
 
-All data comes from [STEPBible](https://github.com/STEPBible/STEPBible-Data), licensed CC BY 4.0.
+All biblical data comes from [STEPBible](https://github.com/STEPBible/STEPBible-Data), licensed CC BY 4.0. Vector embeddings use OpenAI's `text-embedding-3-small` model via [sqlite-vec](https://github.com/asg017/sqlite-vec).
 
 ---
 
@@ -299,6 +303,40 @@ Returns:
 - Each verse showing the context of hesed
 ```
 
+### 8. `find_similar_passages`
+
+**Purpose**: Discover semantically similar passages across the Bible using vector embeddings.
+
+**When Claude uses it**:
+- User wants to find thematic connections not captured by explicit cross-references
+- User is studying prophetic imagery across OT and NT
+- User wants to explore how themes develop across Scripture
+- User asks "What passages are similar to X?"
+
+**What it returns**:
+- Source verse text
+- Similar passages ranked by semantic similarity (%)
+- Genre warnings when source and match differ
+- Hermeneutical caution about verifying context
+
+**Important**: Semantic similarity indicates shared vocabulary and concepts, but does NOT establish theological connection. The tool includes warnings to verify genre compatibility, authorial intent, and historical context before treating matches as theologically related.
+
+**Example**:
+```
+User: "Find passages similar to Daniel 7:7 about the beast with ten horns"
+
+Claude calls: find_similar_passages(reference="Daniel 7:7", limit=5)
+
+Returns:
+- Daniel 7:15-28 (70.0% similar) - interpretation of the vision
+- Daniel 8:1-27 (62.0% similar) - the next vision
+- Revelation 9:17-21 (61.1% similar) - locusts with lion's teeth
+- Daniel 2:29-45 (60.8% similar) - Nebuchadnezzar's statue
+- Revelation 17:8-10 (59.6% similar) - the beast that was and is not
+```
+
+This tool finds the classic **Daniel → Revelation** prophetic connections that scholars study, as well as related OT apocalyptic passages in Ezekiel and Zechariah.
+
 ---
 
 ## Hermeneutical Framework
@@ -482,6 +520,7 @@ Users don't need to know the tool names. They just ask questions:
 | "What other passages talk about grace?" | `get_cross_references` |
 | "Parse V-AAI-3S" | `parse_morphology` |
 | "Where else does G26 appear?" | `search_by_strongs` |
+| "Find passages similar to Daniel 7" | `find_similar_passages` |
 
 ### Example Conversation
 
@@ -540,6 +579,14 @@ What does the Hebrew word 'hesed' mean? Where is it used?
 Help me understand Revelation 13 - what are these beasts?
 ```
 
+```
+Find passages similar to John 3:16 - what other verses talk about God's love like this?
+```
+
+```
+What Old Testament passages connect to Daniel's vision of the Son of Man?
+```
+
 ---
 
 ## Self-Hosting
@@ -560,12 +607,13 @@ studybible-mcp/
 ├── src/study_bible_mcp/
 │   ├── server.py          # MCP server (stdio + SSE transports)
 │   ├── database.py        # SQLite queries
-│   ├── tools.py           # 7 tool definitions
+│   ├── tools.py           # 8 tool definitions
 │   ├── hermeneutics.py    # Genre detection & interpretation
 │   └── parsers/           # STEPBible data parsers
 ├── scripts/
 │   ├── download_stepbible.py  # Download source data
-│   └── build_database.py      # Build SQLite database
+│   ├── build_database.py      # Build SQLite database
+│   └── generate_embeddings.py # Generate vector embeddings
 ├── prompts/
 │   └── system_prompt.md   # Full hermeneutical framework for agents
 ├── docs/
