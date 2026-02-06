@@ -42,12 +42,14 @@ logging.basicConfig(
 logger = logging.getLogger("study-bible-mcp")
 
 # Initialize server with purple cross icon
+# Use URL-based icon for better compatibility with Claude Desktop
+ICON_URL = "https://studybible-mcp.fly.dev/static/icon.png"
 server = Server(
     "study-bible",
     version="1.0.0",
     icons=[
         Icon(
-            src=f"data:image/png;base64,{ICON_BASE64}",
+            src=ICON_URL,
             mimeType="image/png",
             sizes=["32x32"]
         )
@@ -468,15 +470,23 @@ async def run_sse_server(host: str, port: int):
                 "/sse": "SSE connection endpoint",
                 "/messages": "Message POST endpoint",
                 "/health": "Health check endpoint",
+                "/static/icon.png": "Server icon",
             },
             "tools": [tool.name for tool in TOOLS],
         })
+
+    async def serve_icon(request):
+        """Serve the server icon as a PNG file."""
+        import base64
+        icon_bytes = base64.b64decode(ICON_BASE64)
+        return Response(content=icon_bytes, media_type="image/png")
 
     # Create Starlette app with CORS middleware
     app = Starlette(
         routes=[
             Route("/", endpoint=root, methods=["GET"]),
             Route("/health", endpoint=health_check, methods=["GET"]),
+            Route("/static/icon.png", endpoint=serve_icon, methods=["GET"]),
             Route("/sse", endpoint=handle_sse),
             Route("/messages", endpoint=handle_messages, methods=["POST"]),
         ],
