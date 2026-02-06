@@ -25,8 +25,8 @@ from mcp.types import (
 
 from .database import StudyBibleDB
 
-# Purple cross icon (32x32 PNG, base64 encoded)
-ICON_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAATklEQVR4nO3VQQoAIAhE0e+c3JvXCVroRsh5y8AYGCOw7aIzlOR5nJfvE8PkAGyvIKqb3vV6IWKYHIDtFURnyH/BVzsgB8AVDJMDYMasCzFDCS5Q8luaAAAAAElFTkSuQmCC"
+# Purple book with gold cross icon (32x32 PNG, base64 encoded)
+ICON_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAtklEQVR42mNgGOmAEZtgQ9TV/7SwrGGZNiNeB9DKYnwOYcGl6MajG1S1VENOA6s4E4yxounvfw0NDZpYjm4mckgz0drnhMxmIdew5bO3M9w+twfOr5veS5Y5TAOdDUcdMOAOYCE2wWEDqkYueNVEpnpSxwHIqR3ZcmziqMBzNA1QJwqwFTLocT5aEI06YNQBow6gaUGEDUAqGk/qhwCu1iutWsY4+wW0bJYT1S+gZUgMqq7ZKAAA/oE/8EmGTpMAAAAASUVORK5CYII="
 from .tools import TOOLS, format_lexicon_entry, format_verse, format_name_entry
 from .hermeneutics import (
     get_genre_from_reference,
