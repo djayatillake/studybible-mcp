@@ -136,6 +136,9 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
         if tehmc_path.exists():
             import_morphology(conn, tehmc_path, "hebrew", "TEHMC")
 
+        # Build passages from section markers
+        build_passages(conn)
+
         # Add built-in cross-references
         import_builtin_crossrefs(conn)
 
@@ -257,6 +260,7 @@ def import_verses(conn: sqlite3.Connection, filepath: Path, parser_type: str, na
                 verse['text_english'],
                 verse['text_original'],
                 verse['word_data'],
+                verse.get('section_end'),  # New column for section markers
             ))
 
             count += 1
@@ -264,8 +268,8 @@ def import_verses(conn: sqlite3.Connection, filepath: Path, parser_type: str, na
             if len(batch) >= 500:
                 conn.executemany("""
                     INSERT OR REPLACE INTO verses
-                    (reference, book, chapter, verse, text_english, text_original, word_data)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (reference, book, chapter, verse, text_english, text_original, word_data, section_end)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """, batch)
                 conn.commit()
                 batch = []
@@ -274,8 +278,8 @@ def import_verses(conn: sqlite3.Connection, filepath: Path, parser_type: str, na
         if batch:
             conn.executemany("""
                 INSERT OR REPLACE INTO verses
-                (reference, book, chapter, verse, text_english, text_original, word_data)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                (reference, book, chapter, verse, text_english, text_original, word_data, section_end)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, batch)
             conn.commit()
 
@@ -370,6 +374,122 @@ def import_morphology(conn: sqlite3.Connection, filepath: Path, language: str, n
     console.print(f"  [green]✓[/green] Imported {count} codes")
 
 
+def build_passages(conn: sqlite3.Connection):
+    """Build passages table by grouping verses based on section markers."""
+    console.print("Building passages from section markers...")
+
+    # Get all verses ordered by book order, chapter, verse
+    # We need to maintain book order (Gen-Mal for OT, Mat-Rev for NT)
+    cursor = conn.execute("""
+        SELECT id, reference, book, chapter, verse, text_english, section_end
+        FROM verses
+        ORDER BY id
+    """)
+    verses = cursor.fetchall()
+
+    if not verses:
+        console.print("  [yellow]No verses found[/yellow]")
+        return
+
+    passages = []
+    current_passage_start = None
+    current_passage_verses = []
+    current_book = None
+
+    for verse in verses:
+        verse_id, reference, book, chapter, verse_num, text_english, section_end = verse
+
+        # If we're starting a new book, close the previous passage
+        if current_book is not None and book != current_book:
+            if current_passage_verses:
+                passages.append(build_passage_entry(current_passage_verses, None))
+            current_passage_verses = []
+            current_passage_start = None
+
+        current_book = book
+
+        # Add verse to current passage
+        current_passage_verses.append({
+            'id': verse_id,
+            'reference': reference,
+            'book': book,
+            'chapter': chapter,
+            'verse': verse_num,
+            'text_english': text_english,
+            'section_end': section_end,
+        })
+
+        # If this verse ends a section, close the passage
+        if section_end:
+            if current_passage_verses:
+                passages.append(build_passage_entry(current_passage_verses, section_end))
+            current_passage_verses = []
+
+    # Don't forget the last passage if it didn't end with a marker
+    if current_passage_verses:
+        passages.append(build_passage_entry(current_passage_verses, None))
+
+    # Insert passages
+    count = 0
+    batch = []
+    for p in passages:
+        batch.append((
+            p['reference_start'],
+            p['reference_end'],
+            p['book'],
+            p['start_verse_id'],
+            p['end_verse_id'],
+            p['text_combined'],
+            p['verse_count'],
+            p['section_type'],
+        ))
+        count += 1
+
+        if len(batch) >= 500:
+            conn.executemany("""
+                INSERT INTO passages
+                (reference_start, reference_end, book, start_verse_id, end_verse_id,
+                 text_combined, verse_count, section_type)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, batch)
+            conn.commit()
+            batch = []
+
+    if batch:
+        conn.executemany("""
+            INSERT INTO passages
+            (reference_start, reference_end, book, start_verse_id, end_verse_id,
+             text_combined, verse_count, section_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, batch)
+        conn.commit()
+
+    console.print(f"  [green]✓[/green] Built {count} passages")
+
+
+def build_passage_entry(verses: list[dict], section_type: str | None) -> dict:
+    """Build a passage entry from a list of verses."""
+    if not verses:
+        raise ValueError("Cannot build passage from empty verse list")
+
+    first = verses[0]
+    last = verses[-1]
+
+    # Combine all verse texts
+    text_combined = ' '.join(v['text_english'] for v in verses if v.get('text_english'))
+
+    return {
+        'reference_start': first['reference'],
+        'reference_end': last['reference'],
+        'book': first['book'],
+        'start_verse_id': first['id'],
+        'end_verse_id': last['id'],
+        'text_combined': text_combined,
+        'verse_count': len(verses),
+        'section_type': section_type,
+    }
+
+
 def import_builtin_crossrefs(conn: sqlite3.Connection):
     """Import built-in thematic cross-references."""
     console.print("Adding thematic cross-references...")
@@ -429,7 +549,7 @@ def show_stats(conn: sqlite3.Connection):
     """Show database statistics."""
     console.print("\n[bold]Database Statistics:[/bold]")
 
-    tables = ["lexicon", "verses", "names", "morphology", "thematic_references"]
+    tables = ["lexicon", "verses", "passages", "names", "morphology", "thematic_references"]
 
     for table in tables:
         cursor = conn.execute(f"SELECT COUNT(*) FROM {table}")

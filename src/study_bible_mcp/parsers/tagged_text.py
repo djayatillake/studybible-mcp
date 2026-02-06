@@ -97,6 +97,12 @@ def parse_greek_word(parts: list[str]) -> dict | None:
             word = match.group(1).strip()
             transliteration = match.group(2).strip()
 
+    # Check for paragraph marker ¶ in the word
+    paragraph_end = False
+    if '¶' in word:
+        paragraph_end = True
+        word = word.replace('¶', '')
+
     # English translation
     english = parts[2].strip() if len(parts) > 2 else ''
 
@@ -111,13 +117,18 @@ def parse_greek_word(parts: list[str]) -> dict | None:
     else:
         strongs = normalize_strongs(strongs_grammar)
 
-    return {
+    result = {
         'word': word,
         'transliteration': transliteration,
         'strongs': strongs,
         'morph': morph,
         'gloss': english,
     }
+
+    if paragraph_end:
+        result['paragraph_end'] = True
+
+    return result
 
 
 def parse_tahot(filepath: Path) -> Iterator[dict]:
@@ -182,21 +193,32 @@ def parse_hebrew_word(parts: list[str]) -> dict | None:
 
     # Parse Strong's - may have multiple (H9003/{H7225G})
     strongs_field = parts[4].strip() if len(parts) > 4 else ''
+
+    # Check for section markers in Strong's field
+    # H9017=פ=para (petuchah - major section)
+    # H9018=ס=section (setumah - minor section)
+    section_end = None
+    if 'H9017' in strongs_field:
+        section_end = 'petuchah'  # Major section break (פ)
+    elif 'H9018' in strongs_field:
+        section_end = 'setumah'  # Minor section break (ס)
+
     # Extract the primary Strong's number
     strongs = ''
     if strongs_field:
         # Remove braces and take first number
         strongs_clean = re.sub(r'[{}]', '', strongs_field)
-        strongs_parts = re.split(r'[/,]', strongs_clean)
+        strongs_parts = re.split(r'[/,\\\\]', strongs_clean)
         for s in strongs_parts:
             normalized = normalize_strongs(s.strip())
-            if normalized and normalized.startswith('H'):
+            # Skip section marker codes H9016, H9017, H9018
+            if normalized and normalized.startswith('H') and normalized not in ('H9016', 'H9017', 'H9018'):
                 strongs = normalized
                 break
 
     morph = parts[5].strip() if len(parts) > 5 else ''
 
-    return {
+    result = {
         'word': word,
         'transliteration': transliteration,
         'strongs': strongs,
@@ -204,23 +226,37 @@ def parse_hebrew_word(parts: list[str]) -> dict | None:
         'gloss': english,
     }
 
+    if section_end:
+        result['section_end'] = section_end
+
+    return result
+
 
 def build_verse_entry(ref: str, word_data: list[dict], language: str) -> dict:
     """Build a verse entry from word data."""
     # Parse reference into components
     match = re.match(r'^(\w+)\.(\d+)\.(\d+)', ref)
-    
+
     book = match.group(1) if match else ref
     chapter = int(match.group(2)) if match else 0
     verse = int(match.group(3)) if match else 0
-    
+
     # Build original text from words
     original_text = ' '.join(w['word'] for w in word_data if w.get('word'))
-    
+
     # Build English gloss
     english_text = ' '.join(w['gloss'] for w in word_data if w.get('gloss'))
-    
-    return {
+
+    # Check for section/paragraph markers in the last word
+    section_end = None
+    if word_data:
+        last_word = word_data[-1]
+        if last_word.get('paragraph_end'):
+            section_end = 'paragraph'  # NT paragraph marker (¶)
+        elif last_word.get('section_end'):
+            section_end = last_word['section_end']  # OT section marker (פ/ס)
+
+    result = {
         'reference': ref,
         'book': book,
         'chapter': chapter,
@@ -229,6 +265,11 @@ def build_verse_entry(ref: str, word_data: list[dict], language: str) -> dict:
         'text_original': original_text,
         'word_data': json.dumps(word_data, ensure_ascii=False),
     }
+
+    if section_end:
+        result['section_end'] = section_end
+
+    return result
 
 
 def normalize_strongs(strongs: str) -> str:

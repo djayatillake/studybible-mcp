@@ -15,15 +15,44 @@ import aiosqlite
 
 class StudyBibleDB:
     """Async SQLite database interface for Bible study data."""
-    
+
     def __init__(self, db_path: Path | str):
         self.db_path = Path(db_path)
         self.conn: aiosqlite.Connection | None = None
-    
+        self._vec_loaded = False
+
     async def connect(self):
         """Open database connection."""
         self.conn = await aiosqlite.connect(self.db_path)
         self.conn.row_factory = aiosqlite.Row
+
+        # Try to load sqlite-vec extension for vector search
+        try:
+            await self._load_sqlite_vec()
+        except Exception:
+            # Vector search won't be available, but other functions work
+            pass
+
+    async def _load_sqlite_vec(self):
+        """Load sqlite-vec extension if available."""
+        if self._vec_loaded:
+            return
+
+        try:
+            import sqlite_vec
+
+            # Get the loadable path for sqlite-vec
+            vec_path = sqlite_vec.loadable_path()
+
+            # Use aiosqlite's built-in extension loading methods
+            await self.conn.enable_load_extension(True)
+            await self.conn.load_extension(vec_path)
+            await self.conn.enable_load_extension(False)
+            self._vec_loaded = True
+        except ImportError:
+            pass  # sqlite-vec not installed
+        except Exception:
+            pass  # Extension loading failed
     
     async def close(self):
         """Close database connection."""
@@ -291,6 +320,133 @@ class StudyBibleDB:
             row = await cursor.fetchone()
             return dict(row) if row else None
 
+    # =========================================================================
+    # Vector similarity queries
+    # =========================================================================
+
+    async def get_verse_embedding(self, verse_id: int) -> list[float] | None:
+        """Get the embedding vector for a verse."""
+        async with self.conn.execute(
+            "SELECT embedding FROM verse_vectors WHERE verse_id = ?",
+            (verse_id,)
+        ) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                # sqlite-vec returns bytes, need to decode
+                import struct
+                embedding_bytes = row[0]
+                if embedding_bytes:
+                    return list(struct.unpack(f'{len(embedding_bytes)//4}f', embedding_bytes))
+            return None
+
+    async def find_similar_verses(
+        self,
+        verse_id: int,
+        limit: int = 10,
+        exclude_same_chapter: bool = False
+    ) -> list[dict]:
+        """Find verses semantically similar to a given verse."""
+        # Get the source verse's embedding
+        embedding = await self.get_verse_embedding(verse_id)
+        if not embedding:
+            return []
+
+        # Get source verse info for exclusion
+        async with self.conn.execute(
+            "SELECT book, chapter FROM verses WHERE id = ?",
+            (verse_id,)
+        ) as cursor:
+            source = await cursor.fetchone()
+
+        # Convert embedding to bytes for sqlite-vec
+        import struct
+        embedding_bytes = struct.pack(f'{len(embedding)}f', *embedding)
+
+        # Find similar verses
+        sql = """
+            SELECT v.id, v.reference, v.book, v.chapter, v.verse,
+                   v.text_english, v.text_original,
+                   vec_distance_cosine(vv.embedding, ?) as distance
+            FROM verse_vectors vv
+            JOIN verses v ON v.id = vv.verse_id
+            WHERE vv.verse_id != ?
+        """
+        params = [embedding_bytes, verse_id]
+
+        if exclude_same_chapter and source:
+            sql += " AND NOT (v.book = ? AND v.chapter = ?)"
+            params.extend([source['book'], source['chapter']])
+
+        sql += " ORDER BY distance LIMIT ?"
+        params.append(limit)
+
+        async with self.conn.execute(sql, params) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def find_similar_passages(
+        self,
+        reference: str,
+        limit: int = 10
+    ) -> list[dict]:
+        """Find passages semantically similar to a verse reference."""
+        # First, get the verse
+        verse = await self.get_verse(reference)
+        if not verse:
+            return []
+
+        verse_id = verse['id']
+
+        # Get embedding for this verse
+        embedding = await self.get_verse_embedding(verse_id)
+        if not embedding:
+            return []
+
+        # Convert embedding to bytes for sqlite-vec
+        import struct
+        embedding_bytes = struct.pack(f'{len(embedding)}f', *embedding)
+
+        # Search against passage embeddings
+        sql = """
+            SELECT p.id, p.reference_start, p.reference_end, p.book,
+                   p.text_combined, p.verse_count, p.section_type,
+                   vec_distance_cosine(pv.embedding, ?) as distance
+            FROM passage_vectors pv
+            JOIN passages p ON p.id = pv.passage_id
+            WHERE NOT (p.start_verse_id <= ? AND p.end_verse_id >= ?)
+            ORDER BY distance
+            LIMIT ?
+        """
+
+        async with self.conn.execute(
+            sql,
+            (embedding_bytes, verse_id, verse_id, limit)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            results = []
+            for row in rows:
+                d = dict(row)
+                # Format reference range nicely
+                if d['reference_start'] == d['reference_end']:
+                    d['reference'] = d['reference_start']
+                else:
+                    d['reference'] = f"{d['reference_start']} - {d['reference_end']}"
+                # Convert distance to similarity score (0-1, higher is better)
+                d['similarity'] = 1.0 - d['distance']
+                results.append(d)
+            return results
+
+    async def has_vector_tables(self) -> bool:
+        """Check if vector tables exist and have data."""
+        try:
+            async with self.conn.execute(
+                "SELECT COUNT(*) FROM verse_vectors"
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row[0] > 0
+        except Exception:
+            return False
+
 
 def create_schema(conn: sqlite3.Connection):
     """Create the database schema."""
@@ -312,7 +468,7 @@ def create_schema(conn: sqlite3.Connection):
         );
         CREATE INDEX IF NOT EXISTS idx_lexicon_strongs ON lexicon(strongs);
         CREATE INDEX IF NOT EXISTS idx_lexicon_language ON lexicon(language);
-        
+
         -- Verses table for tagged Bible text
         CREATE TABLE IF NOT EXISTS verses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -322,11 +478,29 @@ def create_schema(conn: sqlite3.Connection):
             verse INTEGER,
             text_english TEXT,
             text_original TEXT,
-            word_data TEXT
+            word_data TEXT,
+            section_end TEXT  -- 'paragraph' (NT), 'petuchah' (OT major), 'setumah' (OT minor), or NULL
         );
         CREATE INDEX IF NOT EXISTS idx_verses_reference ON verses(reference);
         CREATE INDEX IF NOT EXISTS idx_verses_book ON verses(book);
-        
+
+        -- Passages table (verses grouped by section markers)
+        CREATE TABLE IF NOT EXISTS passages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            reference_start TEXT NOT NULL,    -- e.g., "Mat.1.1"
+            reference_end TEXT NOT NULL,      -- e.g., "Mat.1.17"
+            book TEXT NOT NULL,
+            start_verse_id INTEGER NOT NULL,
+            end_verse_id INTEGER NOT NULL,
+            text_combined TEXT NOT NULL,      -- Full passage text for embedding
+            verse_count INTEGER NOT NULL,
+            section_type TEXT,                -- 'paragraph', 'petuchah', 'setumah'
+            FOREIGN KEY (start_verse_id) REFERENCES verses(id),
+            FOREIGN KEY (end_verse_id) REFERENCES verses(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_passages_book ON passages(book);
+        CREATE INDEX IF NOT EXISTS idx_passages_refs ON passages(reference_start, reference_end);
+
         -- Biblical names table
         CREATE TABLE IF NOT EXISTS names (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -339,7 +513,7 @@ def create_schema(conn: sqlite3.Connection):
         );
         CREATE INDEX IF NOT EXISTS idx_names_name ON names(name);
         CREATE INDEX IF NOT EXISTS idx_names_type ON names(type);
-        
+
         -- Cross references
         CREATE TABLE IF NOT EXISTS cross_references (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -349,7 +523,7 @@ def create_schema(conn: sqlite3.Connection):
             note TEXT
         );
         CREATE INDEX IF NOT EXISTS idx_xref_source ON cross_references(source);
-        
+
         -- Thematic references
         CREATE TABLE IF NOT EXISTS thematic_references (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -358,7 +532,7 @@ def create_schema(conn: sqlite3.Connection):
             note TEXT
         );
         CREATE INDEX IF NOT EXISTS idx_theme_name ON thematic_references(theme);
-        
+
         -- Morphology codes
         CREATE TABLE IF NOT EXISTS morphology (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -376,5 +550,26 @@ def create_schema(conn: sqlite3.Connection):
             UNIQUE(code, language)
         );
         CREATE INDEX IF NOT EXISTS idx_morph_code ON morphology(code);
+    """)
+    conn.commit()
+
+
+def create_vector_tables(conn: sqlite3.Connection):
+    """Create vector tables for semantic search using sqlite-vec.
+
+    This should be called after loading the sqlite-vec extension.
+    """
+    conn.executescript("""
+        -- Vector table for passage embeddings (1536 dimensions for OpenAI)
+        CREATE VIRTUAL TABLE IF NOT EXISTS passage_vectors USING vec0(
+            passage_id INTEGER PRIMARY KEY,
+            embedding FLOAT[1536]
+        );
+
+        -- Vector table for verse embeddings
+        CREATE VIRTUAL TABLE IF NOT EXISTS verse_vectors USING vec0(
+            verse_id INTEGER PRIMARY KEY,
+            embedding FLOAT[1536]
+        );
     """)
     conn.commit()

@@ -9,3 +9,9 @@ rich>=13.0.0
 # SSE transport dependencies (included for Docker builds)
 starlette>=0.32.0
 uvicorn>=0.24.0
+
+# Vector search dependencies
+sqlite-vec>=0.1.0
+
+# Embedding generation (optional, only needed for generate_embeddings.py)
+openai>=1.0.0

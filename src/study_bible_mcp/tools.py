@@ -281,6 +281,68 @@ This transforms word study from definition into demonstration.""",
             "required": ["strongs"]
         }
     ),
+    Tool(
+        name="find_similar_passages",
+        description="""Find passages with similar semantic content to a given Bible verse.
+
+USE THIS to discover thematic connections across the Bible that may not be captured
+by explicit cross-references or shared vocabulary. This tool uses vector embeddings
+to find passages with similar meaning, not just similar words.
+
+EXAMPLES OF DISCOVERIES:
+- Daniel 7:13-14 (Son of Man vision) → Revelation 1:7, 14:14 (similar imagery)
+- Exodus 12:1-13 (Passover) → John 1:29, 1 Corinthians 5:7 (Lamb imagery)
+- Isaiah 53:4-6 (Suffering Servant) → 1 Peter 2:24-25 (echoes of Isaiah)
+- Proverbs wisdom themes → James practical wisdom
+
+⚠️ CRITICAL HERMENEUTICAL WARNING:
+Semantic similarity does NOT equal theological connection or relevance.
+Two passages may use similar language but have completely different meanings
+based on their literary context, historical setting, and authorial intent.
+
+BEFORE USING SIMILAR PASSAGES IN YOUR RESPONSE, YOU MUST:
+
+1. **Check Genre Compatibility**: A prophetic vision and a historical narrative
+   may share imagery but require different interpretive approaches. Use lookup_verse
+   to understand each passage's genre.
+
+2. **Verify Historical Context**: What did this passage mean to its original audience?
+   Similar language across centuries may have different referents.
+
+3. **Examine Literary Context**: Is the similar passage using the language literally,
+   metaphorically, or as an allusion? A quote vs. independent usage matters greatly.
+
+4. **Apply Fee & Stuart's Questions**:
+   - What did this text mean to the original readers?
+   - What is the author's stated purpose?
+   - How does this fit the book's overall argument/narrative?
+
+5. **Distinguish Types of Similarity**:
+   - Direct quotation (explicit OT in NT)
+   - Deliberate allusion (author intentionally echoing)
+   - Shared tradition (common Jewish/Christian concepts)
+   - Coincidental similarity (similar words, unrelated meaning)
+
+Only present a similar passage as theologically relevant if you can establish
+an actual interpretive connection, not mere semantic overlap.
+
+Takes a verse reference (with pre-computed embedding) and returns
+semantically similar passages ranked by similarity score.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "type": "string",
+                    "description": "Bible reference to find similar passages for (e.g., 'John 3:16', 'Daniel 7:13')"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Number of similar passages to return. Default: 10"
+                }
+            },
+            "required": ["reference"]
+        }
+    ),
 ]
 
 

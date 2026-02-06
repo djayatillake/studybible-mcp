@@ -125,6 +125,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_parse_morphology(arguments)
         elif name == "search_by_strongs":
             return await handle_search_by_strongs(arguments)
+        elif name == "find_similar_passages":
+            return await handle_find_similar_passages(arguments)
         else:
             return [TextContent(
                 type="text",
@@ -327,6 +329,76 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
             result += f"**{v['reference']}**: {v['text_english']}\n\n"
     else:
         result += "No verses found with this Strong's number in the database.\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent]:
+    """Handle find_similar_passages tool - find semantically similar passages."""
+    reference = args.get("reference", "")
+    limit = args.get("limit", 10)
+
+    if not reference:
+        return [TextContent(type="text", text="Please provide a verse reference (e.g., 'John 3:16').")]
+
+    # Check if vector tables exist
+    has_vectors = await db.has_vector_tables()
+    if not has_vectors:
+        return [TextContent(
+            type="text",
+            text="Vector embeddings have not been generated yet. "
+                 "Run 'python scripts/generate_embeddings.py' to enable semantic search."
+        )]
+
+    # Find similar passages
+    similar = await db.find_similar_passages(reference, limit=limit)
+
+    if not similar:
+        return [TextContent(
+            type="text",
+            text=f"No similar passages found for {reference}. "
+                 "The verse may not exist or embeddings may not be generated."
+        )]
+
+    # Get the source verse for context
+    source_verse = await db.get_verse(reference)
+    source_genre = get_genre_from_reference(reference) if source_verse else None
+
+    result = f"## Passages Similar to {reference}\n\n"
+
+    if source_verse:
+        result += f"**Source**: {source_verse['text_english']}\n\n"
+
+    result += "---\n\n"
+    result += "⚠️ **Hermeneutical Caution**: Semantic similarity indicates shared vocabulary "
+    result += "and concepts, but does NOT establish theological connection. Before using any "
+    result += "passage below, verify:\n"
+    result += "1. Genre compatibility with the source passage\n"
+    result += "2. Whether the author intended an allusion/quotation\n"
+    result += "3. Historical and literary context of each passage\n"
+    result += "4. What each text meant to its original audience\n\n"
+    result += "---\n\n"
+
+    for i, passage in enumerate(similar, 1):
+        similarity_pct = passage['similarity'] * 100
+        ref_display = passage['reference']
+        passage_genre = get_genre_from_reference(passage['reference_start'])
+
+        result += f"### {i}. {ref_display} ({similarity_pct:.1f}% similar)\n\n"
+
+        # Show genre if different from source
+        if passage_genre and source_genre and passage_genre != source_genre:
+            result += f"⚡ **Genre**: {passage_genre} (source is {source_genre})\n\n"
+
+        # Show passage text (truncated if very long)
+        text = passage['text_combined']
+        if len(text) > 500:
+            text = text[:500] + "..."
+        result += f"{text}\n\n"
+
+        # Add verse count info
+        if passage['verse_count'] > 1:
+            result += f"*({passage['verse_count']} verses in this passage)*\n\n"
 
     return [TextContent(type="text", text=result)]
 
