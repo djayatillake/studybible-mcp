@@ -71,9 +71,18 @@ class StudyBibleDB:
     # Lexicon queries
     # =========================================================================
     
+    @staticmethod
+    def _normalize_strongs(strongs: str) -> str:
+        """Normalize Strong's number to match DB format (e.g., G26 -> G0026)."""
+        strongs = strongs.upper().strip()
+        if len(strongs) >= 2 and strongs[0] in ("G", "H"):
+            num = strongs[1:]
+            return strongs[0] + num.zfill(4)
+        return strongs
+
     async def get_lexicon_entry(self, strongs: str) -> dict | None:
         """Get a single lexicon entry by Strong's number."""
-        strongs = strongs.upper()
+        strongs = self._normalize_strongs(strongs)
         async with self.conn.execute(
             "SELECT * FROM lexicon WHERE strongs = ?",
             (strongs,)
@@ -245,7 +254,7 @@ class StudyBibleDB:
     
     async def get_verses_with_strongs(self, strongs: str, limit: int = 20) -> list[dict]:
         """Find verses containing a specific Strong's number."""
-        strongs = strongs.upper()
+        strongs = self._normalize_strongs(strongs)
         
         async with self.conn.execute(
             """
@@ -436,6 +445,386 @@ class StudyBibleDB:
                 results.append(d)
             return results
 
+    # =========================================================================
+    # Graph queries (Theographic Bible Metadata)
+    # =========================================================================
+
+    async def graph_find_person(self, name: str) -> list[dict]:
+        """Find a person by name (fuzzy match).
+
+        Orders by: exact name match first, then by number of aliases
+        (more aliases = more prominent biblical figure), then family edges.
+        """
+        async with self.conn.execute(
+            """SELECT p.* FROM graph_people p
+               LEFT JOIN (
+                   SELECT from_person_id as pid, COUNT(*) as cnt FROM graph_family_edges GROUP BY from_person_id
+                   UNION ALL
+                   SELECT to_person_id, COUNT(*) FROM graph_family_edges GROUP BY to_person_id
+               ) fe ON fe.pid = p.id
+               WHERE LOWER(p.name) = LOWER(?)
+                  OR LOWER(p.also_called) LIKE LOWER(?)
+               GROUP BY p.id
+               ORDER BY
+                   CASE WHEN LOWER(p.name) = LOWER(?) THEN 0 ELSE 1 END,
+                   LENGTH(COALESCE(p.also_called, '')) DESC,
+                   COALESCE(SUM(fe.cnt), 0) DESC
+               LIMIT 10""",
+            (name, f"%{name}%", name)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def graph_find_place(self, name: str) -> list[dict]:
+        """Find a place by name (fuzzy match)."""
+        async with self.conn.execute(
+            "SELECT * FROM graph_places WHERE LOWER(name) LIKE LOWER(?) LIMIT 10",
+            (f"%{name}%",)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def graph_get_ancestors(
+        self, person_id: str, max_generations: int = 10
+    ) -> list[dict]:
+        """Get ancestors using recursive CTE."""
+        async with self.conn.execute(
+            """
+            WITH RECURSIVE ancestors AS (
+                SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
+                       0 as generation, 'self' as relationship
+                FROM graph_people p WHERE p.id = ?
+
+                UNION ALL
+
+                SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
+                       a.generation + 1,
+                       e.relationship_type
+                FROM ancestors a
+                JOIN graph_family_edges e ON e.to_person_id = a.id
+                JOIN graph_people p ON p.id = e.from_person_id
+                WHERE e.relationship_type IN ('father_of', 'mother_of')
+                  AND a.generation < ?
+            )
+            SELECT * FROM ancestors ORDER BY generation
+            """,
+            (person_id, max_generations)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def graph_get_descendants(
+        self, person_id: str, max_generations: int = 10
+    ) -> list[dict]:
+        """Get descendants using recursive CTE."""
+        async with self.conn.execute(
+            """
+            WITH RECURSIVE descendants AS (
+                SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
+                       0 as generation, 'self' as relationship
+                FROM graph_people p WHERE p.id = ?
+
+                UNION ALL
+
+                SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
+                       d.generation + 1,
+                       e.relationship_type
+                FROM descendants d
+                JOIN graph_family_edges e ON e.from_person_id = d.id
+                JOIN graph_people p ON p.id = e.to_person_id
+                WHERE e.relationship_type IN ('father_of', 'mother_of')
+                  AND d.generation < ?
+            )
+            SELECT * FROM descendants ORDER BY generation
+            """,
+            (person_id, max_generations)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def graph_find_path(
+        self, person1_id: str, person2_id: str, max_depth: int = 15
+    ) -> list[dict]:
+        """Find shortest relationship path between two people using Python-side BFS.
+
+        Returns list of dicts with from_name, to_name, relationship_type for each step.
+        """
+        if person1_id == person2_id:
+            return []
+
+        # Build adjacency list from the (small) family edges table
+        adjacency: dict[str, list[tuple[str, str]]] = {}  # person_id -> [(neighbor_id, rel_type)]
+        async with self.conn.execute(
+            "SELECT from_person_id, to_person_id, relationship_type FROM graph_family_edges"
+        ) as cursor:
+            for row in await cursor.fetchall():
+                fid, tid, rel = row[0], row[1], row[2]
+                adjacency.setdefault(fid, []).append((tid, rel))
+                # Reverse edge for bidirectional traversal
+                reverse_rel = rel
+                if rel == "father_of" or rel == "mother_of":
+                    reverse_rel = "child_of"
+                elif rel == "child_of":
+                    reverse_rel = "parent_of"
+                adjacency.setdefault(tid, []).append((fid, reverse_rel))
+
+        # BFS
+        from collections import deque
+        queue = deque([(person1_id, [person1_id])])
+        visited = {person1_id}
+
+        while queue:
+            current, path = queue.popleft()
+            if len(path) - 1 >= max_depth:
+                continue
+
+            for neighbor_id, rel_type in adjacency.get(current, []):
+                if neighbor_id in visited:
+                    continue
+                new_path = path + [neighbor_id]
+                if neighbor_id == person2_id:
+                    # Reconstruct path with names and relationships
+                    result = []
+                    # Walk the path and find the relationship at each step
+                    for i in range(len(new_path) - 1):
+                        from_id = new_path[i]
+                        to_id = new_path[i + 1]
+                        # Find the relationship type for this edge
+                        step_rel = "related_to"
+                        for nid, rt in adjacency.get(from_id, []):
+                            if nid == to_id:
+                                step_rel = rt
+                                break
+                        result.append({
+                            "current_id": from_id,
+                            "next_id": to_id,
+                            "relationship_type": step_rel,
+                            "depth": i + 1,
+                            "from_name": from_id,  # placeholder, resolved below
+                            "to_name": to_id,       # placeholder, resolved below
+                        })
+
+                    # Resolve names
+                    all_ids = list(set(new_path))
+                    placeholders = ",".join("?" * len(all_ids))
+                    name_map = {}
+                    async with self.conn.execute(
+                        f"SELECT id, name FROM graph_people WHERE id IN ({placeholders})",
+                        all_ids
+                    ) as cursor:
+                        for row in await cursor.fetchall():
+                            name_map[row[0]] = row[1]
+
+                    for step in result:
+                        step["from_name"] = name_map.get(step["current_id"], step["current_id"])
+                        step["to_name"] = name_map.get(step["next_id"], step["next_id"])
+
+                    return result
+
+                visited.add(neighbor_id)
+                queue.append((neighbor_id, new_path))
+
+        return []  # No path found
+
+    async def graph_get_family(self, person_id: str) -> dict:
+        """Get immediate family of a person."""
+        result = {"parents": [], "children": [], "partners": [], "siblings": []}
+
+        # Parents (people who are father_of or mother_of this person)
+        async with self.conn.execute(
+            """SELECT p.*, e.relationship_type FROM graph_family_edges e
+               JOIN graph_people p ON p.id = e.from_person_id
+               WHERE e.to_person_id = ?
+                 AND e.relationship_type IN ('father_of', 'mother_of')""",
+            (person_id,)
+        ) as cursor:
+            for row in await cursor.fetchall():
+                result["parents"].append(dict(row))
+
+        # Children
+        async with self.conn.execute(
+            """SELECT p.*, e.relationship_type FROM graph_family_edges e
+               JOIN graph_people p ON p.id = e.to_person_id
+               WHERE e.from_person_id = ?
+                 AND e.relationship_type IN ('father_of', 'mother_of')""",
+            (person_id,)
+        ) as cursor:
+            for row in await cursor.fetchall():
+                result["children"].append(dict(row))
+
+        # Partners
+        async with self.conn.execute(
+            """SELECT p.* FROM graph_family_edges e
+               JOIN graph_people p ON p.id = CASE
+                   WHEN e.from_person_id = ? THEN e.to_person_id
+                   ELSE e.from_person_id END
+               WHERE (e.from_person_id = ? OR e.to_person_id = ?)
+                 AND e.relationship_type = 'partner_of'""",
+            (person_id, person_id, person_id)
+        ) as cursor:
+            for row in await cursor.fetchall():
+                result["partners"].append(dict(row))
+
+        # Siblings
+        async with self.conn.execute(
+            """SELECT p.* FROM graph_family_edges e
+               JOIN graph_people p ON p.id = CASE
+                   WHEN e.from_person_id = ? THEN e.to_person_id
+                   ELSE e.from_person_id END
+               WHERE (e.from_person_id = ? OR e.to_person_id = ?)
+                 AND e.relationship_type = 'sibling_of'""",
+            (person_id, person_id, person_id)
+        ) as cursor:
+            for row in await cursor.fetchall():
+                result["siblings"].append(dict(row))
+
+        return result
+
+    async def graph_get_person_events(self, person_id: str) -> list[dict]:
+        """Get all events a person participated in."""
+        async with self.conn.execute(
+            """SELECT e.* FROM graph_person_event_edges pe
+               JOIN graph_events e ON e.id = pe.event_id
+               WHERE pe.person_id = ?
+               ORDER BY e.sort_key""",
+            (person_id,)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def graph_get_event_places(self, event_id: str) -> list[dict]:
+        """Get all places where an event occurred."""
+        async with self.conn.execute(
+            """SELECT p.* FROM graph_event_place_edges ep
+               JOIN graph_places p ON p.id = ep.place_id
+               WHERE ep.event_id = ?""",
+            (event_id,)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def graph_get_place_events(self, place_id: str) -> list[dict]:
+        """Get all events at a place."""
+        async with self.conn.execute(
+            """SELECT e.* FROM graph_event_place_edges ep
+               JOIN graph_events e ON e.id = ep.event_id
+               WHERE ep.place_id = ?
+               ORDER BY e.sort_key""",
+            (place_id,)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def graph_get_place_people(self, place_id: str) -> dict:
+        """Get people born/died at a place."""
+        result = {"born_here": [], "died_here": [], "visited": []}
+
+        async with self.conn.execute(
+            "SELECT * FROM graph_people WHERE birth_place_id = ?",
+            (place_id,)
+        ) as cursor:
+            for row in await cursor.fetchall():
+                result["born_here"].append(dict(row))
+
+        async with self.conn.execute(
+            "SELECT * FROM graph_people WHERE death_place_id = ?",
+            (place_id,)
+        ) as cursor:
+            for row in await cursor.fetchall():
+                result["died_here"].append(dict(row))
+
+        return result
+
+    # Map from our DB abbreviations to Theographic abbreviations
+    _THEOGRAPHIC_BOOK_MAP = {
+        "1Ch": "1Chr", "1Co": "1Cor", "1Jn": "1John", "1Ki": "1Kgs",
+        "1Pe": "1Pet", "1Sa": "1Sam", "1Th": "1Thess", "1Ti": "1Tim",
+        "2Ch": "2Chr", "2Co": "2Cor", "2Jn": "2John", "2Ki": "2Kgs",
+        "2Pe": "2Pet", "2Sa": "2Sam", "2Th": "2Thess", "2Ti": "2Tim",
+        "3Jn": "3John", "Act": "Acts", "Amo": "Amos", "Deu": "Deut",
+        "Ecc": "Eccl", "Est": "Esth", "Exo": "Exod", "Ezk": "Ezek",
+        "Jdg": "Judg", "Jhn": "John", "Jol": "Joel", "Jon": "Jonah",
+        "Jos": "Josh", "Jud": "Jude", "Luk": "Luke", "Mat": "Matt",
+        "Mrk": "Mark", "Nam": "Nah", "Oba": "Obad", "Phm": "Phlm",
+        "Php": "Phil", "Pro": "Prov", "Psa": "Ps", "Rut": "Ruth",
+        "Sng": "Song", "Tit": "Titus", "Zec": "Zech", "Zep": "Zeph",
+    }
+
+    def _to_theographic_ref(self, ref: str) -> str:
+        """Convert our DB verse reference format to Theographic format."""
+        parts = ref.split(".")
+        if parts:
+            parts[0] = self._THEOGRAPHIC_BOOK_MAP.get(parts[0], parts[0])
+        return ".".join(parts)
+
+    async def graph_get_verse_entities(
+        self, verse_ref: str
+    ) -> dict:
+        """Get all entities mentioned in a verse."""
+        result = {"people": [], "places": [], "events": []}
+        theo_ref = self._to_theographic_ref(verse_ref)
+
+        async with self.conn.execute(
+            """SELECT vm.entity_type, vm.entity_id,
+                      COALESCE(p.name, pl.name, e.title) as entity_name
+               FROM graph_verse_mentions vm
+               LEFT JOIN graph_people p ON vm.entity_type = 'person' AND p.id = vm.entity_id
+               LEFT JOIN graph_places pl ON vm.entity_type = 'place' AND pl.id = vm.entity_id
+               LEFT JOIN graph_events e ON vm.entity_type = 'event' AND e.id = vm.entity_id
+               WHERE vm.verse_ref = ?""",
+            (theo_ref,)
+        ) as cursor:
+            for row in await cursor.fetchall():
+                d = dict(row)
+                if d["entity_type"] == "person":
+                    result["people"].append(d)
+                elif d["entity_type"] == "place":
+                    result["places"].append(d)
+                elif d["entity_type"] == "event":
+                    result["events"].append(d)
+
+        return result
+
+    async def graph_get_chapter_entities(
+        self, book: str, chapter: int
+    ) -> dict:
+        """Get all entities mentioned in a chapter."""
+        result = {"people": [], "places": [], "events": []}
+        theo_book = self._THEOGRAPHIC_BOOK_MAP.get(book, book)
+        ref_pattern = f"{theo_book}.{chapter}.%"
+
+        async with self.conn.execute(
+            """SELECT DISTINCT vm.entity_type, vm.entity_id,
+                      COALESCE(p.name, pl.name, e.title) as entity_name
+               FROM graph_verse_mentions vm
+               LEFT JOIN graph_people p ON vm.entity_type = 'person' AND p.id = vm.entity_id
+               LEFT JOIN graph_places pl ON vm.entity_type = 'place' AND pl.id = vm.entity_id
+               LEFT JOIN graph_events e ON vm.entity_type = 'event' AND e.id = vm.entity_id
+               WHERE vm.verse_ref LIKE ?""",
+            (ref_pattern,)
+        ) as cursor:
+            for row in await cursor.fetchall():
+                d = dict(row)
+                if d["entity_type"] == "person":
+                    result["people"].append(d)
+                elif d["entity_type"] == "place":
+                    result["places"].append(d)
+                elif d["entity_type"] == "event":
+                    result["events"].append(d)
+
+        return result
+
+    async def graph_has_data(self) -> bool:
+        """Check if graph tables have data."""
+        try:
+            async with self.conn.execute(
+                "SELECT COUNT(*) FROM graph_people"
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row[0] > 0
+        except Exception:
+            return False
+
     async def has_vector_tables(self) -> bool:
         """Check if vector tables exist and have data."""
         try:
@@ -550,6 +939,96 @@ def create_schema(conn: sqlite3.Connection):
             UNIQUE(code, language)
         );
         CREATE INDEX IF NOT EXISTS idx_morph_code ON morphology(code);
+
+        -- =====================================================================
+        -- Graph tables (Theographic Bible Metadata)
+        -- =====================================================================
+
+        -- People nodes
+        CREATE TABLE IF NOT EXISTS graph_people (
+            id TEXT PRIMARY KEY,          -- e.g., "aaron_1"
+            name TEXT NOT NULL,
+            also_called TEXT,
+            gender TEXT,
+            birth_year INTEGER,
+            death_year INTEGER,
+            birth_place_id TEXT,
+            death_place_id TEXT,
+            description TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_graph_people_name ON graph_people(name);
+
+        -- Place nodes
+        CREATE TABLE IF NOT EXISTS graph_places (
+            id TEXT PRIMARY KEY,          -- e.g., "eden_354"
+            name TEXT NOT NULL,
+            latitude REAL,
+            longitude REAL,
+            feature_type TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_graph_places_name ON graph_places(name);
+
+        -- Event nodes
+        CREATE TABLE IF NOT EXISTS graph_events (
+            id TEXT PRIMARY KEY,          -- event_id as text
+            title TEXT NOT NULL,
+            start_year INTEGER,
+            duration TEXT,
+            sort_key REAL
+        );
+        CREATE INDEX IF NOT EXISTS idx_graph_events_title ON graph_events(title);
+
+        -- People group nodes
+        CREATE TABLE IF NOT EXISTS graph_people_groups (
+            name TEXT PRIMARY KEY,
+            members TEXT                  -- JSON array of person IDs
+        );
+
+        -- Family relationship edges
+        CREATE TABLE IF NOT EXISTS graph_family_edges (
+            from_person_id TEXT NOT NULL,
+            to_person_id TEXT NOT NULL,
+            relationship_type TEXT NOT NULL,  -- father_of, mother_of, partner_of, sibling_of
+            PRIMARY KEY (from_person_id, to_person_id, relationship_type)
+        );
+        CREATE INDEX IF NOT EXISTS idx_graph_family_from ON graph_family_edges(from_person_id);
+        CREATE INDEX IF NOT EXISTS idx_graph_family_to ON graph_family_edges(to_person_id);
+
+        -- Person-event participation edges
+        CREATE TABLE IF NOT EXISTS graph_person_event_edges (
+            person_id TEXT NOT NULL,
+            event_id TEXT NOT NULL,
+            PRIMARY KEY (person_id, event_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_graph_pe_person ON graph_person_event_edges(person_id);
+        CREATE INDEX IF NOT EXISTS idx_graph_pe_event ON graph_person_event_edges(event_id);
+
+        -- Event-place edges
+        CREATE TABLE IF NOT EXISTS graph_event_place_edges (
+            event_id TEXT NOT NULL,
+            place_id TEXT NOT NULL,
+            PRIMARY KEY (event_id, place_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_graph_ep_event ON graph_event_place_edges(event_id);
+        CREATE INDEX IF NOT EXISTS idx_graph_ep_place ON graph_event_place_edges(place_id);
+
+        -- Verse-entity mention links
+        CREATE TABLE IF NOT EXISTS graph_verse_mentions (
+            verse_ref TEXT NOT NULL,       -- e.g., "Gen.1.1" (matches verses.reference)
+            entity_type TEXT NOT NULL,     -- person, place, event
+            entity_id TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_graph_vm_ref ON graph_verse_mentions(verse_ref);
+        CREATE INDEX IF NOT EXISTS idx_graph_vm_entity ON graph_verse_mentions(entity_type, entity_id);
+
+        -- Person-group membership edges
+        CREATE TABLE IF NOT EXISTS graph_person_group_edges (
+            person_id TEXT NOT NULL,
+            group_name TEXT NOT NULL,
+            PRIMARY KEY (person_id, group_name)
+        );
+        CREATE INDEX IF NOT EXISTS idx_graph_pg_person ON graph_person_group_edges(person_id);
+        CREATE INDEX IF NOT EXISTS idx_graph_pg_group ON graph_person_group_edges(group_name);
     """)
     conn.commit()
 

@@ -52,45 +52,47 @@ def parse_greek_lexicon(filepath: Path) -> Iterator[dict]:
 
 
 def parse_greek_entry(parts: list[str]) -> dict | None:
-    """Parse a single Greek lexicon entry."""
-    if len(parts) < 3:
+    """Parse a single Greek lexicon entry.
+
+    TBESG tab-separated columns:
+      0: Extended Strong's number (e.g., G0026)
+      1: Extended reference (e.g., "G0026 =")
+      2: Back-reference / related Strong's
+      3: Greek word (e.g., ἀγάπη)
+      4: Transliteration (e.g., agapē)
+      5: Part of speech (e.g., G:N-F)
+      6: Short English definition (e.g., "love")
+      7: Full Abbott-Smith definition (HTML)
+    """
+    if len(parts) < 5:
         return None
-    
+
     strongs = parts[0].strip()
-    
+
     # Validate Strong's format (G#### or G####a, etc.)
     if not re.match(r'^G\d+[a-z]?$', strongs, re.IGNORECASE):
         return None
-    
+
     strongs = strongs.upper()
-    
+
     entry = {
         'strongs': strongs,
         'language': 'greek',
-        'word': parts[1].strip() if len(parts) > 1 else '',
-        'transliteration': parts[2].strip() if len(parts) > 2 else '',
-        'short_definition': parts[3].strip() if len(parts) > 3 else '',
-        'full_definition': parts[4].strip() if len(parts) > 4 else '',
+        'word': parts[3].strip() if len(parts) > 3 else '',
+        'transliteration': parts[4].strip() if len(parts) > 4 else '',
+        'short_definition': parts[6].strip() if len(parts) > 6 else '',
+        'full_definition': parts[7].strip() if len(parts) > 7 else '',
+        'pronunciation': parts[4].strip() if len(parts) > 4 else '',
         'etymology': '',
         'usage_count': 0,
         'semantic_domain': '[]',
         'related_words': '[]',
     }
-    
-    # Parse additional fields if present
-    if len(parts) > 5:
-        # Some files have etymology, usage count, etc.
-        for i, part in enumerate(parts[5:], 5):
-            part = part.strip()
-            if part.isdigit():
-                entry['usage_count'] = int(part)
-            elif part.startswith('from ') or part.startswith('From '):
-                entry['etymology'] = part
-    
+
     # Clean up definitions
     entry['short_definition'] = clean_definition(entry['short_definition'])
     entry['full_definition'] = clean_definition(entry['full_definition'])
-    
+
     return entry
 
 
@@ -127,43 +129,46 @@ def parse_hebrew_lexicon(filepath: Path) -> Iterator[dict]:
 
 
 def parse_hebrew_entry(parts: list[str]) -> dict | None:
-    """Parse a single Hebrew lexicon entry."""
-    if len(parts) < 3:
+    """Parse a single Hebrew lexicon entry.
+
+    TBESH tab-separated columns (same layout as TBESG):
+      0: Extended Strong's number (e.g., H0430)
+      1: Extended reference (e.g., "H0430G = a Name of")
+      2: Back-reference / related Strong's
+      3: Hebrew word (e.g., אֱלֹהִים)
+      4: Transliteration (e.g., e.lo.him)
+      5: Part of speech (e.g., H:N-M)
+      6: Short English definition (e.g., "God")
+      7: Full definition
+    """
+    if len(parts) < 5:
         return None
-    
+
     strongs = parts[0].strip()
-    
+
     # Validate Strong's format (H#### or H####a, etc.)
     if not re.match(r'^H\d+[a-z]?$', strongs, re.IGNORECASE):
         return None
-    
+
     strongs = strongs.upper()
-    
+
     entry = {
         'strongs': strongs,
         'language': 'hebrew',
-        'word': parts[1].strip() if len(parts) > 1 else '',
-        'transliteration': parts[2].strip() if len(parts) > 2 else '',
-        'short_definition': parts[3].strip() if len(parts) > 3 else '',
-        'full_definition': parts[4].strip() if len(parts) > 4 else '',
+        'word': parts[3].strip() if len(parts) > 3 else '',
+        'transliteration': parts[4].strip() if len(parts) > 4 else '',
+        'short_definition': parts[6].strip() if len(parts) > 6 else '',
+        'full_definition': parts[7].strip() if len(parts) > 7 else '',
+        'pronunciation': parts[4].strip() if len(parts) > 4 else '',
         'etymology': '',
         'usage_count': 0,
         'semantic_domain': '[]',
         'related_words': '[]',
     }
-    
-    # Parse additional fields
-    if len(parts) > 5:
-        for i, part in enumerate(parts[5:], 5):
-            part = part.strip()
-            if part.isdigit():
-                entry['usage_count'] = int(part)
-            elif part.startswith('from ') or part.startswith('From '):
-                entry['etymology'] = part
-    
+
     entry['short_definition'] = clean_definition(entry['short_definition'])
     entry['full_definition'] = clean_definition(entry['full_definition'])
-    
+
     return entry
 
 

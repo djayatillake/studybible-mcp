@@ -10,6 +10,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -27,7 +28,13 @@ from .database import StudyBibleDB
 
 # Purple book with gold cross icon (32x32 PNG, base64 encoded)
 ICON_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAtklEQVR42mNgGOmAEZtgQ9TV/7SwrGGZNiNeB9DKYnwOYcGl6MajG1S1VENOA6s4E4yxounvfw0NDZpYjm4mckgz0drnhMxmIdew5bO3M9w+twfOr5veS5Y5TAOdDUcdMOAOYCE2wWEDqkYueNVEpnpSxwHIqR3ZcmziqMBzNA1QJwqwFTLocT5aEI06YNQBow6gaUGEDUAqGk/qhwCu1iutWsY4+wW0bJYT1S+gZUgMqq7ZKAAA/oE/8EmGTpMAAAAASUVORK5CYII="
-from .tools import TOOLS, format_lexicon_entry, format_verse, format_name_entry
+from .tools import (
+    TOOLS, format_lexicon_entry, format_verse, format_name_entry,
+    format_genealogy, format_person_events, format_place_history,
+    format_passage_entities, format_connection_path,
+    mermaid_genealogy, mermaid_connection_path, mermaid_person_timeline,
+    mermaid_place_network,
+)
 from .hermeneutics import (
     get_genre_from_reference,
     format_genre_guidance,
@@ -129,6 +136,18 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_search_by_strongs(arguments)
         elif name == "find_similar_passages":
             return await handle_find_similar_passages(arguments)
+        elif name == "explore_genealogy":
+            return await handle_explore_genealogy(arguments)
+        elif name == "people_in_passage":
+            return await handle_people_in_passage(arguments)
+        elif name == "explore_person_events":
+            return await handle_explore_person_events(arguments)
+        elif name == "explore_place":
+            return await handle_explore_place(arguments)
+        elif name == "find_connection":
+            return await handle_find_connection(arguments)
+        elif name == "graph_enriched_search":
+            return await handle_graph_enriched_search(arguments)
         else:
             return [TextContent(
                 type="text",
@@ -403,6 +422,269 @@ async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent
             result += f"*({passage['verse_count']} verses in this passage)*\n\n"
 
     return [TextContent(type="text", text=result)]
+
+
+# =========================================================================
+# Graph tool handlers (Theographic Bible Metadata)
+# =========================================================================
+
+async def _check_graph_data() -> list[TextContent] | None:
+    """Check if graph data is available. Returns error response or None."""
+    has_data = await db.graph_has_data()
+    if not has_data:
+        return [TextContent(
+            type="text",
+            text="Graph data not available. Run 'python scripts/import_theographic.py' to import Theographic Bible Metadata."
+        )]
+    return None
+
+
+async def handle_explore_genealogy(args: dict[str, Any]) -> list[TextContent]:
+    """Handle explore_genealogy tool - trace family tree."""
+    if err := await _check_graph_data():
+        return err
+
+    person_name = args.get("person", "")
+    direction = args.get("direction", "both")
+    generations = args.get("generations", 5)
+
+    if not person_name:
+        return [TextContent(type="text", text="Please provide a person's name.")]
+
+    matches = await db.graph_find_person(person_name)
+    if not matches:
+        return [TextContent(type="text", text=f"No person found matching '{person_name}' in the Theographic database.")]
+
+    person = matches[0]
+    ancestors = []
+    descendants = []
+
+    if direction in ("ancestors", "both"):
+        ancestors = await db.graph_get_ancestors(person["id"], generations)
+
+    if direction in ("descendants", "both"):
+        descendants = await db.graph_get_descendants(person["id"], generations)
+
+    result = format_genealogy(person["name"], ancestors, descendants)
+
+    # Add immediate family context
+    family = await db.graph_get_family(person["id"])
+    family_lines = []
+    if family["partners"]:
+        names = ", ".join(p["name"] for p in family["partners"])
+        family_lines.append(f"**Spouse(s)**: {names}")
+    if family["siblings"]:
+        names = ", ".join(p["name"] for p in family["siblings"])
+        family_lines.append(f"**Siblings**: {names}")
+
+    if family_lines:
+        result += "\n### Immediate Family\n" + "\n".join(family_lines) + "\n"
+
+    if person.get("description"):
+        result += f"\n### About\n{person['description']}\n"
+
+    # Append Mermaid diagram
+    diagram = mermaid_genealogy(person["name"], ancestors, descendants, family)
+    if diagram:
+        result += f"\n### Family Tree Diagram\n{diagram}\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_people_in_passage(args: dict[str, Any]) -> list[TextContent]:
+    """Handle people_in_passage tool - find entities in a verse or chapter."""
+    if err := await _check_graph_data():
+        return err
+
+    reference = args.get("reference", "")
+    if not reference:
+        return [TextContent(type="text", text="Please provide a Bible reference (e.g., 'Romans 8' or 'Genesis 22:1').")]
+
+    # Determine if this is a chapter or verse reference
+    ref_stripped = reference.strip()
+    has_verse = ":" in ref_stripped
+
+    if has_verse:
+        # Verse-level: normalize and query
+        normalized = db._normalize_reference(ref_stripped)
+        entities = await db.graph_get_verse_entities(normalized)
+    else:
+        # Chapter-level: parse book and chapter
+        match = re.match(r'^(\d?\s*[a-zA-Z]+)\s+(\d+)$', ref_stripped)
+        if match:
+            book_str, chapter_str = match.groups()
+            # Normalize the book name using the same reference normalizer
+            dummy_ref = f"{book_str} {chapter_str}:1"
+            normalized = db._normalize_reference(dummy_ref)
+            book_abbr = normalized.split(".")[0]
+            entities = await db.graph_get_chapter_entities(book_abbr, int(chapter_str))
+        else:
+            return [TextContent(type="text", text=f"Could not parse reference: {reference}. Use 'Romans 8' or 'Genesis 22:1' format.")]
+
+    result = format_passage_entities(reference, entities)
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_explore_person_events(args: dict[str, Any]) -> list[TextContent]:
+    """Handle explore_person_events tool - timeline of a person's life."""
+    if err := await _check_graph_data():
+        return err
+
+    person_name = args.get("person", "")
+    if not person_name:
+        return [TextContent(type="text", text="Please provide a person's name.")]
+
+    matches = await db.graph_find_person(person_name)
+    if not matches:
+        return [TextContent(type="text", text=f"No person found matching '{person_name}' in the Theographic database.")]
+
+    person = matches[0]
+    events = await db.graph_get_person_events(person["id"])
+
+    # Get places for each event
+    event_places = {}
+    for evt in events:
+        places = await db.graph_get_event_places(evt["id"])
+        if places:
+            event_places[evt["id"]] = places
+
+    result = format_person_events(person["name"], events, event_places)
+
+    # Append Mermaid timeline
+    diagram = mermaid_person_timeline(person["name"], events, event_places)
+    if diagram:
+        result += f"\n### Timeline Diagram\n{diagram}\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_explore_place(args: dict[str, Any]) -> list[TextContent]:
+    """Handle explore_place tool - biblical history of a location."""
+    if err := await _check_graph_data():
+        return err
+
+    place_name = args.get("place", "")
+    if not place_name:
+        return [TextContent(type="text", text="Please provide a place name.")]
+
+    matches = await db.graph_find_place(place_name)
+    if not matches:
+        return [TextContent(type="text", text=f"No place found matching '{place_name}' in the Theographic database.")]
+
+    place = matches[0]
+    events = await db.graph_get_place_events(place["id"])
+    people = await db.graph_get_place_people(place["id"])
+
+    result = format_place_history(place, events, people)
+
+    # Append Mermaid place network
+    diagram = mermaid_place_network(place, events, people)
+    if diagram:
+        result += f"\n### Place Network Diagram\n{diagram}\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_find_connection(args: dict[str, Any]) -> list[TextContent]:
+    """Handle find_connection tool - path between two people."""
+    if err := await _check_graph_data():
+        return err
+
+    name1 = args.get("person1", "")
+    name2 = args.get("person2", "")
+    if not name1 or not name2:
+        return [TextContent(type="text", text="Please provide both person1 and person2 names.")]
+
+    matches1 = await db.graph_find_person(name1)
+    matches2 = await db.graph_find_person(name2)
+
+    if not matches1:
+        return [TextContent(type="text", text=f"No person found matching '{name1}'.")]
+    if not matches2:
+        return [TextContent(type="text", text=f"No person found matching '{name2}'.")]
+
+    person1 = matches1[0]
+    person2 = matches2[0]
+
+    path = await db.graph_find_path(person1["id"], person2["id"])
+    result = format_connection_path(person1["name"], person2["name"], path)
+
+    # Append Mermaid path diagram
+    diagram = mermaid_connection_path(person1["name"], person2["name"], path)
+    if diagram:
+        result += f"\n### Relationship Diagram\n{diagram}\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_graph_enriched_search(args: dict[str, Any]) -> list[TextContent]:
+    """Handle graph_enriched_search tool - verse text + graph context."""
+    if err := await _check_graph_data():
+        return err
+
+    reference = args.get("reference", "")
+    if not reference:
+        return [TextContent(type="text", text="Please provide a verse reference (e.g., 'Genesis 22:1').")]
+
+    # Get the verse text
+    verse = await db.get_verse(reference)
+    normalized = db._normalize_reference(reference)
+    entities = await db.graph_get_verse_entities(normalized)
+
+    lines = [f"## {reference}\n"]
+
+    if verse:
+        lines.append(verse.get("text_english", ""))
+        lines.append("")
+        if verse.get("text_original"):
+            lines.append(f"**Original**: {verse['text_original']}")
+            lines.append("")
+
+    # Add entity context
+    people = entities.get("people", [])
+    places = entities.get("places", [])
+    events = entities.get("events", [])
+
+    if people:
+        lines.append("### People Mentioned")
+        for p in people:
+            name = p.get("entity_name", p.get("entity_id"))
+            lines.append(f"\n**{name}**")
+            # Get family context for each person
+            person_matches = await db.graph_find_person(name)
+            if person_matches:
+                family = await db.graph_get_family(person_matches[0]["id"])
+                parts = []
+                if family["parents"]:
+                    parent_names = ", ".join(pr["name"] for pr in family["parents"])
+                    parts.append(f"Parents: {parent_names}")
+                if family["partners"]:
+                    partner_names = ", ".join(pr["name"] for pr in family["partners"])
+                    parts.append(f"Spouse: {partner_names}")
+                if family["children"]:
+                    child_names = ", ".join(c["name"] for c in family["children"][:5])
+                    suffix = f" (+{len(family['children'])-5} more)" if len(family["children"]) > 5 else ""
+                    parts.append(f"Children: {child_names}{suffix}")
+                if parts:
+                    lines.append("  " + " | ".join(parts))
+        lines.append("")
+
+    if places:
+        lines.append("### Places Mentioned")
+        for p in places:
+            lines.append(f"- **{p.get('entity_name', p.get('entity_id'))}**")
+        lines.append("")
+
+    if events:
+        lines.append("### Events")
+        for e in events:
+            lines.append(f"- **{e.get('entity_name', e.get('entity_id'))}**")
+        lines.append("")
+
+    if not people and not places and not events:
+        lines.append("*No entity data available for this verse in the Theographic database.*\n")
+
+    return [TextContent(type="text", text="\n".join(lines))]
 
 
 async def run_server():

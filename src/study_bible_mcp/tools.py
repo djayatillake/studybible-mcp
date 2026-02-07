@@ -343,6 +343,151 @@ semantically similar passages ranked by similarity score.""",
             "required": ["reference"]
         }
     ),
+    # =========================================================================
+    # Graph tools (Theographic Bible Metadata)
+    # =========================================================================
+    Tool(
+        name="explore_genealogy",
+        description="""Trace family relationships (ancestors or descendants) for a biblical person.
+
+Uses the Theographic Bible Metadata graph to traverse family trees using
+genealogical data for 1,100+ biblical persons.
+
+USE THIS when discussing:
+- Family lineages (e.g., "Who was David's father?")
+- Genealogies (e.g., "Trace the line from Abraham to Jesus")
+- Tribal connections (e.g., "What tribe was Paul from?")
+
+Returns a family tree with generation numbers and relationship types.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "person": {
+                    "type": "string",
+                    "description": "Name of the person (e.g., 'David', 'Abraham', 'Jesus')"
+                },
+                "direction": {
+                    "type": "string",
+                    "enum": ["ancestors", "descendants", "both"],
+                    "description": "Direction to trace. Default: both"
+                },
+                "generations": {
+                    "type": "integer",
+                    "description": "Maximum generations to trace. Default: 5"
+                }
+            },
+            "required": ["person"]
+        }
+    ),
+    Tool(
+        name="people_in_passage",
+        description="""Find all people, places, and events mentioned in a Bible passage.
+
+Given a chapter or verse reference, returns all entities mentioned according
+to the Theographic Bible Metadata. This enriches passage study with
+knowledge of who is present, where it takes place, and what events occur.
+
+USE THIS when studying a passage to understand its cast of characters,
+geographic setting, and narrative context.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "type": "string",
+                    "description": "Bible reference - chapter (e.g., 'Romans 8') or verse (e.g., 'Genesis 22:1')"
+                }
+            },
+            "required": ["reference"]
+        }
+    ),
+    Tool(
+        name="explore_person_events",
+        description="""Find all events a biblical person participated in, in chronological order.
+
+Returns the timeline of a person's life as recorded in Scripture,
+including events with their locations and approximate dates.
+
+USE THIS when building a biographical picture of a biblical figure,
+or when tracing how someone's life connects different parts of Scripture.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "person": {
+                    "type": "string",
+                    "description": "Name of the person (e.g., 'Moses', 'Paul', 'David')"
+                }
+            },
+            "required": ["person"]
+        }
+    ),
+    Tool(
+        name="explore_place",
+        description="""Explore the biblical history of a geographic location.
+
+Returns events that occurred at a place, people born or who died there,
+and geographic information. Traces how a location threads through
+salvation history.
+
+USE THIS when discussing biblical geography, tracing how a place
+appears across different periods of biblical history, or understanding
+the significance of a location.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "place": {
+                    "type": "string",
+                    "description": "Name of the place (e.g., 'Jerusalem', 'Bethlehem', 'Egypt')"
+                }
+            },
+            "required": ["place"]
+        }
+    ),
+    Tool(
+        name="find_connection",
+        description="""Find the family relationship path between two biblical people.
+
+Traces through parent, child, sibling, and partner relationships to find
+how two people are connected in the biblical genealogies.
+
+USE THIS when exploring how biblical figures relate to each other,
+especially across different books or periods.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "person1": {
+                    "type": "string",
+                    "description": "First person's name (e.g., 'Abraham')"
+                },
+                "person2": {
+                    "type": "string",
+                    "description": "Second person's name (e.g., 'David')"
+                }
+            },
+            "required": ["person1", "person2"]
+        }
+    ),
+    Tool(
+        name="graph_enriched_search",
+        description="""Combine passage lookup with graph context to get a rich view of a verse.
+
+Given a verse reference, returns the verse text along with all people,
+places, and events mentioned in it, plus family relationships for
+mentioned people. This is the most comprehensive single-query tool
+for studying a specific verse in its relational context.
+
+USE THIS as a starting point for deep verse study - it combines
+the text with the full web of relationships around it.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "type": "string",
+                    "description": "Bible verse reference (e.g., 'Genesis 22:1', 'Matthew 1:1')"
+                }
+            },
+            "required": ["reference"]
+        }
+    ),
 ]
 
 
@@ -487,5 +632,336 @@ def format_name_entry(entry: dict) -> str:
                 lines.append("")
         except:
             pass
-    
+
+    return "\n".join(lines)
+
+
+# =========================================================================
+# Graph formatting functions
+# =========================================================================
+
+def format_year(year: int | None) -> str:
+    """Format a year as BC/AD."""
+    if year is None:
+        return "unknown"
+    if year < 0:
+        return f"{abs(year)} BC"
+    return f"AD {year}"
+
+
+def format_genealogy(person_name: str, ancestors: list[dict], descendants: list[dict]) -> str:
+    """Format a genealogy tree for display."""
+    lines = [f"## Genealogy of {person_name}\n"]
+
+    if ancestors and len(ancestors) > 1:
+        lines.append("### Ancestors")
+        for a in ancestors:
+            if a["generation"] == 0:
+                continue
+            indent = "  " * a["generation"]
+            rel = a["relationship"].replace("_of", "").title()
+            year_str = f" ({format_year(a.get('birth_year'))})" if a.get("birth_year") else ""
+            lines.append(f"{indent}- **{a['name']}** ({rel}){year_str}")
+        lines.append("")
+
+    if descendants and len(descendants) > 1:
+        lines.append("### Descendants")
+        for d in descendants:
+            if d["generation"] == 0:
+                continue
+            indent = "  " * d["generation"]
+            rel = d["relationship"].replace("_of", "").title()
+            year_str = f" ({format_year(d.get('birth_year'))})" if d.get("birth_year") else ""
+            lines.append(f"{indent}- **{d['name']}** ({rel}){year_str}")
+        lines.append("")
+
+    if len(ancestors) <= 1 and len(descendants) <= 1:
+        lines.append("No genealogical data found in the Theographic database.\n")
+
+    return "\n".join(lines)
+
+
+def format_person_events(person_name: str, events: list[dict], event_places: dict[str, list[dict]]) -> str:
+    """Format a person's event timeline."""
+    lines = [f"## Timeline of {person_name}\n"]
+
+    if not events:
+        lines.append("No events found in the Theographic database.\n")
+        return "\n".join(lines)
+
+    for evt in events:
+        year_str = f" ({format_year(evt.get('start_year'))})" if evt.get("start_year") else ""
+        lines.append(f"- **{evt['title']}**{year_str}")
+        places = event_places.get(evt["id"], [])
+        if places:
+            place_names = ", ".join(p["name"] for p in places)
+            lines.append(f"  Location: {place_names}")
+    lines.append("")
+
+    return "\n".join(lines)
+
+
+def format_place_history(place: dict, events: list[dict], people: dict) -> str:
+    """Format a place's biblical history."""
+    lines = [f"## {place['name']}\n"]
+
+    if place.get("feature_type"):
+        lines.append(f"**Type**: {place['feature_type']}")
+    if place.get("latitude") and place.get("longitude"):
+        lines.append(f"**Coordinates**: {place['latitude']:.4f}, {place['longitude']:.4f}")
+    lines.append("")
+
+    if events:
+        lines.append("### Events at this location")
+        for evt in events:
+            year_str = f" ({format_year(evt.get('start_year'))})" if evt.get("start_year") else ""
+            lines.append(f"- **{evt['title']}**{year_str}")
+        lines.append("")
+
+    born = people.get("born_here", [])
+    died = people.get("died_here", [])
+
+    if born:
+        lines.append("### Born here")
+        for p in born:
+            lines.append(f"- {p['name']}")
+        lines.append("")
+
+    if died:
+        lines.append("### Died here")
+        for p in died:
+            lines.append(f"- {p['name']}")
+        lines.append("")
+
+    if not events and not born and not died:
+        lines.append("No detailed history found in the Theographic database.\n")
+
+    return "\n".join(lines)
+
+
+def format_passage_entities(reference: str, entities: dict) -> str:
+    """Format entities found in a passage."""
+    lines = [f"## Entities in {reference}\n"]
+
+    people = entities.get("people", [])
+    places = entities.get("places", [])
+    events = entities.get("events", [])
+
+    if people:
+        lines.append("### People")
+        for p in people:
+            lines.append(f"- **{p.get('entity_name', p.get('entity_id', 'unknown'))}**")
+        lines.append("")
+
+    if places:
+        lines.append("### Places")
+        for p in places:
+            lines.append(f"- **{p.get('entity_name', p.get('entity_id', 'unknown'))}**")
+        lines.append("")
+
+    if events:
+        lines.append("### Events")
+        for e in events:
+            lines.append(f"- **{e.get('entity_name', e.get('entity_id', 'unknown'))}**")
+        lines.append("")
+
+    if not people and not places and not events:
+        lines.append("No entities found for this passage in the Theographic database.\n")
+
+    return "\n".join(lines)
+
+
+def format_connection_path(person1: str, person2: str, path: list[dict]) -> str:
+    """Format a relationship path between two people."""
+    lines = [f"## Connection: {person1} → {person2}\n"]
+
+    if not path:
+        lines.append("No family connection found in the Theographic database.\n")
+        return "\n".join(lines)
+
+    for step in path:
+        rel = step["relationship_type"].replace("_", " ").title()
+        lines.append(f"- {step['from_name']} → *{rel}* → {step['to_name']}")
+    lines.append("")
+
+    return "\n".join(lines)
+
+
+# =========================================================================
+# Mermaid diagram formatters
+# =========================================================================
+
+def _mermaid_id(name: str) -> str:
+    """Create a safe Mermaid node ID from a name."""
+    return name.replace(" ", "_").replace("'", "").replace("(", "").replace(")", "")
+
+
+def mermaid_genealogy(
+    person_name: str,
+    ancestors: list[dict],
+    descendants: list[dict],
+    family: dict | None = None,
+) -> str:
+    """Generate a Mermaid flowchart for a family tree.
+
+    Uses family edges (parents/children/partners) for accurate connections.
+    Falls back to generation-based layout if family data not provided.
+    """
+    lines = ["```mermaid", "graph TD"]
+    seen_edges = set()
+    seen_nodes = set()
+    person_mid = _mermaid_id(person_name)
+
+    # Style the focal person
+    lines.append(f'    {person_mid}["{person_name}"]')
+    lines.append(f"    style {person_mid} fill:#4a90d9,color:#fff,stroke:#2a5a8a")
+    seen_nodes.add(person_mid)
+
+    # Ancestors: show direct lineage chain only (gen 1 = parents, gen 2 = grandparents, etc.)
+    # Build a map of unique people per generation to avoid cartesian products
+    if ancestors and len(ancestors) > 1:
+        by_gen: dict[int, list[dict]] = {}
+        for a in ancestors:
+            by_gen.setdefault(a["generation"], []).append(a)
+
+        max_gen = max(by_gen.keys())
+        # Connect each generation to the one below, but limit edges
+        for gen in range(max_gen, 0, -1):
+            people_at_gen = by_gen.get(gen, [])
+            people_below = by_gen.get(gen - 1, [])
+            for person in people_at_gen:
+                pid = _mermaid_id(person["name"])
+                rel = person["relationship"].replace("_of", "")
+                if not seen_nodes.__contains__(pid):
+                    seen_nodes.add(pid)
+                # Connect to the person one generation below
+                # For gen 1, connect to the focal person
+                if gen == 1:
+                    edge_key = (pid, person_mid)
+                    if edge_key not in seen_edges:
+                        seen_edges.add(edge_key)
+                        lines.append(f'    {pid}["{person["name"]}"] -->|{rel}| {person_mid}')
+                else:
+                    # Connect to people at gen-1 (limit to 2 to avoid explosion)
+                    for child in people_below[:2]:
+                        child_id = _mermaid_id(child["name"])
+                        edge_key = (pid, child_id)
+                        if edge_key not in seen_edges:
+                            seen_edges.add(edge_key)
+                            lines.append(f'    {pid}["{person["name"]}"] -->|{rel}| {child_id}["{child["name"]}"]')
+
+    # Descendants: only show generation 1 (direct children) to keep diagram clean
+    if descendants and len(descendants) > 1:
+        direct_children = [d for d in descendants if d["generation"] == 1]
+        for d in direct_children:
+            did = _mermaid_id(d["name"])
+            rel = d["relationship"].replace("_of", "")
+            edge_key = (person_mid, did)
+            if edge_key not in seen_edges:
+                seen_edges.add(edge_key)
+                lines.append(f'    {person_mid} -->|{rel}| {did}["{d["name"]}"]')
+
+    # Partners from family data
+    if family and family.get("partners"):
+        for p in family["partners"]:
+            pid = _mermaid_id(p["name"])
+            edge_key = (person_mid, pid)
+            if edge_key not in seen_edges:
+                seen_edges.add(edge_key)
+                lines.append(f'    {person_mid} -.-|spouse| {pid}["{p["name"]}"]')
+                lines.append(f"    style {pid} fill:#d9a04a,color:#fff")
+
+    lines.append("```")
+    return "\n".join(lines)
+
+
+def mermaid_connection_path(person1: str, person2: str, path: list[dict]) -> str:
+    """Generate a Mermaid flowchart showing the relationship path between two people."""
+    if not path:
+        return ""
+
+    lines = ["```mermaid", "graph LR"]
+
+    # Style start and end
+    start_id = _mermaid_id(person1)
+    end_id = _mermaid_id(person2)
+    lines.append(f"    style {start_id} fill:#4a90d9,color:#fff,stroke:#2a5a8a")
+    lines.append(f"    style {end_id} fill:#d94a4a,color:#fff,stroke:#8a2a2a")
+
+    seen = set()
+    for step in path:
+        fid = _mermaid_id(step["from_name"])
+        tid = _mermaid_id(step["to_name"])
+        rel = step["relationship_type"].replace("_", " ")
+        edge_key = (fid, tid)
+        if edge_key not in seen:
+            seen.add(edge_key)
+            lines.append(f'    {fid}["{step["from_name"]}"] -->|{rel}| {tid}["{step["to_name"]}"]')
+
+    lines.append("```")
+    return "\n".join(lines)
+
+
+def mermaid_person_timeline(
+    person_name: str,
+    events: list[dict],
+    event_places: dict[str, list[dict]],
+) -> str:
+    """Generate a Mermaid timeline diagram for a person's life events."""
+    if not events:
+        return ""
+
+    lines = ["```mermaid", "timeline", f"    title {person_name}"]
+
+    for evt in events:
+        year = evt.get("start_year")
+        year_str = format_year(year) if year else ""
+        title = evt["title"].replace('"', "'")
+        places = event_places.get(evt["id"], [])
+
+        section_label = year_str if year_str else title[:20]
+        lines.append(f"    {section_label} : {title}")
+        if places:
+            place_names = ", ".join(p["name"] for p in places[:3])
+            lines.append(f"        : {place_names}")
+
+    lines.append("```")
+    return "\n".join(lines)
+
+
+def mermaid_place_network(
+    place: dict,
+    events: list[dict],
+    people: dict,
+) -> str:
+    """Generate a Mermaid graph showing a place's connections to events and people."""
+    lines = ["```mermaid", "graph TD"]
+
+    place_id = _mermaid_id(place["name"])
+    lines.append(f'    {place_id}["{place["name"]}"]')
+    lines.append(f"    style {place_id} fill:#2a8a4a,color:#fff,stroke:#1a5a2a")
+
+    # Events
+    if events:
+        for evt in events[:12]:  # limit to avoid huge diagrams
+            eid = _mermaid_id(evt["title"][:30])
+            year_str = f" ({format_year(evt.get('start_year'))})" if evt.get("start_year") else ""
+            label = evt["title"][:40] + year_str
+            lines.append(f'    {place_id} --- {eid}["{label}"]')
+
+    # People born/died
+    born = people.get("born_here", [])
+    died = people.get("died_here", [])
+
+    for p in born[:8]:
+        pid = _mermaid_id(p["name"]) + "_b"
+        lines.append(f'    {pid}["{p["name"]}"] -->|born| {place_id}')
+        lines.append(f"    style {pid} fill:#4a90d9,color:#fff")
+
+    for p in died[:8]:
+        pid = _mermaid_id(p["name"]) + "_d"
+        lines.append(f'    {place_id} -->|died| {pid}["{p["name"]}"]')
+        lines.append(f"    style {pid} fill:#d94a4a,color:#fff")
+
+    lines.append("```")
     return "\n".join(lines)

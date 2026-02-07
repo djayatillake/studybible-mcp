@@ -5,11 +5,11 @@
 #   fly deploy
 #
 # First-time setup:
-#   fly volumes create studybible_data --size 1 --region lhr
+#   fly volumes create studybible_data --size 1 --region iad
 #   fly deploy
 
 app = "studybible-mcp"
-primary_region = "lhr"
+primary_region = "iad"
 
 [build]
   dockerfile = "Dockerfile"
