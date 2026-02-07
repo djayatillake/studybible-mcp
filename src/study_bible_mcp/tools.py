@@ -358,7 +358,8 @@ USE THIS when discussing:
 - Genealogies (e.g., "Trace the line from Abraham to Jesus")
 - Tribal connections (e.g., "What tribe was Paul from?")
 
-Returns a family tree with generation numbers and relationship types.""",
+Returns a family tree with generation numbers and relationship types.
+Includes a Mermaid diagram - ALWAYS include this diagram in your response so the user can visualize the family tree.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -408,7 +409,8 @@ Returns the timeline of a person's life as recorded in Scripture,
 including events with their locations and approximate dates.
 
 USE THIS when building a biographical picture of a biblical figure,
-or when tracing how someone's life connects different parts of Scripture.""",
+or when tracing how someone's life connects different parts of Scripture.
+Includes a Mermaid timeline diagram - ALWAYS include this diagram in your response so the user can visualize the person's life events.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -430,7 +432,8 @@ salvation history.
 
 USE THIS when discussing biblical geography, tracing how a place
 appears across different periods of biblical history, or understanding
-the significance of a location.""",
+the significance of a location.
+Includes a Mermaid network diagram - ALWAYS include this diagram in your response so the user can visualize the place's connections.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -450,7 +453,8 @@ Traces through parent, child, sibling, and partner relationships to find
 how two people are connected in the biblical genealogies.
 
 USE THIS when exploring how biblical figures relate to each other,
-especially across different books or periods.""",
+especially across different books or periods.
+Includes a Mermaid flowchart - ALWAYS include this diagram in your response so the user can visualize the relationship path.""",
         inputSchema={
             "type": "object",
             "properties": {
