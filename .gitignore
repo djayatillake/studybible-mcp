@@ -36,6 +36,7 @@ env/
 # Data files (downloaded, not committed)
 data/*.txt
 data/*.tsv
+data/theographic/
 
 # Database (built from data, not committed)
 db/*.db
