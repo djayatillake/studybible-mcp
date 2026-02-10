@@ -1,6 +1,6 @@
 # Study Bible MCP Server
 
-A Bible study assistant for Claude that provides Greek/Hebrew lexicons, morphologically-tagged biblical texts, cross-references, and hermeneutical methodology based on Fee & Stuart's "How to Read the Bible for All Its Worth".
+A Bible study assistant for Claude that provides full scholarly lexicons (LSJ Greek, BDB Hebrew), morphologically-tagged biblical texts, cross-references, Theographic genealogy graphs, Tyndale study notes, a Bible dictionary, key theological terms, and hermeneutical methodology based on Fee & Stuart's "How to Read the Bible for All Its Worth".
 
 ## Quick Start
 
@@ -46,67 +46,66 @@ Config file locations:
 ### Architecture Overview
 
 ```
-┌─────────────────────┐     ┌─────────────────────────────────────┐
-│   Claude Desktop    │     │   Study Bible MCP Server            │
-│   or Claude Code    │     │   (Fly.io)                          │
-│                     │     │                                     │
-│  ┌───────────────┐  │ SSE │  ┌─────────────┐  ┌──────────────┐  │
-│  │ User asks a   │──┼─────┼─▶│ MCP Server  │─▶│ SQLite DB    │  │
-│  │ Bible question│  │     │  │ (Python)    │  │ (323MB)      │  │
-│  └───────────────┘  │     │  └─────────────┘  │              │  │
-│                     │     │        │          │ • Lexicons   │  │
-│  ┌───────────────┐  │     │        ▼          │ • Tagged NT  │  │
-│  │ Claude uses   │◀─┼─────┼── Tool Results    │ • Tagged OT  │  │
-│  │ tools to look │  │     │                   │ • Names      │  │
-│  │ up data       │  │     │                   │ • Morphology │  │
-│  └───────────────┘  │     │                   │ • Embeddings │  │
-│                     │     │                   └──────────────┘  │
-└─────────────────────┘     └─────────────────────────────────────┘
+┌─────────────────────┐     ┌──────────────────────────────────────────┐
+│   Claude Desktop    │     │   Study Bible MCP Server                 │
+│   or Claude Code    │     │   (Fly.io)                               │
+│                     │     │                                          │
+│  ┌───────────────┐  │ SSE │  ┌─────────────┐  ┌───────────────────┐  │
+│  │ User asks a   │──┼─────┼─▶│ MCP Server  │─▶│ SQLite DB (355MB) │  │
+│  │ Bible question│  │     │  │ (Python)    │  │                   │  │
+│  └───────────────┘  │     │  └─────────────┘  │ • Lexicons (LSJ,  │  │
+│                     │     │        │          │   BDB, Extended    │  │
+│  ┌───────────────┐  │     │        ▼          │   Strong's)       │  │
+│  │ Claude uses   │◀─┼─────┼── Tool Results    │ • Tagged NT + OT  │  │
+│  │ 17 tools to   │  │     │                   │ • Names + ACAI    │  │
+│  │ look up data  │  │     │                   │ • Morphology      │  │
+│  └───────────────┘  │     │                   │ • Study Notes     │  │
+│                     │     │                   │ • Bible Dictionary │  │
+│                     │     │                   │ • Key Terms        │  │
+│                     │     │                   │ • Embeddings       │  │
+│                     │     │                   └───────────────────┘  │
+└─────────────────────┘     └──────────────────────────────────────────┘
 ```
 
 When you ask Claude a Bible question:
-1. Claude analyzes your question and decides which tools to use
-2. Claude calls the appropriate MCP tools (e.g., `lookup_verse`, `word_study`)
+1. Claude analyses your question and decides which tools to use
+2. Claude calls the appropriate MCP tools (e.g., `lookup_verse`, `word_study`, `get_study_notes`)
 3. The server queries the pre-built SQLite database
 4. Results are returned to Claude
-5. Claude synthesizes the data into a helpful response
+5. Claude synthesises the data into a helpful response
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for a full Mermaid flowchart of all 17 tools and how the agent chains them together.
 
 ### The Database
 
-The server includes a pre-built SQLite database (~323MB) containing:
+The server includes a pre-built SQLite database (~355MB) containing:
 
 | Table | Rows | Content |
 |-------|------|---------|
-| `lexicon` | 20,192 | Greek and Hebrew word definitions with Strong's numbers |
+| `lexicon` | 18,936 | Greek (Full LSJ) and Hebrew (Full BDB) word definitions with Strong's numbers |
 | `verses` | 31,280 | Every verse of the Bible with morphology tags |
-| `passages` | 5,290 | Verses grouped by ancient section markers (¶, פ, ס) |
+| `passages` | 5,290 | Verses grouped by ancient section markers |
 | `names` | 4,299 | Biblical people, places, and things |
 | `morphology` | 2,768 | Grammatical parsing code definitions |
 | `thematic_references` | 22 | Core theological theme cross-references |
+| `aquifer_content` | 102,673 | Study notes, dictionary articles, translation notes, key terms |
+| `acai_entities` | 3,175 | Rich entity annotations (people, places, groups, key terms) |
 | `verse_vectors` | 31,280 | OpenAI embeddings for semantic search |
 | `passage_vectors` | 5,190 | OpenAI embeddings for passage similarity |
 
-All biblical data comes from [STEPBible](https://github.com/STEPBible/STEPBible-Data), licensed CC BY 4.0. Vector embeddings use OpenAI's `text-embedding-3-small` model via [sqlite-vec](https://github.com/asg017/sqlite-vec).
-
 ---
 
-## Available Tools
+## Available Tools (17)
 
-### 1. `lookup_verse`
+### Core Text & Language
 
-**Purpose**: Retrieve a verse with its original language text and word-by-word analysis.
+#### 1. `lookup_verse`
 
-**When Claude uses it**:
-- User asks "What does John 3:16 say?"
-- User wants to see the Greek or Hebrew text
-- User asks about specific words in a passage
+Retrieve a verse with its original language text and word-by-word analysis.
 
-**What it returns**:
-- English translation
-- Original Greek/Hebrew text
-- Word-by-word breakdown with Strong's numbers
-- Morphological parsing for each word
-- Genre-specific interpretation guidance
+**When Claude uses it**: User asks about a specific verse, wants to see the Greek or Hebrew text, or asks about specific words in a passage.
+
+**What it returns**: English translation, original Greek/Hebrew text, word-by-word breakdown with Strong's numbers, morphological parsing, genre-specific interpretation guidance.
 
 **Example**:
 ```
@@ -121,26 +120,13 @@ Returns:
 - Genre guidance: "Epistles - What problem was being addressed?"
 ```
 
-### 2. `word_study`
+#### 2. `word_study`
 
-**Purpose**: Deep dive into a Greek or Hebrew word's meaning, usage, and etymology.
+Deep dive into a Greek or Hebrew word's meaning, usage, and etymology. Greek entries include the full Liddell-Scott-Jones (LSJ) definition; Hebrew entries include the full Brown-Driver-Briggs (BDB) definition.
 
-**When Claude uses it**:
-- User asks about the meaning of a Greek/Hebrew word
-- User wants to understand different translations of a term
-- User asks about theological concepts (love, faith, grace)
-- Multiple English translations differ on a key word
+**When Claude uses it**: User asks about the meaning of a Greek/Hebrew word, wants to understand different translations of a term, or asks about theological concepts (love, faith, grace).
 
-**What it returns**:
-- Original word in Greek/Hebrew script
-- Transliteration and pronunciation
-- Strong's number
-- Short and full definitions
-- Etymology
-- Usage count
-- Semantic range
-- Related words
-- Example passages
+**What it returns**: Original word in Greek/Hebrew script, transliteration, Strong's number, brief definition, full LSJ or BDB scholarly definition, etymology, usage count, semantic range, related words, example passages.
 
 **Example**:
 ```
@@ -149,27 +135,18 @@ User: "What does 'agape' mean in Greek?"
 Claude calls: word_study(strongs="G26")
 
 Returns:
-- ἀγάπη (agapē)
-- Definition: "Love, goodwill, benevolence"
-- Usage: Occurs 116 times
+- ἀγάπη (agapē, G26)
+- Brief Definition: "love, goodwill, benevolence"
+- Full LSJ Definition: [scholarly entry with classical and biblical usage]
 - Related words: ἀγαπάω (to love), ἀγαπητός (beloved)
 - Example passages showing usage
 ```
 
-### 3. `search_lexicon`
+#### 3. `search_lexicon`
 
-**Purpose**: Search across Greek and Hebrew lexicons by English meaning.
+Search across Greek and Hebrew lexicons by English meaning.
 
-**When Claude uses it**:
-- User wants to find the Greek/Hebrew word for an English concept
-- User asks "How do you say X in Greek?"
-- User is exploring related words in a semantic field
-
-**What it returns**:
-- List of matching lexicon entries
-- Strong's numbers for each
-- Brief definitions
-- Language (Greek or Hebrew)
+**When Claude uses it**: User wants to find the Greek/Hebrew word for an English concept, asks "How do you say X in Greek?", or is exploring related words.
 
 **Example**:
 ```
@@ -183,26 +160,13 @@ Returns:
 - G2309 θέλω - desire, wish
 ```
 
-### 4. `get_cross_references`
+#### 4. `get_cross_references`
 
-**Purpose**: Find passages related to a verse or theological theme.
+Find passages related to a verse or theological theme.
 
-**When Claude uses it**:
-- User asks "What other passages talk about X?"
-- User wants to see Scripture interpreting Scripture
-- User is studying a theological theme
+**When Claude uses it**: User asks "What other passages talk about X?", wants to see Scripture interpreting Scripture, or is studying a theological theme.
 
-**What it returns**:
-- Related passages with brief notes
-- Either verse-specific cross-references or thematic collections
-
-**Built-in themes**:
-- `salvation_by_grace` - Genesis 15:6, Romans 3:21-26, Ephesians 2:8-9, Titus 3:5-7
-- `deity_of_christ` - John 1:1-3, John 8:58, Colossians 2:9, Hebrews 1:3
-- `atonement` - Isaiah 53:4-6, Romans 3:25, 2 Corinthians 5:21, 1 Peter 2:24
-- `resurrection` - Psalm 16:10, 1 Corinthians 15:3-8, 1 Corinthians 15:20-23
-- `holy_spirit` - Joel 2:28-29, John 14:16-17, Romans 8:9-11, Galatians 5:22-23
-- `justification` - Romans 3:24-26, Romans 5:1, Galatians 2:16
+**Built-in themes**: `salvation_by_grace`, `deity_of_christ`, `atonement`, `resurrection`, `holy_spirit`, `justification`.
 
 **Example**:
 ```
@@ -217,49 +181,32 @@ Returns:
 - Titus 3:5-7 - Not by works of righteousness
 ```
 
-### 5. `lookup_name`
+#### 5. `lookup_name`
 
-**Purpose**: Get information about biblical people, places, and things.
+Get information about biblical people, places, and things, enriched with ACAI entity annotations (variant names, roles, reference counts, speech attributions).
 
-**When Claude uses it**:
-- User asks "Who was X?"
-- User wants to know about a place's significance
-- User asks about relationships between biblical figures
+**When Claude uses it**: User asks "Who was X?", wants to know about a place's significance, or asks about relationships between biblical figures.
 
-**What it returns**:
-- Original Hebrew/Greek form
-- Type (person, place, thing, tribe)
-- Description
-- Key references
-- Relationships (father, mother, children, etc.)
+**What it returns**: Original Hebrew/Greek form, type (person, place, thing), description, key references, relationships (father, mother, children), ACAI annotations (variant names, roles, verse reference count, attributed speeches).
 
 **Example**:
 ```
-User: "Who was Melchizedek?"
+User: "Who was Abraham?"
 
-Claude calls: lookup_name(name="Melchizedek")
+Claude calls: lookup_name(name="Abraham")
 
 Returns:
 - Type: Person
-- Description: King of Salem, priest of God Most High
-- References: Genesis 14:18, Psalm 110:4, Hebrews 5-7
-- Significance in Hebrews' argument about Christ's priesthood
+- Original: אַבְרָהָם
+- Description, key references, family relationships
+- ACAI: Also known as "Abram", referenced in 275 verses, 52 attributed speeches
 ```
 
-### 6. `parse_morphology`
+#### 6. `parse_morphology`
 
-**Purpose**: Explain Greek or Hebrew grammatical parsing codes.
+Explain Greek or Hebrew grammatical parsing codes.
 
-**When Claude uses it**:
-- User asks what a morphology code means
-- User wants to understand verb tense, mood, voice
-- User is studying Greek or Hebrew grammar
-
-**What it returns**:
-- Part of speech
-- For verbs: person, number, tense, voice, mood
-- For nouns: case, number, gender
-- Full parsing description
+**When Claude uses it**: User asks what a morphology code means or wants to understand verb tense, mood, voice.
 
 **Example**:
 ```
@@ -269,27 +216,15 @@ Claude calls: parse_morphology(code="V-AAI-3S", language="greek")
 
 Returns:
 - Part of Speech: Verb
-- Tense: Aorist
-- Voice: Active
-- Mood: Indicative
-- Person: 3rd
-- Number: Singular
-- Full Parsing: "Verb, Aorist Active Indicative, 3rd Person Singular"
+- Tense: Aorist, Voice: Active, Mood: Indicative
+- Person: 3rd, Number: Singular
 ```
 
-### 7. `search_by_strongs`
+#### 7. `search_by_strongs`
 
-**Purpose**: Find all verses containing a specific Strong's number.
+Find all verses containing a specific Strong's number.
 
-**When Claude uses it**:
-- User wants to see how a word is used throughout Scripture
-- User is doing a comprehensive word study
-- User wants to trace a concept across the Bible
-
-**What it returns**:
-- Lexicon entry for the word
-- List of verses where the word appears
-- Context showing how the word is used
+**When Claude uses it**: User wants to see how a word is used throughout Scripture or is doing a comprehensive word study.
 
 **Example**:
 ```
@@ -300,42 +235,260 @@ Claude calls: search_by_strongs(strongs="H2617", limit=20)
 Returns:
 - H2617 חֶסֶד (hesed) - "lovingkindness, steadfast love"
 - Genesis 24:12, Exodus 34:6, Psalm 23:6, Psalm 136...
-- Each verse showing the context of hesed
 ```
 
-### 8. `find_similar_passages`
+### Scholarly Commentary
 
-**Purpose**: Discover semantically similar passages across the Bible using vector embeddings.
+#### 8. `get_study_notes`
 
-**When Claude uses it**:
-- User wants to find thematic connections not captured by explicit cross-references
-- User is studying prophetic imagery across OT and NT
-- User wants to explore how themes develop across Scripture
-- User asks "What passages are similar to X?"
+Get scholarly study notes and translation notes for a Bible verse or chapter.
 
-**What it returns**:
-- Source verse text
-- Similar passages ranked by semantic similarity (%)
-- Genre warnings when source and match differ
-- Hermeneutical caution about verifying context
+**When Claude uses it**: User wants commentary on a specific verse, help explaining a difficult passage, or translation and cultural background notes.
 
-**Important**: Semantic similarity indicates shared vocabulary and concepts, but does NOT establish theological connection. The tool includes warnings to verify genre compatibility, authorial intent, and historical context before treating matches as theologically related.
+**What it returns**: Combined commentary from three sources: Tyndale Study Notes (66 books of concise verse-level scholarly commentary), unfoldingWord Translation Notes (translator-focused linguistic insights), and SIL Translator Notes (additional translation and cultural context).
 
 **Example**:
 ```
-User: "Find passages similar to Daniel 7:7 about the beast with ten horns"
+User: "What do the study notes say about John 3:16?"
+
+Claude calls: get_study_notes(reference="John 3:16")
+
+Returns:
+- Tyndale Study Notes: [verse commentary]
+- Translation Notes (UW): [linguistic insights]
+- Translation Notes (SIL): [cultural context]
+```
+
+#### 9. `get_bible_dictionary`
+
+Look up a topic in the Tyndale Bible Dictionary.
+
+**When Claude uses it**: User needs background information on a biblical topic, historical or cultural context, or a detailed article about a person, place, or concept.
+
+**What it returns**: Full dictionary article from a collection of 500+ topical articles covering biblical people, places, theological concepts, cultural practices, historical background, and archaeological findings.
+
+**Example**:
+```
+User: "Tell me about the Pharisees"
+
+Claude calls: get_bible_dictionary(topic="Pharisees")
+
+Returns: Full Tyndale Bible Dictionary article with historical background,
+beliefs, practices, and NT context.
+```
+
+#### 10. `get_key_terms`
+
+Look up a key theological term in the FIA Key Terms database.
+
+**When Claude uses it**: User wants a precise definition of a theological term, or needs to understand how a concept is used across Scripture.
+
+**What it returns**: Definition from a collection of 200+ carefully defined theological and biblical terms with biblical usage, cross-references, and translation guidance.
+
+**Example**:
+```
+User: "Define the term atonement"
+
+Claude calls: get_key_terms(term="atonement")
+
+Returns: FIA Key Terms definition with biblical usage, cross-references,
+and translation guidance.
+```
+
+### Graph Knowledge (Theographic Bible Metadata)
+
+#### 11. `explore_genealogy`
+
+Trace family relationships (ancestors or descendants) for a biblical person using genealogical data for 1,100+ persons.
+
+**What it returns**: Family tree with generation numbers and relationship types, immediate family (spouse, siblings), Mermaid diagram.
+
+**Example**:
+```
+User: "Show me the family tree of David"
+
+Claude calls: explore_genealogy(person="David", direction="both", generations=5)
+
+Returns: Ancestor chain (Jesse → Obed → Boaz...), descendants,
+spouse(s), siblings, Mermaid flowchart diagram.
+```
+
+#### 12. `explore_person_events`
+
+Find all events a biblical person participated in, in chronological order.
+
+**What it returns**: Timeline of a person's life events with locations and approximate dates, Mermaid timeline diagram.
+
+#### 13. `explore_place`
+
+Explore the biblical history of a geographic location.
+
+**What it returns**: Events at the location, people born or who died there, coordinates, Mermaid network diagram.
+
+#### 14. `find_connection`
+
+Find the family relationship path between two biblical people.
+
+**What it returns**: Shortest relationship path through parent, child, sibling, and partner relationships, Mermaid flowchart.
+
+**Example**:
+```
+User: "How are Ruth and Jesus related?"
+
+Claude calls: find_connection(person1="Ruth", person2="Jesus")
+
+Returns: Ruth → child → Obed → child → Jesse → child → David → ... → Jesus
+```
+
+#### 15. `people_in_passage`
+
+Find all people, places, and events mentioned in a Bible passage.
+
+**What it returns**: All entities mentioned in a chapter or verse according to Theographic Bible Metadata.
+
+### Hybrid Search
+
+#### 16. `graph_enriched_search`
+
+Combine passage lookup with graph context for the most comprehensive single-query view of a verse.
+
+**What it returns**: Verse text (English + original), all people/places/events mentioned, family relationships for each person mentioned.
+
+#### 17. `find_similar_passages`
+
+Discover semantically similar passages across the Bible using vector embeddings.
+
+**When Claude uses it**: User wants to find thematic connections not captured by explicit cross-references, or asks "What passages are similar to X?"
+
+**What it returns**: Similar passages ranked by semantic similarity (%), genre warnings, hermeneutical cautions.
+
+**Important**: Semantic similarity indicates shared vocabulary and concepts, but does NOT establish theological connection. The tool includes warnings to verify genre compatibility, authorial intent, and historical context.
+
+**Example**:
+```
+User: "Find passages similar to Daniel 7:7"
 
 Claude calls: find_similar_passages(reference="Daniel 7:7", limit=5)
 
 Returns:
 - Daniel 7:15-28 (70.0% similar) - interpretation of the vision
-- Daniel 8:1-27 (62.0% similar) - the next vision
 - Revelation 9:17-21 (61.1% similar) - locusts with lion's teeth
 - Daniel 2:29-45 (60.8% similar) - Nebuchadnezzar's statue
-- Revelation 17:8-10 (59.6% similar) - the beast that was and is not
 ```
 
-This tool finds the classic **Daniel → Revelation** prophetic connections that scholars study, as well as related OT apocalyptic passages in Ezekiel and Zechariah.
+---
+
+## How Users Interact
+
+### Natural Language Queries
+
+Users don't need to know the tool names. They just ask questions:
+
+| User Question | Claude Uses |
+|--------------|-------------|
+| "What does John 3:16 say in Greek?" | `lookup_verse` |
+| "What's the Greek word for love?" | `search_lexicon` |
+| "Study the word 'agape'" | `word_study` |
+| "Who was Abraham?" | `lookup_name` |
+| "What other passages talk about grace?" | `get_cross_references` |
+| "Parse V-AAI-3S" | `parse_morphology` |
+| "Where else does G26 appear?" | `search_by_strongs` |
+| "What do the study notes say about Romans 8:28?" | `get_study_notes` |
+| "Look up 'covenant' in the Bible dictionary" | `get_bible_dictionary` |
+| "Define the key term 'atonement'" | `get_key_terms` |
+| "Show me David's family tree" | `explore_genealogy` |
+| "What events happened in Moses' life?" | `explore_person_events` |
+| "What's the history of Bethlehem?" | `explore_place` |
+| "How are Ruth and Jesus related?" | `find_connection` |
+| "Who are the people in Romans 8?" | `people_in_passage` |
+| "Give me everything about Genesis 22:1" | `graph_enriched_search` |
+| "Find passages similar to Daniel 7" | `find_similar_passages` |
+
+### Example Conversation
+
+**User**: "I'm studying Romans 5:8. What does Paul mean when he says God 'demonstrates' his love?"
+
+**Claude's internal process**:
+1. Look up the verse: `lookup_verse(reference="Romans 5:8")`
+2. Study the key word: `word_study(word="demonstrates")` → finds G4921 συνίστημι
+3. Get study notes: `get_study_notes(reference="Romans 5:8")`
+4. Check cross-references for context
+5. Apply genre guidance (Epistles)
+
+**Claude's response**:
+> In Romans 5:8, Paul uses the Greek word **συνίστημι** (synistēmi, G4921), which means "to stand together, to commend, to demonstrate." This is a present tense verb, indicating ongoing action.
+>
+> The genre context is important here: Romans is an epistle, and Paul is building an argument. In the immediate context (Romans 5:1-11), he's explaining how we have peace with God through justification by faith. Verse 8 is his proof: God didn't wait for us to become worthy, but demonstrated his love "while we were still sinners."
+>
+> The word "demonstrates" carries the sense of proving beyond doubt - not just telling us about his love, but showing it through action (Christ's death).
+>
+> Related passages on God's love demonstrated through Christ: John 3:16, 1 John 4:9-10.
+
+---
+
+## Example Questions
+
+Try asking Claude:
+
+```
+What does John 3:16 say in Greek? Break down the key words.
+```
+
+```
+Study the word 'agape' - how is it different from other Greek words for love?
+```
+
+```
+What's the context of Romans 8:28? Who is Paul writing to and why?
+```
+
+```
+Show me cross-references for Ephesians 2:8-9 on salvation by grace.
+```
+
+```
+Who was Melchizedek and why is he significant?
+```
+
+```
+Parse the verb morphology in Philippians 2:12 - "work out your salvation"
+```
+
+```
+What does the Hebrew word 'hesed' mean? Where is it used?
+```
+
+```
+Help me understand Revelation 13 - what are these beasts?
+```
+
+```
+What do the study notes say about John 1:1?
+```
+
+```
+Look up 'baptism' in the Bible dictionary.
+```
+
+```
+Show me David's family tree going back 5 generations.
+```
+
+```
+How are Abraham and Jesus connected genealogically?
+```
+
+```
+What events happened in the life of Moses?
+```
+
+```
+Find passages similar to John 3:16 - what other verses talk about God's love like this?
+```
+
+```
+What Old Testament passages connect to Daniel's vision of the Son of Man?
+```
 
 ---
 
@@ -505,90 +658,6 @@ The server's hermeneutics module guides Claude through this sequence:
 
 ---
 
-## How Users Interact
-
-### Natural Language Queries
-
-Users don't need to know the tool names. They just ask questions:
-
-| User Question | Claude Uses |
-|--------------|-------------|
-| "What does John 3:16 say in Greek?" | `lookup_verse` |
-| "What's the Greek word for love?" | `search_lexicon` |
-| "Study the word 'agape'" | `word_study` |
-| "Who was Abraham?" | `lookup_name` |
-| "What other passages talk about grace?" | `get_cross_references` |
-| "Parse V-AAI-3S" | `parse_morphology` |
-| "Where else does G26 appear?" | `search_by_strongs` |
-| "Find passages similar to Daniel 7" | `find_similar_passages` |
-
-### Example Conversation
-
-**User**: "I'm studying Romans 5:8. What does Paul mean when he says God 'demonstrates' his love?"
-
-**Claude's internal process**:
-1. Look up the verse: `lookup_verse(reference="Romans 5:8")`
-2. Study the key word: `word_study(word="demonstrates")` → finds G4921 συνίστημι
-3. Check cross-references for context
-4. Apply genre guidance (Epistles)
-
-**Claude's response**:
-> In Romans 5:8, Paul uses the Greek word **συνίστημι** (synistēmi, G4921), which means "to stand together, to commend, to demonstrate." This is a present tense verb, indicating ongoing action.
->
-> The genre context is important here: Romans is an epistle, and Paul is building an argument. In the immediate context (Romans 5:1-11), he's explaining how we have peace with God through justification by faith. Verse 8 is his proof: God didn't wait for us to become worthy, but demonstrated his love "while we were still sinners."
->
-> The word "demonstrates" carries the sense of proving beyond doubt - not just telling us about his love, but showing it through action (Christ's death).
->
-> Related passages on God's love demonstrated through Christ: John 3:16, 1 John 4:9-10.
-
----
-
-## Example Questions
-
-Try asking Claude:
-
-```
-What does John 3:16 say in Greek? Break down the key words.
-```
-
-```
-Study the word 'agape' - how is it different from other Greek words for love?
-```
-
-```
-What's the context of Romans 8:28? Who is Paul writing to and why?
-```
-
-```
-Show me cross-references for Ephesians 2:8-9 on salvation by grace.
-```
-
-```
-Who was Melchizedek and why is he significant?
-```
-
-```
-Parse the verb morphology in Philippians 2:12 - "work out your salvation"
-```
-
-```
-What does the Hebrew word 'hesed' mean? Where is it used?
-```
-
-```
-Help me understand Revelation 13 - what are these beasts?
-```
-
-```
-Find passages similar to John 3:16 - what other verses talk about God's love like this?
-```
-
-```
-What Old Testament passages connect to Daniel's vision of the Son of Man?
-```
-
----
-
 ## Self-Hosting
 
 Want to run your own instance? See [docs/SELF_HOST.md](docs/SELF_HOST.md).
@@ -605,22 +674,32 @@ Options:
 ```
 studybible-mcp/
 ├── src/study_bible_mcp/
-│   ├── server.py          # MCP server (stdio + SSE transports)
-│   ├── database.py        # SQLite queries
-│   ├── tools.py           # 8 tool definitions
-│   ├── hermeneutics.py    # Genre detection & interpretation
-│   └── parsers/           # STEPBible data parsers
+│   ├── server.py              # MCP server (stdio + SSE transports)
+│   ├── database.py            # SQLite queries (async)
+│   ├── tools.py               # 17 tool definitions
+│   ├── hermeneutics.py        # Genre detection & interpretation
+│   └── parsers/
+│       ├── lexicon.py         # TFLSJ, BDB, TBESG, TBESH parsers
+│       ├── aquifer.py         # BibleAquifer JSON parser
+│       ├── acai.py            # ACAI entity annotation parser
+│       ├── tagged_text.py     # TAGNT/TAHOT morphology parsers
+│       └── proper_names.py    # TIPNR name parser
 ├── scripts/
-│   ├── download_stepbible.py  # Download source data
+│   ├── download_stepbible.py  # Download all source data (--aquifer flag)
 │   ├── build_database.py      # Build SQLite database
-│   └── generate_embeddings.py # Generate vector embeddings
+│   ├── generate_embeddings.py # Generate vector embeddings
+│   ├── import_theographic.py  # Import Theographic graph data
+│   └── test_server.py         # Manual test suite
+├── tests/
+│   └── test_tool_selection.py # Pytest: agent tool selection (71 tests)
 ├── prompts/
-│   └── system_prompt.md   # Full hermeneutical framework for agents
+│   └── system_prompt.md       # Full hermeneutical framework for agents
 ├── docs/
-│   ├── SETUP.md           # Quick setup guide
-│   └── SELF_HOST.md       # Self-hosting instructions
-├── Dockerfile             # Multi-stage build with database
-├── fly.toml               # Fly.io deployment config
+│   ├── SETUP.md               # Quick setup guide
+│   └── SELF_HOST.md           # Self-hosting instructions
+├── ARCHITECTURE.md            # Mermaid flowchart of all 17 tools
+├── Dockerfile                 # Multi-stage build with database
+├── fly.toml                   # Fly.io deployment config
 └── pyproject.toml
 ```
 
@@ -630,27 +709,52 @@ studybible-mcp/
 
 ### STEPBible - Tyndale House, Cambridge
 
-All biblical data comes from the [STEPBible project](https://www.stepbible.org/) ([GitHub](https://github.com/STEPBible/STEPBible-Data)), developed by scholars at **Tyndale House, Cambridge** - one of the world's leading centers for biblical research.
-
-**Why STEPBible is authoritative:**
-- Created by Tyndale House scholars with access to primary manuscripts
-- Peer-reviewed by biblical language experts
-- Used by translators, seminaries, and Bible software worldwide
-- Continuously updated with corrections and improvements
-- Freely licensed (CC BY 4.0) for maximum accessibility
-
-**Data files used:**
+Biblical text and brief lexicon data come from the [STEPBible project](https://www.stepbible.org/) ([GitHub](https://github.com/STEPBible/STEPBible-Data)), developed by scholars at **Tyndale House, Cambridge** - one of the world's leading centres for biblical research. Licensed CC BY 4.0.
 
 | File | Description | Content |
 |------|-------------|---------|
-| **TBESG** | Tyndale Brief Lexicon - Greek | 5,600+ Greek words with definitions, etymology, semantic domains |
-| **TBESH** | Tyndale Brief Lexicon - Hebrew | 8,600+ Hebrew words with definitions, etymology, semantic domains |
-| **TAGNT** | Translators Amalgamated Greek NT | Every word of the Greek NT with morphology, Strong's numbers, glosses |
-| **TAHOT** | Translators Amalgamated Hebrew OT | Every word of the Hebrew OT with morphology, Strong's numbers, glosses |
-| **TIPNR** | Translators Proper Names | 1,100+ biblical people, places, and things with references |
+| **TFLSJ** | Full Liddell-Scott-Jones Greek Lexicon | 10,846 Greek words with full scholarly definitions |
+| **TBESG** | Tyndale Brief Lexicon - Greek (fallback) | 5,600+ Greek words with brief definitions |
+| **TBESH** | Tyndale Brief Lexicon - Hebrew (fallback) | 8,600+ Hebrew words with brief definitions |
+| **TAGNT** | Translators Amalgamated Greek NT (2 parts) | Every word of the Greek NT with morphology, Strong's numbers, glosses |
+| **TAHOT** | Translators Amalgamated Hebrew OT (4 parts) | Every word of the Hebrew OT with morphology, Strong's numbers, glosses |
+| **TIPNR** | Translators Proper Names | 4,299 biblical people, places, and things with references |
 | **TEGMC/TEHMC** | Morphology Codes | Grammatical parsing code definitions |
 
-The lexicons are based on Extended Strong's numbering, which disambiguates words that share traditional Strong's numbers (e.g., distinguishing different Hebrew words that Strong's grouped together).
+### BDB Hebrew Lexicon
+
+The full unabridged Brown-Driver-Briggs Hebrew lexicon (8,090 entries) comes from [eliranwong/unabridged-BDB-Hebrew-lexicon](https://github.com/eliranwong/unabridged-BDB-Hebrew-lexicon). The BDB is the standard scholarly Hebrew-English lexicon, originally published in 1906 and still widely used in academic study. Public domain text.
+
+### BibleAquifer
+
+Scholarly commentary and reference content from [BibleAquifer](https://github.com/BibleAquifer) (CC BY-SA 4.0):
+
+| Resource | Description | Content |
+|----------|-------------|---------|
+| **Tyndale Study Notes** | Verse-level scholarly commentary | 66 books |
+| **Tyndale Bible Dictionary** | Topical articles | 500+ articles on people, places, theology, history, archaeology |
+| **UW Translation Notes** | unfoldingWord translator commentary | Linguistic insights for 49+ books |
+| **SIL Translator Notes** | SIL International translator notes | Translation and cultural context |
+| **FIA Key Terms** | Key theological terms | 200+ carefully defined terms with cross-references |
+
+### ACAI Entity Annotations
+
+Rich entity annotations from [BibleAquifer/ACAI](https://github.com/BibleAquifer/ACAI) (CC BY-SA 4.0):
+
+| Type | Count | Content |
+|------|-------|---------|
+| People | ~2,500 | Family relationships, variant names, roles, speech attributions, verse references |
+| Places | ~400 | Geographic entities with biblical references |
+| Groups | ~200 | People groups, nations, tribes |
+| Key Terms | ~75 | Annotated theological concepts |
+
+### Theographic Bible Metadata
+
+Graph data for genealogy, events, and places from [Theographic](https://github.com/robertrouse/theographic-bible-metadata). Used by the `explore_genealogy`, `explore_person_events`, `explore_place`, `find_connection`, `people_in_passage`, and `graph_enriched_search` tools.
+
+### Vector Embeddings
+
+Semantic search uses OpenAI's `text-embedding-3-small` model via [sqlite-vec](https://github.com/asg017/sqlite-vec) for the `find_similar_passages` tool.
 
 ---
 
@@ -671,11 +775,15 @@ Contributions welcome! Especially:
 MIT License. See [LICENSE](LICENSE).
 
 Data from STEPBible is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Data from BibleAquifer and ACAI is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 ---
 
 ## Acknowledgments
 
 - [STEPBible](https://www.stepbible.org/) for the freely available biblical data
+- [BibleAquifer](https://github.com/BibleAquifer) for study notes, dictionary, translation notes, and key terms
+- [eliranwong](https://github.com/eliranwong/unabridged-BDB-Hebrew-lexicon) for the unabridged BDB Hebrew lexicon
+- [Theographic](https://github.com/robertrouse/theographic-bible-metadata) for genealogy and event graph data
 - Gordon Fee & Douglas Stuart for the hermeneutical framework in "How to Read the Bible for All Its Worth"
 - The MCP community for the protocol and tooling
