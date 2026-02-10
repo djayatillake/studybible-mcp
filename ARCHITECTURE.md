@@ -22,6 +22,7 @@ flowchart TD
     EnrichVerse -->|Want related passages| CrossRef
     EnrichVerse -->|Want people/places| GraphEnriched
     EnrichVerse -->|Want semantic parallels| SimilarPassages
+    EnrichVerse -->|Want scholarly commentary| StudyNotes
     EnrichVerse -->|Sufficient| Respond
 
     %% === WORD/CONCEPT PATH ===
@@ -37,10 +38,11 @@ flowchart TD
 
     WordStudy["`**word_study**
     Returns: full lexicon entry,
-    definition, etymology,
-    semantic range`"]
+    brief + full LSJ/BDB definition,
+    etymology, semantic range`"]
     WordStudy --> FindUsage{Show usage\nin context?}
     FindUsage -->|Yes| SearchStrongs
+    FindUsage -->|Want key term definition| KeyTerms
     FindUsage -->|Sufficient| Respond
 
     SearchStrongs["`**search_by_strongs**
@@ -58,11 +60,13 @@ flowchart TD
     LookupName["`**lookup_name**
     Returns: description,
     family relationships,
-    key references`"]
+    key references,
+    ACAI annotations`"]
     LookupName --> PersonDeepen{Go deeper?}
     PersonDeepen -->|Family tree| ExploreGenealogy
     PersonDeepen -->|Life events| ExploreEvents
     PersonDeepen -->|Connection to another| FindConnection
+    PersonDeepen -->|Dictionary article| BibleDict
     PersonDeepen -->|Sufficient| Respond
 
     ExploreGenealogy["`**explore_genealogy**
@@ -94,6 +98,35 @@ flowchart TD
     Returns: key passages
     for the theme/doctrine`"]
     CrossRef --> LookupVerse
+
+    %% === COMMENTARY PATH ===
+    Classify -->|"Commentary or background\n(e.g. 'Explain Romans 8:28')"| CommentaryPath
+    CommentaryPath{What kind of\nreference?}
+
+    CommentaryPath -->|Verse/chapter notes| StudyNotes
+    CommentaryPath -->|Topical article| BibleDict
+    CommentaryPath -->|Theological term| KeyTerms
+
+    StudyNotes["`**get_study_notes**
+    Returns: Tyndale Study Notes,
+    UW Translation Notes,
+    SIL Translator Notes`"]
+    StudyNotes --> CommentaryDeepen{Go deeper?}
+    CommentaryDeepen -->|Look up the verse text| LookupVerse
+    CommentaryDeepen -->|Dictionary background| BibleDict
+    CommentaryDeepen -->|Sufficient| Respond
+
+    BibleDict["`**get_bible_dictionary**
+    Returns: Tyndale Bible
+    Dictionary article (500+
+    topics, people, places)`"]
+    BibleDict --> Respond
+
+    KeyTerms["`**get_key_terms**
+    Returns: FIA Key Terms
+    definition, biblical usage,
+    translation guidance`"]
+    KeyTerms --> Respond
 
     %% === PASSAGE STUDY PATH ===
     Classify -->|"Passage exploration\n(e.g. 'Who is in Romans 8?')"| PassagePath
@@ -135,7 +168,7 @@ flowchart TD
     ParseMorph --> Respond
 
     %% === RESPONSE ===
-    Respond([Agent synthesizes response\nwith original languages,\ndiagrams, and citations])
+    Respond([Agent synthesises response\nwith original languages,\ndiagrams, and citations])
 
     %% Styling
     style User fill:#4a90d9,stroke:#2c5f9e,color:#fff
@@ -146,6 +179,8 @@ flowchart TD
     style EntityPath fill:#f5a623,stroke:#d48b0a,color:#fff
     style PersonDeepen fill:#f5a623,stroke:#d48b0a,color:#fff
     style FindUsage fill:#f5a623,stroke:#d48b0a,color:#fff
+    style CommentaryPath fill:#f5a623,stroke:#d48b0a,color:#fff
+    style CommentaryDeepen fill:#f5a623,stroke:#d48b0a,color:#fff
 
     style LookupVerse fill:#7ed321,stroke:#5a9e18,color:#fff
     style WordStudy fill:#7ed321,stroke:#5a9e18,color:#fff
@@ -161,15 +196,19 @@ flowchart TD
     style FindConnection fill:#e74c3c,stroke:#c0392b,color:#fff
     style ExplorePlaceTool fill:#e74c3c,stroke:#c0392b,color:#fff
     style PeopleInPassage fill:#e74c3c,stroke:#c0392b,color:#fff
+    style StudyNotes fill:#3498db,stroke:#2178b5,color:#fff
+    style BibleDict fill:#3498db,stroke:#2178b5,color:#fff
+    style KeyTerms fill:#3498db,stroke:#2178b5,color:#fff
 ```
 
 ## Tool Colour Key
 
 | Colour | Category | Tools |
 |--------|----------|-------|
-| Green | Core text & language | lookup_verse, word_study, search_lexicon, search_by_strongs, get_cross_references, parse_morphology |
+| Green | Core text & language | lookup_verse, word_study, search_lexicon, search_by_strongs, get_cross_references, parse_morphology, lookup_name |
 | Purple | Hybrid search | find_similar_passages, graph_enriched_search |
 | Red | Graph knowledge | explore_genealogy, explore_person_events, explore_place, find_connection, people_in_passage |
+| Light blue | Scholarly commentary | get_study_notes, get_bible_dictionary, get_key_terms |
 | Orange | Agent decisions | Classification and enrichment decision points |
 | Blue | User interaction | Question input and final response |
 
@@ -197,3 +236,15 @@ User question → `get_cross_references` → `lookup_verse`
 **Relationship tracing:**
 User question → `find_connection` → `explore_genealogy`
 (for context) → response
+
+**Verse commentary:**
+User question → `get_study_notes` → `lookup_verse`
+(for the verse text) → `get_bible_dictionary` (for background) → response
+
+**Theological term study:**
+User question → `get_key_terms` → `word_study`
+(for the Greek/Hebrew behind the term) → `search_by_strongs` → response
+
+**Topical research:**
+User question → `get_bible_dictionary` → `get_cross_references`
+(for supporting passages) → `lookup_verse` → response
