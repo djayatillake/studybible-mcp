@@ -34,6 +34,7 @@ from .tools import (
     format_passage_entities, format_connection_path,
     mermaid_genealogy, mermaid_connection_path, mermaid_person_timeline,
     mermaid_place_network,
+    format_study_notes, format_dictionary_article, format_key_terms,
 )
 from .hermeneutics import (
     get_genre_from_reference,
@@ -148,6 +149,12 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_find_connection(arguments)
         elif name == "graph_enriched_search":
             return await handle_graph_enriched_search(arguments)
+        elif name == "get_study_notes":
+            return await handle_get_study_notes(arguments)
+        elif name == "get_bible_dictionary":
+            return await handle_get_bible_dictionary(arguments)
+        elif name == "get_key_terms":
+            return await handle_get_key_terms(arguments)
         else:
             return [TextContent(
                 type="text",
@@ -268,7 +275,7 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
 
 
 async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
-    """Handle lookup_name tool - get info about biblical names."""
+    """Handle lookup_name tool - get info about biblical names, enriched with ACAI data."""
     name = args.get("name", "")
     name_type = args.get("type")  # person, place, thing
 
@@ -280,10 +287,19 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     if not entries:
         return [TextContent(type="text", text=f"No entries found for '{name}'.")]
 
+    # Try to get ACAI enrichment data
+    acai_data = None
+    try:
+        has_acai = await db.has_acai_data()
+        if has_acai:
+            acai_data = await db.get_acai_entity(name)
+    except Exception:
+        pass
+
     result = f"## Biblical Names: {name}\n\n"
 
     for entry in entries:
-        result += format_name_entry(entry)
+        result += format_name_entry(entry, acai_data=acai_data)
         result += "\n---\n\n"
 
     return [TextContent(type="text", text=result)]
@@ -420,6 +436,98 @@ async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent
         # Add verse count info
         if passage['verse_count'] > 1:
             result += f"*({passage['verse_count']} verses in this passage)*\n\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+# =========================================================================
+# Aquifer content handlers
+# =========================================================================
+
+async def handle_get_study_notes(args: dict[str, Any]) -> list[TextContent]:
+    """Handle get_study_notes tool - get study notes for a verse or chapter."""
+    reference = args.get("reference", "")
+    chapter_only = args.get("chapter_only", False)
+
+    if not reference:
+        return [TextContent(type="text", text="Please provide a Bible reference (e.g., 'John 3:16' or 'Genesis 1').")]
+
+    has_data = await db.has_aquifer_data()
+    if not has_data:
+        return [TextContent(
+            type="text",
+            text="Study notes not available. Run 'python scripts/download_stepbible.py --aquifer' and rebuild the database."
+        )]
+
+    if chapter_only or ':' not in reference.strip():
+        # Chapter-level: parse book and chapter
+        ref_stripped = reference.strip()
+        match = re.match(r'^(\d?\s*[a-zA-Z]+)\s+(\d+)$', ref_stripped)
+        if match:
+            book_str, chapter_str = match.groups()
+            dummy_ref = f"{book_str} {chapter_str}:1"
+            normalized = db._normalize_reference(dummy_ref)
+            book_abbr = normalized.split(".")[0]
+            notes = await db.get_chapter_study_notes(book_abbr, int(chapter_str))
+        else:
+            # Try as verse reference
+            notes = await db.get_study_notes(reference)
+    else:
+        notes = await db.get_study_notes(reference)
+
+    if not notes:
+        return [TextContent(type="text", text=f"No study notes found for {reference}.")]
+
+    result = f"## Study Notes: {reference}\n\n"
+    result += format_study_notes(notes)
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_get_bible_dictionary(args: dict[str, Any]) -> list[TextContent]:
+    """Handle get_bible_dictionary tool - search dictionary articles."""
+    topic = args.get("topic", "")
+
+    if not topic:
+        return [TextContent(type="text", text="Please provide a topic to look up.")]
+
+    has_data = await db.has_aquifer_data()
+    if not has_data:
+        return [TextContent(
+            type="text",
+            text="Bible dictionary not available. Run 'python scripts/download_stepbible.py --aquifer' and rebuild the database."
+        )]
+
+    articles = await db.get_bible_dictionary(topic)
+
+    if not articles:
+        return [TextContent(type="text", text=f"No dictionary article found for '{topic}'.")]
+
+    result = format_dictionary_article(articles)
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_get_key_terms(args: dict[str, Any]) -> list[TextContent]:
+    """Handle get_key_terms tool - search FIA Key Terms."""
+    term = args.get("term", "")
+
+    if not term:
+        return [TextContent(type="text", text="Please provide a term to look up.")]
+
+    has_data = await db.has_aquifer_data()
+    if not has_data:
+        return [TextContent(
+            type="text",
+            text="Key terms not available. Run 'python scripts/download_stepbible.py --aquifer' and rebuild the database."
+        )]
+
+    terms = await db.get_key_terms(term)
+
+    if not terms:
+        return [TextContent(type="text", text=f"No key term found for '{term}'.")]
+
+    result = format_key_terms(terms)
 
     return [TextContent(type="text", text=result)]
 

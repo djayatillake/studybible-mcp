@@ -836,6 +836,208 @@ class StudyBibleDB:
         except Exception:
             return False
 
+    # =========================================================================
+    # Aquifer content queries
+    # =========================================================================
+
+    # Book abbreviation to 2-digit number for BBCCCVVV references
+    _BOOK_ABBR_TO_NUM = {
+        "Gen": "01", "Exo": "02", "Lev": "03", "Num": "04", "Deu": "05",
+        "Jos": "06", "Jdg": "07", "Rut": "08", "1Sa": "09", "2Sa": "10",
+        "1Ki": "11", "2Ki": "12", "1Ch": "13", "2Ch": "14", "Ezr": "15",
+        "Neh": "16", "Est": "17", "Job": "18", "Psa": "19", "Pro": "20",
+        "Ecc": "21", "Sng": "22", "Isa": "23", "Jer": "24", "Lam": "25",
+        "Ezk": "26", "Dan": "27", "Hos": "28", "Jol": "29", "Amo": "30",
+        "Oba": "31", "Jon": "32", "Mic": "33", "Nam": "34", "Hab": "35",
+        "Zep": "36", "Hag": "37", "Zec": "38", "Mal": "39",
+        "Mat": "40", "Mrk": "41", "Luk": "42", "Jhn": "43", "Act": "44",
+        "Rom": "45", "1Co": "46", "2Co": "47", "Gal": "48", "Eph": "49",
+        "Php": "50", "Col": "51", "1Th": "52", "2Th": "53", "1Ti": "54",
+        "2Ti": "55", "Tit": "56", "Phm": "57", "Heb": "58", "Jas": "59",
+        "1Pe": "60", "2Pe": "61", "1Jn": "62", "2Jn": "63", "3Jn": "64",
+        "Jud": "65", "Rev": "66",
+    }
+
+    def _to_aquifer_ref(self, normalized_ref: str) -> str | None:
+        """Convert normalized reference 'Gen.1.1' to Aquifer 8-digit format '01001001'."""
+        parts = normalized_ref.split('.')
+        if len(parts) != 3:
+            return None
+        book_num = self._BOOK_ABBR_TO_NUM.get(parts[0])
+        if not book_num:
+            return None
+        try:
+            chapter = int(parts[1])
+            verse = int(parts[2])
+            return f"{book_num}{chapter:03d}{verse:03d}"
+        except (ValueError, IndexError):
+            return None
+
+    async def has_aquifer_data(self) -> bool:
+        """Check if aquifer_content table exists and has data."""
+        try:
+            async with self.conn.execute(
+                "SELECT COUNT(*) FROM aquifer_content"
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row[0] > 0
+        except Exception:
+            return False
+
+    async def get_study_notes(self, reference: str) -> list[dict]:
+        """Get study notes + translation notes for a verse reference.
+
+        Fetches study_notes, translation_notes_uw, and translation_notes_sil
+        for a specific verse. Matches both exact refs and ranges containing the verse.
+        """
+        normalized = self._normalize_reference(reference)
+        aq_ref = self._to_aquifer_ref(normalized)
+        if not aq_ref:
+            return []
+
+        # Match exact refs and ranges containing this verse
+        sql = """
+            SELECT * FROM aquifer_content
+            WHERE resource_type IN ('study_notes', 'translation_notes_uw', 'translation_notes_sil')
+              AND (
+                start_ref = ?
+                OR (start_ref <= ? AND end_ref >= ? AND is_range = 1)
+              )
+            ORDER BY resource_type, start_ref
+        """
+        async with self.conn.execute(sql, (aq_ref, aq_ref, aq_ref)) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def get_chapter_study_notes(self, book: str, chapter: int) -> list[dict]:
+        """Get all study notes for an entire chapter."""
+        book_num = self._BOOK_ABBR_TO_NUM.get(book)
+        if not book_num:
+            return []
+
+        sql = """
+            SELECT * FROM aquifer_content
+            WHERE resource_type IN ('study_notes', 'translation_notes_uw', 'translation_notes_sil')
+              AND book = ?
+              AND chapter_start = ?
+            ORDER BY resource_type, start_ref
+        """
+        async with self.conn.execute(sql, (book, chapter)) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def get_bible_dictionary(self, topic: str) -> list[dict]:
+        """Search the Bible dictionary by title or content."""
+        # Try exact title match first
+        async with self.conn.execute(
+            "SELECT * FROM aquifer_content WHERE resource_type = 'dictionary' AND LOWER(title) = LOWER(?)",
+            (topic,)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            if rows:
+                return [dict(row) for row in rows]
+
+        # Fall back to LIKE search on title and content
+        pattern = f"%{topic}%"
+        async with self.conn.execute(
+            """SELECT * FROM aquifer_content
+               WHERE resource_type = 'dictionary'
+                 AND (LOWER(title) LIKE LOWER(?) OR LOWER(content_plain) LIKE LOWER(?))
+               ORDER BY
+                 CASE WHEN LOWER(title) LIKE LOWER(?) THEN 0 ELSE 1 END,
+                 LENGTH(title)
+               LIMIT 10""",
+            (pattern, pattern, pattern)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def get_key_terms(self, term: str) -> list[dict]:
+        """Search FIA Key Terms by title or content."""
+        # Try exact title match first
+        async with self.conn.execute(
+            "SELECT * FROM aquifer_content WHERE resource_type = 'key_terms' AND LOWER(title) = LOWER(?)",
+            (term,)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            if rows:
+                return [dict(row) for row in rows]
+
+        # Fall back to LIKE search
+        pattern = f"%{term}%"
+        async with self.conn.execute(
+            """SELECT * FROM aquifer_content
+               WHERE resource_type = 'key_terms'
+                 AND (LOWER(title) LIKE LOWER(?) OR LOWER(content_plain) LIKE LOWER(?))
+               ORDER BY
+                 CASE WHEN LOWER(title) LIKE LOWER(?) THEN 0 ELSE 1 END,
+                 LENGTH(title)
+               LIMIT 10""",
+            (pattern, pattern, pattern)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def search_aquifer_content(
+        self,
+        query: str,
+        resource_type: str | None = None,
+        limit: int = 10,
+    ) -> list[dict]:
+        """Generic full-text search across any Aquifer resource type."""
+        pattern = f"%{query}%"
+        params: list = [pattern, pattern]
+
+        sql = """
+            SELECT * FROM aquifer_content
+            WHERE (LOWER(title) LIKE LOWER(?) OR LOWER(content_plain) LIKE LOWER(?))
+        """
+
+        if resource_type:
+            sql += " AND resource_type = ?"
+            params.append(resource_type)
+
+        sql += " ORDER BY CASE WHEN LOWER(title) LIKE LOWER(?) THEN 0 ELSE 1 END, LENGTH(title) LIMIT ?"
+        params.extend([pattern, limit])
+
+        async with self.conn.execute(sql, params) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    # =========================================================================
+    # ACAI entity queries
+    # =========================================================================
+
+    async def has_acai_data(self) -> bool:
+        """Check if acai_entities table exists and has data."""
+        try:
+            async with self.conn.execute(
+                "SELECT COUNT(*) FROM acai_entities"
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row[0] > 0
+        except Exception:
+            return False
+
+    async def get_acai_entity(self, name: str) -> dict | None:
+        """Get an ACAI entity by name (case-insensitive, fuzzy)."""
+        # Try exact match first
+        async with self.conn.execute(
+            "SELECT * FROM acai_entities WHERE LOWER(name) = LOWER(?)",
+            (name,)
+        ) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                return dict(row)
+
+        # Try LIKE match
+        async with self.conn.execute(
+            "SELECT * FROM acai_entities WHERE LOWER(name) LIKE LOWER(?) ORDER BY reference_count DESC LIMIT 1",
+            (f"%{name}%",)
+        ) as cursor:
+            row = await cursor.fetchone()
+            return dict(row) if row else None
+
 
 def create_schema(conn: sqlite3.Connection):
     """Create the database schema."""
@@ -1029,6 +1231,57 @@ def create_schema(conn: sqlite3.Connection):
         );
         CREATE INDEX IF NOT EXISTS idx_graph_pg_person ON graph_person_group_edges(person_id);
         CREATE INDEX IF NOT EXISTS idx_graph_pg_group ON graph_person_group_edges(group_name);
+
+        -- =====================================================================
+        -- Aquifer content (study notes, dictionary, translation notes, key terms)
+        -- =====================================================================
+
+        CREATE TABLE IF NOT EXISTS aquifer_content (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content_id INTEGER NOT NULL,
+            resource_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            book TEXT,
+            book_num INTEGER,
+            start_ref TEXT,
+            end_ref TEXT,
+            chapter_start INTEGER,
+            verse_start INTEGER,
+            chapter_end INTEGER,
+            verse_end INTEGER,
+            content TEXT NOT NULL,
+            content_plain TEXT NOT NULL,
+            is_range INTEGER DEFAULT 0,
+            UNIQUE(content_id, resource_type)
+        );
+        CREATE INDEX IF NOT EXISTS idx_aq_type ON aquifer_content(resource_type);
+        CREATE INDEX IF NOT EXISTS idx_aq_ref ON aquifer_content(resource_type, start_ref);
+        CREATE INDEX IF NOT EXISTS idx_aq_book ON aquifer_content(resource_type, book, chapter_start);
+        CREATE INDEX IF NOT EXISTS idx_aq_title ON aquifer_content(resource_type, title);
+
+        -- =====================================================================
+        -- ACAI entity annotations
+        -- =====================================================================
+
+        CREATE TABLE IF NOT EXISTS acai_entities (
+            id TEXT PRIMARY KEY,
+            entity_type TEXT NOT NULL,
+            name TEXT NOT NULL,
+            gender TEXT,
+            description TEXT,
+            roles TEXT,
+            father_id TEXT,
+            mother_id TEXT,
+            partners TEXT,
+            offspring TEXT,
+            siblings TEXT,
+            referred_to_as TEXT,
+            key_references TEXT,
+            reference_count INTEGER,
+            speeches_count INTEGER
+        );
+        CREATE INDEX IF NOT EXISTS idx_acai_type ON acai_entities(entity_type);
+        CREATE INDEX IF NOT EXISTS idx_acai_name ON acai_entities(name);
     """)
     conn.commit()
 

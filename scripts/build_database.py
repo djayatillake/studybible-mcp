@@ -22,7 +22,10 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from study_bible_mcp.database import create_schema
-from study_bible_mcp.parsers.lexicon import parse_greek_lexicon, parse_hebrew_lexicon
+from study_bible_mcp.parsers.lexicon import (
+    parse_greek_lexicon, parse_hebrew_lexicon,
+    parse_tflsj_lexicon, parse_bdb_lexicon,
+)
 from study_bible_mcp.parsers.tagged_text import parse_tagnt, parse_tahot, parse_morphology_codes
 from study_bible_mcp.parsers.proper_names import parse_tipnr
 
@@ -73,12 +76,17 @@ def find_tahot_files(data_dir: Path) -> list[Path]:
 def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
     """Build the complete database from STEPBible files."""
 
-    # Check if data files exist
-    required_files = ["TBESG.txt", "TBESH.txt"]  # Minimum required
+    # Check if data files exist - need at least one Greek and one Hebrew lexicon
+    has_greek = (data_dir / "TFLSJ_0-5624.txt").exists() or (data_dir / "TBESG.txt").exists()
+    has_hebrew = (data_dir / "DictBDB.json").exists() or (data_dir / "TBESH.txt").exists()
 
-    missing_required = [f for f in required_files if not (data_dir / f).exists()]
-    if missing_required:
-        console.print(f"[red]Error: Missing required files: {missing_required}[/red]")
+    if not has_greek or not has_hebrew:
+        missing = []
+        if not has_greek:
+            missing.append("Greek lexicon (TFLSJ or TBESG)")
+        if not has_hebrew:
+            missing.append("Hebrew lexicon (BDB or TBESH)")
+        console.print(f"[red]Error: Missing required files: {missing}[/red]")
         console.print("Run [bold]python scripts/download_stepbible.py[/bold] first.")
         return False
 
@@ -102,14 +110,25 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
         console.print("Creating schema...")
         create_schema(conn)
 
-        # Import Greek lexicon
+        # Import Greek lexicon: prefer TFLSJ (Full LSJ), fall back to TBESG
+        tflsj_path = data_dir / "TFLSJ_0-5624.txt"
+        tflsj_extra_path = data_dir / "TFLSJ_extra.txt"
         tbesg_path = data_dir / "TBESG.txt"
-        if tbesg_path.exists():
+
+        if tflsj_path.exists():
+            import_lexicon_tflsj(conn, tflsj_path, "TFLSJ (0-5624)")
+            if tflsj_extra_path.exists():
+                import_lexicon_tflsj(conn, tflsj_extra_path, "TFLSJ (extra)")
+        elif tbesg_path.exists():
             import_lexicon(conn, tbesg_path, "greek", "TBESG")
 
-        # Import Hebrew lexicon
+        # Import Hebrew lexicon: prefer BDB, fall back to TBESH
+        bdb_path = data_dir / "DictBDB.json"
         tbesh_path = data_dir / "TBESH.txt"
-        if tbesh_path.exists():
+
+        if bdb_path.exists():
+            import_lexicon_bdb(conn, bdb_path, "BDB")
+        elif tbesh_path.exists():
             import_lexicon(conn, tbesh_path, "hebrew", "TBESH")
 
         # Import Greek NT (may be split into multiple files)
@@ -141,6 +160,16 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
 
         # Add built-in cross-references
         import_builtin_crossrefs(conn)
+
+        # Import Aquifer content (study notes, dictionary, translation notes, key terms)
+        aquifer_dir = data_dir / "aquifer"
+        if aquifer_dir.exists():
+            import_aquifer_content(conn, aquifer_dir)
+
+        # Import ACAI entity annotations
+        acai_dir = data_dir / "acai"
+        if acai_dir.exists():
+            import_acai_entities(conn, acai_dir)
 
         # Optimize
         console.print("\nOptimizing database...")
@@ -215,6 +244,126 @@ def import_lexicon(conn: sqlite3.Connection, filepath: Path, language: str, name
                 progress.update(task, completed=count)
 
         # Insert remaining
+        if batch:
+            conn.executemany("""
+                INSERT OR REPLACE INTO lexicon
+                (strongs, language, word, transliteration, pronunciation,
+                 short_definition, full_definition, etymology, usage_count,
+                 semantic_domain, related_words)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, batch)
+            conn.commit()
+
+        progress.update(task, completed=count)
+
+    console.print(f"  [green]✓[/green] Imported {count} entries")
+
+
+def import_lexicon_tflsj(conn: sqlite3.Connection, filepath: Path, name: str):
+    """Import a TFLSJ (Full LSJ) Greek lexicon file into the database."""
+    console.print(f"Importing {name} (Full LSJ Greek lexicon)...")
+
+    count = 0
+    batch = []
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("{task.completed} entries"),
+        console=console,
+    ) as progress:
+        task = progress.add_task(f"  {name}", total=None)
+
+        for entry in parse_tflsj_lexicon(filepath):
+            batch.append((
+                entry['strongs'],
+                entry['language'],
+                entry['word'],
+                entry['transliteration'],
+                entry.get('pronunciation', ''),
+                entry['short_definition'],
+                entry.get('full_definition', ''),
+                entry.get('etymology', ''),
+                entry.get('usage_count', 0),
+                entry.get('semantic_domain', '[]'),
+                entry.get('related_words', '[]'),
+            ))
+
+            count += 1
+
+            if len(batch) >= 1000:
+                conn.executemany("""
+                    INSERT OR REPLACE INTO lexicon
+                    (strongs, language, word, transliteration, pronunciation,
+                     short_definition, full_definition, etymology, usage_count,
+                     semantic_domain, related_words)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, batch)
+                conn.commit()
+                batch = []
+                progress.update(task, completed=count)
+
+        if batch:
+            conn.executemany("""
+                INSERT OR REPLACE INTO lexicon
+                (strongs, language, word, transliteration, pronunciation,
+                 short_definition, full_definition, etymology, usage_count,
+                 semantic_domain, related_words)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, batch)
+            conn.commit()
+
+        progress.update(task, completed=count)
+
+    console.print(f"  [green]✓[/green] Imported {count} entries")
+
+
+def import_lexicon_bdb(conn: sqlite3.Connection, filepath: Path, name: str):
+    """Import the BDB Hebrew lexicon JSON file into the database."""
+    console.print(f"Importing {name} (Full BDB Hebrew lexicon)...")
+
+    count = 0
+    batch = []
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("{task.completed} entries"),
+        console=console,
+    ) as progress:
+        task = progress.add_task(f"  {name}", total=None)
+
+        for entry in parse_bdb_lexicon(filepath):
+            batch.append((
+                entry['strongs'],
+                entry['language'],
+                entry['word'],
+                entry['transliteration'],
+                entry.get('pronunciation', ''),
+                entry['short_definition'],
+                entry.get('full_definition', ''),
+                entry.get('etymology', ''),
+                entry.get('usage_count', 0),
+                entry.get('semantic_domain', '[]'),
+                entry.get('related_words', '[]'),
+            ))
+
+            count += 1
+
+            if len(batch) >= 1000:
+                conn.executemany("""
+                    INSERT OR REPLACE INTO lexicon
+                    (strongs, language, word, transliteration, pronunciation,
+                     short_definition, full_definition, etymology, usage_count,
+                     semantic_domain, related_words)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, batch)
+                conn.commit()
+                batch = []
+                progress.update(task, completed=count)
+
         if batch:
             conn.executemany("""
                 INSERT OR REPLACE INTO lexicon
@@ -545,11 +694,169 @@ def import_builtin_crossrefs(conn: sqlite3.Connection):
     console.print(f"  [green]✓[/green] Added {count} thematic references")
 
 
+def import_aquifer_content(conn: sqlite3.Connection, aquifer_dir: Path):
+    """Import all BibleAquifer content (study notes, dictionary, etc.)."""
+    from study_bible_mcp.parsers.aquifer import parse_aquifer_content_file
+
+    resource_types = {
+        "study_notes": "study_notes",
+        "dictionary": "dictionary",
+        "translation_notes_uw": "translation_notes_uw",
+        "translation_notes_sil": "translation_notes_sil",
+        "key_terms": "key_terms",
+    }
+
+    for subdir, resource_type in resource_types.items():
+        dir_path = aquifer_dir / subdir
+        if not dir_path.exists():
+            continue
+
+        json_files = sorted(dir_path.glob("*.json"))
+        if not json_files:
+            continue
+
+        console.print(f"Importing Aquifer {subdir} ({len(json_files)} files)...")
+        count = 0
+        batch = []
+
+        for json_file in json_files:
+            # Extract book number from filename if applicable (e.g., "01.content.json" -> 1)
+            book_num = None
+            name_parts = json_file.stem.split(".")
+            if name_parts[0].isdigit():
+                book_num = int(name_parts[0])
+
+            try:
+                for entry in parse_aquifer_content_file(json_file, resource_type, book_num):
+                    batch.append((
+                        entry['content_id'],
+                        entry['resource_type'],
+                        entry['title'],
+                        entry.get('book'),
+                        entry.get('book_num'),
+                        entry.get('start_ref'),
+                        entry.get('end_ref'),
+                        entry.get('chapter_start'),
+                        entry.get('verse_start'),
+                        entry.get('chapter_end'),
+                        entry.get('verse_end'),
+                        entry['content'],
+                        entry['content_plain'],
+                        entry.get('is_range', 0),
+                    ))
+                    count += 1
+
+                    if len(batch) >= 500:
+                        conn.executemany("""
+                            INSERT OR REPLACE INTO aquifer_content
+                            (content_id, resource_type, title, book, book_num,
+                             start_ref, end_ref, chapter_start, verse_start,
+                             chapter_end, verse_end, content, content_plain, is_range)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, batch)
+                        conn.commit()
+                        batch = []
+            except Exception as e:
+                console.print(f"  [yellow]Warning: {json_file.name}: {e}[/yellow]")
+
+        if batch:
+            conn.executemany("""
+                INSERT OR REPLACE INTO aquifer_content
+                (content_id, resource_type, title, book, book_num,
+                 start_ref, end_ref, chapter_start, verse_start,
+                 chapter_end, verse_end, content, content_plain, is_range)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, batch)
+            conn.commit()
+
+        console.print(f"  [green]✓[/green] Imported {count} {subdir} entries")
+
+
+def import_acai_entities(conn: sqlite3.Connection, acai_dir: Path):
+    """Import ACAI entity annotation files."""
+    from study_bible_mcp.parsers.acai import parse_acai_entities
+
+    entity_types = ["people", "places", "groups", "keyterms"]
+    total_count = 0
+
+    for entity_type in entity_types:
+        type_dir = acai_dir / entity_type
+        if not type_dir.exists():
+            continue
+
+        json_files = sorted(type_dir.glob("*.json"))
+        if not json_files:
+            continue
+
+        console.print(f"Importing ACAI {entity_type} ({len(json_files)} files)...")
+        count = 0
+        batch = []
+
+        for json_file in json_files:
+            try:
+                for entity in parse_acai_entities(json_file, entity_type):
+                    batch.append((
+                        entity['id'],
+                        entity['entity_type'],
+                        entity['name'],
+                        entity.get('gender'),
+                        entity.get('description'),
+                        entity.get('roles'),
+                        entity.get('father_id'),
+                        entity.get('mother_id'),
+                        entity.get('partners'),
+                        entity.get('offspring'),
+                        entity.get('siblings'),
+                        entity.get('referred_to_as'),
+                        entity.get('key_references'),
+                        entity.get('reference_count', 0),
+                        entity.get('speeches_count', 0),
+                    ))
+                    count += 1
+
+                    if len(batch) >= 500:
+                        conn.executemany("""
+                            INSERT OR REPLACE INTO acai_entities
+                            (id, entity_type, name, gender, description, roles,
+                             father_id, mother_id, partners, offspring, siblings,
+                             referred_to_as, key_references, reference_count, speeches_count)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, batch)
+                        conn.commit()
+                        batch = []
+            except Exception as e:
+                console.print(f"  [yellow]Warning: {json_file.name}: {e}[/yellow]")
+
+        if batch:
+            conn.executemany("""
+                INSERT OR REPLACE INTO acai_entities
+                (id, entity_type, name, gender, description, roles,
+                 father_id, mother_id, partners, offspring, siblings,
+                 referred_to_as, key_references, reference_count, speeches_count)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, batch)
+            conn.commit()
+
+        console.print(f"  [green]✓[/green] Imported {count} {entity_type}")
+        total_count += count
+
+    if total_count:
+        console.print(f"  [green]✓[/green] Total ACAI entities: {total_count}")
+
+
 def show_stats(conn: sqlite3.Connection):
     """Show database statistics."""
     console.print("\n[bold]Database Statistics:[/bold]")
 
     tables = ["lexicon", "verses", "passages", "names", "morphology", "thematic_references"]
+
+    # Check for optional tables
+    cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    existing_tables = {row[0] for row in cursor.fetchall()}
+    if "aquifer_content" in existing_tables:
+        tables.append("aquifer_content")
+    if "acai_entities" in existing_tables:
+        tables.append("acai_entities")
 
     for table in tables:
         cursor = conn.execute(f"SELECT COUNT(*) FROM {table}")

@@ -492,13 +492,107 @@ the text with the full web of relationships around it.""",
             "required": ["reference"]
         }
     ),
+    # =========================================================================
+    # Aquifer content tools
+    # =========================================================================
+    Tool(
+        name="get_study_notes",
+        description="""Get scholarly study notes and translation notes for a Bible verse or chapter.
+
+Returns combined commentary from:
+- **Tyndale Study Notes**: Concise, verse-level scholarly commentary (66 books)
+- **UW Translation Notes**: Translator-focused commentary with linguistic insights
+- **SIL Translator Notes**: Additional translation and cultural context
+
+USE THIS when you need:
+- Scholarly commentary on a specific verse
+- Help explaining difficult passages
+- Translation and cultural background notes
+- Chapter-level overview of themes and context
+
+This provides published, peer-reviewed scholarship rather than AI-generated commentary.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "type": "string",
+                    "description": "Bible reference (e.g., 'John 3:16', 'Genesis 1', 'Romans 8:28')"
+                },
+                "chapter_only": {
+                    "type": "boolean",
+                    "description": "If true, return all notes for the chapter. Default: false (verse-specific)"
+                }
+            },
+            "required": ["reference"]
+        }
+    ),
+    Tool(
+        name="get_bible_dictionary",
+        description="""Look up a topic in the Tyndale Bible Dictionary.
+
+Contains 500+ topical articles covering:
+- Biblical people and places
+- Theological concepts and doctrines
+- Cultural practices and customs
+- Historical background
+- Archaeological findings
+
+USE THIS when you need:
+- Background information on a biblical topic
+- Historical or cultural context for a passage
+- Detailed article about a person, place, or concept
+- Scholarly definition of a theological term
+
+Returns the full dictionary article with cross-references.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "topic": {
+                    "type": "string",
+                    "description": "Topic to look up (e.g., 'Abraham', 'covenant', 'baptism', 'Pharisees')"
+                }
+            },
+            "required": ["topic"]
+        }
+    ),
+    Tool(
+        name="get_key_terms",
+        description="""Look up a key theological term in the FIA Key Terms database.
+
+Contains 200+ carefully defined theological and biblical terms with:
+- Clear definitions accessible to translators
+- Biblical usage and context
+- Cross-references to related terms
+- Translation guidance
+
+USE THIS when you need:
+- A precise definition of a theological term (agape, atonement, justification, etc.)
+- To understand how a concept is used across Scripture
+- Translation-oriented explanation of a term
+- Cross-references to related theological concepts""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "term": {
+                    "type": "string",
+                    "description": "Theological term to look up (e.g., 'agape', 'atonement', 'covenant', 'grace')"
+                }
+            },
+            "required": ["term"]
+        }
+    ),
 ]
 
 
 def format_lexicon_entry(entry: dict) -> str:
-    """Format a lexicon entry for display."""
+    """Format a lexicon entry for display.
+
+    Shows separate sections for brief and full definitions when both exist.
+    Greek entries with TFLSJ data show "Full LSJ Definition".
+    Hebrew entries with BDB data show "Full BDB Definition".
+    """
     lines = []
-    
+
     # Header
     lines.append(f"## {entry['strongs']} - {entry['word']}")
     lines.append(f"**Transliteration**: {entry['transliteration']}")
@@ -506,18 +600,51 @@ def format_lexicon_entry(entry: dict) -> str:
         lines.append(f"**Pronunciation**: {entry['pronunciation']}")
     lines.append(f"**Language**: {entry['language'].title()}")
     lines.append("")
-    
-    # Definition
-    lines.append("### Definition")
-    lines.append(entry.get('full_definition') or entry.get('short_definition', 'No definition available.'))
-    lines.append("")
-    
+
+    short_def = entry.get('short_definition', '')
+    full_def = entry.get('full_definition', '')
+
+    if short_def and full_def and short_def != full_def:
+        # Show both brief and full definitions
+        lines.append("### Brief Definition")
+        lines.append(short_def)
+        lines.append("")
+
+        # Label based on language
+        if entry.get('language') == 'greek':
+            label = "Full LSJ Definition"
+        elif entry.get('language') == 'hebrew':
+            label = "Full BDB Definition"
+        else:
+            label = "Full Definition"
+
+        lines.append(f"### {label}")
+        # Truncate very long definitions
+        if len(full_def) > 3000:
+            full_def = full_def[:3000] + "\n\n*[Definition truncated — full entry available in the lexicon]*"
+        lines.append(full_def)
+        lines.append("")
+    elif full_def:
+        lines.append("### Definition")
+        if len(full_def) > 3000:
+            full_def = full_def[:3000] + "\n\n*[Definition truncated]*"
+        lines.append(full_def)
+        lines.append("")
+    elif short_def:
+        lines.append("### Definition")
+        lines.append(short_def)
+        lines.append("")
+    else:
+        lines.append("### Definition")
+        lines.append("No definition available.")
+        lines.append("")
+
     # Etymology
     if entry.get('etymology'):
         lines.append("### Etymology")
         lines.append(entry['etymology'])
         lines.append("")
-    
+
     # Semantic range
     if entry.get('semantic_domain'):
         try:
@@ -531,12 +658,12 @@ def format_lexicon_entry(entry: dict) -> str:
                 lines.append("")
         except:
             pass
-    
+
     # Usage count
     if entry.get('usage_count'):
         lines.append(f"**Usage**: Occurs {entry['usage_count']} times in the Bible")
         lines.append("")
-    
+
     # Related words
     if entry.get('related_words'):
         try:
@@ -554,7 +681,7 @@ def format_lexicon_entry(entry: dict) -> str:
                 lines.append("")
         except:
             pass
-    
+
     return "\n".join(lines)
 
 
@@ -594,20 +721,62 @@ def format_verse(verse: dict, include_original: bool = True, include_morphology:
     return "\n".join(lines)
 
 
-def format_name_entry(entry: dict) -> str:
-    """Format a name entry for display."""
+def format_name_entry(entry: dict, acai_data: dict | None = None) -> str:
+    """Format a name entry for display, optionally enriched with ACAI data."""
     lines = []
-    
+
     lines.append(f"### {entry['name']}")
     if entry.get('name_original'):
         lines.append(f"**Original**: {entry['name_original']}")
     lines.append(f"**Type**: {entry.get('type', 'Unknown').title()}")
     lines.append("")
-    
+
     if entry.get('description'):
         lines.append(entry['description'])
         lines.append("")
-    
+
+    # ACAI enrichment
+    if acai_data:
+        acai_parts = []
+
+        if acai_data.get('description'):
+            acai_parts.append(f"**Description**: {acai_data['description']}")
+
+        # Variant names
+        if acai_data.get('referred_to_as'):
+            try:
+                variants = acai_data['referred_to_as']
+                if isinstance(variants, str):
+                    import json
+                    variants = json.loads(variants)
+                if variants:
+                    acai_parts.append(f"**Also known as**: {', '.join(str(v) for v in variants[:5])}")
+            except:
+                pass
+
+        # Roles
+        if acai_data.get('roles'):
+            try:
+                roles = acai_data['roles']
+                if isinstance(roles, str):
+                    import json
+                    roles = json.loads(roles)
+                if roles:
+                    acai_parts.append(f"**Roles**: {', '.join(str(r) for r in roles)}")
+            except:
+                pass
+
+        if acai_data.get('reference_count'):
+            acai_parts.append(f"**Referenced in**: {acai_data['reference_count']} verses")
+
+        if acai_data.get('speeches_count'):
+            acai_parts.append(f"**Attributed speeches**: {acai_data['speeches_count']}")
+
+        if acai_parts:
+            lines.append("**ACAI Annotations**:")
+            lines.extend(acai_parts)
+            lines.append("")
+
     if entry.get('relationships'):
         try:
             import json
@@ -622,7 +791,7 @@ def format_name_entry(entry: dict) -> str:
                 lines.append("")
         except:
             pass
-    
+
     if entry.get('references'):
         try:
             import json
@@ -636,6 +805,97 @@ def format_name_entry(entry: dict) -> str:
                 lines.append("")
         except:
             pass
+
+    return "\n".join(lines)
+
+
+# =========================================================================
+# Aquifer content formatters
+# =========================================================================
+
+def format_study_notes(notes: list[dict]) -> str:
+    """Format study notes grouped by source type."""
+    if not notes:
+        return "No study notes available for this reference.\n"
+
+    lines = []
+
+    # Group by resource_type
+    groups: dict[str, list[dict]] = {}
+    for note in notes:
+        rt = note.get('resource_type', 'unknown')
+        groups.setdefault(rt, []).append(note)
+
+    type_labels = {
+        'study_notes': 'Tyndale Study Notes',
+        'translation_notes_uw': 'Translation Notes (unfoldingWord)',
+        'translation_notes_sil': 'Translation Notes (SIL)',
+    }
+
+    for resource_type, group_notes in groups.items():
+        label = type_labels.get(resource_type, resource_type)
+        lines.append(f"### {label}")
+        lines.append("")
+
+        for note in group_notes:
+            title = note.get('title', '')
+            content = note.get('content_plain', '')
+
+            if title:
+                lines.append(f"**{title}**")
+            if content:
+                # Truncate very long notes
+                if len(content) > 2000:
+                    content = content[:2000] + "\n\n*[Note truncated]*"
+                lines.append(content)
+            lines.append("")
+
+    return "\n".join(lines)
+
+
+def format_dictionary_article(articles: list[dict]) -> str:
+    """Format Bible dictionary articles."""
+    if not articles:
+        return "No dictionary article found for this topic.\n"
+
+    lines = []
+
+    for article in articles:
+        title = article.get('title', 'Untitled')
+        content = article.get('content_plain', '')
+
+        lines.append(f"## {title}")
+        lines.append("")
+
+        if content:
+            # Truncate very long articles
+            if len(content) > 4000:
+                content = content[:4000] + "\n\n*[Article truncated — full text available in the Tyndale Bible Dictionary]*"
+            lines.append(content)
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+def format_key_terms(terms: list[dict]) -> str:
+    """Format FIA Key Terms results."""
+    if not terms:
+        return "No key term found matching this query.\n"
+
+    lines = []
+
+    for term in terms:
+        title = term.get('title', 'Untitled')
+        content = term.get('content_plain', '')
+
+        lines.append(f"## {title}")
+        lines.append("")
+
+        if content:
+            if len(content) > 3000:
+                content = content[:3000] + "\n\n*[Term entry truncated]*"
+            lines.append(content)
+        lines.append("")
 
     return "\n".join(lines)
 

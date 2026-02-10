@@ -36,7 +36,10 @@ env/
 # Data files (downloaded, not committed)
 data/*.txt
 data/*.tsv
+data/*.json
 data/theographic/
+data/aquifer/
+data/acai/
 
 # Database (built from data, not committed)
 db/*.db
