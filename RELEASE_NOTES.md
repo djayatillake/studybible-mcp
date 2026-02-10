@@ -2,6 +2,90 @@
 
 ---
 
+## Full Scholarly Lexicons & BibleAquifer Integration
+
+### New Data Sources
+
+- **Full LSJ Greek Lexicon** (TFLSJ) — Replaces the brief TBESG
+  lexicon with the complete Liddell-Scott-Jones scholarly definitions
+  (10,846 entries). Greek word studies now show both a brief gloss
+  and the full LSJ entry.
+- **Full BDB Hebrew Lexicon** — Replaces the brief TBESH lexicon
+  with the complete unabridged Brown-Driver-Briggs (8,090 entries).
+  Hebrew word studies now show the full BDB scholarly definition.
+- **Tyndale Study Notes** — Verse-level scholarly commentary for
+  all 66 books.
+- **Tyndale Bible Dictionary** — 500+ topical articles covering
+  people, places, theology, history, and archaeology.
+- **UW Translation Notes** — Translator-focused commentary with
+  linguistic insights (49+ books).
+- **SIL Translator Notes** — Additional translation and cultural
+  context.
+- **FIA Key Terms** — 200+ carefully defined theological/biblical
+  terms with translation guidance.
+- **ACAI Entity Annotations** — 3,175 rich entity records (people,
+  places, groups, key terms) with variant names, roles, family
+  relationships, speech attributions, and verse reference counts.
+
+### New Tools
+
+**`get_study_notes`** — Get combined scholarly commentary from
+Tyndale, UW, and SIL sources for any verse or chapter. Supports
+both verse-specific and chapter-level queries.
+
+**`get_bible_dictionary`** — Look up topics in the Tyndale Bible
+Dictionary. Searches by title (exact then LIKE) across 500+
+articles.
+
+**`get_key_terms`** — Look up theological terms in the FIA Key
+Terms database. 200+ terms with definitions, biblical usage, and
+translation guidance.
+
+### Enhancements
+
+- **`word_study`** now shows separate "Brief Definition" and "Full
+  LSJ Definition" (Greek) or "Full BDB Definition" (Hebrew)
+  sections. Full definitions are truncated at 3,000 characters with
+  a note that the full entry is available.
+- **`lookup_name`** now enriched with ACAI data when available:
+  variant names (e.g. Abraham/Abram), roles, verse reference count,
+  and attributed speech count.
+- Database grew from 323MB to 355MB with 102,673 Aquifer content
+  entries and 3,175 ACAI entity records added.
+
+### Testing
+
+- Added 71 pytest tool selection tests (`tests/test_tool_selection.py`)
+  verifying the agent picks the correct tool for natural language
+  queries without explicit tool names. Uses a keyword-based scorer
+  with bigrams and IDF normalisation to simulate LLM tool selection.
+
+### Documentation
+
+- Updated architecture diagram (ARCHITECTURE.md) with all 17 tools
+  including the new Commentary path, light blue colour category, and
+  three new typical tool chains.
+- Rewrote README with all data sources, all 17 tool descriptions,
+  current database stats, and updated project structure.
+
+### Technical Details
+
+- New `aquifer_content` table with indexes on resource type,
+  reference, book, and title
+- New `acai_entities` table with indexes on entity type and name
+- Generic Aquifer JSON parser handles all five resource types with
+  a single `parse_aquifer_content_file()` function
+- ACAI parser handles per-entity JSON files across four type
+  directories (people, places, groups, keyterms)
+- TFLSJ parser converts HTML definitions to markdown (bold, italic,
+  line breaks) via `clean_lsj_definition()`
+- BDB parser extracts headword, transliteration, and gloss from
+  HTML definition headers via `_extract_bdb_headword()`
+- Download script gains `--aquifer` flag for BibleAquifer and ACAI
+  resources; uses GitHub API for ACAI directory listing
+
+---
+
 ## Semantic Vector Search
 
 ### What's New
