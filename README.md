@@ -1,6 +1,6 @@
 # Study Bible MCP Server
 
-A Bible study assistant for Claude that provides full scholarly lexicons (LSJ Greek, BDB Hebrew), morphologically-tagged biblical texts, cross-references, Theographic genealogy graphs, Tyndale study notes, a Bible dictionary, key theological terms, and hermeneutical methodology based on Fee & Stuart's "How to Read the Bible for All Its Worth".
+A Bible study assistant for Claude that provides full scholarly lexicons (LSJ Greek, BDB Hebrew), morphologically-tagged biblical texts, cross-references, Theographic genealogy graphs, Aquifer Open Study Notes, a Bible dictionary, key theological terms, and hermeneutical methodology based on Fee & Stuart's "How to Read the Bible for All Its Worth".
 
 ## Quick Start
 
@@ -245,7 +245,7 @@ Get scholarly study notes and translation notes for a Bible verse or chapter.
 
 **When Claude uses it**: User wants commentary on a specific verse, help explaining a difficult passage, or translation and cultural background notes.
 
-**What it returns**: Combined commentary from three sources: Tyndale Study Notes (66 books of concise verse-level scholarly commentary), unfoldingWord Translation Notes (translator-focused linguistic insights), and SIL Translator Notes (additional translation and cultural context).
+**What it returns**: Combined commentary from three sources: Aquifer Open Study Notes (66 books of concise verse-level scholarly commentary), unfoldingWord Translation Notes (translator-focused linguistic insights), and SIL Translator Notes (additional translation and cultural context).
 
 **Example**:
 ```
@@ -254,7 +254,7 @@ User: "What do the study notes say about John 3:16?"
 Claude calls: get_study_notes(reference="John 3:16")
 
 Returns:
-- Tyndale Study Notes: [verse commentary]
+- Aquifer Open Study Notes: [verse commentary]
 - Translation Notes (UW): [linguistic insights]
 - Translation Notes (SIL): [cultural context]
 ```
@@ -731,7 +731,7 @@ Scholarly commentary and reference content from [BibleAquifer](https://github.co
 
 | Resource | Description | Content |
 |----------|-------------|---------|
-| **Tyndale Study Notes** | Verse-level scholarly commentary | 66 books |
+| **Aquifer Open Study Notes** | Verse-level scholarly commentary | 66 books |
 | **Tyndale Bible Dictionary** | Topical articles | 500+ articles on people, places, theology, history, archaeology |
 | **UW Translation Notes** | unfoldingWord translator commentary | Linguistic insights for 49+ books |
 | **SIL Translator Notes** | SIL International translator notes | Translation and cultural context |

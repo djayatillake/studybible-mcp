@@ -108,7 +108,7 @@ flowchart TD
     CommentaryPath -->|Theological term| KeyTerms
 
     StudyNotes["`**get_study_notes**
-    Returns: Tyndale Study Notes,
+    Returns: Aquifer Open Study Notes,
     UW Translation Notes,
     SIL Translator Notes`"]
     StudyNotes --> CommentaryDeepen{Go deeper?}

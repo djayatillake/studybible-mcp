@@ -13,7 +13,7 @@
 - **Full BDB Hebrew Lexicon** — Replaces the brief TBESH lexicon
   with the complete unabridged Brown-Driver-Briggs (8,090 entries).
   Hebrew word studies now show the full BDB scholarly definition.
-- **Tyndale Study Notes** — Verse-level scholarly commentary for
+- **Aquifer Open Study Notes** — Verse-level scholarly commentary for
   all 66 books.
 - **Tyndale Bible Dictionary** — 500+ topical articles covering
   people, places, theology, history, and archaeology.
@@ -30,7 +30,7 @@
 ### New Tools
 
 **`get_study_notes`** — Get combined scholarly commentary from
-Tyndale, UW, and SIL sources for any verse or chapter. Supports
+Aquifer Open Study Notes, UW, and SIL sources for any verse or chapter. Supports
 both verse-specific and chapter-level queries.
 
 **`get_bible_dictionary`** — Look up topics in the Tyndale Bible

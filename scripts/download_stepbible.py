@@ -203,7 +203,7 @@ AQUIFER_RESOURCES = {
     "study_notes": {
         "base": f"{AQUIFER_BASE}/AquiferOpenStudyNotes/main/eng/json",
         "dest": "aquifer/study_notes",
-        "description": "Tyndale Study Notes",
+        "description": "Aquifer Open Study Notes",
         "files": [f"{n:02d}.content.json" for n in AQUIFER_BOOK_NUMS],
     },
     "dictionary": {
