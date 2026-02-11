@@ -1,6 +1,6 @@
 # Study Bible MCP Server
 
-A Bible study assistant for Claude that provides full scholarly lexicons (LSJ Greek, BDB Hebrew), morphologically-tagged biblical texts, cross-references, Theographic genealogy graphs, Aquifer Open Study Notes, a Bible dictionary, key theological terms, and hermeneutical methodology based on Fee & Stuart's "How to Read the Bible for All Its Worth".
+A Bible study assistant for Claude that provides full scholarly lexicons (LSJ Greek, BDB Hebrew, Abbott-Smith NT Greek), morphologically-tagged biblical texts, cross-references, Theographic genealogy graphs, Aquifer Open Study Notes, a Bible dictionary, key theological terms, and hermeneutical methodology based on Fee & Stuart's "How to Read the Bible for All Its Worth".
 
 ## Quick Start
 
@@ -51,11 +51,11 @@ Config file locations:
 │   or Claude Code    │     │   (Fly.io)                               │
 │                     │     │                                          │
 │  ┌───────────────┐  │ SSE │  ┌─────────────┐  ┌───────────────────┐  │
-│  │ User asks a   │──┼─────┼─▶│ MCP Server  │─▶│ SQLite DB (355MB) │  │
+│  │ User asks a   │──┼─────┼─▶│ MCP Server  │─▶│ SQLite DB (359MB) │  │
 │  │ Bible question│  │     │  │ (Python)    │  │                   │  │
 │  └───────────────┘  │     │  └─────────────┘  │ • Lexicons (LSJ,  │  │
-│                     │     │        │          │   BDB, Extended    │  │
-│  ┌───────────────┐  │     │        ▼          │   Strong's)       │  │
+│                     │     │        │          │   BDB, Abbott-     │  │
+│  ┌───────────────┐  │     │        ▼          │   Smith, Strong's) │  │
 │  │ Claude uses   │◀─┼─────┼── Tool Results    │ • Tagged NT + OT  │  │
 │  │ 17 tools to   │  │     │                   │ • Names + ACAI    │  │
 │  │ look up data  │  │     │                   │ • Morphology      │  │
@@ -78,11 +78,11 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for a full Mermaid flowchart of all 17 to
 
 ### The Database
 
-The server includes a pre-built SQLite database (~355MB) containing:
+The server includes a pre-built SQLite database (~359MB) containing:
 
 | Table | Rows | Content |
 |-------|------|---------|
-| `lexicon` | 18,936 | Greek (Full LSJ) and Hebrew (Full BDB) word definitions with Strong's numbers |
+| `lexicon` | 19,391 | Greek (Full LSJ + Abbott-Smith NT) and Hebrew (Full BDB) word definitions with Strong's numbers |
 | `verses` | 31,280 | Every verse of the Bible with morphology tags |
 | `passages` | 5,290 | Verses grouped by ancient section markers |
 | `names` | 4,299 | Biblical people, places, and things |
@@ -122,11 +122,11 @@ Returns:
 
 #### 2. `word_study`
 
-Deep dive into a Greek or Hebrew word's meaning, usage, and etymology. Greek entries include the full Liddell-Scott-Jones (LSJ) definition; Hebrew entries include the full Brown-Driver-Briggs (BDB) definition.
+Deep dive into a Greek or Hebrew word's meaning, usage, and etymology. Greek entries include both the full Liddell-Scott-Jones (LSJ) definition for classical breadth and the Abbott-Smith definition for NT-specific insight (with LXX/Hebrew equivalents, synonym discussions, and NT occurrence counts). Hebrew entries include the full Brown-Driver-Briggs (BDB) definition.
 
 **When Claude uses it**: User asks about the meaning of a Greek/Hebrew word, wants to understand different translations of a term, or asks about theological concepts (love, faith, grace).
 
-**What it returns**: Original word in Greek/Hebrew script, transliteration, Strong's number, brief definition, full LSJ or BDB scholarly definition, etymology, usage count, semantic range, related words, example passages.
+**What it returns**: Original word in Greek/Hebrew script, transliteration, Strong's number, brief definition, full LSJ or BDB scholarly definition, Abbott-Smith NT-focused definition (Greek words), LXX/Hebrew cross-references, synonym discussions, NT occurrence count, etymology, usage count, semantic range, related words, example passages.
 
 **Example**:
 ```
@@ -138,8 +138,11 @@ Returns:
 - ἀγάπη (agapē, G26)
 - Brief Definition: "love, goodwill, benevolence"
 - Full LSJ Definition: [scholarly entry with classical and biblical usage]
+- Abbott-Smith Definition: [NT-focused entry with sense hierarchy]
+- LXX / Hebrew Equivalents: H0160 אַהֲבָה
+- Synonyms: SYN.: φιλία — love which chooses its object...
+- NT Usage: Occurs 116 times in the New Testament
 - Related words: ἀγαπάω (to love), ἀγαπητός (beloved)
-- Example passages showing usage
 ```
 
 #### 3. `search_lexicon`
@@ -679,7 +682,7 @@ studybible-mcp/
 │   ├── tools.py               # 17 tool definitions
 │   ├── hermeneutics.py        # Genre detection & interpretation
 │   └── parsers/
-│       ├── lexicon.py         # TFLSJ, BDB, TBESG, TBESH parsers
+│       ├── lexicon.py         # TFLSJ, BDB, Abbott-Smith, TBESG, TBESH parsers
 │       ├── aquifer.py         # BibleAquifer JSON parser
 │       ├── acai.py            # ACAI entity annotation parser
 │       ├── tagged_text.py     # TAGNT/TAHOT morphology parsers
@@ -714,6 +717,7 @@ Biblical text and brief lexicon data come from the [STEPBible project](https://w
 | File | Description | Content |
 |------|-------------|---------|
 | **TFLSJ** | Full Liddell-Scott-Jones Greek Lexicon | 10,846 Greek words with full scholarly definitions |
+| **Abbott-Smith** | Manual Greek Lexicon of the NT (TEI XML) | 5,896 NT-focused entries with LXX cross-refs and synonym discussions |
 | **TBESG** | Tyndale Brief Lexicon - Greek (fallback) | 5,600+ Greek words with brief definitions |
 | **TBESH** | Tyndale Brief Lexicon - Hebrew (fallback) | 8,600+ Hebrew words with brief definitions |
 | **TAGNT** | Translators Amalgamated Greek NT (2 parts) | Every word of the Greek NT with morphology, Strong's numbers, glosses |
@@ -724,6 +728,19 @@ Biblical text and brief lexicon data come from the [STEPBible project](https://w
 ### BDB Hebrew Lexicon
 
 The full unabridged Brown-Driver-Briggs Hebrew lexicon (8,090 entries) comes from [eliranwong/unabridged-BDB-Hebrew-lexicon](https://github.com/eliranwong/unabridged-BDB-Hebrew-lexicon). The BDB is the standard scholarly Hebrew-English lexicon, originally published in 1906 and still widely used in academic study. Public domain text.
+
+### Abbott-Smith Greek Lexicon
+
+G. Abbott-Smith's *A Manual Greek Lexicon of the New Testament* (1922) provides NT-focused definitions that complement the broader classical coverage of LSJ. The TEI XML edition (5,896 entries) comes from [translatable-exegetical-tools/Abbott-Smith](https://github.com/translatable-exegetical-tools/Abbott-Smith). Public domain text.
+
+Abbott-Smith enriches 5,426 existing Greek entries with:
+
+| Field | Description | Coverage |
+|-------|-------------|----------|
+| **NT-focused definition** | Full definition with sense hierarchy | 5,871 entries |
+| **NT occurrence count** | Word frequency in the New Testament | 5,480 entries |
+| **LXX/Hebrew equivalents** | Hebrew words the Greek translates in the Septuagint | 3,317 entries |
+| **Synonym discussions** | Scholarly notes distinguishing related Greek words | 398 entries |
 
 ### BibleAquifer
 
@@ -784,6 +801,7 @@ Data from BibleAquifer and ACAI is licensed under [CC BY-SA 4.0](https://creativ
 - [STEPBible](https://www.stepbible.org/) for the freely available biblical data
 - [BibleAquifer](https://github.com/BibleAquifer) for study notes, dictionary, translation notes, and key terms
 - [eliranwong](https://github.com/eliranwong/unabridged-BDB-Hebrew-lexicon) for the unabridged BDB Hebrew lexicon
+- [translatable-exegetical-tools](https://github.com/translatable-exegetical-tools/Abbott-Smith) for the Abbott-Smith Greek Lexicon TEI XML edition
 - [Theographic](https://github.com/robertrouse/theographic-bible-metadata) for genealogy and event graph data
 - Gordon Fee & Douglas Stuart for the hermeneutical framework in "How to Read the Bible for All Its Worth"
 - The MCP community for the protocol and tooling
