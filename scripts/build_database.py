@@ -25,6 +25,7 @@ from study_bible_mcp.database import create_schema
 from study_bible_mcp.parsers.lexicon import (
     parse_greek_lexicon, parse_hebrew_lexicon,
     parse_tflsj_lexicon, parse_bdb_lexicon,
+    parse_abbott_smith,
 )
 from study_bible_mcp.parsers.tagged_text import parse_tagnt, parse_tahot, parse_morphology_codes
 from study_bible_mcp.parsers.proper_names import parse_tipnr
@@ -130,6 +131,11 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
             import_lexicon_bdb(conn, bdb_path, "BDB")
         elif tbesh_path.exists():
             import_lexicon(conn, tbesh_path, "hebrew", "TBESH")
+
+        # Import Abbott-Smith Greek lexicon (enriches existing Greek entries)
+        abbott_smith_path = data_dir / "abbott-smith.tei.xml"
+        if abbott_smith_path.exists():
+            import_lexicon_abbott_smith(conn, abbott_smith_path, "Abbott-Smith")
 
         # Import Greek NT (may be split into multiple files)
         tagnt_files = find_tagnt_files(data_dir)
@@ -377,6 +383,86 @@ def import_lexicon_bdb(conn: sqlite3.Connection, filepath: Path, name: str):
         progress.update(task, completed=count)
 
     console.print(f"  [green]✓[/green] Imported {count} entries")
+
+
+def import_lexicon_abbott_smith(conn: sqlite3.Connection, filepath: Path, name: str):
+    """Import Abbott-Smith Greek Lexicon (TEI XML) as enrichment of existing entries.
+
+    Phase 1: UPDATE existing rows (entries with Strong's numbers) to add
+    Abbott-Smith columns without overwriting LSJ data.
+    Phase 2: INSERT new entries for words without Strong's numbers using
+    synthetic AS_ keys.
+    """
+    console.print(f"Importing {name} (Abbott-Smith Greek Lexicon)...")
+
+    updated = 0
+    inserted = 0
+    skipped = 0
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("{task.completed} entries"),
+        console=console,
+    ) as progress:
+        task = progress.add_task(f"  {name}", total=None)
+
+        for entry in parse_abbott_smith(filepath):
+            strongs = entry["strongs"]
+
+            if strongs.startswith("AS_"):
+                # Phase 2: INSERT entries without Strong's numbers
+                conn.execute("""
+                    INSERT OR REPLACE INTO lexicon
+                    (strongs, language, word, short_definition, full_definition,
+                     abbott_smith_def, nt_occurrences, lxx_hebrew, synonyms, sense_hierarchy)
+                    VALUES (?, 'greek', ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    strongs,
+                    entry["word"],
+                    entry["short_definition"],
+                    entry["abbott_smith_def"],  # Use AS def as full_definition too
+                    entry["abbott_smith_def"],
+                    entry["nt_occurrences"],
+                    entry["lxx_hebrew"],
+                    entry["synonyms"],
+                    entry["sense_hierarchy"],
+                ))
+                inserted += 1
+            else:
+                # Phase 1: UPDATE existing rows to add Abbott-Smith data
+                cursor = conn.execute("""
+                    UPDATE lexicon SET
+                        abbott_smith_def = ?,
+                        nt_occurrences = ?,
+                        lxx_hebrew = ?,
+                        synonyms = ?,
+                        sense_hierarchy = ?
+                    WHERE strongs = ?
+                """, (
+                    entry["abbott_smith_def"],
+                    entry["nt_occurrences"],
+                    entry["lxx_hebrew"],
+                    entry["synonyms"],
+                    entry["sense_hierarchy"],
+                    strongs,
+                ))
+                if cursor.rowcount > 0:
+                    updated += 1
+                else:
+                    skipped += 1
+
+            total = updated + inserted + skipped
+            if total % 500 == 0:
+                conn.commit()
+                progress.update(task, completed=total)
+
+        conn.commit()
+        progress.update(task, completed=updated + inserted + skipped)
+
+    console.print(f"  [green]✓[/green] Updated {updated} existing entries, inserted {inserted} new entries"
+                  + (f", skipped {skipped} unmatched" if skipped else ""))
 
 
 def import_verses(conn: sqlite3.Connection, filepath: Path, parser_type: str, name: str):

@@ -129,6 +129,14 @@ FILES = {
         "description": "Hebrew Morphology Codes",
         "required": False,
     },
+
+    # Abbott-Smith Manual Greek Lexicon of the New Testament (TEI XML)
+    "ABBOTT_SMITH": {
+        "url": "https://raw.githubusercontent.com/translatable-exegetical-tools/Abbott-Smith/master/abbott-smith.tei.xml",
+        "filename": "abbott-smith.tei.xml",
+        "description": "Abbott-Smith Manual Greek Lexicon (TEI XML)",
+        "required": False,
+    },
 }
 
 

@@ -682,6 +682,43 @@ def format_lexicon_entry(entry: dict) -> str:
         except:
             pass
 
+    # Abbott-Smith definition (NT-focused)
+    abbott_def = entry.get('abbott_smith_def')
+    if abbott_def:
+        lines.append("### Abbott-Smith Definition (NT-Focused)")
+        if len(abbott_def) > 3000:
+            abbott_def = abbott_def[:3000] + "\n\n*[Definition truncated — full entry available in Abbott-Smith]*"
+        lines.append(abbott_def)
+        lines.append("")
+
+    # LXX / Hebrew equivalents
+    lxx_data = entry.get('lxx_hebrew')
+    if lxx_data:
+        try:
+            import json
+            lxx = lxx_data if isinstance(lxx_data, list) else json.loads(lxx_data)
+            if lxx:
+                lines.append("### LXX / Hebrew Equivalents")
+                for item in lxx:
+                    if isinstance(item, dict):
+                        lines.append(f"- {item.get('strongs', '')} {item.get('hebrew', '')}")
+                lines.append("")
+        except:
+            pass
+
+    # Synonyms
+    syn_text = entry.get('synonyms')
+    if syn_text:
+        lines.append("### Synonyms")
+        lines.append(syn_text)
+        lines.append("")
+
+    # NT occurrences
+    nt_count = entry.get('nt_occurrences')
+    if nt_count:
+        lines.append(f"**NT Usage**: Occurs {nt_count} times in the New Testament")
+        lines.append("")
+
     return "\n".join(lines)
 
 

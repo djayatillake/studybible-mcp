@@ -106,9 +106,10 @@ class StudyBibleDB:
                 OR LOWER(full_definition) LIKE ?
                 OR LOWER(transliteration) LIKE ?
                 OR LOWER(word) LIKE ?
+                OR LOWER(abbott_smith_def) LIKE ?
             )
         """
-        params = [query_lower, query_lower, query_lower, query_lower]
+        params = [query_lower, query_lower, query_lower, query_lower, query_lower]
         
         if language:
             sql += " AND language = ?"
@@ -1055,7 +1056,12 @@ def create_schema(conn: sqlite3.Connection):
             etymology TEXT,
             usage_count INTEGER DEFAULT 0,
             semantic_domain TEXT,
-            related_words TEXT
+            related_words TEXT,
+            abbott_smith_def TEXT,
+            nt_occurrences INTEGER,
+            lxx_hebrew TEXT,
+            synonyms TEXT,
+            sense_hierarchy TEXT
         );
         CREATE INDEX IF NOT EXISTS idx_lexicon_strongs ON lexicon(strongs);
         CREATE INDEX IF NOT EXISTS idx_lexicon_language ON lexicon(language);
@@ -1283,6 +1289,20 @@ def create_schema(conn: sqlite3.Connection):
         CREATE INDEX IF NOT EXISTS idx_acai_type ON acai_entities(entity_type);
         CREATE INDEX IF NOT EXISTS idx_acai_name ON acai_entities(name);
     """)
+    conn.commit()
+
+    # Add Abbott-Smith columns to existing databases (idempotent)
+    for col in [
+        "abbott_smith_def TEXT",
+        "nt_occurrences INTEGER",
+        "lxx_hebrew TEXT",
+        "synonyms TEXT",
+        "sense_hierarchy TEXT",
+    ]:
+        try:
+            conn.execute(f"ALTER TABLE lexicon ADD COLUMN {col}")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
     conn.commit()
 
 

@@ -6,6 +6,7 @@ Supported formats:
 - TBESH: Brief Hebrew lexicon (Extended Strong's)
 - TFLSJ: Full LSJ (Liddell-Scott-Jones) Greek lexicon
 - BDB: Full Brown-Driver-Briggs Hebrew lexicon (JSON)
+- Abbott-Smith: Manual Greek Lexicon of the NT (TEI XML)
 
 Tab-separated formats share columns:
 - Extended Strongs number
@@ -17,6 +18,7 @@ Tab-separated formats share columns:
 
 import json
 import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Iterator
 
@@ -473,6 +475,317 @@ def parse_bdb_lexicon(filepath: Path) -> Iterator[dict]:
             'usage_count': 0,
             'semantic_domain': '[]',
             'related_words': '[]',
+        }
+
+        yield entry
+
+
+# =========================================================================
+# Abbott-Smith - Manual Greek Lexicon of the New Testament (TEI XML)
+# =========================================================================
+
+# TEI namespace used in the Abbott-Smith XML
+_TEI_NS = "http://www.crosswire.org/2013/TEIOSIS/namespace"
+
+
+def _strip_ns(tag: str) -> str:
+    """Strip XML namespace from an element tag."""
+    if "}" in tag:
+        return tag.split("}", 1)[1]
+    return tag
+
+
+def _get_text_content(elem) -> str:
+    """Get all text content from an element, including tail text of children."""
+    if elem is None:
+        return ""
+    parts = []
+    if elem.text:
+        parts.append(elem.text)
+    for child in elem:
+        parts.append(_get_text_content(child))
+        if child.tail:
+            parts.append(child.tail)
+    return "".join(parts)
+
+
+def _extract_lxx_hebrew(entry_elem) -> list[dict]:
+    """Extract LXX/Hebrew equivalents from etymology and form elements.
+
+    Looks for <foreign xml:lang="heb" n="Hxxx"> patterns in <etym><seg type="septuagint">
+    and also in <form> elements.
+    """
+    results = []
+    seen = set()
+
+    for foreign in entry_elem.iter(f"{{{_TEI_NS}}}foreign"):
+        lang = foreign.get("{http://www.w3.org/XML/1998/namespace}lang", "")
+        if lang not in ("heb", "arc"):
+            continue
+        strongs_attr = foreign.get("n", "")
+        if not strongs_attr or not strongs_attr.startswith("H"):
+            continue
+        # Normalize Strong's: H160 -> H0160
+        num = strongs_attr[1:]
+        normalized = "H" + num.zfill(4)
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        hebrew_text = _get_text_content(foreign).strip()
+        results.append({"strongs": normalized, "hebrew": hebrew_text})
+
+    return results
+
+
+def _build_sense_tree(sense_elem) -> dict:
+    """Recursively build a sense hierarchy from <sense> elements."""
+    result = {}
+    n = sense_elem.get("n", "")
+    if n:
+        result["n"] = n
+
+    # Extract glosses
+    glosses = []
+    for gloss in sense_elem.findall(f"{{{_TEI_NS}}}gloss"):
+        text = _get_text_content(gloss).strip()
+        if text:
+            glosses.append(text)
+    if glosses:
+        result["glosses"] = glosses
+
+    # Extract references
+    refs = []
+    for ref in sense_elem.findall(f"{{{_TEI_NS}}}ref"):
+        osis = ref.get("osisRef", "")
+        if osis:
+            refs.append(osis)
+    if refs:
+        result["refs"] = refs
+
+    # Recurse into child senses
+    subsenses = []
+    for child in sense_elem.findall(f"{{{_TEI_NS}}}sense"):
+        subsenses.append(_build_sense_tree(child))
+    if subsenses:
+        result["senses"] = subsenses
+
+    return result
+
+
+def _tei_to_markdown(entry_elem) -> str:
+    """Convert a TEI <entry> element to readable markdown text."""
+    parts = []
+
+    def _process_elem(elem, depth=0):
+        tag = _strip_ns(elem.tag)
+
+        if tag == "entry":
+            if elem.text and elem.text.strip():
+                parts.append(elem.text.strip())
+            for child in elem:
+                _process_elem(child, depth)
+                if child.tail and child.tail.strip():
+                    parts.append(child.tail.strip() + " ")
+            return
+
+        if tag == "note":
+            note_type = elem.get("type", "")
+            if note_type == "occurrencesNT":
+                count = _get_text_content(elem).strip()
+                if count:
+                    parts.append(f"[NT: {count}x] ")
+            else:
+                text = _get_text_content(elem).strip()
+                if text:
+                    parts.append(f"({text}) ")
+        elif tag == "form":
+            text = _get_text_content(elem).strip()
+            if text:
+                parts.append(f"**{text}** ")
+        elif tag == "orth":
+            text = _get_text_content(elem).strip()
+            if text:
+                parts.append(f"**{text}**")
+        elif tag == "etym":
+            text = _get_text_content(elem).strip()
+            if text:
+                parts.append(f"*Etymology*: {text} ")
+        elif tag == "sense":
+            n = elem.get("n", "")
+            prefix = f"**{n}** " if n else ""
+            # Collect text and glosses inline
+            inline_parts = []
+            if elem.text and elem.text.strip():
+                inline_parts.append(elem.text.strip())
+            for child in elem:
+                child_tag = _strip_ns(child.tag)
+                if child_tag == "gloss":
+                    inline_parts.append(f"*{_get_text_content(child).strip()}*")
+                elif child_tag == "ref":
+                    osis = child.get("osisRef", "")
+                    text = _get_text_content(child).strip()
+                    inline_parts.append(text or osis)
+                elif child_tag == "foreign":
+                    inline_parts.append(_get_text_content(child).strip())
+                elif child_tag == "sense":
+                    # Sub-senses get processed recursively
+                    _process_elem(child, depth + 1)
+                elif child_tag == "emph":
+                    inline_parts.append(f"*{_get_text_content(child).strip()}*")
+                else:
+                    inline_parts.append(_get_text_content(child).strip())
+                if child.tail and child.tail.strip():
+                    inline_parts.append(child.tail.strip())
+            text = " ".join(p for p in inline_parts if p)
+            if text:
+                indent = "  " * depth
+                parts.append(f"\n{indent}{prefix}{text}")
+        elif tag == "re":
+            # Synonym discussion
+            text = _get_text_content(elem).strip()
+            if text:
+                parts.append(f"\n\n**Synonyms**: {text}")
+        elif tag == "gloss":
+            text = _get_text_content(elem).strip()
+            if text:
+                parts.append(f"*{text}*")
+        elif tag == "foreign":
+            text = _get_text_content(elem).strip()
+            if text:
+                parts.append(text)
+        elif tag == "ref":
+            text = _get_text_content(elem).strip()
+            osis = elem.get("osisRef", "")
+            parts.append(text or osis)
+        elif tag == "emph":
+            text = _get_text_content(elem).strip()
+            if text:
+                parts.append(f"*{text}*")
+        elif tag == "pb":
+            pass  # Page breaks - skip
+        elif tag == "gramGrp":
+            pass  # Empty grammar groups - skip
+        elif tag == "seg":
+            text = _get_text_content(elem).strip()
+            if text:
+                parts.append(text + " ")
+        else:
+            # Default: just get text content
+            text = _get_text_content(elem).strip()
+            if text:
+                parts.append(text + " ")
+
+    _process_elem(entry_elem)
+
+    # Clean up
+    result = " ".join(parts)
+    result = re.sub(r'\s+', ' ', result)
+    result = re.sub(r'\n ', '\n', result)
+    result = result.strip()
+    return result
+
+
+def _extract_synonyms(entry_elem) -> str:
+    """Extract synonym discussion from <re> elements."""
+    parts = []
+    for re_elem in entry_elem.findall(f"{{{_TEI_NS}}}re"):
+        text = _get_text_content(re_elem).strip()
+        if text:
+            parts.append(text)
+    return "\n".join(parts) if parts else ""
+
+
+def parse_abbott_smith(filepath: Path) -> Iterator[dict]:
+    """Parse the Abbott-Smith Manual Greek Lexicon TEI XML file.
+
+    Yields dictionaries with:
+    - strongs: Strong's number (G0026) or synthetic AS_word key
+    - word: Greek headword
+    - short_definition: comma-joined glosses
+    - abbott_smith_def: full markdown definition
+    - nt_occurrences: NT word frequency
+    - lxx_hebrew: JSON array of Hebrew equivalents
+    - synonyms: synonym discussion text
+    - sense_hierarchy: JSON sense tree
+    """
+    tree = ET.parse(filepath)
+    root = tree.getroot()
+
+    # Find all entry elements
+    entries = root.iter(f"{{{_TEI_NS}}}entry")
+
+    for entry_elem in entries:
+        n_attr = entry_elem.get("n", "")
+        if not n_attr:
+            continue
+
+        # Parse the n attribute: "word|Gxxx" or just "word"
+        if "|" in n_attr:
+            word_part, strongs_raw = n_attr.rsplit("|", 1)
+        else:
+            word_part = n_attr
+            strongs_raw = ""
+
+        # Normalize Strong's number
+        if strongs_raw and re.match(r'^G\d+$', strongs_raw):
+            num = strongs_raw[1:]
+            strongs = "G" + num.zfill(4)
+        elif strongs_raw:
+            strongs = strongs_raw
+        else:
+            # Synthetic key for entries without Strong's numbers
+            strongs = f"AS_{word_part}"
+
+        # Extract headword from <form><orth>
+        orth_elem = entry_elem.find(f".//{{{_TEI_NS}}}orth")
+        word = _get_text_content(orth_elem).strip() if orth_elem is not None else word_part
+
+        # Extract NT occurrences
+        nt_occurrences = None
+        for note in entry_elem.findall(f"{{{_TEI_NS}}}note"):
+            if note.get("type") == "occurrencesNT":
+                try:
+                    nt_occurrences = int(_get_text_content(note).strip())
+                except (ValueError, AttributeError):
+                    pass
+
+        # Extract glosses for short_definition
+        glosses = []
+        for sense in entry_elem.iter(f"{{{_TEI_NS}}}sense"):
+            for gloss in sense.findall(f"{{{_TEI_NS}}}gloss"):
+                text = _get_text_content(gloss).strip()
+                if text and text not in glosses:
+                    glosses.append(text)
+        short_def = ", ".join(glosses) if glosses else ""
+
+        # Extract LXX Hebrew equivalents
+        lxx_hebrew = _extract_lxx_hebrew(entry_elem)
+
+        # Build sense hierarchy from top-level senses
+        top_senses = []
+        for child in entry_elem:
+            if _strip_ns(child.tag) == "sense":
+                top_senses.append(child)
+
+        sense_tree = []
+        for sense in top_senses:
+            sense_tree.append(_build_sense_tree(sense))
+
+        # Extract synonym discussion
+        synonyms = _extract_synonyms(entry_elem)
+
+        # Full definition as markdown
+        abbott_smith_def = _tei_to_markdown(entry_elem)
+
+        entry = {
+            "strongs": strongs,
+            "word": word,
+            "short_definition": short_def,
+            "abbott_smith_def": abbott_smith_def,
+            "nt_occurrences": nt_occurrences,
+            "lxx_hebrew": json.dumps(lxx_hebrew) if lxx_hebrew else None,
+            "synonyms": synonyms or None,
+            "sense_hierarchy": json.dumps(sense_tree) if sense_tree else None,
         }
 
         yield entry
