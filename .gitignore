@@ -38,6 +38,7 @@ data/*.txt
 data/*.tsv
 data/*.json
 data/theographic/
+data/*.xml
 data/aquifer/
 data/acai/
 
