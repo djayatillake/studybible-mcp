@@ -348,18 +348,20 @@ semantically similar passages ranked by similarity score.""",
     # =========================================================================
     Tool(
         name="explore_genealogy",
-        description="""Trace family relationships (ancestors or descendants) for a biblical person.
+        description="""ALWAYS USE THIS when a question involves family lineage, ancestry, descendants, or tribal identity.
 
-Uses the Theographic Bible Metadata graph to traverse family trees using
-genealogical data for 1,100+ biblical persons.
+This tool traverses multi-generational family trees using genealogical data for 1,100+ biblical persons.
+Unlike lookup_name (which shows immediate family), this traces lineage across many generations.
 
-USE THIS when discussing:
-- Family lineages (e.g., "Who was David's father?")
-- Genealogies (e.g., "Trace the line from Abraham to Jesus")
-- Tribal connections (e.g., "What tribe was Paul from?")
+WHEN TO USE (instead of lookup_name):
+- "Who was David's father?" → lookup_name is enough for one generation
+- "Trace the line from Abraham to David" → USE THIS — traverses multiple generations
+- "What tribe was Paul from?" → USE THIS — traces tribal ancestry
+- "Show me Jesus' genealogy" → USE THIS — traces the full Messianic lineage
+- "How does Ruth connect to the line of David?" → USE THIS
 
-Returns a family tree with generation numbers and relationship types.
-Includes a Mermaid diagram - ALWAYS include this diagram in your response so the user can visualize the family tree.""",
+Returns a family tree with generation numbers, relationship types, and a Mermaid diagram.
+ALWAYS include the Mermaid diagram in your response so the user can visualize the family tree.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -382,14 +384,19 @@ Includes a Mermaid diagram - ALWAYS include this diagram in your response so the
     ),
     Tool(
         name="people_in_passage",
-        description="""Find all people, places, and events mentioned in a Bible passage.
+        description="""ALWAYS USE THIS when studying or explaining a Bible passage to identify WHO is present and WHERE it takes place.
 
-Given a chapter or verse reference, returns all entities mentioned according
-to the Theographic Bible Metadata. This enriches passage study with
-knowledge of who is present, where it takes place, and what events occur.
+Returns all people, places, and events mentioned in a passage according to the Theographic Bible Metadata.
+This is essential context for passage study — you cannot properly explain a passage without knowing its cast.
 
-USE THIS when studying a passage to understand its cast of characters,
-geographic setting, and narrative context.""",
+USE THIS WHEN:
+- Studying any narrative passage (e.g., "Who is in Genesis 22?" → Abraham, Isaac, angel of the LORD, Moriah)
+- Explaining a chapter (e.g., "What's happening in Acts 15?" → shows Paul, Barnabas, James, Jerusalem, Antioch)
+- A user asks "Tell me about [passage]" → use this alongside lookup_verse for complete context
+
+DIFFERENCE FROM graph_enriched_search:
+- people_in_passage: works on chapters AND verses, returns entity lists
+- graph_enriched_search: verse-level only, but adds family relationships for each person found""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -403,14 +410,19 @@ geographic setting, and narrative context.""",
     ),
     Tool(
         name="explore_person_events",
-        description="""Find all events a biblical person participated in, in chronological order.
+        description="""ALWAYS USE THIS when a user asks about a biblical person's life, biography, or timeline.
 
-Returns the timeline of a person's life as recorded in Scripture,
-including events with their locations and approximate dates.
+Returns every recorded event in a person's life in chronological order, with locations and dates.
+This is the ONLY tool that shows what happened in someone's life and in what order.
 
-USE THIS when building a biographical picture of a biblical figure,
-or when tracing how someone's life connects different parts of Scripture.
-Includes a Mermaid timeline diagram - ALWAYS include this diagram in your response so the user can visualize the person's life events.""",
+USE THIS WHEN:
+- "Tell me about Moses" → shows his entire life: birth, burning bush, exodus, Sinai, death on Nebo
+- "What did Paul do?" → shows conversion, missionary journeys, imprisonment, Rome
+- "What happened to David?" → anointing, Goliath, fleeing Saul, kingship, Bathsheba, death
+- Any biographical question about a biblical figure
+
+COMBINE WITH lookup_name (for identity/relationships) and explore_genealogy (for lineage).
+Returns a Mermaid timeline diagram — ALWAYS include this in your response.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -424,16 +436,23 @@ Includes a Mermaid timeline diagram - ALWAYS include this diagram in your respon
     ),
     Tool(
         name="explore_place",
-        description="""Explore the biblical history of a geographic location.
+        description="""ALWAYS USE THIS when a user asks about a biblical location or its significance.
 
-Returns events that occurred at a place, people born or who died there,
-and geographic information. Traces how a location threads through
-salvation history.
+Returns the complete biblical history of a place: events that occurred there, people born/died there,
+and geographic data. Shows how a location threads through salvation history across multiple eras.
 
-USE THIS when discussing biblical geography, tracing how a place
-appears across different periods of biblical history, or understanding
-the significance of a location.
-Includes a Mermaid network diagram - ALWAYS include this diagram in your response so the user can visualize the place's connections.""",
+USE THIS WHEN:
+- "Tell me about Jerusalem" → shows events from Salem/Melchizedek through David, Solomon, exile, Jesus
+- "What happened at Bethlehem?" → Ruth & Boaz, David's birthplace, Jesus' birth, Micah's prophecy
+- "Why is Mount Sinai important?" → shows all events: burning bush, law given, golden calf, Elijah
+- "What is the significance of [any place]?" → always use this
+- Any question about biblical geography or a specific location
+
+DIFFERENCE FROM lookup_name with type="place":
+- lookup_name: returns basic place info and immediate connections
+- explore_place: returns FULL history — every event, every person, across all biblical periods
+
+Returns a Mermaid network diagram — ALWAYS include this in your response.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -447,14 +466,22 @@ Includes a Mermaid network diagram - ALWAYS include this diagram in your respons
     ),
     Tool(
         name="find_connection",
-        description="""Find the family relationship path between two biblical people.
+        description="""ALWAYS USE THIS when a user asks how two biblical people are related or connected.
 
-Traces through parent, child, sibling, and partner relationships to find
-how two people are connected in the biblical genealogies.
+Traces the shortest family relationship path between any two people in the biblical genealogies.
+Uses parent, child, sibling, and spouse relationships to find the connection.
 
-USE THIS when exploring how biblical figures relate to each other,
-especially across different books or periods.
-Includes a Mermaid flowchart - ALWAYS include this diagram in your response so the user can visualize the relationship path.""",
+USE THIS WHEN:
+- "How are Ruth and David related?" → shows Ruth → Obed → Jesse → David
+- "What's the connection between Abraham and Moses?" → traces through Levi
+- "Are Paul and Barnabas related?" → checks for any family connection
+- Any question comparing two biblical figures or asking about their relationship
+
+DIFFERENCE FROM explore_genealogy:
+- explore_genealogy: shows one person's family tree (ancestors/descendants)
+- find_connection: finds the PATH between two specific people
+
+Returns a Mermaid flowchart — ALWAYS include this in your response.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -472,15 +499,25 @@ Includes a Mermaid flowchart - ALWAYS include this diagram in your response so t
     ),
     Tool(
         name="graph_enriched_search",
-        description="""Combine passage lookup with graph context to get a rich view of a verse.
+        description="""USE THIS for deep study of a specific verse — combines the verse text with all relational context.
 
-Given a verse reference, returns the verse text along with all people,
-places, and events mentioned in it, plus family relationships for
-mentioned people. This is the most comprehensive single-query tool
-for studying a specific verse in its relational context.
+Returns the verse text PLUS all people, places, and events mentioned in it, PLUS family
+relationships for each person found. This is the most comprehensive single-query tool
+for studying a specific verse.
 
-USE THIS as a starting point for deep verse study - it combines
-the text with the full web of relationships around it.""",
+USE THIS WHEN:
+- Deep-diving into a single verse (e.g., "Explain Genesis 22:1 in detail")
+- Preparing a sermon or Bible study on a specific text
+- You need verse text + entity context in one call (saves calling lookup_verse + people_in_passage separately)
+
+Example: graph_enriched_search("Matthew 1:1") returns:
+- Verse text: "The book of the genealogy of Jesus Christ, the son of David, the son of Abraham"
+- People found: Jesus, David, Abraham — with their family relationships
+- Places and events associated with the verse
+
+DIFFERENCE FROM people_in_passage:
+- people_in_passage: works on chapters AND verses, returns entity lists only
+- graph_enriched_search: verse-level only, but includes verse text AND family relationships""",
         inputSchema={
             "type": "object",
             "properties": {

@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import Any
 
 import aiosqlite
+import logging
+
+logger = logging.getLogger("study-bible-mcp")
 
 
 class StudyBibleDB:
@@ -20,6 +23,7 @@ class StudyBibleDB:
         self.db_path = Path(db_path)
         self.conn: aiosqlite.Connection | None = None
         self._vec_loaded = False
+        self._vec_error: str | None = None
 
     async def connect(self):
         """Open database connection."""
@@ -27,11 +31,7 @@ class StudyBibleDB:
         self.conn.row_factory = aiosqlite.Row
 
         # Try to load sqlite-vec extension for vector search
-        try:
-            await self._load_sqlite_vec()
-        except Exception:
-            # Vector search won't be available, but other functions work
-            pass
+        await self._load_sqlite_vec()
 
     async def _load_sqlite_vec(self):
         """Load sqlite-vec extension if available."""
@@ -49,10 +49,13 @@ class StudyBibleDB:
             await self.conn.load_extension(vec_path)
             await self.conn.enable_load_extension(False)
             self._vec_loaded = True
+            logger.info("sqlite-vec extension loaded successfully")
         except ImportError:
-            pass  # sqlite-vec not installed
-        except Exception:
-            pass  # Extension loading failed
+            self._vec_error = "sqlite-vec package not installed. Install with: pip install sqlite-vec"
+            logger.warning(self._vec_error)
+        except Exception as e:
+            self._vec_error = f"Failed to load sqlite-vec extension: {e}"
+            logger.warning(self._vec_error)
     
     async def close(self):
         """Close database connection."""
@@ -828,13 +831,16 @@ class StudyBibleDB:
 
     async def has_vector_tables(self) -> bool:
         """Check if vector tables exist and have data."""
+        if not self._vec_loaded:
+            return False
         try:
             async with self.conn.execute(
                 "SELECT COUNT(*) FROM verse_vectors"
             ) as cursor:
                 row = await cursor.fetchone()
                 return row[0] > 0
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Vector table check failed: {e}")
             return False
 
     # =========================================================================

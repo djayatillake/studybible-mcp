@@ -378,13 +378,20 @@ async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent
     if not reference:
         return [TextContent(type="text", text="Please provide a verse reference (e.g., 'John 3:16').")]
 
-    # Check if vector tables exist
+    # Check if vector search is available
+    if not db._vec_loaded:
+        error_detail = db._vec_error or "sqlite-vec extension not available"
+        return [TextContent(
+            type="text",
+            text=f"Vector search unavailable: {error_detail}"
+        )]
+
     has_vectors = await db.has_vector_tables()
     if not has_vectors:
         return [TextContent(
             type="text",
             text="Vector embeddings have not been generated yet. "
-                 "Run 'python scripts/generate_embeddings.py' to enable semantic search."
+                 "Run 'python scripts/generate_embeddings.py' to create them (~$0.01 via OpenAI API)."
         )]
 
     # Find similar passages
