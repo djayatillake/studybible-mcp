@@ -44,6 +44,7 @@ data/acai/
 
 # Database (built from data, not committed)
 db/*.db
+db/*.db-journal
 
 # Keep the directories but not contents
 !data/.gitkeep
