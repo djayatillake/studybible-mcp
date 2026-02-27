@@ -23,6 +23,7 @@ flowchart TD
     EnrichVerse -->|Want people/places| GraphEnriched
     EnrichVerse -->|Want semantic parallels| SimilarPassages
     EnrichVerse -->|Want scholarly commentary| StudyNotes
+    EnrichVerse -->|Want cultural background| ANEContext
     EnrichVerse -->|Sufficient| Respond
 
     %% === WORD/CONCEPT PATH ===
@@ -158,6 +159,19 @@ flowchart TD
     relationships for each`"]
     GraphEnriched --> EnrichVerse
 
+    %% === CULTURAL CONTEXT PATH ===
+    Classify -->|"Cultural background\n(e.g. 'ANE context of Genesis 15')"| ContextPath
+
+    ContextPath --> ANEContext
+    ANEContext["`**get_ane_context**
+    Returns: ANE cultural entries
+    with parallels, interpretive
+    significance, scholarly sources`"]
+    ANEContext --> ContextDeepen{Go deeper?}
+    ContextDeepen -->|Look up the verse| LookupVerse
+    ContextDeepen -->|Dictionary background| BibleDict
+    ContextDeepen -->|Sufficient| Respond
+
     %% === GRAMMAR PATH ===
     Classify -->|"Grammar question\n(e.g. 'What does V-AAI-3S mean?')"| GrammarPath
     GrammarPath --> ParseMorph
@@ -181,6 +195,7 @@ flowchart TD
     style FindUsage fill:#f5a623,stroke:#d48b0a,color:#fff
     style CommentaryPath fill:#f5a623,stroke:#d48b0a,color:#fff
     style CommentaryDeepen fill:#f5a623,stroke:#d48b0a,color:#fff
+    style ContextDeepen fill:#f5a623,stroke:#d48b0a,color:#fff
 
     style LookupVerse fill:#7ed321,stroke:#5a9e18,color:#fff
     style WordStudy fill:#7ed321,stroke:#5a9e18,color:#fff
@@ -199,6 +214,7 @@ flowchart TD
     style StudyNotes fill:#3498db,stroke:#2178b5,color:#fff
     style BibleDict fill:#3498db,stroke:#2178b5,color:#fff
     style KeyTerms fill:#3498db,stroke:#2178b5,color:#fff
+    style ANEContext fill:#e67e22,stroke:#cf6d17,color:#fff
 ```
 
 ## Tool Colour Key
@@ -209,6 +225,7 @@ flowchart TD
 | Purple | Hybrid search | find_similar_passages, graph_enriched_search |
 | Red | Graph knowledge | explore_genealogy, explore_person_events, explore_place, find_connection, people_in_passage |
 | Light blue | Scholarly commentary | get_study_notes, get_bible_dictionary, get_key_terms |
+| Dark orange | Cultural context | get_ane_context |
 | Orange | Agent decisions | Classification and enrichment decision points |
 | Blue | User interaction | Question input and final response |
 
@@ -248,3 +265,11 @@ User question → `get_key_terms` → `word_study`
 **Topical research:**
 User question → `get_bible_dictionary` → `get_cross_references`
 (for supporting passages) → `lookup_verse` → response
+
+**Cultural context study:**
+User question → `get_ane_context` → `lookup_verse`
+(for the passage text) → `get_bible_dictionary` (for background) → response
+
+**Deep passage study with ANE background:**
+User question → `lookup_verse` → `get_study_notes` →
+`get_ane_context` (for cultural illumination) → `word_study` → response

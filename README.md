@@ -1,6 +1,6 @@
 # Study Bible MCP Server
 
-A Bible study assistant for Claude that provides full scholarly lexicons (LSJ Greek, BDB Hebrew, Abbott-Smith NT Greek), morphologically-tagged biblical texts, cross-references, Theographic genealogy graphs, Aquifer Open Study Notes, a Bible dictionary, key theological terms, and hermeneutical methodology based on Fee & Stuart's "How to Read the Bible for All Its Worth".
+A Bible study assistant for Claude that provides full scholarly lexicons (LSJ Greek, BDB Hebrew, Abbott-Smith NT Greek), morphologically-tagged biblical texts, cross-references, Theographic genealogy graphs, Aquifer Open Study Notes, a Bible dictionary, key theological terms, Ancient Near East cultural context, and hermeneutical methodology based on Fee & Stuart's "How to Read the Bible for All Its Worth".
 
 ## Quick Start
 
@@ -57,11 +57,12 @@ Config file locations:
 │                     │     │        │          │   BDB, Abbott-     │  │
 │  ┌───────────────┐  │     │        ▼          │   Smith, Strong's) │  │
 │  │ Claude uses   │◀─┼─────┼── Tool Results    │ • Tagged NT + OT  │  │
-│  │ 17 tools to   │  │     │                   │ • Names + ACAI    │  │
+│  │ 18 tools to   │  │     │                   │ • Names + ACAI    │  │
 │  │ look up data  │  │     │                   │ • Morphology      │  │
 │  └───────────────┘  │     │                   │ • Study Notes     │  │
 │                     │     │                   │ • Bible Dictionary │  │
 │                     │     │                   │ • Key Terms        │  │
+│                     │     │                   │ • ANE Context      │  │
 │                     │     │                   │ • Embeddings       │  │
 │                     │     │                   └───────────────────┘  │
 └─────────────────────┘     └──────────────────────────────────────────┘
@@ -74,11 +75,11 @@ When you ask Claude a Bible question:
 4. Results are returned to Claude
 5. Claude synthesises the data into a helpful response
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for a full Mermaid flowchart of all 17 tools and how the agent chains them together.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for a full Mermaid flowchart of all 18 tools and how the agent chains them together.
 
 ### The Database
 
-The server includes a pre-built SQLite database (~359MB) containing:
+The server includes a pre-built SQLite database (~600MB) containing:
 
 | Table | Rows | Content |
 |-------|------|---------|
@@ -90,12 +91,18 @@ The server includes a pre-built SQLite database (~359MB) containing:
 | `thematic_references` | 22 | Core theological theme cross-references |
 | `aquifer_content` | 102,673 | Study notes, dictionary articles, translation notes, key terms |
 | `acai_entities` | 3,175 | Rich entity annotations (people, places, groups, key terms) |
+| `ane_entries` | 87 | Ancient Near East cultural context entries across 12 dimensions |
+| `ane_book_mappings` | 314 | Maps ANE entries to biblical books and chapter ranges |
 | `verse_vectors` | 31,280 | OpenAI embeddings for semantic search |
 | `passage_vectors` | 5,190 | OpenAI embeddings for passage similarity |
 
 ---
 
-## Available Tools (17)
+You can download the pre-built database directly: **[study_bible.db](https://studybible-mcp.fly.dev/download/study_bible.db)** (~600MB)
+
+---
+
+## Available Tools (18)
 
 ### Core Text & Language
 
@@ -349,6 +356,36 @@ Find all people, places, and events mentioned in a Bible passage.
 
 **What it returns**: All entities mentioned in a chapter or verse according to Theographic Bible Metadata.
 
+### Cultural Context
+
+#### 18. `get_ane_context`
+
+Retrieve Ancient Near East cultural and historical context that illuminates biblical passages. Covers 12 dimensions of ANE life across 9 time periods.
+
+**When Claude uses it**: User asks about cultural background, customs, practices, or worldview behind a passage; when understanding the original context would prevent modern misreadings.
+
+**What it returns**: Structured entries with title, summary, detailed explanation, ANE parallels from extra-biblical sources, interpretive significance, key references, and scholarly sources.
+
+**Dimensions**: Cosmology & Worldview, Religious Practices, Social Structure, Legal & Covenant, Political & Imperial, Economic Life, Literary Conventions, Warfare & Military, Daily Life & Material Culture, Death & Afterlife, Gender & Family, Education & Literacy.
+
+**Periods**: Patriarchal, Exodus/Conquest, Judges/Early Monarchy, United Monarchy, Divided Monarchy, Assyrian/Babylonian, Persian, Hellenistic, Roman.
+
+**Example**:
+```
+User: "What's the cultural background behind Genesis 15 - the covenant ceremony?"
+
+Claude calls: get_ane_context(reference="Genesis 15:1", dimension="legal_covenant")
+
+Returns:
+- Suzerainty Treaty Forms: ANE covenant structure (preamble, stipulations,
+  witnesses, curses/blessings) parallels Deuteronomy and Genesis 15
+- Self-Maledictory Oath: Walking between animal halves = "may I become
+  like these animals if I break this covenant"
+- ANE Parallels: Hittite suzerainty treaties, Mari covenant rituals
+- Interpretive Significance: God alone passes through the pieces,
+  taking the covenant curse entirely upon himself
+```
+
 ### Hybrid Search
 
 #### 16. `graph_enriched_search`
@@ -406,6 +443,7 @@ Users don't need to know the tool names. They just ask questions:
 | "Who are the people in Romans 8?" | `people_in_passage` |
 | "Give me everything about Genesis 22:1" | `graph_enriched_search` |
 | "Find passages similar to Daniel 7" | `find_similar_passages` |
+| "What's the cultural context of Genesis 15?" | `get_ane_context` |
 
 ### Example Conversation
 
@@ -491,6 +529,14 @@ Find passages similar to John 3:16 - what other verses talk about God's love lik
 
 ```
 What Old Testament passages connect to Daniel's vision of the Son of Man?
+```
+
+```
+What's the Ancient Near East background for the creation account in Genesis 1?
+```
+
+```
+Explain the cultural context of covenant-making in Genesis 15.
 ```
 
 ---
@@ -679,12 +725,13 @@ studybible-mcp/
 ├── src/study_bible_mcp/
 │   ├── server.py              # MCP server (stdio + SSE transports)
 │   ├── database.py            # SQLite queries (async)
-│   ├── tools.py               # 17 tool definitions
+│   ├── tools.py               # 18 tool definitions
 │   ├── hermeneutics.py        # Genre detection & interpretation
 │   └── parsers/
 │       ├── lexicon.py         # TFLSJ, BDB, Abbott-Smith, TBESG, TBESH parsers
 │       ├── aquifer.py         # BibleAquifer JSON parser
 │       ├── acai.py            # ACAI entity annotation parser
+│       ├── ane_context.py     # ANE cultural context parser
 │       ├── tagged_text.py     # TAGNT/TAHOT morphology parsers
 │       └── proper_names.py    # TIPNR name parser
 ├── scripts/
@@ -700,7 +747,7 @@ studybible-mcp/
 ├── docs/
 │   ├── SETUP.md               # Quick setup guide
 │   └── SELF_HOST.md           # Self-hosting instructions
-├── ARCHITECTURE.md            # Mermaid flowchart of all 17 tools
+├── ARCHITECTURE.md            # Mermaid flowchart of all 18 tools
 ├── Dockerfile                 # Multi-stage build with database
 ├── fly.toml                   # Fly.io deployment config
 └── pyproject.toml
@@ -768,6 +815,10 @@ Rich entity annotations from [BibleAquifer/ACAI](https://github.com/BibleAquifer
 ### Theographic Bible Metadata
 
 Graph data for genealogy, events, and places from [Theographic](https://github.com/robertrouse/theographic-bible-metadata). Used by the `explore_genealogy`, `explore_person_events`, `explore_place`, `find_connection`, `people_in_passage`, and `graph_enriched_search` tools.
+
+### Ancient Near East Context
+
+87 structured entries covering 12 dimensions of ANE cultural and historical context across 9 time periods, with 314 book-chapter mappings. Data is stored in [`data/ane_context/`](data/ane_context/) as JSON files (one per dimension). Sources include Walton, Hallo, Matthews & Benjamin, Pritchard (ANET), and other standard ANE reference works.
 
 ### Vector Embeddings
 

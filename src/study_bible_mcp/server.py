@@ -922,6 +922,7 @@ async def run_sse_server(host: str, port: int):
                 "/messages": "Message POST endpoint",
                 "/health": "Health check endpoint",
                 "/static/icon.png": "Server icon",
+                "/download/study_bible.db": "Download pre-built database (~600MB)",
             },
             "tools": [tool.name for tool in TOOLS],
         })
@@ -932,12 +933,25 @@ async def run_sse_server(host: str, port: int):
         icon_bytes = base64.b64decode(ICON_BASE64)
         return Response(content=icon_bytes, media_type="image/png")
 
+    async def serve_database(request):
+        """Serve the database file for download."""
+        from starlette.responses import FileResponse
+        db_path = get_db_path()
+        if not db_path.exists():
+            return JSONResponse({"error": "Database not found"}, status_code=404)
+        return FileResponse(
+            path=str(db_path),
+            filename="study_bible.db",
+            media_type="application/x-sqlite3",
+        )
+
     # Create Starlette app with CORS middleware
     app = Starlette(
         routes=[
             Route("/", endpoint=root, methods=["GET"]),
             Route("/health", endpoint=health_check, methods=["GET"]),
             Route("/static/icon.png", endpoint=serve_icon, methods=["GET"]),
+            Route("/download/study_bible.db", endpoint=serve_database, methods=["GET"]),
             Route("/sse", endpoint=handle_sse),
             Route("/messages", endpoint=handle_messages, methods=["POST"]),
         ],
