@@ -1,0 +1,150 @@
+{
+  "dimension": "cosmology_worldview",
+  "dimension_label": "Cosmology & Worldview",
+  "entries": [
+    {
+      "id": "cosmo_001",
+      "title": "Three-Tier Universe",
+      "summary": "Ancient peoples conceived the cosmos as three tiers: heavens above (dwelling of gods), earth in the middle (human domain), and underworld below (realm of the dead).",
+      "detail": "The biblical authors shared this common ANE cosmography. The heavens were understood as a solid dome (raqia, 'firmament') separating the cosmic waters above from below. Earth was conceived as a flat disk resting on pillars above subterranean waters. The underworld (Sheol) was the realm of the dead beneath the earth. This is not a 'primitive error' but the phenomenological language of the ancient world — describing the cosmos as experienced, not as scientifically measured. God accommodated his revelation to the cosmological framework his audience already held.",
+      "ane_parallels": [
+        "Enuma Elish: Marduk splits Tiamat's body to form heaven and earth, creating the dome of sky from her upper half",
+        "Egyptian cosmology: Nut (sky goddess) arches over Geb (earth god), with Shu (air) separating them",
+        "Sumerian cosmology: An (heaven), Ki (earth), Kur (underworld) as three cosmic zones"
+      ],
+      "interpretive_significance": "Reading 'firmament' (raqia) as atmosphere misses that the original audience understood a solid dome holding back cosmic waters. The theological point is not cosmological science but that Yahweh alone orders and controls the cosmos — unlike ANE myths where cosmic order results from conflict among gods.",
+      "period": "patriarchal",
+      "books": ["Gen"],
+      "chapter_start": 1,
+      "chapter_end": 11,
+      "key_references": ["Gen 1:6-8", "Gen 1:14-17", "Gen 7:11", "Job 38:4-11", "Psalm 104:2-3", "Psalm 148:4"],
+      "scholarly_sources": ["Walton, The Lost World of Genesis One", "Horowitz, Mesopotamian Cosmic Geography", "Seely, 'The Firmament and the Water Above' (WTJ 1991)"]
+    },
+    {
+      "id": "cosmo_002",
+      "title": "Cosmic Waters and the Flood",
+      "summary": "In ANE cosmology, chaotic waters existed above the firmament and below the earth. The flood represents a cosmic de-creation — the barriers holding back chaos are removed.",
+      "detail": "Genesis 7:11 describes the flood as the 'fountains of the great deep' bursting open and the 'windows of heaven' opening — the two reservoirs of cosmic water breaching their boundaries simultaneously. This is a reversal of Day 2 of creation (Gen 1:6-8) where God separated the waters. The flood is not merely a large rainstorm but a theological statement: God unmakes and remakes creation. Multiple ANE cultures preserve flood traditions, but Genesis uniquely attributes the flood to moral judgment and preserves the covenant relationship between God and humanity.",
+      "ane_parallels": [
+        "Atrahasis Epic: Gods send flood because humanity is too noisy; Enki secretly warns Atrahasis to build a boat",
+        "Gilgamesh Epic (Tablet XI): Utnapishtim survives a divine flood on a boat; releases birds to find land",
+        "Eridu Genesis: Sumerian flood story with Ziusudra as the surviving hero"
+      ],
+      "interpretive_significance": "The ANE parallels show that the biblical flood narrative engages a widely known tradition but transforms it theologically. In Mesopotamian versions, the flood is arbitrary (gods are annoyed by noise); in Genesis, it is a moral judgment on human violence and corruption. God's covenant with Noah (Gen 9) has no ANE parallel — it introduces the concept of divine commitment to preserve creation.",
+      "period": "patriarchal",
+      "books": ["Gen"],
+      "chapter_start": 6,
+      "chapter_end": 9,
+      "key_references": ["Gen 6:5-7", "Gen 7:11", "Gen 8:1-3", "Gen 9:8-17"],
+      "scholarly_sources": ["Walton, 'The Flood' in The Lost World of the Flood", "Heidel, The Gilgamesh Epic and Old Testament Parallels", "Hallo, 'Antediluvian Cities' (JCS 1970)"]
+    },
+    {
+      "id": "cosmo_003",
+      "title": "Functional Ontology vs. Material Ontology",
+      "summary": "ANE peoples defined existence in terms of function and purpose within an ordered system, not primarily in terms of material composition.",
+      "detail": "In the ANE, something 'existed' when it had a name, a function, and a place in the ordered cosmos. Creation accounts are primarily about assigning functions, not manufacturing matter. Genesis 1 follows this pattern: each day assigns functions (light separates day/night, luminaries govern seasons, animals fill niches). The repeated 'it was good' (tov) means 'functioning properly' within the ordered system. This functional understanding explains why Genesis 1 describes creating 'light' before 'luminaries' — the function (day/night cycle) precedes the functionaries (sun/moon). Modern readers who assume 'create' means 'manufacture from nothing' may miss the ancient emphasis on ordering and purposing.",
+      "ane_parallels": [
+        "Enuma Elish: Creation is about assigning functions — stars mark seasons, rivers are channeled, humans serve gods",
+        "Egyptian 'Memphite Theology': Ptah creates by naming — to name is to assign function and bring into ordered existence",
+        "Sumerian 'Enki and the World Order': Enki assigns functions to rivers, marshes, seas, winds, agriculture"
+      ],
+      "interpretive_significance": "Understanding functional ontology prevents forcing modern creation/evolution debates onto Genesis 1, which operates within a different conceptual framework. The text's primary claim is that Yahweh alone assigns function and purpose to every element of the cosmos — a direct counter to polytheistic accounts where different gods control different domains.",
+      "period": "patriarchal",
+      "books": ["Gen", "Psa", "Job", "Isa"],
+      "chapter_start": 1,
+      "chapter_end": 2,
+      "key_references": ["Gen 1:1-2:3", "Psalm 33:6-9", "Isaiah 45:18", "Job 38:1-39:30"],
+      "scholarly_sources": ["Walton, The Lost World of Genesis One, Proposition 2-5", "Tsumura, Creation and Destruction", "Van Leeuwen, 'bara' in NIDOTTE"]
+    },
+    {
+      "id": "cosmo_004",
+      "title": "The Cosmic Mountain and Sacred Space",
+      "summary": "ANE cosmology placed the meeting point of heaven and earth at a cosmic mountain — the axis mundi where divine and human realms intersect.",
+      "detail": "Mountains throughout the ANE were considered places where heaven meets earth: Olympus for the Greeks, Mount Zaphon for the Canaanites (Baal's dwelling), Mount Meru in Hindu cosmology. In the Bible, this concept appears at Sinai, Zion, and the mountain of transfiguration. Eden itself is described as an elevated garden (rivers flow down from it, Gen 2:10-14) and is linked to the mountain of God in Ezekiel 28:13-14. The temple in Jerusalem was built on Mount Zion and symbolically represented the cosmic mountain — the place where God's presence dwelt on earth. This explains the significance of 'high places' in Israelite and Canaanite worship.",
+      "ane_parallels": [
+        "Ugaritic texts: Mount Zaphon as Baal's cosmic mountain and divine assembly meeting place",
+        "Mesopotamia: The ziggurat as an artificial cosmic mountain connecting heaven and earth",
+        "Egypt: The primeval mound (benben) rising from the waters of Nun as the first created space"
+      ],
+      "interpretive_significance": "The cosmic mountain concept illuminates why mountains are theologically significant throughout Scripture (Sinai, Zion, Carmel, the mount of transfiguration, the mount of ascension). It also explains the temple's symbolic architecture as a microcosm of creation and the escalating holiness of space from the court to the Holy of Holies.",
+      "period": "patriarchal",
+      "books": ["Gen", "Exo", "Psa", "Isa", "Ezk"],
+      "chapter_start": 2,
+      "chapter_end": 3,
+      "key_references": ["Gen 2:10-14", "Exodus 19:16-20", "Psalm 48:1-2", "Isaiah 14:13", "Ezekiel 28:13-14"],
+      "scholarly_sources": ["Clifford, The Cosmic Mountain in Canaan and the Old Testament", "Levenson, Sinai and Zion", "Beale, The Temple and the Church's Mission"]
+    },
+    {
+      "id": "cosmo_005",
+      "title": "Divine Rest and Temple Inauguration",
+      "summary": "In the ANE, when a god 'rested,' it meant the deity had taken up residence in a completed temple. Rest signified rule, not cessation of activity.",
+      "detail": "The Sabbath rest of God in Genesis 2:1-3 has often been read as God 'taking a break' after hard work. But in the ANE, divine rest is a technical term for a deity taking up residence in a temple after the cosmos (conceived as a cosmic temple) has been completed and ordered. When Marduk rests in the Enuma Elish, it means he has established his sovereignty and now rules from his temple. Genesis 1 can thus be read as a cosmic temple inauguration text: God orders the cosmos in six days, then takes up his sovereign residence on the seventh. This makes the Sabbath not a memorial of divine fatigue but of divine sovereignty — God is enthroned over his creation.",
+      "ane_parallels": [
+        "Enuma Elish: Marduk rests after creating the cosmos, and the gods build Esagila temple for him to dwell in",
+        "Gudea Cylinders: After Ningirsu's temple is completed, the god enters and 'rests' — meaning he takes sovereign residence",
+        "Baal Cycle: After Baal's palace is completed on Mount Zaphon, he enters and rules from it"
+      ],
+      "interpretive_significance": "This transforms our reading of the Sabbath commandment: it is not primarily about physical rest but about acknowledging God's sovereign rule over creation. The temple language in Genesis 1 also establishes a creation-temple-rest pattern that runs through the entire Bible (tabernacle, Solomon's temple, eschatological rest in Hebrews 3-4, new creation as temple in Revelation 21).",
+      "period": "patriarchal",
+      "books": ["Gen", "Exo", "Heb"],
+      "chapter_start": 1,
+      "chapter_end": 2,
+      "key_references": ["Gen 2:1-3", "Exodus 20:8-11", "Psalm 132:7-8", "Hebrews 4:1-11"],
+      "scholarly_sources": ["Walton, The Lost World of Genesis One, Proposition 14", "Levenson, Creation and the Persistence of Evil", "Middleton, The Liberating Image"]
+    },
+    {
+      "id": "cosmo_006",
+      "title": "Chaos and the Sea Monster",
+      "summary": "ANE creation accounts feature a divine warrior battling a chaos monster (sea dragon) to establish cosmic order. Biblical texts allude to this motif but subordinate it to Yahweh's effortless sovereignty.",
+      "detail": "The chaoskampf ('chaos struggle') motif is pervasive in ANE mythology: Marduk vs. Tiamat (Babylon), Baal vs. Yam/Lotan (Ugarit), Ra vs. Apophis (Egypt). In the Bible, echoes of this motif appear in references to Leviathan, Rahab, and the taming of the sea (Job 26:12-13; Psalm 74:13-14; Isaiah 27:1; 51:9-10). However, the biblical authors consistently transform the motif: Yahweh does not struggle against chaos — he effortlessly commands it. Genesis 1 is striking for its absence of any divine battle; God simply speaks and it happens. The 'deep' (tehom) is not a rival deity but raw material awaiting God's ordering word.",
+      "ane_parallels": [
+        "Enuma Elish: Marduk battles Tiamat (personified sea/chaos) and creates the world from her carcass",
+        "Baal Cycle: Baal battles Yam (Sea) and Lotan (seven-headed sea serpent) to establish his kingship",
+        "Egyptian mythology: Ra battles the serpent Apophis each night to ensure the sun rises"
+      ],
+      "interpretive_significance": "Biblical allusions to chaos monsters are poetic and theological, not mythological — they celebrate Yahweh's absolute sovereignty over all forces of disorder. This background illuminates why Jesus calming the storm (Mark 4:39) carried such theological weight for the disciples: he was doing what only Yahweh does — commanding chaos into order.",
+      "period": "patriarchal",
+      "books": ["Gen", "Job", "Psa", "Isa"],
+      "chapter_start": 1,
+      "chapter_end": 1,
+      "key_references": ["Gen 1:2", "Job 26:12-13", "Job 41:1-34", "Psalm 74:13-14", "Psalm 89:9-10", "Isaiah 27:1", "Isaiah 51:9-10"],
+      "scholarly_sources": ["Day, God's Conflict with the Dragon and the Sea", "Gunkel, Creation and Chaos in the Primeval Era and the Eschaton", "Tsumura, The Earth and the Waters in Genesis 1 and 2"]
+    },
+    {
+      "id": "cosmo_007",
+      "title": "Humanity as Image of God vs. ANE Concepts",
+      "summary": "In the ANE, only kings were considered the 'image' of a god. Genesis democratizes this concept by declaring all humanity — male and female — as God's image bearers.",
+      "detail": "In Mesopotamia and Egypt, the king was the image (tselem) of the deity — his representative and vice-regent on earth. Egyptian pharaohs were explicitly called the 'image of Re' or 'image of Amun.' This meant the king mediated divine authority and presence to the people. Genesis 1:26-27 makes a revolutionary move: not just the king but every human being — male and female, without distinction of class or ethnicity — bears the image of God. This democratization of the imago Dei is unprecedented in the ANE. Furthermore, while Mesopotamian texts describe humans as created to serve the gods through manual labor (digging canals, feeding temples), Genesis assigns humanity the royal task of ruling and stewarding creation.",
+      "ane_parallels": [
+        "Egyptian royal ideology: Pharaoh is the 'image of Amun-Re' who rules as the god's representative on earth",
+        "Mesopotamian royal inscriptions: Kings described as 'image' (tsalmu) of their patron deity",
+        "Atrahasis Epic: Humans created from clay mixed with divine blood to do the manual labor the lesser gods refused"
+      ],
+      "interpretive_significance": "Understanding the ANE royal background reveals the revolutionary social implications of Genesis 1: every person has inherent dignity and royal vocation, not just rulers. This undergirds biblical ethics regarding human rights, equality, and the wrongness of oppression. James 3:9 draws on this when condemning cursing people 'made in the likeness of God.'",
+      "period": "patriarchal",
+      "books": ["Gen", "Psa"],
+      "chapter_start": 1,
+      "chapter_end": 2,
+      "key_references": ["Gen 1:26-28", "Gen 5:1-3", "Gen 9:6", "Psalm 8:3-8", "James 3:9"],
+      "scholarly_sources": ["Middleton, The Liberating Image", "Clines, 'The Image of God in Man' (Tyndale Bulletin 1968)", "Garr, In His Own Image and Likeness"]
+    },
+    {
+      "id": "cosmo_008",
+      "title": "The Divine Council",
+      "summary": "The ANE conceived of the gods deliberating in a heavenly assembly. The Bible preserves this concept but subordinates all heavenly beings to Yahweh's absolute authority.",
+      "detail": "ANE texts frequently describe a council or assembly of gods where decisions about cosmic affairs are made. In Ugaritic texts, El presides over the divine council on Mount Zaphon. The Bible reflects this concept: 'Let us make man in our image' (Gen 1:26), the heavenly court scene in 1 Kings 22:19-23, the prologue of Job 1-2, Psalm 82 ('God presides in the great assembly; he judges among the gods'), and Isaiah 6. However, the biblical divine council is radically monotheistic: Yahweh does not consult as an equal but commands as sovereign. The 'sons of God' (bene elohim) are subordinate beings — angelic servants, not rival deities.",
+      "ane_parallels": [
+        "Ugaritic texts: El presides over the 'Assembly of the Gods' (phr ilm) on Mount Zaphon",
+        "Enuma Elish: The gods assemble to deliberate and grant Marduk kingship before the battle with Tiamat",
+        "Sumerian texts: The Anunnaki gods gather in assembly to make decisions about human fate"
+      ],
+      "interpretive_significance": "The divine council background resolves the 'us' in Genesis 1:26 (not the Trinity per se, but the heavenly court), illuminates the heavenly scenes in Job, Isaiah 6, and 1 Kings 22, and explains Psalm 82's dramatic scene of God judging 'the gods.' It shows how the Bible engages ANE concepts to assert Yahweh's incomparable sovereignty.",
+      "period": "patriarchal",
+      "books": ["Gen", "Job", "Psa", "Isa", "1Ki"],
+      "chapter_start": 1,
+      "chapter_end": 3,
+      "key_references": ["Gen 1:26", "Gen 3:22", "Job 1:6-12", "1 Kings 22:19-23", "Psalm 82:1-8", "Isaiah 6:1-8"],
+      "scholarly_sources": ["Heiser, The Unseen Realm", "Mullen, The Divine Council in Canaanite and Early Hebrew Literature", "Smith, The Origins of Biblical Monotheism"]
+    }
+  ]
+}

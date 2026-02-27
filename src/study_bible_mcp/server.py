@@ -35,6 +35,7 @@ from .tools import (
     mermaid_genealogy, mermaid_connection_path, mermaid_person_timeline,
     mermaid_place_network,
     format_study_notes, format_dictionary_article, format_key_terms,
+    format_ane_context, format_ane_dimensions,
 )
 from .hermeneutics import (
     get_genre_from_reference,
@@ -155,6 +156,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_get_bible_dictionary(arguments)
         elif name == "get_key_terms":
             return await handle_get_key_terms(arguments)
+        elif name == "get_ane_context":
+            return await handle_get_ane_context(arguments)
         else:
             return [TextContent(
                 type="text",
@@ -536,6 +539,57 @@ async def handle_get_key_terms(args: dict[str, Any]) -> list[TextContent]:
 
     result = format_key_terms(terms)
 
+    return [TextContent(type="text", text=result)]
+
+
+# =========================================================================
+# ANE context handler
+# =========================================================================
+
+async def handle_get_ane_context(args: dict[str, Any]) -> list[TextContent]:
+    """Handle get_ane_context tool - get Ancient Near East background."""
+    reference = args.get("reference")
+    dimension = args.get("dimension")
+    period = args.get("period")
+
+    has_data = await db.has_ane_data()
+    if not has_data:
+        return [TextContent(
+            type="text",
+            text="ANE context data not available. Rebuild the database with ANE data files in data/ane_context/."
+        )]
+
+    # If no arguments provided, list available dimensions
+    if not reference and not dimension and not period:
+        dimensions = await db.get_ane_dimensions()
+        result = format_ane_dimensions(dimensions)
+        return [TextContent(type="text", text=result)]
+
+    entries = await db.get_ane_context(
+        reference=reference,
+        dimension=dimension,
+        period=period,
+    )
+
+    if not entries:
+        parts = []
+        if reference:
+            parts.append(f"reference={reference}")
+        if dimension:
+            parts.append(f"dimension={dimension}")
+        if period:
+            parts.append(f"period={period}")
+        return [TextContent(
+            type="text",
+            text=f"No ANE context entries found for {', '.join(parts)}."
+        )]
+
+    header = "## Ancient Near East Context"
+    if reference:
+        header += f" for {reference}"
+    header += "\n\n"
+
+    result = header + format_ane_context(entries)
     return [TextContent(type="text", text=result)]
 
 

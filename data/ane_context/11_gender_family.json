@@ -1,0 +1,136 @@
+{
+  "dimension": "gender_family",
+  "dimension_label": "Gender & Family",
+  "entries": [
+    {
+      "id": "gender_001",
+      "title": "Marriage as Covenant and Economic Transaction",
+      "summary": "In the ANE, marriage was simultaneously a legal-economic transaction between families and a covenant bond. The biblical mohar (bride price), dowry, and betrothal practices all reflect well-attested Mesopotamian and West Semitic marriage customs.",
+      "detail": "Marriage in ancient Israel, as throughout the ANE, was arranged between families rather than individuals and involved the transfer of wealth in both directions. The groom's family paid a mohar (bride price) to the bride's father (Gen 34:12; Exod 22:16-17; 1 Sam 18:25), while the bride's family often provided a dowry (sheluhhatu in Akkadian) that remained the wife's security. Betrothal (erusin) was a legally binding agreement that preceded cohabitation, creating marital obligations before the wedding feast. What distinguishes Israel's theological appropriation of these customs is the metaphorical use of marriage as covenant: Hosea portrays Yahweh's relationship with Israel using betrothal language (Hos 2:19-20), and Malachi calls marriage itself a berit (covenant, Mal 2:14). This covenantal framework elevated marriage beyond a mere property transaction, grounding it in faithfulness and mutual obligation modeled on God's covenant with his people.",
+      "ane_parallels": [
+        "Old Babylonian marriage contracts (e.g., CT 48): Specify bride price (terhatu), dowry, penalties for divorce, and conditions under which the wife can initiate separation",
+        "Nuzi tablets: Document a range of marriage arrangements including 'sistership' adoptions that may illuminate the wife-sister narratives in Genesis 12, 20, and 26",
+        "Middle Assyrian Laws (Tablet A): Regulate bride price, betrothal violations, and a father's right to annul a daughter's betrothal",
+        "Elephantine Jewish marriage contracts (5th c. BCE): Preserve Jewish diaspora practice showing women could initiate divorce and retain dowry property"
+      ],
+      "interpretive_significance": "Understanding marriage as a family-to-family economic covenant clarifies otherwise puzzling texts: Jacob's fourteen years of labor as mohar (Gen 29:18-27), Shechem's offer of any bride price (Gen 34:12), David's unusual mohar of Philistine foreskins (1 Sam 18:25), and the Deuteronomic seduction law requiring marriage and permanent mohar payment (Deut 22:28-29). The prophetic metaphor of God as husband (Hosea, Jeremiah, Ezekiel 16) draws its emotional and legal force from real marriage-covenant obligations the audience understood firsthand.",
+      "period": "patriarchal",
+      "books": ["Gen", "Exo", "Deu", "Rut", "Hos"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 29:18-27", "Gen 34:12", "Exod 22:16-17", "Deut 22:28-29", "Ruth 4:9-10", "Hos 2:19-20", "Mal 2:14"],
+      "scholarly_sources": ["Meyers, Discovering Eve: Ancient Israelite Women in Context", "Westbrook, Old Babylonian Marriage Law (AfO Beiheft 23)", "Hugenberger, Marriage as a Covenant (VTSup 52)", "Grenz, 'Marriage and Family in the Biblical World' in Marriage after Modernity"]
+    },
+    {
+      "id": "gender_002",
+      "title": "The Patriarchal Household (Bet Av)",
+      "summary": "The bet av (father's house) was the fundamental social, economic, and religious unit in ancient Israel. The father exercised legal authority over a multi-generational household that included wives, children, servants, and resident aliens.",
+      "detail": "The Israelite bet av was a multi-generational compound household typically comprising three generations living in a cluster of rooms around a shared courtyard. Archaeological evidence from Iron Age highland villages (e.g., Ai, Raddana, Tell en-Nasbeh) reveals domestic architecture reflecting this family structure: pillared courtyard houses designed for extended family cohabitation. The father (av) held legal authority over marriage arrangements, economic decisions, religious observance, and discipline, including the theoretical right of life and death over children (cf. Gen 38:24; Deut 21:18-21), though this was circumscribed by community norms and Mosaic law. Women exercised considerable authority within the domestic domain: managing food production, textile manufacture, and household economy. Proverbs 31:10-31 describes a woman of valor (eshet hayil) who buys fields, trades goods, and manages a complex household enterprise. Carol Meyers has argued persuasively that women's actual social power within the household was far greater than their limited legal status might suggest, making the bet av a site of complementary labor and shared authority rather than simple male dominance.",
+      "ane_parallels": [
+        "Ugaritic texts: The bt ab (house of the father) appears as the primary social unit, with patriarchal authority over marriage, inheritance, and cultic obligations",
+        "Old Babylonian bitum (house/household): A legal and economic entity under the paterfamilias, documented extensively in the Laws of Hammurabi (LH 162-184)",
+        "Egyptian household (pr): Tomb paintings and Deir el-Medina ostraca reveal multi-generational households with women managing substantial domestic economies"
+      ],
+      "interpretive_significance": "Recognizing the bet av as the primary social unit illuminates narratives where 'leaving father and mother' (Gen 2:24) is a radical statement in a patrilocal society, where Rebekah's 'mother's household' (Gen 24:28) may indicate a distinct women's social sphere, and where Proverbs' 'woman of valor' is not an impossible ideal but a portrait of genuine female household authority. The Decalogue's command to honor father and mother (Exod 20:12) is addressed to adult children and concerns the economic security of aging parents within the bet av structure.",
+      "period": "patriarchal",
+      "books": ["Gen", "Pro", "Rut"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 2:24", "Gen 24:28", "Gen 38:24", "Exod 20:12", "Deut 21:18-21", "Ruth 1:8-9", "Prov 31:10-31"],
+      "scholarly_sources": ["Meyers, 'The Family in Early Israel' in Families in Ancient Israel", "Stager, 'The Archaeology of the Family in Ancient Israel' (BASOR 260, 1985)", "Perdue et al., Families in Ancient Israel", "Bird, 'The Place of Women in the Israelite Cultus' in Ancient Israelite Religion"]
+    },
+    {
+      "id": "gender_003",
+      "title": "Levirate Marriage and Inheritance",
+      "summary": "Levirate marriage (from Latin levir, 'husband's brother') required a man to marry his deceased brother's childless widow to produce an heir in the dead brother's name, preserving his lineage and keeping property within the family.",
+      "detail": "The institution of levirate marriage (yibbum) addressed two existential anxieties in the ANE: the extinction of a man's name and the alienation of family land. Deuteronomy 25:5-10 codifies the obligation: when brothers dwell together and one dies without a son, the surviving brother shall marry the widow and the firstborn son shall 'succeed to the name of his dead brother, that his name may not be blotted out of Israel.' If the brother-in-law refused, the widow could publicly shame him in the 'ceremony of the removed sandal' (halitzah), symbolizing his forfeiture of property rights. The Genesis 38 narrative of Judah and Tamar presupposes this custom in a pre-Mosaic setting: Onan's refusal to produce an heir for his brother Er is condemned (Gen 38:8-10), and Tamar's desperate stratagem to secure offspring is ultimately vindicated by Judah himself ('She is more righteous than I,' Gen 38:26). The book of Ruth adapts levirate principles in a broader context of land redemption (ge'ullah), with Boaz acting as a kinsman-redeemer rather than a strict brother-in-law. Jesus' interlocutors invoke levirate marriage in the Sadducees' resurrection riddle (Matt 22:23-28), indicating the practice was still theologically relevant in the Second Temple period.",
+      "ane_parallels": [
+        "Hittite Laws (§193): Specify a clear levirate hierarchy — father-in-law, then brother-in-law — with inheritance provisions for the resulting children",
+        "Middle Assyrian Laws (Tablet A §30-33): Regulate a father-in-law's obligation to reassign a betrothed woman to another son if the intended groom dies",
+        "Ugaritic texts (KTU 1.17): The Aqhat Epic's concern with producing an heir who will 'set up the stelae of his ancestral gods' reflects the same anxiety about lineage extinction"
+      ],
+      "interpretive_significance": "Levirate marriage explains Tamar's actions in Genesis 38 as legally and morally justified within her cultural context, not as mere deception. It illuminates Ruth's threshing-floor encounter with Boaz (Ruth 3) as an appeal to kinship obligation. The Sadducees' hypothetical scenario in Matthew 22 assumes the audience understands levirate law; Jesus' response reframes eschatological existence beyond the categories of patrilineal inheritance entirely. Understanding this institution also clarifies why 'raising up offspring for a brother' was a sacred duty, not merely a social convention.",
+      "period": "patriarchal",
+      "books": ["Gen", "Deu", "Rut", "Mat"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 38:6-26", "Deut 25:5-10", "Ruth 3:9-13", "Ruth 4:1-12", "Matt 22:23-28"],
+      "scholarly_sources": ["Burrows, 'Levirate Marriage in Israel' (JBL 59, 1940)", "Davies, 'Inheritance Rights and the Hebrew Levirate Marriage' (VT 31, 1981)", "Trible, 'A Human Comedy: The Book of Ruth' in God and the Rhetoric of Sexuality", "Westbrook, Property and the Family in Biblical Law (JSOTSup 113)"]
+    },
+    {
+      "id": "gender_004",
+      "title": "Women's Legal Status in the ANE",
+      "summary": "Women's legal standing varied significantly across ANE cultures, from relatively expansive rights in Old Babylonian and Egyptian law to more restrictive provisions in Middle Assyrian law. Israelite legislation occupies a complex middle position.",
+      "detail": "ANE legal corpora reveal a spectrum of women's legal standing. In Old Babylonian law, women could own property, conduct business, serve as witnesses, and initiate divorce under certain conditions (Laws of Hammurabi §138-143). Egyptian women enjoyed notable legal autonomy: they could own and dispose of property, initiate litigation, and execute contracts independently. By contrast, the Middle Assyrian Laws imposed severe restrictions on women's public behavior, mandated veiling by class, and subjected wives to their husbands' judicial authority. Israelite law presents a nuanced picture. Women could not ordinarily inherit land, but the Zelophehad daughters' petition (Num 27:1-11) established a legal precedent for female inheritance when there were no male heirs. Women could take Nazirite vows (Num 6:2), though a father or husband could annul a woman's vows (Num 30:3-15). Deborah served as judge and military leader (Judg 4-5), and the 'woman of valor' in Proverbs 31 exercises substantial economic agency. Phyllis Bird has shown that women's exclusion from certain cultic roles did not indicate a uniformly subordinate status but reflected a gendered division of social spheres common throughout the ANE.",
+      "ane_parallels": [
+        "Laws of Hammurabi (§138-143, §150-152): Women can inherit, receive divorce settlements, and manage property left in trust; a wife's dowry is legally protected from her husband's creditors",
+        "Middle Assyrian Laws (Tablet A §40-41): Mandate veiling for married women and certain classes of concubines; punish unveiled prostitutes and slaves — the veil marks social status, not modesty",
+        "Egyptian law and practice: Papyri from Deir el-Medina and Elephantine show women owning property, conducting sales, and appearing independently in legal proceedings",
+        "Neo-Babylonian legal texts: Document women as creditors, business owners, and litigants in temple and commercial economies"
+      ],
+      "interpretive_significance": "Comparing women's legal status across cultures prevents both romanticizing and demonizing the biblical material. The Zelophehad ruling (Num 27) represents a genuine legal innovation within its ANE context. Deborah's leadership (Judg 4-5) was remarkable but not without parallel in the ANE. Paul's instructions about women in 1 Corinthians 11 and 1 Timothy 2 are best understood against the backdrop of varying cultural expectations about women's public roles rather than as timeless social legislation.",
+      "period": "exodus_conquest",
+      "books": ["Num", "Deu", "Pro", "Jdg"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Num 27:1-11", "Num 30:3-15", "Deut 21:10-14", "Deut 24:1-4", "Judg 4:4-5:31", "Prov 31:10-31"],
+      "scholarly_sources": ["Bird, 'The Place of Women in the Israelite Cultus' in Ancient Israelite Religion (ed. Miller, Hanson, McBride)", "Meyers, Discovering Eve: Ancient Israelite Women in Context", "Trible, Texts of Terror: Literary-Feminist Readings of Biblical Narratives", "Frymer-Kensky, 'Virginity in the Bible' in Gender and Law in the Hebrew Bible and the Ancient Near East (JSOTSup 262)"]
+    },
+    {
+      "id": "gender_005",
+      "title": "Childbearing, Barrenness, and Divine Intervention",
+      "summary": "In the ANE, a woman's social identity and security were profoundly tied to bearing children, especially sons. The biblical 'barren wife' motif uses this cultural reality to dramatize divine intervention and the reversal of human expectations.",
+      "detail": "Across the ANE, childlessness was experienced as a social catastrophe and often interpreted as divine disfavor. Mesopotamian incantation texts invoke deities to 'open the womb,' and the Atrahasis Epic presents human fertility as a divine gift that the gods can withhold. In Israel, children — particularly sons — were essential for the continuation of the family name, the inheritance of ancestral land, and the economic security of aging parents. Against this background, the recurring biblical pattern of the barren woman who conceives through divine intervention carries immense theological weight. Robert Alter identified the 'barren wife type-scene' as a literary convention: the woman is barren, God remembers or intervenes, and the resulting child is destined for a special role (Sarah-Isaac, Rebekah-Jacob, Rachel-Joseph, Hannah-Samuel, the Shunammite woman's son, Elizabeth-John the Baptist). The motif consistently emphasizes that Israel's key leaders and prophets come not from human power or fertility but from God's sovereign initiative. Rachel's desperate cry 'Give me children, or I shall die!' (Gen 30:1) captures the existential stakes, while Hannah's prayer (1 Sam 2:1-10) transforms personal deliverance into a theology of divine reversal that reverberates into Mary's Magnificat (Luke 1:46-55).",
+      "ane_parallels": [
+        "Atrahasis Epic: The gods create infertility, miscarriage, and celibate priestesses as population-control mechanisms after the flood — fertility is a divine prerogative that can be granted or withheld",
+        "Ugaritic Kirta Epic (KTU 1.14-16): King Kirta loses his family and must petition El for a new wife and children; the narrative turns on divine provision of heirs",
+        "Mesopotamian incantation literature: Prayers to Ishtar and other deities for fertility; magical rituals to 'open the closed womb' documented in Neo-Assyrian medical-ritual texts"
+      ],
+      "interpretive_significance": "The barren-wife type-scene is not merely biographical but theological: it signals that the child to be born will serve God's purposes in a distinctive way. Recognizing this convention helps readers understand why the New Testament opens with Elizabeth's barrenness and miraculous conception (Luke 1:7-25) — Luke deliberately invokes the pattern to position John the Baptist and Jesus within the grand narrative of divine intervention. The cultural weight of barrenness also illuminates the emotional intensity of texts like Genesis 16 (Hagar), Genesis 30 (Rachel and Leah), and 1 Samuel 1 (Hannah), where women's agency and desperation operate within a social system that measured female worth largely by reproductive capacity.",
+      "period": "patriarchal",
+      "books": ["Gen", "1Sa", "Luk"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 11:30", "Gen 25:21", "Gen 29:31", "Gen 30:1-2", "1 Sam 1:1-20", "1 Sam 2:1-10", "Luke 1:7-25", "Luke 1:46-55"],
+      "scholarly_sources": ["Alter, 'How Convention Helps Us Read: The Case of the Bible's Annunciation Type-Scene' (Prooftexts 3, 1983)", "Trible, God and the Rhetoric of Sexuality", "Meyers, 'The Family in Early Israel' in Families in Ancient Israel", "Callaway, Sing, O Barren One: A Study in Comparative Midrash (SBL Dissertation Series 91)"]
+    },
+    {
+      "id": "gender_006",
+      "title": "Greco-Roman Household Codes and NT Adaptation",
+      "summary": "The NT 'household codes' (Haustafeln) addressing husbands/wives, parents/children, and masters/slaves draw on a Greco-Roman tradition of household management discourse rooted in Aristotle, but transform it with christological grounding and reciprocal obligation.",
+      "detail": "Aristotle's Politics (1.1253b) defined the household (oikos) as the foundational unit of the city-state, comprising three pairs of relationships: husband/wife, father/children, master/slaves. This framework generated a tradition of household management literature (peri oikonomias) that continued through Hellenistic philosophers (Hierocles, Arius Didymus, Seneca, Plutarch) and shaped Roman social expectations under the authority of the paterfamilias. The NT household codes in Ephesians 5:21-6:9, Colossians 3:18-4:1, 1 Peter 2:18-3:7, and the Pastoral Epistles (1 Tim 2:8-15; 5:1-2; 6:1-2; Titus 2:1-10) adopt this three-pair structure but introduce distinctive modifications. David Balch demonstrated that the codes function partly as apologetic, showing outsiders that Christian households maintained social respectability. However, the NT codes also subvert the Aristotelian pattern: Ephesians 5:21 introduces mutual submission before the husband-wife instructions; husbands are commanded to self-sacrificial love rather than mere governance; masters are reminded they share a Master in heaven (Col 4:1; Eph 6:9). Margaret MacDonald has argued that the Pastoral Epistles represent a later stage of this development, where concern for community reputation in the broader Roman world led to more conventional household expectations.",
+      "ane_parallels": [
+        "Aristotle, Politics 1.1253b-1260b: Defines the three constitutive relationships of the household and argues that rule over wife, children, and slaves differs in kind but all derive from the male head's rational authority",
+        "Arius Didymus, Epitome of Stoic Ethics: Presents the Stoic version of household duties organized by the same three pairs — widely read in Augustan Rome and representative of the popular philosophical tradition",
+        "Plutarch, Advice to the Bride and Groom (Moralia 138A-146A): Counsels marital harmony through wifely deference and husbandly gentleness — a moderate Greco-Roman view contemporary with the NT",
+        "Seneca, Epistles 47: Advocates humane treatment of slaves while maintaining the institution — illustrative of Stoic reform impulses that parallel Pauline instructions to masters"
+      ],
+      "interpretive_significance": "Recognizing the Greco-Roman household code tradition prevents two interpretive errors: reading the NT codes as if they were created in a vacuum, or dismissing them as mere capitulation to Roman culture. The christological grounding ('as to the Lord,' Eph 5:22; 'as is fitting in the Lord,' Col 3:18) and the emphasis on reciprocal duty represent genuine innovation within the genre. Whether these codes are read as accommodating, transforming, or subverting Greco-Roman norms depends on one's assessment of the trajectory of the NT's social ethic — a question that David Balch and John Elliott have debated extensively.",
+      "period": "roman",
+      "books": ["Eph", "Col", "1Pe", "1Ti", "Tit"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Eph 5:21-6:9", "Col 3:18-4:1", "1 Pet 2:18-3:7", "1 Tim 2:8-15", "1 Tim 6:1-2", "Titus 2:1-10"],
+      "scholarly_sources": ["Balch, Let Wives Be Submissive: The Domestic Code in 1 Peter (SBL Monograph Series 26)", "MacDonald, The Pauline Churches: A Socio-Historical Study of Institutionalization in the Pauline and Deutero-Pauline Writings", "Elliott, A Home for the Homeless: A Social-Scientific Criticism of 1 Peter", "Osiek and Balch, Families in the New Testament World: Households and House Churches"]
+    },
+    {
+      "id": "gender_007",
+      "title": "Polygamy and Concubinage in the ANE and Israel",
+      "summary": "Polygamy (multiple wives) and concubinage (secondary wives of lower legal status) were widely practiced in the ANE, particularly among royalty and the wealthy. The biblical narrative consistently records the social and familial tensions these arrangements produced.",
+      "detail": "Polygamy was legally permitted throughout the ANE, though economic constraints meant it was practiced primarily by the elite. The Laws of Hammurabi regulate relationships between primary wives, secondary wives, and slave-wives (naditu and sugitu classes, LH §144-147). In Israel, the patriarchs practiced polygamy (Jacob's two wives and two concubines), Mosaic law regulated but did not prohibit it (Deut 21:15-17 protects the inheritance rights of the firstborn from an 'unloved wife'), and royal polygamy reached its apex under Solomon with seven hundred wives and three hundred concubines (1 Kgs 11:3). Concubines (pilagshim) occupied a recognized but subordinate legal position: their children could inherit if acknowledged by the father, but they lacked the full protections afforded to primary wives. What is remarkable in the biblical narrative is the consistent literary portrayal of polygamy as a source of strife: Sarah and Hagar conflict bitterly (Gen 16, 21), Rachel and Leah engage in a childbearing competition (Gen 29-30), Hannah is tormented by Peninnah (1 Sam 1:6), and Solomon's foreign wives 'turned away his heart' (1 Kgs 11:4). The narrative arc from Genesis 2:24 ('the two shall become one flesh') through the prophets' exclusive marriage metaphor for Yahweh and Israel toward Jesus' reaffirmation of the Genesis ideal (Matt 19:4-6) traces a theological trajectory that increasingly frames monogamy as normative, without a single explicit prohibition of polygamy appearing in the Old Testament itself.",
+      "ane_parallels": [
+        "Laws of Hammurabi (§144-147): Regulate the relationship between a man's primary wife (who may be a naditu-priestess forbidden to bear children) and a secondary wife or slave-wife who bears children on her behalf — closely paralleling the Sarah-Hagar arrangement",
+        "Ugaritic texts: King Kirta's narrative involves two sequential marriages; royal polygamy at Ugarit is well attested in administrative documents",
+        "Egyptian practice: Pharaohs maintained large harems for diplomatic marriages; non-royal Egyptians were typically monogamous, though concubinage was permitted",
+        "Neo-Assyrian royal records: Harem edicts regulate the conduct and hierarchy of the king's wives and concubines with elaborate protocols and severe penalties for transgression"
+      ],
+      "interpretive_significance": "The Bible's treatment of polygamy illustrates the distinction between descriptive tolerance and prescriptive ideal. No biblical law explicitly prohibits polygamy, yet the literary presentation consistently shows it producing jealousy, favoritism, and family fracture. This narrative pattern — combined with the creation ideal of Genesis 2:24, the monogamous marriage metaphor in the prophets, and Jesus' appeal to 'the beginning' in Matthew 19 — suggests a redemptive-historical trajectory toward monogamy that emerges from the text's own internal logic rather than from a single proof-text prohibition. Understanding ANE marriage norms also prevents modern readers from anachronistically judging patriarchal figures by later standards they did not possess.",
+      "period": "patriarchal",
+      "books": ["Gen", "Jdg", "1Sa", "2Sa", "1Ki"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 2:24", "Gen 16:1-6", "Gen 29:15-30:24", "Deut 21:15-17", "Judg 8:30-31", "1 Sam 1:1-6", "2 Sam 3:2-5", "2 Sam 5:13", "1 Kgs 11:1-8", "Matt 19:4-6"],
+      "scholarly_sources": ["Meyers, Discovering Eve: Ancient Israelite Women in Context", "Trible, Texts of Terror: Literary-Feminist Readings of Biblical Narratives", "Hugenberger, Marriage as a Covenant (VTSup 52)", "de Vaux, Ancient Israel: Its Life and Institutions"]
+    }
+  ]
+}

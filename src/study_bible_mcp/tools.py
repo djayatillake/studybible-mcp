@@ -618,6 +618,64 @@ USE THIS when you need:
             "required": ["term"]
         }
     ),
+    Tool(
+        name="get_ane_context",
+        description="""Get Ancient Near East (ANE) cultural and historical background for a biblical passage.
+
+The biblical authors and their audiences lived in the Ancient Near East with fundamentally
+different assumptions about cosmology, social structure, religion, law, and daily life.
+This tool retrieves structured ANE contextual data to illuminate what the text meant
+to its original audience.
+
+USE THIS when:
+- Studying creation, flood, or cosmological texts (three-tier universe, cosmic waters)
+- Encountering references to temples, sacrifices, or religious practices
+- Reading about covenants, treaties, or legal codes (suzerainty treaties, lex talionis)
+- Studying honor/shame dynamics in Gospels or Epistles
+- Understanding marriage customs, family structures, or inheritance laws
+- Reading about warfare, kingship, or imperial contexts
+- Encountering literary forms (chiasm, inclusio, lament, oracle)
+- Needing background on daily life, agriculture, or material culture
+
+12 dimensions: cosmology_worldview, religious_practices, social_structure, legal_covenant,
+political_imperial, economic_life, literary_conventions, warfare_military,
+daily_life_material_culture, death_afterlife, gender_family, education_literacy
+
+9 periods: patriarchal, exodus_conquest, judges_early_monarchy, united_monarchy,
+divided_monarchy, assyrian_babylonian, persian, hellenistic, roman
+
+Call with NO arguments to see available dimensions and periods.
+Call with just a reference to get ALL relevant ANE context for a passage.
+Filter by dimension and/or period for focused results.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "type": "string",
+                    "description": "Bible reference (e.g., 'Genesis 1:1', 'Deuteronomy 5:1', 'Matthew 5:1')"
+                },
+                "dimension": {
+                    "type": "string",
+                    "description": "ANE dimension to filter by (e.g., 'cosmology_worldview', 'legal_covenant')",
+                    "enum": [
+                        "cosmology_worldview", "religious_practices", "social_structure",
+                        "legal_covenant", "political_imperial", "economic_life",
+                        "literary_conventions", "warfare_military", "daily_life_material_culture",
+                        "death_afterlife", "gender_family", "education_literacy"
+                    ]
+                },
+                "period": {
+                    "type": "string",
+                    "description": "Historical period to filter by",
+                    "enum": [
+                        "patriarchal", "exodus_conquest", "judges_early_monarchy",
+                        "united_monarchy", "divided_monarchy", "assyrian_babylonian",
+                        "persian", "hellenistic", "roman"
+                    ]
+                }
+            }
+        }
+    ),
 ]
 
 
@@ -971,6 +1029,112 @@ def format_key_terms(terms: list[dict]) -> str:
             lines.append(content)
         lines.append("")
 
+    return "\n".join(lines)
+
+
+# =========================================================================
+# ANE context formatting
+# =========================================================================
+
+def format_ane_context(entries: list[dict]) -> str:
+    """Format ANE context entries for display."""
+    if not entries:
+        return "No ANE context entries found for the given criteria.\n"
+
+    lines = []
+
+    # Group entries by dimension
+    groups: dict[str, list[dict]] = {}
+    for entry in entries:
+        dim = entry.get("dimension_label", entry.get("dimension", "Unknown"))
+        groups.setdefault(dim, []).append(entry)
+
+    for dimension_label, group_entries in groups.items():
+        lines.append(f"## {dimension_label}")
+        lines.append("")
+
+        for entry in group_entries:
+            title = entry.get("title", "")
+            summary = entry.get("summary", "")
+            detail = entry.get("detail", "")
+            period_label = entry.get("period_label", "")
+            significance = entry.get("interpretive_significance", "")
+
+            lines.append(f"### {title}")
+            if period_label:
+                lines.append(f"*Period: {period_label}*")
+            lines.append("")
+
+            if summary:
+                lines.append(summary)
+                lines.append("")
+
+            if detail:
+                lines.append(detail)
+                lines.append("")
+
+            # ANE parallels
+            parallels_raw = entry.get("ane_parallels", "[]")
+            try:
+                parallels = json.loads(parallels_raw) if isinstance(parallels_raw, str) else parallels_raw
+            except (json.JSONDecodeError, TypeError):
+                parallels = []
+            if parallels:
+                lines.append("**ANE Parallels:**")
+                for p in parallels:
+                    lines.append(f"- {p}")
+                lines.append("")
+
+            if significance:
+                lines.append(f"**Interpretive Significance:** {significance}")
+                lines.append("")
+
+            # Key references
+            refs_raw = entry.get("key_references", "[]")
+            try:
+                refs = json.loads(refs_raw) if isinstance(refs_raw, str) else refs_raw
+            except (json.JSONDecodeError, TypeError):
+                refs = []
+            if refs:
+                lines.append(f"**Key References:** {', '.join(refs)}")
+                lines.append("")
+
+            # Scholarly sources
+            sources_raw = entry.get("scholarly_sources", "[]")
+            try:
+                sources = json.loads(sources_raw) if isinstance(sources_raw, str) else sources_raw
+            except (json.JSONDecodeError, TypeError):
+                sources = []
+            if sources:
+                lines.append(f"**Sources:** {'; '.join(sources)}")
+                lines.append("")
+
+        lines.append("---")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+def format_ane_dimensions(dimensions: list[dict]) -> str:
+    """Format the list of available ANE dimensions."""
+    lines = [
+        "## Ancient Near East Context — Available Dimensions",
+        "",
+        "Use `get_ane_context` with a `reference` to get relevant ANE background for any passage.",
+        "Optionally filter by `dimension` and/or `period`.",
+        "",
+        "### Dimensions",
+        "",
+    ]
+    for dim in dimensions:
+        lines.append(f"- **{dim['dimension_label']}** (`{dim['dimension']}`) — {dim['entry_count']} entries")
+    lines.append("")
+    lines.append("### Periods")
+    lines.append("")
+    from .parsers.ane_context import PERIOD_LABELS
+    for key, label in PERIOD_LABELS.items():
+        lines.append(f"- `{key}` — {label}")
+    lines.append("")
     return "\n".join(lines)
 
 

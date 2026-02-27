@@ -1045,6 +1045,91 @@ class StudyBibleDB:
             row = await cursor.fetchone()
             return dict(row) if row else None
 
+    # =========================================================================
+    # ANE (Ancient Near East) context queries
+    # =========================================================================
+
+    async def has_ane_data(self) -> bool:
+        """Check if ane_entries table exists and has data."""
+        try:
+            async with self.conn.execute(
+                "SELECT COUNT(*) FROM ane_entries"
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row[0] > 0
+        except Exception:
+            return False
+
+    async def get_ane_dimensions(self) -> list[dict]:
+        """Get all available ANE dimensions with entry counts."""
+        sql = """
+            SELECT dimension, dimension_label, COUNT(*) as entry_count
+            FROM ane_entries
+            GROUP BY dimension, dimension_label
+            ORDER BY dimension
+        """
+        async with self.conn.execute(sql) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def get_ane_context(
+        self,
+        reference: str | None = None,
+        dimension: str | None = None,
+        period: str | None = None,
+        limit: int = 20,
+    ) -> list[dict]:
+        """Get ANE context entries filtered by reference, dimension, and/or period.
+
+        Args:
+            reference: Bible reference (e.g., "Genesis 1:1") - finds entries mapped to that book/chapter
+            dimension: ANE dimension key (e.g., "cosmology_worldview")
+            period: Timeline period (e.g., "patriarchal")
+            limit: Max results to return
+        """
+        params: list = []
+        conditions: list[str] = []
+        join_clause = ""
+
+        if reference:
+            # Parse the reference to get book abbreviation and chapter
+            normalized = self._normalize_reference(reference)
+            parts = normalized.split(".")
+            book_abbr = parts[0] if parts else ""
+            chapter = int(parts[1]) if len(parts) > 1 else None
+
+            join_clause = " JOIN ane_book_mappings bm ON e.id = bm.entry_id"
+            conditions.append("bm.book = ?")
+            params.append(book_abbr)
+
+            if chapter is not None:
+                conditions.append(
+                    "(bm.chapter_start IS NULL OR (bm.chapter_start <= ? AND (bm.chapter_end IS NULL OR bm.chapter_end >= ?)))"
+                )
+                params.extend([chapter, chapter])
+
+        if dimension:
+            conditions.append("e.dimension = ?")
+            params.append(dimension)
+
+        if period:
+            conditions.append("e.period = ?")
+            params.append(period)
+
+        where = f" WHERE {' AND '.join(conditions)}" if conditions else ""
+
+        sql = f"""
+            SELECT DISTINCT e.*
+            FROM ane_entries e{join_clause}{where}
+            ORDER BY e.dimension, e.period
+            LIMIT ?
+        """
+        params.append(limit)
+
+        async with self.conn.execute(sql, params) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
 
 def create_schema(conn: sqlite3.Connection):
     """Create the database schema."""
@@ -1294,6 +1379,38 @@ def create_schema(conn: sqlite3.Connection):
         );
         CREATE INDEX IF NOT EXISTS idx_acai_type ON acai_entities(entity_type);
         CREATE INDEX IF NOT EXISTS idx_acai_name ON acai_entities(name);
+
+        -- =====================================================================
+        -- ANE (Ancient Near East) context entries
+        -- =====================================================================
+
+        CREATE TABLE IF NOT EXISTS ane_entries (
+            id TEXT PRIMARY KEY,
+            dimension TEXT NOT NULL,
+            dimension_label TEXT NOT NULL,
+            title TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            detail TEXT,
+            ane_parallels TEXT,
+            interpretive_significance TEXT,
+            period TEXT,
+            period_label TEXT,
+            key_references TEXT,
+            scholarly_sources TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_ane_dimension ON ane_entries(dimension);
+        CREATE INDEX IF NOT EXISTS idx_ane_period ON ane_entries(period);
+
+        CREATE TABLE IF NOT EXISTS ane_book_mappings (
+            entry_id TEXT NOT NULL,
+            book TEXT NOT NULL,
+            chapter_start INTEGER,
+            chapter_end INTEGER,
+            PRIMARY KEY (entry_id, book, chapter_start),
+            FOREIGN KEY (entry_id) REFERENCES ane_entries(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_ane_bm_book ON ane_book_mappings(book);
+        CREATE INDEX IF NOT EXISTS idx_ane_bm_entry ON ane_book_mappings(entry_id);
     """)
     conn.commit()
 

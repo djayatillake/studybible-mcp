@@ -177,6 +177,11 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
         if acai_dir.exists():
             import_acai_entities(conn, acai_dir)
 
+        # Import ANE context data
+        ane_dir = data_dir / "ane_context"
+        if ane_dir.exists():
+            import_ane_context(conn, ane_dir)
+
         # Optimize
         console.print("\nOptimizing database...")
         conn.execute("ANALYZE")
@@ -930,6 +935,54 @@ def import_acai_entities(conn: sqlite3.Connection, acai_dir: Path):
         console.print(f"  [green]✓[/green] Total ACAI entities: {total_count}")
 
 
+def import_ane_context(conn: sqlite3.Connection, ane_dir: Path):
+    """Import ANE (Ancient Near East) context data files."""
+    from study_bible_mcp.parsers.ane_context import parse_ane_context_file
+
+    json_files = sorted(ane_dir.glob("*.json"))
+    if not json_files:
+        console.print("  [yellow]No ANE context files found[/yellow]")
+        return
+
+    console.print(f"Importing ANE context ({len(json_files)} dimension files)...")
+    entry_count = 0
+    mapping_count = 0
+
+    for json_file in json_files:
+        try:
+            for entry, book_mappings in parse_ane_context_file(json_file):
+                conn.execute("""
+                    INSERT OR REPLACE INTO ane_entries
+                    (id, dimension, dimension_label, title, summary, detail,
+                     ane_parallels, interpretive_significance, period, period_label,
+                     key_references, scholarly_sources)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    entry['id'], entry['dimension'], entry['dimension_label'],
+                    entry['title'], entry['summary'], entry.get('detail'),
+                    entry.get('ane_parallels'), entry.get('interpretive_significance'),
+                    entry.get('period'), entry.get('period_label'),
+                    entry.get('key_references'), entry.get('scholarly_sources'),
+                ))
+                entry_count += 1
+
+                for bm in book_mappings:
+                    conn.execute("""
+                        INSERT OR REPLACE INTO ane_book_mappings
+                        (entry_id, book, chapter_start, chapter_end)
+                        VALUES (?, ?, ?, ?)
+                    """, (
+                        bm['entry_id'], bm['book'],
+                        bm.get('chapter_start'), bm.get('chapter_end'),
+                    ))
+                    mapping_count += 1
+        except Exception as e:
+            console.print(f"  [yellow]Warning: {json_file.name}: {e}[/yellow]")
+
+    conn.commit()
+    console.print(f"  [green]✓[/green] Imported {entry_count} ANE entries with {mapping_count} book mappings")
+
+
 def show_stats(conn: sqlite3.Connection):
     """Show database statistics."""
     console.print("\n[bold]Database Statistics:[/bold]")
@@ -943,6 +996,10 @@ def show_stats(conn: sqlite3.Connection):
         tables.append("aquifer_content")
     if "acai_entities" in existing_tables:
         tables.append("acai_entities")
+    if "ane_entries" in existing_tables:
+        tables.append("ane_entries")
+    if "ane_book_mappings" in existing_tables:
+        tables.append("ane_book_mappings")
 
     for table in tables:
         cursor = conn.execute(f"SELECT COUNT(*) FROM {table}")

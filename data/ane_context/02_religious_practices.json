@@ -1,0 +1,132 @@
+{
+  "dimension": "religious_practices",
+  "dimension_label": "Religious Practices",
+  "entries": [
+    {
+      "id": "relig_001",
+      "title": "Sacrifice as Feeding the Gods",
+      "summary": "In Mesopotamian religion, sacrifices literally fed the gods who depended on human offerings for sustenance. Israelite sacrifice explicitly rejects this concept while using the same ritual vocabulary.",
+      "detail": "Mesopotamian temples operated as divine households where priests prepared meals for the gods' statues. The gods were believed to consume the 'essence' of offerings while priests ate the physical remains. This 'care and feeding of the gods' model made humans essential servants of divine appetite. The Bible directly critiques this view: 'I have no need of a bull from your stall... Do I eat the flesh of bulls or drink the blood of goats?' (Psalm 50:9-13). Yet Israelite sacrifice uses similar terminology — offerings are called 'food of God' (lehem elohim, Leviticus 21:6) and produce a 'pleasing aroma' (reah nihoah). This shared vocabulary indicates that Israel's sacrificial system engaged the ANE framework while radically redefining its theology: sacrifice is not about divine need but about covenant relationship, atonement, and communion.",
+      "ane_parallels": [
+        "Mesopotamian temple rituals: Daily meals prepared for divine statues with elaborate menus and table settings",
+        "Atrahasis Epic: After the flood, the starving gods 'gathered like flies over the sacrifice' because no one had been feeding them",
+        "Egyptian temple cult: Daily rituals of dressing, feeding, and attending to the cult statue of the deity"
+      ],
+      "interpretive_significance": "Understanding sacrifice-as-feeding prevents misreading Israelite sacrifice as a magical transaction to appease an angry deity. The 'pleasing aroma' language retains ANE sacrificial vocabulary but the theology is transformed: God does not need food but receives the worshiper's devotion. This also illuminates Hebrews' argument that Christ's sacrifice ends the entire system.",
+      "period": "patriarchal",
+      "books": ["Gen", "Lev", "Psa"],
+      "chapter_start": 1,
+      "chapter_end": 27,
+      "key_references": ["Gen 8:20-21", "Lev 1:9", "Lev 21:6", "Psalm 50:7-15", "Isaiah 1:11-17"],
+      "scholarly_sources": ["Milgrom, Leviticus (Anchor Bible)", "Anderson, Sacrifices and Offerings in Ancient Israel", "Oppenheim, Ancient Mesopotamia, ch. 3"]
+    },
+    {
+      "id": "relig_002",
+      "title": "Temple as Cosmic Microcosm",
+      "summary": "ANE temples were designed to represent the cosmos in miniature, with the innermost chamber symbolizing the divine realm. The Israelite tabernacle and temple follow this same architectural theology.",
+      "detail": "Mesopotamian and Egyptian temples were consciously built as models of the cosmos. The temple represented the ordered world, with different zones corresponding to cosmic realms. The Israelite tabernacle/temple follows this pattern: the outer court represents the visible world (bronze altar = earth), the Holy Place represents the heavens (menorah = luminaries, bread of presence = sustenance, incense altar = prayers ascending), and the Holy of Holies represents the invisible divine throne room (the ark as God's footstool). The veil separating Holy from Most Holy represents the firmament barrier between the visible and invisible realms. Cherubim guard the sacred boundary, just as they guard Eden (Gen 3:24).",
+      "ane_parallels": [
+        "Mesopotamian temples: Esagila in Babylon designed with cosmic symbolism, its ziggurat reaching toward heaven",
+        "Egyptian temples: Graduated elevation from outer courts to inner sanctuary symbolizes movement from chaos to ordered divine space",
+        "Ugaritic temple: Baal's palace on Mount Zaphon described with cosmic architecture"
+      ],
+      "interpretive_significance": "The temple-as-cosmos concept connects creation, tabernacle, temple, and new creation into a single theological trajectory. When the temple veil tears at Jesus' death (Mark 15:38), it signals the barrier between God's realm and the human realm being removed — a cosmic-level event, not merely a curtain malfunction. Revelation 21's 'no temple' in the new Jerusalem represents the ultimate fulfillment: all creation becomes God's dwelling place.",
+      "period": "exodus_conquest",
+      "books": ["Exo", "1Ki", "Ezk", "Rev"],
+      "chapter_start": 25,
+      "chapter_end": 40,
+      "key_references": ["Exodus 25:8-9", "Exodus 26:31-33", "1 Kings 6:1-38", "Ezekiel 40-48", "Revelation 21:22"],
+      "scholarly_sources": ["Beale, The Temple and the Church's Mission", "Hurowitz, I Have Built You an Exalted House", "Lundquist, 'The Common Temple Ideology of the ANE' in The Temple in Antiquity"]
+    },
+    {
+      "id": "relig_003",
+      "title": "Idol Manufacture and the Mis Pi Ritual",
+      "summary": "ANE cultures performed elaborate rituals to 'activate' cult statues, believing the deity would inhabit the image. Biblical polemic against idolatry directly targets these practices.",
+      "detail": "In Mesopotamia, newly carved divine statues underwent the mis pi ('washing of the mouth') and pit pi ('opening of the mouth') rituals to transform them from human-made objects into divinely inhabited images. The ritual paradoxically denied human manufacture: artisans' hands were symbolically cut off and the statue was declared 'born in heaven.' Isaiah 40-48 and Jeremiah 10 specifically mock this process: the prophet describes the woodworker cutting a tree, using part for fuel and part for a god, then sarcastically asks who manufactured whom. The biblical critique assumes audience familiarity with these practices. Deuteronomy's prohibition of images is not merely aesthetic but theological: no created object can contain or represent the transcendent Creator.",
+      "ane_parallels": [
+        "Mesopotamian mis pi ritual: Two-day ceremony to 'birth' a cult statue, denying its human manufacture",
+        "Egyptian 'Opening of the Mouth' ceremony: Ritual to animate statues and mummies, enabling them to see, breathe, and eat",
+        "Hittite EZEN pulaš ritual: Ceremony to sanctify new cult images"
+      ],
+      "interpretive_significance": "Biblical idol polemic is not attacking 'primitive stupidity' but sophisticated theology. ANE peoples did not worship the wood/stone itself but the divine presence believed to inhabit it. The biblical critique goes deeper: no image can capture God's nature, and the image-making process itself is an attempt to control the divine. This illuminates why the second commandment prohibits images even of Yahweh, not just of other gods.",
+      "period": "divided_monarchy",
+      "books": ["Exo", "Deu", "Isa", "Jer", "Psa"],
+      "chapter_start": 20,
+      "chapter_end": 20,
+      "key_references": ["Exodus 20:4-6", "Deuteronomy 4:15-19", "Isaiah 40:18-20", "Isaiah 44:9-20", "Jeremiah 10:1-16", "Psalm 115:4-8"],
+      "scholarly_sources": ["Dick, Born in Heaven, Made on Earth", "Walker & Dick, The Induction of the Cult Image in Ancient Mesopotamia", "Halbertal & Margalit, Idolatry"]
+    },
+    {
+      "id": "relig_004",
+      "title": "Ritual Purity and Sacred Boundaries",
+      "summary": "ANE cultures universally maintained strict boundaries between sacred and profane, pure and impure. Israel's purity laws belong to this wider cultural pattern but are uniquely tied to the holiness of Yahweh.",
+      "detail": "Ritual purity (not moral purity) governed access to sacred space throughout the ANE. Contact with death, blood, certain bodily discharges, and specific animals rendered a person temporarily 'impure' — not sinful, but unable to approach the divine presence. Israel's purity system in Leviticus 11-15 shares the same basic logic as Mesopotamian and Hittite purity codes but differs in key ways: (1) impurity is not demonic but natural; (2) purification is straightforward (washing, waiting, sacrifice); (3) the system is tied to Yahweh's holiness rather than magical contagion. Jesus' interaction with 'unclean' persons (lepers, hemorrhaging woman, corpses) was not merely kind but theologically revolutionary — his holiness purifies rather than being contaminated.",
+      "ane_parallels": [
+        "Mesopotamian namburbu rituals: Elaborate purification ceremonies after contact with impure substances",
+        "Hittite purity codes: Detailed regulations for temple personnel regarding bodily discharges and food",
+        "Egyptian priestly purity: Priests shaved all body hair, washed repeatedly, and observed dietary restrictions"
+      ],
+      "interpretive_significance": "Understanding purity as sacred boundary maintenance (not hygiene) prevents moralizing Levitical laws. The issue is access to God's presence, not cleanliness. This illuminates why Jesus touching lepers and the dead was shocking — and why it signaled a new era where holiness flows outward rather than impurity flowing inward (Mark 5:25-34).",
+      "period": "exodus_conquest",
+      "books": ["Lev", "Num", "Mrk"],
+      "chapter_start": 11,
+      "chapter_end": 15,
+      "key_references": ["Lev 11:1-47", "Lev 12:1-8", "Lev 15:1-33", "Numbers 19:11-22", "Mark 5:25-34", "Mark 1:40-45"],
+      "scholarly_sources": ["Milgrom, Leviticus (Anchor Bible)", "Wright, The Disposal of Impurity", "Klawans, Impurity and Sin in Ancient Judaism"]
+    },
+    {
+      "id": "relig_005",
+      "title": "Divination and Prophecy",
+      "summary": "ANE cultures relied heavily on divination (reading omens in livers, stars, and oil) to discern the gods' will. Israel prohibited divination but developed prophecy as direct divine communication.",
+      "detail": "Divination was the primary means of knowing the divine will in Mesopotamia: extispicy (reading animal entrails), astrology, lecanomancy (oil in water), and dream interpretation all operated on the principle that the gods embedded messages in natural phenomena. Professional diviners were court officials comparable in status to modern intelligence analysts. Deuteronomy 18:9-14 prohibits these practices categorically but immediately introduces the prophetic alternative (18:15-22): God will raise up prophets who speak his words directly. This contrast is fundamental — Israel's God communicates through personal address, not encoded signs. The prophets insist they speak Yahweh's actual words ('Thus says the LORD'), a claim fundamentally different from divinatory interpretation.",
+      "ane_parallels": [
+        "Mesopotamian baru priests: Trained specialists who read sheep livers, bird flights, and astronomical signs",
+        "Mari letters: Royal archives containing prophetic oracles alongside divinatory reports",
+        "Egyptian dream interpretation: Manuals codifying the meaning of dream symbols for state policy"
+      ],
+      "interpretive_significance": "The divination-vs-prophecy contrast explains why Israel's prophets were so different from ANE religious figures. It also illuminates the Deuteronomic test for true prophecy (18:21-22): since the prophet claims to speak God's own words, accuracy is non-negotiable. This background makes Saul's visit to the medium at Endor (1 Sam 28) an act of covenantal betrayal, not merely superstition.",
+      "period": "exodus_conquest",
+      "books": ["Deu", "1Sa", "Jer", "Ezk"],
+      "chapter_start": 18,
+      "chapter_end": 18,
+      "key_references": ["Deuteronomy 18:9-22", "1 Samuel 28:3-25", "Jeremiah 27:9-10", "Ezekiel 13:1-9"],
+      "scholarly_sources": ["Cryer, Divination in Ancient Israel and Its Near Eastern Environment", "Nissinen, Prophets and Prophecy in the Ancient Near East", "Huffmon, 'The Origins of Prophecy' in Magnalia Dei"]
+    },
+    {
+      "id": "relig_006",
+      "title": "The Sabbath and Sacred Time",
+      "summary": "While other ANE cultures observed inauspicious days based on omens, Israel's Sabbath was unique: a weekly holy day celebrating creation and liberation, independent of astronomical or ominous cycles.",
+      "detail": "Mesopotamia had 'evil days' (umu lemnu) — the 7th, 14th, 21st, and 28th of the month — when the king was to avoid certain activities because omens were unfavorable. These are superficially similar to the Sabbath but fundamentally different: they were based on fear of bad luck, not celebration of creation; they applied mainly to the king and elites, not the entire community; and they were tied to the lunar calendar. Israel's Sabbath was unique in several ways: (1) it was a weekly cycle independent of lunar months; (2) it applied to everyone including slaves and animals; (3) it was grounded in theology (creation rest, Exodus liberation) not omen avoidance; (4) it was a day of positive rest and worship, not anxious inactivity.",
+      "ane_parallels": [
+        "Babylonian shapatu: The 15th day of the month (full moon), possibly etymologically related to Sabbath but functionally different",
+        "Mesopotamian 'evil days': Days when kings avoided certain activities due to unfavorable omens",
+        "Egyptian calendar: Lucky and unlucky days listed in detailed calendars governing daily activities"
+      ],
+      "interpretive_significance": "The Sabbath's social dimension — rest for slaves, immigrants, and animals — was revolutionary in the ANE. It demonstrates that Israel's religious practices had ethical implications absent from comparable ANE observances. The dual grounding in creation (Exodus 20:11) and liberation (Deuteronomy 5:15) shows Sabbath as simultaneously cosmic and social justice.",
+      "period": "exodus_conquest",
+      "books": ["Gen", "Exo", "Deu"],
+      "chapter_start": 20,
+      "chapter_end": 20,
+      "key_references": ["Gen 2:1-3", "Exodus 20:8-11", "Exodus 31:12-17", "Deuteronomy 5:12-15", "Isaiah 58:13-14"],
+      "scholarly_sources": ["Heschel, The Sabbath", "Andreasen, The Old Testament Sabbath", "Robinson, 'The Idea of Rest in the Old Testament' (ZAW 1980)"]
+    },
+    {
+      "id": "relig_007",
+      "title": "High Places and Open-Air Worship",
+      "summary": "ANE peoples commonly worshiped at elevated sites called 'high places' (bamot). Israel struggled for centuries with the tension between these traditional worship sites and centralized worship at the temple.",
+      "detail": "Throughout the ANE, elevated sites were natural places of worship because they were symbolically 'closer to heaven.' Canaanite high places (bamot) typically included a standing stone (massebah), a wooden pole (asherah), an altar, and sometimes a small building. Before the temple was built, even faithful Israelites worshiped at high places (Samuel at Ramah, Solomon at Gibeon). After the temple's construction, the prophets and Deuteronomic historians increasingly condemned high places as sites where Yahweh worship became syncretized with Canaanite practices. The recurring refrain in Kings — 'but the high places were not removed' — reflects this ongoing tension between local tradition and centralized orthodoxy.",
+      "ane_parallels": [
+        "Canaanite bamot: Elevated worship sites with standing stones, sacred poles, and altars found throughout Palestine",
+        "Mesopotamian open-air shrines: Rural worship sites away from major temple complexes",
+        "Ugaritic texts: Multiple cultic sites associated with different deities across the landscape"
+      ],
+      "interpretive_significance": "The high places controversy illuminates the book of Kings' evaluation criteria: kings are judged primarily on whether they centralized worship and removed high places. This is not mere administrative preference but theological conviction that multiple worship sites inevitably led to syncretism. It also explains Josiah's reform (2 Kings 22-23) and the Deuteronomic ideal of one central sanctuary.",
+      "period": "judges_early_monarchy",
+      "books": ["1Sa", "1Ki", "2Ki", "2Ch"],
+      "chapter_start": 1,
+      "chapter_end": 25,
+      "key_references": ["1 Sam 9:12-14", "1 Kings 3:2-4", "1 Kings 14:23", "2 Kings 18:4", "2 Kings 23:1-20"],
+      "scholarly_sources": ["Nakhai, Archaeology and the Religions of Canaan and Israel", "Barrick, The King and the Cemeteries (Supplements to Vetus Testamentum)", "Dever, Did God Have a Wife?"]
+    }
+  ]
+}

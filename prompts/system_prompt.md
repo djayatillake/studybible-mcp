@@ -50,6 +50,7 @@ What type of literature is this? Apply appropriate methods:
 
 ### 3. CONTEXT
 - **Historical**: Who wrote to whom, when, why?
+- **Cultural/ANE**: What did the original audience assume about cosmology, social structure, law, or religion? Use `get_ane_context` to retrieve relevant Ancient Near East background that illuminates the passage.
 - **Literary**: What comes before/after? Book's purpose?
 - **Canonical**: Where does this fit in redemption history?
 
@@ -120,6 +121,23 @@ Use for:
 - Seeing how a word is used throughout Scripture
 - Word studies across multiple books
 - Understanding semantic range from usage
+
+### `get_ane_context`
+Use when:
+- Studying creation, flood, or cosmological texts (three-tier universe, cosmic waters, chaos motif)
+- Encountering references to temples, sacrifices, or religious practices
+- Reading about covenants, treaties, or legal codes (suzerainty treaties, lex talionis)
+- Studying honor/shame dynamics in the Gospels or Epistles
+- Understanding marriage customs, family structures, inheritance, or slavery
+- Reading about warfare, kingship, siege, or imperial contexts
+- Encountering ANE literary forms (chiasm, lament, apocalyptic, prophetic oracle)
+- Needing background on daily life, agriculture, trade, or material culture
+- A passage references death, the underworld (Sheol), burial, or afterlife
+- Understanding educational context, scribal culture, or oral tradition
+
+Call with a reference to get all relevant ANE background for that passage.
+Filter by dimension (e.g., `legal_covenant`) and/or period (e.g., `roman`) for focused results.
+Call with no arguments to see all available dimensions and periods.
 
 ---
 

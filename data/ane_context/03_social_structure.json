@@ -1,0 +1,132 @@
+{
+  "dimension": "social_structure",
+  "dimension_label": "Social Structure",
+  "entries": [
+    {
+      "id": "social_001",
+      "title": "Honor-Shame Culture",
+      "summary": "The ancient Mediterranean world operated on an honor-shame axis rather than a guilt-innocence axis. Public reputation, ascribed and acquired honor, and group identity shaped virtually every social interaction.",
+      "detail": "In the dyadic personality of the first-century Mediterranean, individuals derived their identity not from internal self-assessment but from the evaluations of others in their social group. Honor was the core social value — it could be ascribed (by birth, family, gender, or divine grant) or acquired (through challenge-riposte exchanges in public). Shame was not merely an emotion but a social verdict: loss of public standing that affected the entire kinship group. Challenge-riposte was a formalized pattern in which one party issued a public challenge (a question, insult, or action) and the other was expected to respond with a riposte that maintained or gained honor. Failure to respond meant accepting shame. Jesus' controversies with the Pharisees in the Synoptic Gospels follow this pattern precisely, as do Paul's self-defense passages in the Corinthian correspondence. The crucifixion represented the ultimate honor reversal — Rome's most shameful punishment transformed by the early church into a paradoxical source of glory.",
+      "ane_parallels": [
+        "Greco-Roman rhetorical handbooks (e.g., Aristotle's Rhetoric 1.5): Honor (timē) listed as the greatest external good; public praise and blame as fundamental social regulators",
+        "Code of Hammurabi §§1-5: False accusations that fail carry severe penalties, reflecting the legal weight of public reputation and the social cost of honor challenges",
+        "Ugaritic Aqhat Epic: Aqhat's refusal of Anat's offer follows honor-shame logic — accepting would shame his masculine role as warrior; refusing shames the goddess"
+      ],
+      "interpretive_significance": "Recognizing honor-shame dynamics transforms the reading of Jesus' public disputes (they are not merely theological debates but honor contests with social consequences), Paul's 'boasting' language in 2 Corinthians (not arrogance but legitimate honor defense), and the scandal of the cross (Phil 2:6-11 as an honor-status narrative). Many parables, such as the Prodigal Son (Luk 15), operate on honor-shame logic that modern Western readers, shaped by guilt-innocence frameworks, can easily miss.",
+      "period": "roman",
+      "books": ["Mat", "Luk", "Jhn", "Rom", "Gal"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Mat 22:15-22", "Luk 15:11-32", "Jhn 8:48-59", "Rom 1:16", "Gal 6:14"],
+      "scholarly_sources": ["Malina, The New Testament World: Insights from Cultural Anthropology", "deSilva, Honor, Patronage, Kinship & Purity", "Neyrey, Honor and Shame in the Gospel of Matthew"]
+    },
+    {
+      "id": "social_002",
+      "title": "Patronage and Clientage",
+      "summary": "Patronage was the primary social mechanism for distributing goods and services in the Roman world. Patrons provided material resources and protection; clients reciprocated with loyalty, public praise, and political support.",
+      "detail": "The patron-client relationship was a foundational social institution throughout the ancient Mediterranean. A patron (patronus) was a person of higher status who used influence and resources on behalf of a client (cliens), who in turn owed the patron loyalty, public honor, and various services. The relationship was voluntary but socially binding, mediated by the concept of charis (grace/favor) — a term early Christians appropriated to describe God's unmerited benefaction. Brokers occupied an intermediate role, connecting clients to patrons they could not access directly. In this framework, God is the ultimate patron, Jesus the broker of divine grace, and believers the grateful clients whose appropriate response is loyalty (pistis/faith) and public testimony. Luke-Acts is particularly attentive to patronage dynamics: the Magnificat (Luk 1:46-55) casts God as a patron who reverses social hierarchies, and benefaction language pervades Acts' descriptions of early church generosity. Paul's relationship with the Philippian church includes elements of both friendship and patron-client exchange.",
+      "ane_parallels": [
+        "Roman salutatio: Clients gathered daily at their patron's home for a morning greeting, receiving the sportula (gift basket) and publicly demonstrating the patron's social reach",
+        "Amarna Letters (EA 147-155): Rib-Hadda of Byblos writes repeatedly to Pharaoh as a vassal-client seeking protection, using the language of loyalty, service, and expected reciprocity that mirrors patron-client conventions",
+        "Greek euergetism: Benefactors (euergetai) funded public buildings, festivals, and food distributions; cities erected honorary inscriptions in return — Jesus references this in Luk 22:25"
+      ],
+      "interpretive_significance": "Patronage illuminates NT vocabulary that modern readers flatten: charis (grace) is not merely 'unmerited favor' in the abstract but a patron's concrete benefaction that initiates a reciprocal relationship. Pistis (faith) carries the connotation of client loyalty and trust in a patron's reliability. Calling God 'Father' evokes not only familial warmth but the patron-father's role as provider and protector. Paul's reluctance to accept financial support from Corinth (1Co 9; 2Co 11-12) reflects his desire to avoid becoming a client of the congregation, which would compromise his apostolic authority.",
+      "period": "roman",
+      "books": ["Luk", "Act", "Rom", "Php"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Luk 1:46-55", "Luk 7:1-10", "Act 4:32-37", "Rom 5:15-17", "Php 4:10-20"],
+      "scholarly_sources": ["deSilva, Honor, Patronage, Kinship & Purity", "Malina, The New Testament World: Insights from Cultural Anthropology", "Neyrey, 'God, Benefactor and Patron: The Major Cultural Model for Interpreting the Deity in Greco-Roman Antiquity' (JSNT 2005)"]
+    },
+    {
+      "id": "social_003",
+      "title": "Tribal and Kinship Structures",
+      "summary": "Israelite society was organized through patrilineal kinship structures: the household (bet 'av), the clan (mishpachah), and the tribe (shevet/matteh). These defined identity, inheritance, land tenure, and mutual obligation.",
+      "detail": "The fundamental social unit in ancient Israel was not the individual but the household (bet 'av, 'father's house'), which included a multi-generational extended family, servants, and resident aliens. Multiple households formed a clan (mishpachah), and multiple clans formed a tribe (shevet). This three-tiered kinship system governed nearly every aspect of life: land was allotted by tribe and clan (Jos 13-21), inheritance passed through patrilineal descent, legal disputes were settled first within the clan, and the go'el (kinsman-redeemer) had obligations to redeem land, marry a kinsman's widow, and avenge blood — all to preserve the household's name and patrimony. Endogamy (marrying within the kinship group) was strongly preferred, as seen in Abraham's insistence that Isaac not marry a Canaanite (Gen 24) and the daughters of Zelophehad ruling (Num 27; 36). The genealogies that modern readers skip were vital identity documents establishing tribal membership, land rights, and social standing. The book of Ruth is a masterful narrative of kinship obligations fulfilled: Boaz acts as go'el, redeeming Naomi's land and marrying Ruth to continue the family line.",
+      "ane_parallels": [
+        "Mari texts: Tribal organization among the Binu-Yamina and Binu-Sim'al parallels Israelite tribal structures, with similar tensions between tribal autonomy and centralized authority",
+        "Nuzi tablets: Adoption and inheritance documents from 15th-century BCE Nuzi illuminate patriarchal customs in Genesis, including adoptive heirship (cf. Gen 15:2-3) and household property transfer",
+        "Ugaritic inheritance texts (RS 16.200 and others): Patrilineal inheritance, elder-son primacy, and royal adjudication of inheritance disputes parallel biblical patterns"
+      ],
+      "interpretive_significance": "Understanding kinship structures explains why genealogies are theologically significant (not bureaucratic filler), why land-loss is catastrophic (it severs the family from its ancestral identity), and why levirate marriage and kinsman-redemption are acts of covenant loyalty. The go'el concept provides the conceptual backdrop for Yahweh as Israel's Redeemer (Isa 41:14; 43:14) and ultimately for the NT's presentation of Christ as the kinsman-redeemer of humanity. Ruth's story is incomprehensible without the kinship system that generates its dramatic tension.",
+      "period": "patriarchal",
+      "books": ["Gen", "Num", "Jos", "Rut"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 24:1-9", "Num 27:1-11", "Jos 13:15-33", "Rut 3:9-13", "Rut 4:1-12"],
+      "scholarly_sources": ["de Vaux, Ancient Israel: Its Life and Institutions", "Stager, 'The Archaeology of the Family in Ancient Israel' (BASOR 1985)", "Matthews and Benjamin, Social World of Ancient Israel 1250-587 BCE"]
+    },
+    {
+      "id": "social_004",
+      "title": "Social Stratification in Ancient Israel",
+      "summary": "Israelite society under the monarchy developed a complex social hierarchy: the king and royal court, the priestly establishment, a landowning elite, free peasant farmers, landless laborers, and slaves. The prophets frequently condemned the exploitation that accompanied this stratification.",
+      "detail": "Pre-monarchic Israel was relatively egalitarian, organized by kinship and tribal assembly. The transition to monarchy (1Sa 8) introduced centralized power, standing armies, taxation, and forced labor (corvée), creating new social divisions. Samuel's warning (1Sa 8:10-18) precisely describes the extractive apparatus of ANE kingship. Under Solomon, social stratification intensified: the twelve administrative districts (1Ki 4:7-19) replaced tribal boundaries, and massive building projects required corvée labor. A new elite class of royal officials, military officers, and merchants emerged alongside the traditional priestly aristocracy. Below them, free landholding peasants (the 'am ha'aretz) formed the productive base of society, while landless day laborers, debt slaves, and chattel slaves occupied the bottom. The prophetic critique (Amos, Micah, Isaiah) consistently targeted the powerful who accumulated land at the expense of smallholders (Isa 5:8; Mic 2:1-2), corrupted courts to dispossess the vulnerable (Amo 5:10-12), and turned the covenant community into a stratified extraction system resembling the very Egypt from which Yahweh had delivered Israel.",
+      "ane_parallels": [
+        "Egyptian social hierarchy: Pharaoh, viziers, priests, scribes, soldiers, artisans, farmers, slaves — a stratification model that Israel's monarchy increasingly resembled, as the prophets noted",
+        "Neo-Assyrian administrative structure: Provincial governors, tax collectors, and corvée labor systems parallel Solomon's twelve districts and forced labor programs (1Ki 5:13-14; 9:15-22)",
+        "Code of Hammurabi social classes: The awilum (free citizen), mushkenum (dependent/semi-free), and wardum (slave) represent a three-tier hierarchy reflected in varying legal penalties based on social rank"
+      ],
+      "interpretive_significance": "Social stratification contextualizes the prophetic literature: the prophets are not utopian idealists but covenant prosecutors who measure Israel's social arrangements against the egalitarian vision of Sinai. The Deuteronomic law codes (limits on royal power, Deu 17:14-20; debt release, Deu 15:1-11; gleaning rights, Deu 24:19-22) function as structural resistance to the stratification pressures inherent in monarchy. The Wisdom literature reflects the elite scribal class (Pro 25:1) while also voicing the experiences of those below them. Jesus' proclamation of the kingdom directly engages these stratification dynamics, reversing the honor hierarchy (Mat 20:16; Luk 6:20-26).",
+      "period": "united_monarchy",
+      "books": ["1Sa", "2Sa", "1Ki", "Pro"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["1Sa 8:10-18", "2Sa 8:15-18", "1Ki 4:7-19", "1Ki 9:15-22", "Pro 22:2"],
+      "scholarly_sources": ["Gottwald, The Tribes of Yahweh: A Sociology of the Religion of Liberated Israel", "Chaney, 'Systemic Study of the Israelite Monarchy' (Semeia 1986)", "Matthews and Benjamin, Social World of Ancient Israel 1250-587 BCE"]
+    },
+    {
+      "id": "social_005",
+      "title": "The Stranger and Sojourner",
+      "summary": "The ger (resident alien/sojourner) occupied a distinct social category in ancient Israel — a non-citizen living under Israelite protection with defined rights and obligations. Israel's own experience as gerim in Egypt grounded the ethical imperative to protect vulnerable foreigners.",
+      "detail": "Biblical law distinguishes several categories of outsider: the ger (resident alien who has settled within Israelite territory), the toshav (temporary sojourner), the nokri (foreigner with no residential ties), and the zar (stranger/outsider in a general sense). The ger was the most socially integrated of these — permitted to participate in Passover if circumcised (Exo 12:48), required to observe Sabbath and Day of Atonement, and entitled to legal protections including gleaning rights (Lev 19:9-10), fair wages (Deu 24:14-15), and impartial justice (Deu 1:16). The ger lacked the crucial asset of ancestral land and therefore depended on the community's hospitality and legal protections. Deuteronomy repeatedly groups the ger with the orphan and widow as the three archetypal vulnerable populations requiring communal protection. The theological grounding for this ethic is experiential and covenantal: 'You shall not oppress the ger, for you know the heart of the ger, because you were gerim in the land of Egypt' (Exo 23:9). Ruth the Moabitess represents the ger who is fully integrated into the covenant community through loyalty and kinship structures.",
+      "ane_parallels": [
+        "Hittite treaties and vassal texts: Provisions for the protection of displaced persons and refugees in treaty obligations, including stipulations that extradited fugitives receive fair treatment",
+        "Code of Hammurabi §§15-20: Laws regulating the status of palace dependents and fugitive workers reflect ANE concern with mobile populations and their legal standing, though without Israel's theological motivation",
+        "Egyptian Instruction of Amenemope (ch. 28): Admonitions not to cheat the foreigner or stranger of his goods at the scales parallel biblical commands to treat the ger justly in economic transactions"
+      ],
+      "interpretive_significance": "The ger laws demonstrate that Israelite ethics were not merely tribal or ethnic but included structural provisions for non-Israelites. This challenges readings that treat Old Testament Israel as exclusively ethnocentric. The ger tradition provides the conceptual foundation for the NT's inclusion of Gentiles: Paul's argument in Ephesians 2:11-22 that Gentiles were once 'strangers and aliens' (xenoi kai paroikoi — the LXX terms for ger and toshav) but are now 'fellow citizens' directly employs resident-alien terminology. Jesus' parable of the Good Samaritan (Luk 10:25-37) subverts insider-outsider boundaries rooted in the ger/nokri distinction.",
+      "period": "exodus_conquest",
+      "books": ["Exo", "Lev", "Deu", "Rut"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Exo 12:48-49", "Exo 23:9", "Lev 19:33-34", "Deu 10:18-19", "Deu 24:17-22"],
+      "scholarly_sources": ["van Houten, The Alien in Israelite Law (JSOTSup 107)", "Fensham, 'Widow, Orphan, and the Poor in Ancient Near Eastern Legal and Wisdom Literature' (JNES 1962)", "Christensen, Deuteronomy 21:10-34:12 (WBC)"]
+    },
+    {
+      "id": "social_006",
+      "title": "Slavery in the ANE",
+      "summary": "Slavery in the ancient Near East was a complex institution encompassing debt bondage, war captivity, chattel slavery, and domestic servitude. Biblical slave laws both participate in ANE conventions and introduce significant reforms, particularly time-limited servitude for Israelites and protections against abuse.",
+      "detail": "ANE slavery was not a monolithic institution and differed substantially from the race-based chattel slavery of the modern Atlantic world. The most common form was debt slavery: a person who could not repay debts sold themselves or a family member into servitude. Biblical law limited Israelite debt slavery to six years (Exo 21:2-6; Deu 15:12-18) and mandated generous release provisions. The Jubilee legislation (Lev 25:39-55) further stipulated that Israelite slaves be treated as hired workers, not chattel, and must be released in the fiftieth year with their families. Foreign slaves had fewer protections but were not without rights: Exodus 21:20-21 imposed penalties for killing a slave, and Exodus 21:26-27 mandated release for physical injury — protections absent from other ANE law codes. Deuteronomy 23:15-16 uniquely prohibited returning a fugitive slave to a master, a remarkable departure from every other known ANE legal tradition. The Philemon letter reveals the early Christian negotiation of slavery: Paul does not demand abolition as a legal program but subverts the institution theologically by declaring Onesimus 'no longer a slave but a beloved brother' (Phm 16), introducing a relational logic that ultimately proved incompatible with the institution.",
+      "ane_parallels": [
+        "Code of Hammurabi §§115-119, 170-171, 175-176, 278-282: Extensive slave legislation including debt slavery terms, children of slave marriages, fugitive slave penalties, and purchase prices — more detailed but less protective than biblical law",
+        "Hittite Laws §§19-24, 175: Provisions for slave marriage, runaway slaves, and the purchase price of slaves; Hittite law required return of fugitive slaves, directly contrasting with Deu 23:15-16",
+        "Neo-Babylonian manumission records (e.g., from the Eanna archive at Uruk): Temple slaves could be freed through adoption or purchase, providing parallels to Israelite redemption-of-slaves provisions in Lev 25"
+      ],
+      "interpretive_significance": "Anachronistic projection of Atlantic chattel slavery onto biblical texts produces severe misreadings in both directions — either condemning the Bible for 'endorsing slavery' or using it to justify modern slavery, as was tragically done. The biblical slave laws must be read within their ANE legal context, where they consistently move toward greater protection and time-limitation. The trajectory hermeneutic is important: Scripture does not deliver a final social ethic in a single moment but initiates a redemptive trajectory (limiting terms, mandating humane treatment, prohibiting return of fugitives, declaring slaves and masters equal before God) that points beyond the institution itself. Paul's letter to Philemon is the pastoral application of this trajectory.",
+      "period": "exodus_conquest",
+      "books": ["Exo", "Lev", "Deu", "Phm"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Exo 21:1-11", "Exo 21:26-27", "Lev 25:39-55", "Deu 15:12-18", "Phm 1:15-16"],
+      "scholarly_sources": ["Wright, Old Testament Ethics for the People of God", "Chirichigno, Debt-Slavery in Israel and the Ancient Near East (JSOTSup 141)", "Hezser, Jewish Slavery in Antiquity"]
+    },
+    {
+      "id": "social_007",
+      "title": "Corporate Personality and Collective Identity",
+      "summary": "In the ANE and biblical world, the individual was embedded in and represented by the group. A patriarch, king, or representative figure could act on behalf of an entire community, and the community shared in the consequences of individual actions.",
+      "detail": "The concept of corporate personality, first articulated by H. Wheeler Robinson and refined by subsequent scholars, describes the ANE understanding that the individual and the community exist in a relationship of mutual representation. A king embodies his people (when David sins in the census of 2Sa 24, the entire nation suffers). A patriarch's actions bind his descendants (Jacob's blessing of the twelve tribes in Gen 49 shapes their collective futures). Achan's sin at Jericho brings defeat on all Israel and results in the destruction of his entire household (Jos 7). This is not primitive injustice but a different ontology of selfhood: the group is a real entity that acts through and is represented by its members, especially its head. The concept operates on a spectrum — it does not erase individual responsibility (Ezekiel 18 insists on individual accountability before God) but holds individual and corporate dimensions in tension. Paul's Adam-Christ typology in Romans 5:12-21 and 1 Corinthians 15:20-22 relies on this corporate logic: Adam acts as the representative head of humanity, and Christ acts as the representative head of the new humanity. Without the concept of corporate identity, Paul's argument is unintelligible — it becomes a legal fiction rather than an ontological reality understood by his ancient audience.",
+      "ane_parallels": [
+        "Hittite suzerainty treaties: The vassal king's oath binds his entire kingdom; treaty violation by the king brings curses on the whole population — the king acts as corporate representative of his people",
+        "Moabite Stone (Mesha Stele, line 12-13): Mesha reports devoting the entire population of Israelite Nebo to destruction (herem) as a corporate act against the enemy people — the city as a corporate person",
+        "Egyptian execration texts: Curses inscribed against foreign rulers functioned against their entire peoples; the ruler's name represented the corporate identity of the nation"
+      ],
+      "interpretive_significance": "Corporate personality is essential for understanding the biblical doctrines of federal headship, original sin, and atonement. Western individualism makes Paul's Adam-Christ parallel seem arbitrary or unjust ('Why should Adam's sin affect me?'), but in the ancient framework, representative headship was a fundamental social reality, not a legal abstraction. It also illuminates the concept of Israel as a corporate entity that can be addressed as a singular 'you' (Deu 6:4), the priestly representation of the people before God, and the early church's self-understanding as the 'body of Christ' (1Co 12:12-27) — not merely a metaphor but a statement about corporate ontology.",
+      "period": "patriarchal",
+      "books": ["Gen", "Jos", "Rom", "1Co"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 49:1-28", "Jos 7:1-26", "Rom 5:12-21", "1Co 15:20-22", "1Co 12:12-27"],
+      "scholarly_sources": ["Robinson, Corporate Personality in Ancient Israel", "Kaminsky, Corporate Responsibility in the Hebrew Bible (JSOTSup 196)", "Wright, The Climax of the Covenant (ch. 2)"]
+    }
+  ]
+}

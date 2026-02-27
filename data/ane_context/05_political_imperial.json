@@ -1,0 +1,158 @@
+{
+  "dimension": "political_imperial",
+  "dimension_label": "Political & Imperial",
+  "entries": [
+    {
+      "id": "polit_001",
+      "title": "ANE Kingship Ideology",
+      "summary": "Throughout the ancient Near East, kings were understood as divinely appointed agents responsible for justice, protection of the weak, and cosmic order. The 'shepherd' metaphor for kingship was ubiquitous from Sumer to Egypt.",
+      "detail": "ANE kings legitimated their rule through divine election: the god chose the king, placed him on the throne, and held him accountable for justice. The Code of Hammurabi opens with Anu and Enlil appointing Hammurabi 'to make justice prevail in the land, to destroy the evil and the wicked, that the strong might not oppress the weak.' The 'shepherd of the people' metaphor appears in Sumerian royal inscriptions (Gudea, Shulgi), Assyrian annals, and Egyptian texts where Pharaoh is the shepherd appointed by Re. Israel's kingship ideology draws on this same vocabulary: Yahweh chooses and anoints the king (1 Sam 16:1-13), who is to shepherd Israel (2 Sam 5:2) and uphold justice for the poor (Psalm 72:1-4, 12-14). However, Israel uniquely subordinated the king under Yahweh's torah and held kings accountable through prophets, creating a constitutional check absent in other ANE monarchies.",
+      "ane_parallels": [
+        "Code of Hammurabi prologue: Hammurabi appointed by Anu and Enlil as 'shepherd of the people' to make justice prevail and protect the weak",
+        "Egyptian royal ideology: Pharaoh as incarnation of Horus, son of Re, shepherd who maintains ma'at (cosmic order and justice)",
+        "Sumerian King List: Kingship 'descended from heaven' — royal authority originates with the gods, not human ambition",
+        "Gudea Cylinders: Gudea of Lagash receives divine commission in a dream to build a temple, combining priestly and royal roles"
+      ],
+      "interpretive_significance": "Recognizing the shared ANE kingship vocabulary illuminates both the royal psalms (Psa 2, 72, 89, 110) and the prophetic critique of failed kings. When Ezekiel condemns Israel's shepherds who feed themselves instead of the flock (Ezk 34), he invokes ANE royal ideology against the very kings who claimed it. Jesus' self-designation as 'good shepherd' (John 10) and his kingdom proclamation engage this entire tradition: the true divine king who actually fulfills the ancient ideal of justice and protection.",
+      "period": "united_monarchy",
+      "books": ["1Sa", "2Sa", "1Ki", "Psa"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["1 Sam 16:1-13", "2 Sam 5:2", "2 Sam 7:8-16", "Psalm 2:6-7", "Psalm 72:1-14", "Psalm 89:19-29"],
+      "scholarly_sources": ["Walton, Ancient Near Eastern Thought and the Old Testament, ch. 10", "Machinist, 'Kingship and Divinity in Imperial Assyria' in Text, Artifact, and Image", "Day, 'The Canaanite Inheritance of the Israelite Monarchy' in King and Messiah in Israel and the Ancient Near East"]
+    },
+    {
+      "id": "polit_002",
+      "title": "Egyptian Imperial Control of Canaan",
+      "summary": "During the Late Bronze Age (1550-1200 BC), Egypt controlled Canaan through a network of vassal kings, garrison cities, and administrative centers. The Amarna Letters reveal a land of petty city-states competing for Egyptian favor.",
+      "detail": "The Egyptian New Kingdom treated Canaan as a buffer zone and economic asset. Pharaohs maintained control through vassal treaties, garrison cities (Beth-Shean, Gaza, Megiddo), and periodic military campaigns. The Amarna Letters (ca. 1350 BC) — diplomatic correspondence from Canaanite vassal kings to Pharaoh Akhenaten — reveal a fractured political landscape: local rulers like Abdi-Heba of Jerusalem and Rib-Hadda of Byblos plead for Egyptian military aid against rivals and the destabilizing 'Habiru.' Egyptian administrative texts (Papyrus Anastasi I) describe Canaan's roads, cities, and hazards. This imperial context is the backdrop for both the Exodus and the Conquest narratives: Israel's departure from Egypt and entry into Canaan occurred during the decline of Egyptian imperial power. The absence of any mention of Egypt in Joshua's Canaan campaigns has been debated — it may reflect the historical reality of Egypt's weakening grip during the late 13th-12th centuries BC.",
+      "ane_parallels": [
+        "Amarna Letters (EA 286-290): Abdi-Heba of Jerusalem writes to Pharaoh requesting archers to defend against Habiru incursions and rival city-states",
+        "Merneptah Stele (ca. 1208 BC): Earliest extra-biblical reference to 'Israel' as a people group in Canaan, listed among Pharaoh's conquered enemies",
+        "Papyrus Anastasi I: Egyptian satirical text describing the geography, dangers, and political conditions of Canaan under Egyptian administration",
+        "Beth-Shean stelae: Egyptian victory monuments found in the garrison city, demonstrating active military presence in the Jezreel Valley"
+      ],
+      "interpretive_significance": "Egyptian imperial control of Canaan provides essential context for understanding the Exodus as a political act — Israel's God liberating a vassal people from the dominant superpower. The plagues narrative targets Egyptian claims of cosmic sovereignty: Pharaoh who claims to control the Nile and maintain ma'at is powerless before Yahweh. The Conquest narratives depict Yahweh granting Israel land that was previously under Egyptian suzerainty, transferring political allegiance from Pharaoh to Yahweh as the true sovereign.",
+      "period": "exodus_conquest",
+      "books": ["Exo", "Jos", "Jdg"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Exo 1:8-14", "Exo 15:1-18", "Jos 10:1-14", "Jos 12:7-24", "Jdg 1:27-35"],
+      "scholarly_sources": ["Moran, The Amarna Letters", "Redford, Egypt, Canaan, and Israel in Ancient Times", "Hoffmeier, Israel in Egypt: The Evidence for the Authenticity of the Exodus Tradition"]
+    },
+    {
+      "id": "polit_003",
+      "title": "Assyrian Imperial Propaganda and Deportation",
+      "summary": "The Neo-Assyrian Empire (934-609 BC) perfected the use of mass deportation, psychological terror, and imperial propaganda as instruments of control. Their annals and palace reliefs present a theology of total war.",
+      "detail": "Assyrian kings systematically documented their conquests in royal annals and palace relief sculptures designed to project invincible power. Tiglath-Pileser III (745-727 BC) institutionalized mass deportation as state policy: conquered populations were uprooted and resettled across the empire to break ethnic solidarity, prevent rebellion, and supply labor. Sargon II's annals record deporting 27,290 people from Samaria in 722/721 BC, replacing them with deportees from other conquered regions — the origin of the Samaritan population. Sennacherib's annals boast of shutting Hezekiah up 'like a caged bird' in Jerusalem during his 701 BC campaign, while the Lachish reliefs graphically depict the siege and deportation of that Judean city. Assyrian war propaganda employed deliberately terrifying rhetoric: flaying captives alive, impaling them on stakes, building pyramids of severed heads. This was not mindless cruelty but calculated terror designed to discourage resistance.",
+      "ane_parallels": [
+        "Sargon II's Annals: 'I besieged and conquered Samaria; 27,290 people who dwelt in it I carried away' — administrative record of the deportation that ended the northern kingdom",
+        "Sennacherib's Prism (Taylor Prism): Describes the 701 BC campaign against Judah, claiming to have shut Hezekiah in Jerusalem 'like a bird in a cage'",
+        "Lachish Reliefs (British Museum): Sennacherib's palace wall carvings depicting the siege, conquest, and deportation of Judah's second city in graphic detail",
+        "ANET Assyrian war oracles: The god Ashur commands the king to conquer; warfare is a divine mandate, making resistance equivalent to opposing the gods"
+      ],
+      "interpretive_significance": "Assyrian imperial terror is the immediate historical context for Isaiah's theology of Yahweh as sovereign over the empires. Isaiah 10:5-19 audaciously declares that Assyria is merely the 'rod of God's anger' — an unwitting instrument of divine judgment, itself subject to judgment for arrogance. Nahum's celebration of Nineveh's fall must be read against the backdrop of over a century of Assyrian brutality. The deportation of the northern tribes (2 Kgs 17) is presented not as Assyrian triumph but as Yahweh's judgment on Israel's covenant unfaithfulness.",
+      "period": "assyrian_babylonian",
+      "books": ["2Ki", "Isa", "Nah"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["2 Kgs 17:5-23", "2 Kgs 18:13-19:37", "Isa 10:5-19", "Isa 36-37", "Nah 1:1-3:19"],
+      "scholarly_sources": ["Oded, Mass Deportations and Deportees in the Neo-Assyrian Empire", "Machinist, 'Assyria and Its Image in the First Isaiah' (JAOS 1983)", "Cogan, Imperialism and Religion: Assyria, Judah and Israel in the 8th and 7th Centuries BCE"]
+    },
+    {
+      "id": "polit_004",
+      "title": "Babylonian Exile and Imperial Policy",
+      "summary": "Nebuchadnezzar II's destruction of Jerusalem and deportation of Judah's population in 586 BC constituted the defining trauma of Israelite history. Babylonian imperial policy differed from Assyrian methods in important ways.",
+      "detail": "The Neo-Babylonian Empire under Nebuchadnezzar II (605-562 BC) conquered Judah in stages: the first deportation in 597 BC removed King Jehoiachin and the upper classes (2 Kgs 24:10-16), while the final siege in 586 BC destroyed the temple, razed the city walls, and deported most of the remaining population. The Babylonian Chronicles confirm these events with remarkable precision. Unlike Assyria's policy of population exchange, Babylon typically deported elites to the imperial capital while leaving the rural poor on the land — consistent with the biblical account (2 Kgs 25:12). The Al-Yahudu tablets (discovered in the 1970s-2000s) document a community of Judean exiles settled near Nippur, engaging in agriculture, commerce, and maintaining Yahwistic names, corroborating Jeremiah's instructions to 'build houses and settle down' (Jer 29:5-7). Nebuchadnezzar's treatment of conquered populations, though harsh, was generally less brutal than Assyrian practice, and exiles retained some communal autonomy.",
+      "ane_parallels": [
+        "Babylonian Chronicles: Court records confirming Nebuchadnezzar's siege of Jerusalem in 597 BC and the capture of King Jehoiachin",
+        "Al-Yahudu tablets: Over 100 cuneiform tablets documenting Judean exiles in Babylonia, showing they retained Yahwistic names, owned property, and conducted business",
+        "Jehoiachin ration tablets: Babylonian administrative texts listing food rations for 'Yaukin, king of Judah' and his five sons in Babylonian captivity",
+        "Nebuchadnezzar's building inscriptions: Self-glorifying accounts of Babylon's walls, temples, and canals — the imperial ideology behind the 'great Babylon' of Daniel 4:30"
+      ],
+      "interpretive_significance": "The exile forced a radical theological crisis: How could Yahweh's promises of land, dynasty, and temple stand when all three were destroyed? The exilic prophets (Jeremiah, Ezekiel, Second Isaiah) responded not by abandoning Yahweh's sovereignty but by expanding it — Yahweh orchestrated the exile as judgment and would orchestrate the return as restoration. Psalm 137's raw grief ('By the rivers of Babylon we sat and wept') and Daniel's theological interpretation of imperial succession (Dan 2, 7) both emerge from this crucible. The exile transformed Israelite religion from a land-based cult to a portable faith centered on torah, prayer, and hope for restoration.",
+      "period": "assyrian_babylonian",
+      "books": ["2Ki", "Jer", "Ezk", "Dan"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["2 Kgs 24:10-16", "2 Kgs 25:1-21", "Jer 29:1-14", "Ezk 1:1-3", "Ezk 37:1-14", "Dan 1:1-7", "Psa 137:1-6"],
+      "scholarly_sources": ["Oded, 'Judah and the Exile' in Israelite and Judaean History", "Albertz, Israel in Exile: The History and Literature of the Sixth Century BCE", "Pearce & Wunsch, Documents of Judean Exiles and West Semites in Babylonia in the Collection of David Sofer"]
+    },
+    {
+      "id": "polit_005",
+      "title": "Persian Administration and Religious Tolerance",
+      "summary": "The Achaemenid Persian Empire (550-330 BC) governed through a revolutionary policy of religious tolerance and local autonomy, administered through a sophisticated satrapy system. This policy enabled the return of Jewish exiles and the rebuilding of the temple.",
+      "detail": "Cyrus the Great's conquest of Babylon in 539 BC inaugurated a fundamentally different model of imperial governance. The Cyrus Cylinder, a foundation deposit from Babylon, declares that Cyrus restored displaced peoples to their homelands and rebuilt their temples — a policy of religious tolerance motivated by political pragmatism and legitimation. Ezra 1:1-4 presents Cyrus's decree permitting Jewish return in similar terms. The Persian satrapy system divided the empire into provinces governed by appointed satraps, with local elites managing daily affairs under imperial oversight — the context for Nehemiah's governorship of Yehud. Persian imperial ideology presented the king as the agent of Ahura Mazda, maintaining cosmic order (arta) against chaos (druj). The administrative correspondence preserved in Ezra 4-6 (in Aramaic, the empire's official language) reflects authentic Persian bureaucratic procedures: petitions, archival searches, and royal decrees channeled through the satrapal hierarchy.",
+      "ane_parallels": [
+        "Cyrus Cylinder: Cyrus declares that Marduk chose him to restore order in Babylon, return exiled peoples, and rebuild their sanctuaries — paralleling the decree in Ezra 1",
+        "Behistun Inscription: Darius I's trilingual rock relief legitimating his rule and describing the satrapy system that governed the empire",
+        "Persepolis Fortification Tablets: Administrative records showing Persian support for diverse religious practices, including rations for various cultic personnel",
+        "Elephantine Papyri: Letters from a Jewish military colony in Egypt corresponding with Persian authorities and Jerusalem about rebuilding their temple"
+      ],
+      "interpretive_significance": "Persian religious tolerance is the political context that made the restoration possible. Isaiah 44:28-45:7 remarkably calls Cyrus Yahweh's 'anointed' (mashiah) and 'shepherd' — applying Israelite royal-messianic titles to a pagan emperor. This theological audacity only makes sense within the Persian imperial context: Yahweh sovereignly uses Cyrus as an instrument of restoration, just as he had used Assyria and Babylon as instruments of judgment. The books of Ezra-Nehemiah and Esther reflect the realities of Jewish life under Persian administration — the opportunities and vulnerabilities of a minority community dependent on imperial favor.",
+      "period": "persian",
+      "books": ["Ezr", "Neh", "Est", "Dan"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Ezr 1:1-4", "Ezr 4:8-6:18", "Neh 2:1-8", "Est 1:1-3", "Isa 44:28-45:7", "Dan 6:1-28"],
+      "scholarly_sources": ["Briant, From Cyrus to Alexander: A History of the Persian Empire", "Berquist, Judaism in Persia's Shadow", "Grabbe, A History of the Jews and Judaism in the Second Temple Period, vol. 1"]
+    },
+    {
+      "id": "polit_006",
+      "title": "Hellenistic Cultural Imperialism",
+      "summary": "Alexander's conquests (334-323 BC) and the successor kingdoms imposed Greek culture across the Near East through the gymnasium, the polis, and the Greek language. The resulting crisis under Antiochus IV Epiphanes provoked the Maccabean revolt.",
+      "detail": "Hellenistic imperialism was fundamentally cultural: Greek language, education, athletics, philosophy, and religious syncretism were promoted as markers of civilized life. The gymnasium — where young men trained naked in Greek athletics — became the flashpoint of cultural conflict because it represented the entire Hellenistic value system. Under the Seleucid ruler Antiochus IV Epiphanes (175-164 BC), Hellenization became coercive: the Jerusalem temple was rededicated to Zeus Olympios (the 'abomination of desolation' in Dan 11:31), circumcision and torah observance were prohibited on pain of death, and Jewish identity was directly attacked. 1 Maccabees records that some Jewish elites voluntarily embraced Hellenization, building a gymnasium in Jerusalem and 'removing the marks of circumcision' (1 Macc 1:14-15). The Maccabean revolt (167-164 BC) was simultaneously a civil war between hellenizing and traditional Jews, and a national liberation movement against Seleucid imperial control. Daniel 7-12 is widely read as addressing this crisis, with the 'little horn' of Daniel 8:9-14 representing Antiochus IV.",
+      "ane_parallels": [
+        "Antiochus IV's edict (1 Macc 1:41-50): Imperial decree requiring all peoples to abandon their particular customs and adopt a unified (Greek) culture — a direct assault on Jewish distinctiveness",
+        "Gymnasium in Jerusalem: Hellenizing priests established a Greek gymnasium near the temple, symbolizing the cultural capitulation of the Jewish elite (2 Macc 4:12-15)",
+        "Ptolemaic administration of Judea: Before Seleucid control, the Ptolemies governed Judea with relative tolerance, collecting taxes through local tax-farmers (Zenon Papyri)",
+        "Alexander Romance traditions: Alexander portrayed as a universal civilizer whose conquests brought enlightenment — the ideological foundation for Hellenistic cultural imperialism"
+      ],
+      "interpretive_significance": "The Hellenistic crisis shaped the theological vocabulary of resistance that persists into the New Testament. Daniel's 'son of man' receiving an everlasting kingdom (Dan 7:13-14) opposes the succession of bestial empires. Paul's letters to Corinth and Galatia address communities navigating Greco-Roman cultural pressures analogous to the Maccabean crisis: How much cultural accommodation is permissible before identity is compromised? The tension between cultural engagement and distinctive holiness, first sharpened under Hellenistic imperialism, remains a defining question throughout the New Testament.",
+      "period": "hellenistic",
+      "books": ["Dan", "1Co", "Gal"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Dan 7:1-28", "Dan 8:9-14", "Dan 11:29-35", "1 Co 8:1-13", "1 Co 10:14-22", "Gal 2:11-14"],
+      "scholarly_sources": ["Hengel, Judaism and Hellenism", "Bickerman, The God of the Maccabees", "Collins, Daniel (Hermeneia Commentary)"]
+    },
+    {
+      "id": "polit_007",
+      "title": "Roman Imperial Cult and Pax Romana",
+      "summary": "The Roman Empire combined military domination with an ideology of divine peace (Pax Romana), emperor worship, and exemplary public punishment. Crucifixion was a political tool designed to terrorize subject populations into submission.",
+      "detail": "Roman imperial ideology proclaimed that the emperor — titled 'son of god' (divi filius), 'lord' (kyrios), and 'savior' (soter) — had brought peace, justice, and prosperity to the world through military conquest. Augustus's Res Gestae and the Priene Calendar Inscription (which calls Augustus's birthday 'the beginning of good tidings [euangelion] for the world') demonstrate that key New Testament vocabulary was already claimed by imperial propaganda. The imperial cult required public acknowledgment of the emperor's divine status through sacrifice and oath — creating a crisis of allegiance for early Christians. Roman taxation (the census of Luke 2:1-5, tribute questioned in Mark 12:13-17) was both an economic extraction system and a symbol of subjugation. Crucifixion was reserved almost exclusively for slaves, rebels, and non-citizens: it was a public spectacle of state power, deliberately prolonged and humiliating. Josephus records mass crucifixions during Jewish revolts — Varus crucified 2,000 after the revolt of 4 BC (Ant. 17.295). Roman 'peace' was enforced through overwhelming violence.",
+      "ane_parallels": [
+        "Priene Calendar Inscription (9 BC): Declares Augustus's birthday 'the beginning of good tidings (euangelion) for the world' — identical vocabulary to Mark 1:1",
+        "Res Gestae Divi Augusti: Augustus's self-composed account of his achievements, claiming to have brought peace to the world through military conquest — a political 'gospel'",
+        "Imperial cult inscriptions: Dedications to the emperor as 'Lord and God' (dominus et deus) — the exact title Thomas applies to Jesus in John 20:28",
+        "Roman triumph: Victory procession through Rome where conquered enemies were paraded, humiliated, and executed — the backdrop for Paul's triumph metaphor in 2 Cor 2:14 and Col 2:15"
+      ],
+      "interpretive_significance": "The New Testament's core vocabulary — gospel (euangelion), lord (kyrios), savior (soter), son of God, faith/loyalty (pistis), peace (eirene), church/assembly (ekklesia) — directly overlaps with Roman imperial terminology. This is not coincidence but confrontation: to proclaim Jesus as Lord is to deny that Caesar is. Revelation's 'Babylon' is Rome; its beast demands the worship that belongs to God alone. Paul's declaration that Jesus 'disarmed the rulers and authorities, making a public spectacle of them' (Col 2:15) inverts the Roman triumph — the crucified one is the true conqueror. Reading the New Testament without this imperial context flattens its political theology into purely private spirituality.",
+      "period": "roman",
+      "books": ["Mat", "Luk", "Jhn", "Act", "Rev"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Luk 2:1-5", "Mrk 12:13-17", "Jhn 19:12-16", "Act 17:6-7", "Php 2:9-11", "Rev 13:1-18", "Rev 17:1-6"],
+      "scholarly_sources": ["Horsley, Jesus and Empire: The Kingdom of God and the New World Disorder", "Wright, Paul and the Faithfulness of God, ch. 2-5", "Carter, The Roman Empire and the New Testament: An Essential Guide"]
+    },
+    {
+      "id": "polit_008",
+      "title": "Propaganda and Royal Inscriptions",
+      "summary": "ANE kings produced elaborate self-glorifying inscriptions on monuments, temples, and palace walls, claiming divine favor, cosmic victories, and unmatched greatness. Biblical literature both adopts and subverts this royal rhetoric.",
+      "detail": "Royal inscriptions from across the ANE follow remarkably consistent patterns: the king names his divine patron, recounts military victories in hyperbolic language, boasts of building projects, and claims to have established justice and prosperity. The Mesha Stele (Moabite Stone, ca. 840 BC) is especially illuminating because it parallels 2 Kings 3 from Moab's perspective: King Mesha claims that Chemosh commanded him to conquer Israelite territory, using language structurally identical to Israelite holy war rhetoric. Assyrian annals routinely inflate enemy casualty numbers, claim total victories that were actually partial, and attribute all success to the god Ashur. Sennacherib's account of the 701 BC campaign against Judah notably fails to claim he conquered Jerusalem — an omission that speaks volumes given the genre's conventions of maximized triumph. The Tel Dan Inscription (ca. 841 BC) from an Aramean king boasts of killing a king of the 'House of David,' providing both an extra-biblical reference to David's dynasty and an example of royal propaganda from Israel's neighbor.",
+      "ane_parallels": [
+        "Mesha Stele: King Mesha of Moab describes his victories over Israel in language mirroring biblical holy war narratives — Chemosh commanded conquest just as Yahweh commanded Israel's",
+        "Tel Dan Inscription: An Aramean king (likely Hazael) boasts of defeating kings of Israel and the 'House of David' — royal propaganda and crucial extra-biblical evidence for the Davidic dynasty",
+        "Kurkh Monolith of Shalmaneser III: Records the Battle of Qarqar (853 BC) mentioning 'Ahab the Israelite' contributing 2,000 chariots — an event unmentioned in Kings, revealing the selective nature of both Assyrian and biblical historiography",
+        "Sennacherib's Annals on 701 BC: Claims devastation of Judah but conspicuously omits any claim to have taken Jerusalem — the silence confirms the biblical account of the city's deliverance"
+      ],
+      "interpretive_significance": "Recognizing royal inscription conventions exposes the propaganda dimension of all ancient historical writing — including the Bible's. However, biblical historiography uniquely records royal failures: David's adultery, Solomon's apostasy, the entire parade of wicked kings in Kings and Chronicles. No ANE king would commission a record of his own sins. The prophetic literature inverts royal propaganda entirely: Isaiah mocks the king of Babylon's self-exaltation (Isa 14:4-21), and the Psalms transfer royal triumph language from human kings to Yahweh himself (Psa 47, 93, 96-99). The biblical historical books represent a distinctive genre — royal historiography written from a prophetic perspective that judges kings by torah rather than celebrating them.",
+      "period": "divided_monarchy",
+      "books": ["2Ki", "Isa", "Psa"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["2 Kgs 3:4-27", "2 Kgs 18:13-19:37", "Isa 10:5-19", "Isa 14:4-21", "Psa 47:1-9", "Psa 93:1-5"],
+      "scholarly_sources": ["Younger, Ancient Conquest Accounts: A Study in Ancient Near Eastern and Biblical History Writing", "Hays, 'The Silence of the Sources: The Tel Dan Inscription and the Limits of Historical Reconstruction'", "Machinist, 'Literature as Politics: The Tukulti-Ninurta Epic and the Bible' (CBQ 1976)"]
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "dimension": "legal_covenant",
+  "dimension_label": "Legal & Covenant",
+  "entries": [
+    {
+      "id": "legal_001",
+      "title": "Suzerainty Treaty Form and Deuteronomy",
+      "summary": "The structure of Hittite suzerainty treaties from the Late Bronze Age closely parallels the literary structure of Deuteronomy, suggesting that Israel framed its covenant with Yahweh using the established ANE diplomatic vocabulary of vassal treaties.",
+      "detail": "George Mendenhall first identified in 1954 that Hittite suzerainty treaties from the second millennium BCE follow a consistent pattern: (1) preamble identifying the suzerain, (2) historical prologue recounting the suzerain's past benevolence, (3) stipulations the vassal must obey, (4) provision for deposit and public reading, (5) list of divine witnesses, and (6) blessings and curses. Deuteronomy follows this structure remarkably: the preamble identifies Yahweh (Deut 1:1-5), the historical prologue recounts God's acts from Horeb to Moab (Deut 1:6-4:49), the stipulations comprise the law code (Deut 5-26), provision is made for deposit in the ark and periodic reading (Deut 31:9-13), heaven and earth serve as witnesses (Deut 30:19), and extensive blessings and curses follow (Deut 27-28). Kenneth Kitchen has argued that this pattern specifically matches second-millennium Hittite treaties rather than first-millennium Assyrian treaties, which typically lack the historical prologue, supporting an early date for the tradition. Weinfeld further demonstrated that the covenant theology in Deuteronomy deliberately employs treaty vocabulary, with 'love' meaning political loyalty and 'know' meaning treaty recognition.",
+      "ane_parallels": [
+        "Treaty between Hattusili III and Ramesses II: Major Hittite-Egyptian treaty exhibiting the full treaty form including preamble, historical prologue, stipulations, witnesses, and curses",
+        "Treaty of Suppiluliuma and Huqqana: Hittite vassal treaty with stipulations forbidding alliance with other great kings, paralleling the exclusive loyalty Yahweh demands",
+        "Esarhaddon's Succession Treaty (672 BCE): Neo-Assyrian treaty whose curse formulations closely parallel Deuteronomy 28, prompting debate about direction of literary influence"
+      ],
+      "interpretive_significance": "Recognizing the treaty form reveals that Deuteronomy is not simply a law code but a covenant document defining a political-theological relationship. When Yahweh says 'You shall have no other gods before me,' this is treaty language demanding exclusive vassalage, not merely a theological preference. The command to 'love the LORD your God' is not primarily emotional but covenantal — a demand for political fidelity mirroring what a suzerain required from a vassal. This reframes the entire Sinai covenant as a diplomatic arrangement in which Yahweh, the Great King, binds Israel to himself through both grace (historical prologue) and obligation (stipulations).",
+      "period": "exodus_conquest",
+      "books": ["Exo", "Deu"],
+      "chapter_start": 1,
+      "chapter_end": 34,
+      "key_references": ["Exo 19:3-6", "Exo 20:1-17", "Deu 1:1-5", "Deu 5:1-21", "Deu 27:1-26", "Deu 28:1-68", "Deu 30:19"],
+      "scholarly_sources": ["Mendenhall, 'Covenant Forms in Israelite Tradition' (Biblical Archaeologist, 1954)", "Kitchen, On the Reliability of the Old Testament", "Weinfeld, Deuteronomy and the Deuteronomic School", "McCarthy, Treaty and Covenant (Analecta Biblica)"]
+    },
+    {
+      "id": "legal_002",
+      "title": "Law Codes and Lex Talionis",
+      "summary": "Israelite law codes share significant structural and thematic parallels with earlier ANE law collections such as the Code of Hammurabi and the Laws of Eshnunna, including the principle of lex talionis (proportional retributive justice).",
+      "detail": "The Code of Hammurabi (c. 1750 BCE), the Laws of Eshnunna (c. 1930 BCE), the Laws of Ur-Nammu (c. 2100 BCE), and the Hittite Laws all predate or are roughly contemporary with the biblical law codes. They share the casuistic (case-law) format — 'if a man does X, then Y shall happen' — that dominates Exodus 21-23. The lex talionis ('eye for eye, tooth for tooth') appears in both Hammurabi (laws 196-197) and the Covenant Code (Exo 21:23-25), yet with a critical difference: Hammurabi applies it according to social class (an eye of a nobleman demands an eye; an eye of a commoner demands only a monetary fine), whereas Israelite law applies it without class distinction. Raymond Westbrook demonstrated that the lex talionis in both contexts likely functioned as a statement of maximum penalty setting the ceiling for compensation rather than mandating literal mutilation. The Laws of Eshnunna, discovered at Tell Asmar, show that monetary compensation for bodily injury was already standard practice in the early second millennium. William Hallo's comparative method of analyzing these codes side by side reveals both shared legal reasoning and Israel's distinctive theological grounding of law in covenant rather than royal authority.",
+      "ane_parallels": [
+        "Code of Hammurabi (laws 196-201): Graduated lex talionis based on social class — full retaliation for harm to equals, monetary fines for harm to lower classes",
+        "Laws of Eshnunna (laws 42-48): Monetary compensation schedules for bodily injuries, predating Hammurabi and showing an alternative to physical retaliation",
+        "Laws of Ur-Nammu: Earliest known law code, prescribing monetary fines rather than physical retaliation, suggesting lex talionis was not the oldest legal principle"
+      ],
+      "interpretive_significance": "Comparing Israelite and ANE law codes reveals that biblical law participates in a shared legal tradition while introducing distinctive elements: law is grounded in divine covenant rather than royal decree, all persons are subject to the same penalties regardless of class, and even the king is bound by the law (Deut 17:18-20). The lex talionis, often misread as primitive brutality, was actually a principle of proportional limitation — the punishment must not exceed the injury — and likely functioned as a basis for negotiated compensation rather than literal application.",
+      "period": "exodus_conquest",
+      "books": ["Exo", "Lev", "Deu"],
+      "chapter_start": 20,
+      "chapter_end": 25,
+      "key_references": ["Exo 21:23-25", "Exo 22:1-15", "Lev 24:19-20", "Deu 19:21", "Deu 17:18-20"],
+      "scholarly_sources": ["Westbrook, Studies in Biblical and Cuneiform Law", "Hallo, 'Biblical History in Its Near Eastern Setting' in Scripture in Context", "Roth, Law Collections from Mesopotamia and Asia Minor", "Jackson, Wisdom Laws: A Study of the Mishpatim of Exodus 21:1-22:16"]
+    },
+    {
+      "id": "legal_003",
+      "title": "Covenant Ratification Rituals and Animal Cutting",
+      "summary": "The covenant ceremony in Genesis 15, where God passes between severed animal halves, reflects a widely attested ANE ritual for ratifying binding agreements. The act symbolized a self-imprecatory oath: 'May I become like these animals if I break this covenant.'",
+      "detail": "In Genesis 15:9-21, Abraham cuts animals in half and arranges the pieces, after which a smoking fire pot and flaming torch (representing God's presence) pass between them. This mirrors the ANE covenant-cutting ceremony (the Hebrew idiom karat berit literally means 'to cut a covenant') known from multiple sources. An eighth-century BCE Aramaic treaty from Sefire contains the explicit formula: 'Just as this calf is cut up, so may Matti'el be cut up.' The Mari texts from the eighteenth century BCE describe the killing of a donkey foal (hayarum qatalum) to solemnize treaty agreements between Amorite tribal groups. The ritual is a performed self-curse: by walking between the severed pieces, the oath-taker invokes the same fate upon himself should he violate the terms. What makes Genesis 15 extraordinary is that only God passes between the pieces while Abraham sleeps — Yahweh alone assumes the covenant obligation and its curse, making this a unilateral divine commitment. Jeremiah 34:18-20 later invokes the same ritual when condemning those who violated their covenant, threatening that they will be 'like the calf they cut in two and passed between its pieces.'",
+      "ane_parallels": [
+        "Sefire Treaty (eighth century BCE): Aramaic inscription containing explicit self-imprecatory oath — 'As this calf is cut, so may Matti'el and his nobles be cut' — alongside the dismembered animal",
+        "Mari Letters: References to 'killing a donkey foal' (hayarum qatalum) as the standard ritual for solemnizing covenants between Amorite groups in the Old Babylonian period",
+        "Neo-Assyrian Adê texts: Treaty oaths invoking self-curses with ritual actions symbolizing the fate of the covenant-breaker"
+      ],
+      "interpretive_significance": "The cutting ritual illuminates why 'covenant' and 'cut' are linguistically bound in Hebrew (karat berit). More theologically, Genesis 15 shows God assuming the full weight of the covenant curse upon himself — a pattern that New Testament authors see fulfilled in the cross. Understanding the self-imprecatory oath also explains Jeremiah 34's horror at covenant violation: the violators have invoked destruction on themselves. This ritual context transforms the Abrahamic covenant from an abstract promise into a blood-oath of binding divine commitment.",
+      "period": "patriarchal",
+      "books": ["Gen", "Jer"],
+      "chapter_start": 15,
+      "chapter_end": 15,
+      "key_references": ["Gen 15:9-21", "Jer 34:18-20", "Gen 17:1-14"],
+      "scholarly_sources": ["Mendenhall, 'Covenant Forms in Israelite Tradition'", "Weinfeld, 'The Covenant of Grant in the Old Testament and in the Ancient Near East' (JAOS, 1970)", "Hallo, Context of Scripture, vol. 2 (Sefire treaty texts)", "Tadmor, 'Treaty and Oath in the Ancient Near East'"]
+    },
+    {
+      "id": "legal_004",
+      "title": "Land Sale, Inheritance, and Redemption Law",
+      "summary": "The Nuzi tablets and other ANE legal archives illuminate biblical practices of land sale, levirate marriage, and kinsman-redeemer obligations, providing the institutional background for narratives in Genesis, Ruth, and Jeremiah.",
+      "detail": "The Nuzi tablets (fifteenth century BCE), discovered in northeastern Iraq, preserve Hurrian legal practices that illuminate several puzzling biblical customs. At Nuzi, land could not technically be sold but could be transferred through fictive adoption — the buyer 'adopted' the seller to receive the land as an inheritance share. This parallels the extreme reluctance to alienate family land in Israel (cf. Naboth's refusal in 1 Kings 21). Nuzi also documents arrangements where a barren wife provides a slave-woman as surrogate, with the resulting child legally belonging to the wife — closely matching Sarah's provision of Hagar (Gen 16) and Rachel's of Bilhah (Gen 30). The institution of the goel (kinsman-redeemer) who has the right and obligation to redeem family property and marry a deceased kinsman's widow is central to the book of Ruth. Westbrook demonstrated that this practice of land redemption is paralleled in Mesopotamian and Ugaritic legal texts where family members hold a pre-emptive right to buy back alienated ancestral property. Jeremiah's purchase of a field at Anathoth (Jer 32:6-15) from his cousin Hanamel explicitly invokes this right of redemption (ge'ullah) as a prophetic sign of hope during the siege of Jerusalem.",
+      "ane_parallels": [
+        "Nuzi tablets: Fictive adoption contracts used to transfer real estate while preserving the legal fiction that ancestral land remains within the family",
+        "Nuzi marriage contracts: Stipulations requiring a barren wife to provide a surrogate, with clauses governing the status of resulting children, paralleling Genesis 16 and 30",
+        "Ugaritic and Old Babylonian redemption texts: Documents showing family pre-emption rights over alienated property, paralleling the Israelite goel institution"
+      ],
+      "interpretive_significance": "ANE legal parallels transform seemingly opaque biblical customs into intelligible institutional practices. Boaz's role in Ruth is not romantic charity but a legal obligation with precise procedural requirements (the gate ceremony, the nearer kinsman's refusal). Sarah's treatment of Hagar follows recognized legal conventions, not mere cruelty. Jeremiah's land purchase becomes even more dramatic when understood as a legal act of redemption performed during a siege — asserting family land rights at the very moment the land is being lost. The goel concept provides the institutional foundation for the theological metaphor of God as Israel's Redeemer.",
+      "period": "patriarchal",
+      "books": ["Gen", "Rut", "Jer"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 16:1-4", "Gen 23:1-20", "Gen 30:1-8", "Rut 3:9-13", "Rut 4:1-12", "Jer 32:6-15", "1Ki 21:1-16"],
+      "scholarly_sources": ["Westbrook, Property and the Family in Biblical Law", "Gordon, 'Biblical Customs and the Nuzu Tablets' (Biblical Archaeologist, 1940)", "Hallo, Context of Scripture, vol. 3 (Nuzi legal documents)", "Campbell, Ruth (Anchor Bible)"]
+    },
+    {
+      "id": "legal_005",
+      "title": "The Covenant Lawsuit (Rib) Pattern",
+      "summary": "The Hebrew prophets employ a recognizable literary form called the rib (lawsuit), in which Yahweh brings a legal case against Israel for covenant violation. This pattern draws on both ANE treaty-curse traditions and actual courtroom procedures.",
+      "detail": "The prophetic rib (covenant lawsuit) is a distinctive literary genre in which Yahweh acts as both plaintiff and judge, summoning Israel to court for breach of covenant. The form typically includes: (1) a summons to witnesses, often heaven and earth or the mountains (Mic 6:1-2; Isa 1:2); (2) a recitation of Yahweh's past acts of faithfulness — the 'historical prologue' of the relationship (Mic 6:3-5); (3) a statement of the charges, often idolatry or social injustice (Hos 4:1-3; Isa 1:3-4); and (4) a verdict of judgment with covenant curses (Hos 4:4-10). Huffmon and Wright identified this pattern as rooted in the treaty tradition: when a suzerain accused a vassal of disloyalty, he would send a formal indictment recalling his past benevolence and the vassal's sworn obligations. The cosmic witnesses (heaven and earth) correspond to the divine witnesses listed in treaty documents. Hosea 4:1 explicitly uses the term rib ('The LORD has a lawsuit against the inhabitants of the land') and lists covenant violations using language that echoes the Decalogue. Isaiah 1 and Micah 6 follow the same form with devastating rhetorical effect, as Yahweh asks what he has done to deserve Israel's abandonment (Mic 6:3).",
+      "ane_parallels": [
+        "Hittite indictment letters: Royal correspondence accusing vassal kings of treaty violations, recounting the suzerain's past favors and demanding an explanation before judgment",
+        "Tukulti-Ninurta Epic: Assyrian composition portraying the gods as convening a trial against the Kassite king for treaty violation, legitimizing Assyrian military action as divine verdict",
+        "Egyptian judicial texts: Formal court proceedings with structured accusations, witness testimony, and verdicts that parallel the rib's procedural elements"
+      ],
+      "interpretive_significance": "Identifying the rib pattern clarifies the logic and rhetoric of prophetic speech. The prophets are not simply preaching moral improvement; they are prosecuting a legal case based on specific covenant obligations Israel swore to uphold. When Micah summons the mountains as witnesses (Mic 6:1-2), he invokes the same cosmic witnesses present at the original covenant ratification (Deut 30:19). The famous question 'What does the LORD require of you?' (Mic 6:8) is a legal answer to a legal question: what the covenant actually demands versus what Israel has substituted. This legal framing also explains why prophetic judgment is not arbitrary divine anger but the execution of covenant curses the people themselves accepted.",
+      "period": "divided_monarchy",
+      "books": ["Isa", "Hos", "Mic"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Isa 1:2-20", "Hos 4:1-10", "Mic 6:1-8", "Deu 30:19", "Deu 32:1"],
+      "scholarly_sources": ["Huffmon, 'The Covenant Lawsuit in the Prophets' (JBL, 1959)", "Wright, 'The Lawsuit of God: A Form-Critical Study of Deuteronomy 32'", "Westermann, Basic Forms of Prophetic Speech", "Limburg, 'The Root rib and the Prophetic Lawsuit Speeches' (JBL, 1969)"]
+    },
+    {
+      "id": "legal_006",
+      "title": "Cities of Refuge and the Blood Avenger",
+      "summary": "The Israelite institution of cities of refuge, where those guilty of accidental homicide could find asylum from the blood avenger (goel hadam), reflects ANE practices of sanctuary and blood vengeance while introducing distinctive theological and legal innovations.",
+      "detail": "In the ANE, blood vengeance was a widespread institution in which a victim's nearest male relative (the 'blood avenger') was obligated to kill the perpetrator to restore the family's honor and cosmic balance. Israel inherited this system but introduced a critical innovation: the distinction between intentional murder and accidental manslaughter, with cities of refuge providing asylum for the latter (Num 35:9-34; Deu 19:1-13; Jos 20:1-9). The accused could flee to one of six designated Levitical cities and receive a hearing before the congregation. If the killing was judged accidental, the person remained in the city of refuge until the death of the high priest, after which they could return home without fear of the avenger. Mesopotamian legal texts also distinguish degrees of homicide: the Laws of Eshnunna and the Hittite Laws prescribe different penalties for intentional and accidental killing. Milgrom identified the theological rationale behind the system: shed blood pollutes the land where Yahweh dwells (Num 35:33-34), and only the blood of the guilty — or the death of the high priest as a kind of ritual substitute — can purge that pollution. The temple asylum tradition known from Mesopotamia and Greece (where fugitives could grasp the altar horns, cf. 1 Kings 1:50-53) represents a related but distinct institution.",
+      "ane_parallels": [
+        "Hittite Laws (articles 1-6): Graduated penalties for homicide distinguishing between intentional killing, accidental killing, and killing in anger, with compensation schedules for accidental death",
+        "Laws of Eshnunna (law 58): Provisions addressing accidental death with prescribed monetary compensation rather than blood vengeance",
+        "Mesopotamian and Greek temple asylum: Practice of seeking sanctuary at a temple or sacred precinct, paralleling the altar-grasping episodes in 1 Kings 1:50 and 2:28"
+      ],
+      "interpretive_significance": "The cities of refuge reveal a legal system wrestling with competing demands: the blood avenger's clan obligation, the accidental killer's right to life, and the theological reality that innocent blood pollutes the land. The high priest's death functioning as a release mechanism (Num 35:25, 28) introduces a substitutionary logic that later interpreters, including the author of Hebrews, connect to Christ's high-priestly death. The system also demonstrates Israel's effort to bring blood vengeance under communal legal control rather than leaving it to private retribution — a major step in the development of criminal jurisprudence.",
+      "period": "exodus_conquest",
+      "books": ["Num", "Deu", "Jos"],
+      "chapter_start": 35,
+      "chapter_end": 35,
+      "key_references": ["Num 35:9-34", "Deu 19:1-13", "Jos 20:1-9", "1Ki 1:50-53", "Heb 6:18"],
+      "scholarly_sources": ["Milgrom, Numbers (JPS Torah Commentary)", "Greenberg, 'The Biblical Conception of Asylum' (JBL, 1959)", "Westbrook, Studies in Biblical and Cuneiform Law", "Frymer-Kensky, 'Pollution, Purification, and Purgation in Biblical Israel'"]
+    },
+    {
+      "id": "legal_007",
+      "title": "Witness Laws and Rules of Evidence",
+      "summary": "The biblical requirement of two or three witnesses for capital cases, and the severe penalties for false testimony, reflect ANE legal procedures while embedding witness law within a covenantal theological framework.",
+      "detail": "Deuteronomy 19:15 establishes that 'a single witness shall not suffice against a person for any crime or wrongdoing ... only on the evidence of two or three witnesses shall a charge be sustained.' This two-witness rule appears in a broader ANE context: Hittite court procedures required corroborating testimony, and Mesopotamian trial documents regularly record multiple witnesses whose testimony was weighed by judges. The penalty for false witness in Deuteronomy 19:16-21 follows the talion principle — the false witness receives the punishment the accused would have suffered — which is also attested in the Code of Hammurabi (laws 1-4), where a false accuser in a capital case faces execution. The ninth commandment ('You shall not bear false witness,' Exo 20:16) uses legal courtroom language (ed shaqer) that specifically denotes perjury in judicial proceedings, not merely casual dishonesty. The prophets extend witness language theologically: in Isaiah 43:10-12, Israel itself is called as a witness to Yahweh's uniqueness, and the covenant lawsuit (rib) summons cosmic witnesses. Jesus in Matthew 18:16 and Paul in 2 Corinthians 13:1 apply the two-witness rule to church discipline, demonstrating its continued legal force in early Christian communities.",
+      "ane_parallels": [
+        "Code of Hammurabi (laws 1-4): False accusation in a capital case is itself a capital offense; false accusation in a property case results in liability for the disputed amount",
+        "Hittite court procedures: Instructions to judges requiring careful examination of witnesses and imposition of oaths to ensure truthful testimony",
+        "Neo-Babylonian trial documents: Court records preserving the testimony of multiple witnesses alongside judicial verdicts, showing procedural parallels to Deuteronomy's evidentiary standards"
+      ],
+      "interpretive_significance": "The two-witness rule is not arbitrary but reflects a deeply held conviction that human life must be protected from the power of accusation. In a culture without forensic evidence, multiple concordant witnesses were the primary safeguard against judicial murder. The false witness penalty creates powerful deterrence: lying under oath carries the same consequences as the crime itself. Understanding the courtroom setting of the ninth commandment prevents reducing it to a general prohibition of lying and reveals its concern with the integrity of the justice system — a matter of life and death. The New Testament's adoption of these evidentiary standards (Matt 18:16; 1 Tim 5:19) shows the enduring influence of Deuteronomic legal procedure on early Christian governance.",
+      "period": "exodus_conquest",
+      "books": ["Deu", "Mat"],
+      "chapter_start": 19,
+      "chapter_end": 19,
+      "key_references": ["Exo 20:16", "Deu 17:6-7", "Deu 19:15-21", "Mat 18:16", "2Co 13:1", "1Ti 5:19"],
+      "scholarly_sources": ["Weinfeld, Deuteronomy and the Deuteronomic School", "Westbrook, 'Punishments and Crimes' (Anchor Bible Dictionary)", "Wells, The Law of Testimony in the Pentateuchal Codes", "Hallo, Context of Scripture, vol. 2 (Hittite court instructions)"]
+    },
+    {
+      "id": "legal_008",
+      "title": "Royal Grants vs. Suzerainty Treaties",
+      "summary": "Moshe Weinfeld distinguished two ANE covenant types — the conditional suzerainty treaty and the unconditional royal land grant — and argued that the Abrahamic and Davidic covenants follow the grant pattern while the Sinai covenant follows the treaty pattern.",
+      "detail": "Weinfeld's influential 1970 study identified a fundamental distinction in ANE covenant forms. The suzerainty treaty (exemplified by Hittite vassal treaties) imposes obligations on the subordinate party, with blessings for compliance and curses for violation — this matches the Sinai/Deuteronomic covenant with its conditional 'if you obey ... if you disobey' structure (Deut 28). The royal land grant, by contrast, is a reward from a king to a loyal servant, conveying land and dynasty as an unconditional gift — this matches God's covenant with Abraham (Gen 15, 17) and David (2 Sam 7), where the grant is based on the past faithfulness of the recipient and secured by divine oath rather than human obligation. Weinfeld pointed to Hittite and Babylonian royal grants where kings bestowed permanent land tenure on servants who had demonstrated loyalty, often specifying that the grant would extend to the servant's descendants in perpetuity. The Abrahamic covenant promises land and offspring (Gen 15:18-21; 17:7-8) with God swearing the oath unilaterally, while the Davidic covenant promises an eternal dynasty (2 Sam 7:12-16) with God pledging that even if David's sons sin, the covenant will not be revoked. Kitchen further refined the typology by noting that these two covenant forms are not mutually exclusive but complementary within the biblical narrative: the unconditional grant establishes the relationship, while the conditional treaty governs the vassal's behavior within it.",
+      "ane_parallels": [
+        "Hittite royal land grants: Documents recording permanent land grants to loyal servants, specifying that the grant extends to their descendants and cannot be revoked — paralleling the Abrahamic land promise",
+        "Babylonian kudurru stones: Boundary stones recording royal grants of land with curse formulae protecting the grant from future revocation, analogous to the permanent character of the Abrahamic and Davidic covenants",
+        "Grant of Ashurbanipal to his servant Baltaya: Neo-Assyrian document conveying land and tax exemptions as reward for faithful service, with provisions extending to the recipient's descendants in perpetuity"
+      ],
+      "interpretive_significance": "The grant-treaty distinction illuminates a central tension in biblical theology: how can God's promises to Abraham and David be unconditional while the Sinai covenant is conditional? The ANE background shows these are complementary covenant types operating on different levels. God's commitment to Israel through Abraham (land, offspring, blessing) and David (eternal dynasty) is secured by divine oath and cannot fail, but Israel's experience of blessing or curse within that relationship depends on covenant obedience. This framework helps explain how the exile could happen (Sinai curses activated) without nullifying God's ultimate promises (Abrahamic and Davidic grants intact) — a tension Paul explores in Romans 9-11 and that Psalm 89 wrestles with directly when the Davidic dynasty appears to have ended.",
+      "period": "patriarchal",
+      "books": ["Gen", "2Sa", "Psa"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 15:7-21", "Gen 17:1-8", "2Sa 7:8-16", "Psa 89:1-37", "Psa 132:11-12", "Deu 28:1-68", "Rom 9:4-5"],
+      "scholarly_sources": ["Weinfeld, 'The Covenant of Grant in the Old Testament and in the Ancient Near East' (JAOS, 1970)", "Kitchen, On the Reliability of the Old Testament", "Knoppers, 'Ancient Near Eastern Royal Grants and the Davidic Covenant' (JAOS, 1996)", "Hahn, Kinship by Covenant"]
+    }
+  ]
+}
