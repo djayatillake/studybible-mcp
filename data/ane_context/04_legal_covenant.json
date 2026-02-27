@@ -36,7 +36,7 @@
       "chapter_start": 20,
       "chapter_end": 25,
       "key_references": ["Exo 21:23-25", "Exo 22:1-15", "Lev 24:19-20", "Deu 19:21", "Deu 17:18-20"],
-      "scholarly_sources": ["Westbrook, Studies in Biblical and Cuneiform Law", "Hallo, 'Biblical History in Its Near Eastern Setting' in Scripture in Context", "Roth, Law Collections from Mesopotamia and Asia Minor", "Jackson, Wisdom Laws: A Study of the Mishpatim of Exodus 21:1-22:16"]
+      "scholarly_sources": ["Westbrook, Studies in Biblical and Cuneiform Law", "Hallo, 'Biblical History in Its Near Eastern Setting' in Scripture in Context", "Roth, Law Collections from Mesopotamia and Asia Minor", "Jackson, Wisdom-Laws: A Study of the Mishpatim of Exodus 21:1-22:16"]
     },
     {
       "id": "legal_003",
@@ -126,7 +126,7 @@
       "chapter_start": 19,
       "chapter_end": 19,
       "key_references": ["Exo 20:16", "Deu 17:6-7", "Deu 19:15-21", "Mat 18:16", "2Co 13:1", "1Ti 5:19"],
-      "scholarly_sources": ["Weinfeld, Deuteronomy and the Deuteronomic School", "Westbrook, 'Punishments and Crimes' (Anchor Bible Dictionary)", "Wells, The Law of Testimony in the Pentateuchal Codes", "Hallo, Context of Scripture, vol. 2 (Hittite court instructions)"]
+      "scholarly_sources": ["Weinfeld, Deuteronomy and the Deuteronomic School", "Westbrook, 'Crimes and Punishments' (Anchor Bible Dictionary)", "Wells, The Law of Testimony in the Pentateuchal Codes", "Hallo, Context of Scripture, vol. 1 (Hittite court instructions)"]
     },
     {
       "id": "legal_008",
@@ -144,7 +144,7 @@
       "chapter_start": null,
       "chapter_end": null,
       "key_references": ["Gen 15:7-21", "Gen 17:1-8", "2Sa 7:8-16", "Psa 89:1-37", "Psa 132:11-12", "Deu 28:1-68", "Rom 9:4-5"],
-      "scholarly_sources": ["Weinfeld, 'The Covenant of Grant in the Old Testament and in the Ancient Near East' (JAOS, 1970)", "Kitchen, On the Reliability of the Old Testament", "Knoppers, 'Ancient Near Eastern Royal Grants and the Davidic Covenant' (JAOS, 1996)", "Hahn, Kinship by Covenant"]
+      "scholarly_sources": ["Weinfeld, 'The Covenant of Grant in the Old Testament and in the Ancient Near East' (JAOS, 1970)", "Kitchen, On the Reliability of the Old Testament", "Knoppers, 'Ancient Near Eastern Royal Grants and the Davidic Covenant: A Parallel?' (JAOS, 1996) — challenges the strength of the grant parallel", "Hahn, Kinship by Covenant"]
     }
   ]
 }
