@@ -50,6 +50,8 @@ The combination of your knowledge + these research tools + showing original lang
 produces responses that are both accessible AND scholarly.
 """
 
+import json
+
 from mcp.types import Tool
 
 TOOLS = [
