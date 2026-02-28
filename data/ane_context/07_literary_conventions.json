@@ -145,6 +145,24 @@
       "chapter_end": null,
       "key_references": ["Rom 1:1-7", "Rom 1:16-17", "Rom 12:1-2", "1Co 1:1-9", "Gal 1:1-5", "Php 1:1-11", "Phm 1:1-25"],
       "scholarly_sources": ["Richards, Paul and First-Century Letter Writing", "Stowers, Letter Writing in Greco-Roman Antiquity", "Murphy-O'Connor, Paul the Letter-Writer", "Aune, The New Testament in Its Literary Environment"]
+    },
+    {
+      "id": "lit_009",
+      "title": "The Hourglass Narrative Arc of Scripture",
+      "summary": "Scripture traces a universal-to-particular-to-universal narrative arc: universal blessing narrows through three crises to Abraham, then widens again to universal restoration. This 'hourglass' structure provides the macro-narrative framework for reading any individual passage.",
+      "detail": "The overarching narrative of Scripture follows an hourglass shape:\n\nWIDENING (Universal): Genesis 1-2 establishes universal blessing — all humanity bears God's image, all creation is 'very good,' and God's presence fills the cosmic temple.\n\nNARROWING (Three Crises):\n1. The Eden crisis (Gen 3): The guardian cherub rebels; humanity is expelled from God's presence; death enters.\n2. The Watchers transgression (Gen 6): Divine beings cross the boundary, corrupting humanity; the flood judgment follows.\n3. The Babel dispersion (Gen 11): Humanity's corporate rebellion leads to scattering and the division of nations.\n\nALLOTMENT: Deuteronomy 32:8-9 (LXX/DSS) describes the decisive narrowing: 'When the Most High gave the nations their inheritance... He set the boundaries of the peoples according to the number of the sons of God. For YHWH's portion is His people, Jacob His allotted heritage.' The 70 nations of the Table of Nations (Gen 10) are allotted to subordinate divine beings. YHWH chooses one family — Abraham's — as His own portion.\n\nNARROWEST POINT: Abraham's call (Gen 12:1-3) — one man, one family, through whom 'all the families of the earth shall be blessed.' The promise of universal blessing is preserved within the narrowest channel.\n\nWIDENING (Restoration):\n- The 70 elders at Sinai (Exod 24:1, 9-11) correspond to the 70 nations — the loyal divine council reconstituted on earth.\n- The 70 sent out by Jesus (Luke 10:1) symbolically reverses the allotment of 70 nations.\n- Pentecost (Acts 2): The Spirit falls on representatives of scattered nations, reversing Babel's linguistic confusion.\n- The Great Commission (Matt 28:18-20): 'All authority... all nations... all that I have commanded' — the reclamation of what was allotted.\n- Revelation 21-22: The new Jerusalem descends, God dwells with all peoples, and the nations walk by its light. The universal blessing of Gen 1-2 is restored and surpassed.\n\nThis framework answers the question every reader should ask of any passage: 'Where does this text fall on the hourglass? Is this part of the narrowing (crisis, judgment, separation) or the widening (promise, restoration, inclusion)?'",
+      "ane_parallels": [
+        "ANE creation-crisis-restoration patterns: Multiple ANE traditions (Atrahasis, Enuma Elish) narrate a cycle of creation → divine-human crisis → resolution, though none match the universal-to-particular-to-universal scope of the biblical narrative",
+        "The 70 nations tradition: The Table of Nations (Gen 10) lists 70 peoples, a number with symbolic significance across ANE cultures representing totality/completeness",
+        "Deuteronomy 32 and the Divine Allotment: The concept of patron deities assigned to specific nations is well attested in ANE thought (Chemosh for Moab, Marduk for Babylon); Deut 32 transforms this by making YHWH's choice of Israel a deliberate narrowing within a universal framework"
+      ],
+      "interpretive_significance": "The hourglass framework prevents two common errors: (1) reading the Old Testament as merely 'the story of Israel' disconnected from universal purposes, and (2) reading the New Testament's universal mission as a novel idea disconnected from the original creation mandate. Every covenant (Abrahamic, Sinaitic, Davidic, New) is a stage in the widening of God's redemptive purpose back toward the universal scope of Genesis 1-2. The Great Commission is not Plan B after Israel's 'failure' but the fulfillment of Abraham's promise to bless all nations — the hourglass opening back out to universal scope.",
+      "period": "patriarchal",
+      "books": ["Gen", "Deu", "Act", "Rev"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 1:1-2:3", "Gen 3:1-24", "Gen 6:1-4", "Gen 10:1-32", "Gen 11:1-9", "Gen 12:1-3", "Deut 32:8-9", "Exod 24:1-11", "Luke 10:1", "Acts 2:1-11", "Matt 28:18-20", "Rev 21:1-22:5"],
+      "scholarly_sources": ["Bauckham, Bible and Mission: Christian Witness in a Postmodern World", "Heiser, The Unseen Realm, ch. 14-16", "Wright, The Mission of God", "Block, The Gods of the Nations"]
     }
   ]
 }

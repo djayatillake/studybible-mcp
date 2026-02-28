@@ -631,24 +631,33 @@ to its original audience.
 
 USE THIS when:
 - Studying creation, flood, or cosmological texts (three-tier universe, cosmic waters)
+- Encountering divine council, heavenly assembly, or "sons of God" language
+- Reading about the serpent, Eden, the fall, or spiritual warfare passages
 - Encountering references to temples, sacrifices, or religious practices
+- Studying meal, table, or eating passages (fellowship, allegiance, covenant meals)
+- Encountering household, family, or father language applied to God
 - Reading about covenants, treaties, or legal codes (suzerainty treaties, lex talionis)
 - Studying honor/shame dynamics in Gospels or Epistles
 - Understanding marriage customs, family structures, or inheritance laws
 - Reading about warfare, kingship, or imperial contexts
+- Studying Levitical purity, clean/unclean categories, or scapegoat rituals
 - Encountering literary forms (chiasm, inclusio, lament, oracle)
 - Needing background on daily life, agriculture, or material culture
+- Any passage where modern Western assumptions might obscure the ANE meaning
+- Needing the interpretive methodology (derivation hierarchy, confidence calibration)
 
-12 dimensions: cosmology_worldview, religious_practices, social_structure, legal_covenant,
+13 dimensions: cosmology_worldview, religious_practices, social_structure, legal_covenant,
 political_imperial, economic_life, literary_conventions, warfare_military,
-daily_life_material_culture, death_afterlife, gender_family, education_literacy
+daily_life_material_culture, death_afterlife, gender_family, education_literacy,
+ane_methodology
 
 9 periods: patriarchal, exodus_conquest, judges_early_monarchy, united_monarchy,
 divided_monarchy, assyrian_babylonian, persian, hellenistic, roman
 
 Call with NO arguments to see available dimensions and periods.
 Call with just a reference to get ALL relevant ANE context for a passage.
-Filter by dimension and/or period for focused results.""",
+Filter by dimension and/or period for focused results.
+Call with dimension='ane_methodology' to retrieve the derivation hierarchy, confidence calibration, and methodological guardrails for working with ANE parallels.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -663,7 +672,8 @@ Filter by dimension and/or period for focused results.""",
                         "cosmology_worldview", "religious_practices", "social_structure",
                         "legal_covenant", "political_imperial", "economic_life",
                         "literary_conventions", "warfare_military", "daily_life_material_culture",
-                        "death_afterlife", "gender_family", "education_literacy"
+                        "death_afterlife", "gender_family", "education_literacy",
+                        "ane_methodology"
                     ]
                 },
                 "period": {

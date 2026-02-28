@@ -1,0 +1,60 @@
+{
+  "dimension": "ane_methodology",
+  "dimension_label": "ANE Interpretive Methodology",
+  "entries": [
+    {
+      "id": "method_001",
+      "title": "The Pater Familias Derivation Hierarchy",
+      "summary": "The household of the pater familias (father-head) is the foundational organizing category of ANE social, political, and religious life. Kingdom, sacred space, warfare, and purity are structural dimensions of the household, not independent categories.",
+      "detail": "The derivation hierarchy provides an interpretive framework for reading Scripture in its ANE context. Five levels derive from one root:\n\n1. PATER FAMILIAS — the household head: owns, rules, provides, protects, determines destiny. God as Father is the root category.\n2. KINGDOM — the administered domain of the household head. A kingdom is a household writ large.\n3. SACRED SPACE — the concentrated locus of the pater familias's presence (temple, tabernacle, Eden).\n4. WARFARE — defense and reclamation of the pater familias's estate against rival claimants.\n5. PURITY/ACCESS — fitness for the presence of the pater familias.\n\nOperative questions at the human household level: Who holds this household? Who are the members? What marks them as his? What is the estate? Is loyalty undivided?\n\nOperative questions for cosmic mapping: Who is the cosmic head? Is there a rival household (divine council rebellion, rival patron deity)? Where in the hourglass arc does this text fall?\n\nThe removal test: if you remove a proposed primary category and the derived elements lose grounding, the derivation is confirmed. Remove 'Father' and kingdom, sacred space, warfare, and purity all float without anchor.",
+      "ane_parallels": [
+        "Mesopotamian temple economy: the deity's household (bit ili) structured temple, city, and empire as nested households under the patron deity",
+        "Egyptian royal ideology: Pharaoh as father-of-the-household (it) ruling the 'house of Pharaoh' (per-aa) encompassing all Egypt",
+        "Ugaritic texts: El as 'Father of Years' presiding over the divine household on Mount Zaphon"
+      ],
+      "interpretive_significance": "The derivation hierarchy prevents treating biblical categories as independent modules. When the text says 'kingdom,' it means the administered household of the king-father. When it says 'holy war,' it means defense of the father's estate. When it says 'impurity,' it means unfitness for the father's presence. This single framework unifies themes that modern readers often fragment into separate doctrinal topics.",
+      "period": "patriarchal",
+      "books": ["Gen", "Exo", "Deu", "Psa", "Mat", "Eph"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 1:26-28", "Gen 12:1-3", "Exod 25:8-9", "Deut 32:8-9", "Psalm 2:7", "Matt 6:9-10", "Eph 1:3-10", "Eph 2:19"],
+      "scholarly_sources": ["Walton, Ancient Near Eastern Thought and the Old Testament", "Schloen, The House of the Father as Fact and Symbol", "Block, The Gods of the Nations"]
+    },
+    {
+      "id": "method_002",
+      "title": "Confidence Calibration for ANE Claims",
+      "summary": "Not all ANE-informed interpretive claims carry equal weight. Responsible interpretation requires distinguishing well-grounded claims from those requiring connected inference and from speculative proposals that should not bear argumentative weight.",
+      "detail": "Three tiers of confidence for ANE-informed claims:\n\nWELL-GROUNDED (explicit texts or tight derivation):\n- Divine council as populated reality (Ps 82, Job 1-2, 1 Kgs 22:19-23, Deut 32:8-9 LXX/DSS)\n- Eating = allegiance declaration (1 Cor 10:21, Exod 24:9-11, Gen 26:30)\n- Temple = deity's household (bit ili / bet YHWH identity across all ANE cultures)\n- Sons of God transgressed divine-human boundary (Jude 6, 2 Pet 2:4, 1 Enoch)\n- Monolatry as Israel's operative framework (Ps 82, Deut 32:8-9, 1 Cor 8:5-6)\n\nREQUIRES CONNECTING TEXTS (medium-high confidence):\n- Serpent of Gen 3 = guardian cherub of Ezek 28 (requires canonical connection via Rev 12:9)\n- Ezek 28:11-19 addresses a divine being behind the human king of Tyre (requires reading the Eden/stones/cherub language as more than metaphor)\n- Unclean spirits = disembodied Nephilim (requires connecting Gen 6, 1 Enoch 15, Mark's exorcism narratives)\n\nDO NOT BUILD ARGUMENTS ON (contested or speculative):\n- Nahash = 'shining one' (etymology contested; standard meaning 'serpent' is sufficient)\n- Armageddon = Har Mo'ed / 'mountain of assembly' (proposed but traditional Har Megiddo remains standard)\n- Adam as prophet (evidence too thin to bear weight)\n- Point-for-point typological correspondences beyond what the text itself supports",
+      "ane_parallels": [
+        "Sandmel, 'Parallelomania' (JBL 1962): Foundational warning against finding parallels that are too vague or forced",
+        "Walton, Ancient Near Eastern Thought and the Old Testament: Models careful confidence calibration in comparative work",
+        "Heiser, The Unseen Realm: Demonstrates the distinction between well-attested divine council theology and speculative extensions"
+      ],
+      "interpretive_significance": "Confidence calibration prevents two errors: (1) dismissing all ANE-informed readings as speculative, and (2) treating every proposed connection as equally certain. The interpreter should state the confidence level before building on a claim. Well-grounded claims can anchor arguments; medium-confidence claims can illuminate but should be flagged; speculative claims should be mentioned with appropriate hedging and never made load-bearing in an argument.",
+      "period": "patriarchal",
+      "books": ["Gen", "Psa", "Job", "Jud", "2Pe"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Ps 82:1-8", "Job 1:6-12", "Deut 32:8-9", "Jude 6", "2 Pet 2:4", "1 Cor 10:21", "Gen 3:1-15", "Ezek 28:11-19"],
+      "scholarly_sources": ["Sandmel, 'Parallelomania' (JBL 81, 1962)", "Heiser, The Unseen Realm", "Walton, Ancient Near Eastern Thought and the Old Testament"]
+    },
+    {
+      "id": "method_003",
+      "title": "Methodological Guardrails for ANE Interpretation",
+      "summary": "Five guardrails prevent misuse of ANE comparative material: Sandmel's parallelomania warning, polemical use distinction, canonical priority, explicate vs. impose, and the typology/metaphor/functional identity distinction.",
+      "detail": "Five guardrails for responsible use of ANE background:\n\n1. SANDMEL'S PARALLELOMANIA: Shared vocabulary or shared motif does not prove shared meaning. The direction and significance of any dependence must be argued, not assumed. A Mesopotamian flood story and Genesis 6-9 sharing the motif of a boat does not mean Genesis borrowed its theology from Mesopotamia.\n\n2. POLEMICAL USE DISTINCTION: Biblical authors engage ANE categories in three distinct modes: (a) affirmative adoption — using the category as-is (temple as deity's house), (b) polemical inversion — deliberately reversing the category (Gen 1's effortless creation vs. Enuma Elish's divine combat), (c) explicit contrast — setting the biblical view against the ANE norm (Ps 50 rejecting sacrifice-as-feeding). Identify which mode before drawing conclusions.\n\n3. CANONICAL PRIORITY: ANE context illuminates; canonical syntax controls. When the canon connects two texts (e.g., Jude 6 interpreting Gen 6), that intra-biblical connection takes priority over any external ANE parallel. The Bible's own interpretive moves are more authoritative than scholarly reconstructions.\n\n4. EXPLICATE VS. IMPOSE: Explication draws out what the text contains; imposition inserts meaning not present in or derivable from the text. ANE context should help us see what was always there, not introduce alien categories. If an ANE parallel requires you to override what the text actually says, the parallel is being imposed.\n\n5. TYPOLOGY VS. METAPHOR VS. FUNCTIONAL IDENTITY:\n- Typology: A prefigures B (Adam prefigures Christ, Rom 5:14). Historical correspondence across time.\n- Metaphor: A illuminates B in one direction ('The LORD is my shepherd'). A is not literally B.\n- Functional identity: A IS B in the relevant operational respect. 'That rock WAS Christ' (1 Cor 10:4). 'Temple is God's house' — not metaphor but functional identity; the temple functionally IS the deity's domestic residence.\nConfusing these categories generates interpretive errors. Not every 'is' is metaphor; not every correspondence is typology.",
+      "ane_parallels": [
+        "Sandmel, 'Parallelomania' (JBL 1962): The classic methodological warning paper",
+        "Walton, Ancient Near Eastern Thought and the Old Testament: Models the distinction between illumination and imposition",
+        "Beale, The Temple and the Church's Mission: Demonstrates how canonical connections control interpretation of temple imagery"
+      ],
+      "interpretive_significance": "These guardrails ensure that ANE background serves exegesis rather than replacing it. The interpreter who knows both the ANE material and these guardrails can use comparative data to illuminate the text without falling into either dismissal ('that's just pagan parallels') or uncritical adoption ('the Bible borrowed everything from Mesopotamia'). The goal is always to hear the text more clearly in its own world.",
+      "period": "patriarchal",
+      "books": ["Gen", "Exo", "Psa", "Isa", "1Co", "Jud"],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Gen 1:1-2:3", "Gen 6:1-4", "Exod 24:9-11", "Ps 50:7-15", "Isa 40:18-20", "1 Cor 10:4", "Jude 6", "Rom 5:14"],
+      "scholarly_sources": ["Sandmel, 'Parallelomania' (JBL 81, 1962)", "Walton, Ancient Near Eastern Thought and the Old Testament", "Beale, The Temple and the Church's Mission", "Heiser, The Unseen Realm"]
+    }
+  ]
+}
