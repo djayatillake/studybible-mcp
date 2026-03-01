@@ -46,6 +46,9 @@ sse = [
     "starlette>=0.32.0",
     "uvicorn>=0.24.0",
 ]
+embeddings = [
+    "openai>=1.0.0",
+]
 
 [project.scripts]
 studybible-mcp = "study_bible_mcp.server:main"

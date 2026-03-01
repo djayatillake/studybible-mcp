@@ -204,17 +204,17 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
         conn.close()
 
 
-def import_lexicon(conn: sqlite3.Connection, filepath: Path, language: str, name: str):
-    """Import a lexicon file into the database."""
-    console.print(f"Importing {name} ({language} lexicon)...")
-
-    if language == "greek":
-        parser = parse_greek_lexicon
-    else:
-        parser = parse_hebrew_lexicon
+def _import_lexicon_entries(conn: sqlite3.Connection, parser, filepath: Path, name: str):
+    """Import lexicon entries using the given parser. Shared by all lexicon importers."""
+    console.print(f"Importing {name}...")
 
     count = 0
     batch = []
+    sql = """INSERT OR REPLACE INTO lexicon
+        (strongs, language, word, transliteration, pronunciation,
+         short_definition, full_definition, etymology, usage_count,
+         semantic_domain, related_words)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
 
     with Progress(
         SpinnerColumn(),
@@ -243,151 +243,34 @@ def import_lexicon(conn: sqlite3.Connection, filepath: Path, language: str, name
             count += 1
 
             if len(batch) >= 1000:
-                conn.executemany("""
-                    INSERT OR REPLACE INTO lexicon
-                    (strongs, language, word, transliteration, pronunciation,
-                     short_definition, full_definition, etymology, usage_count,
-                     semantic_domain, related_words)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, batch)
+                conn.executemany(sql, batch)
                 conn.commit()
                 batch = []
                 progress.update(task, completed=count)
 
-        # Insert remaining
         if batch:
-            conn.executemany("""
-                INSERT OR REPLACE INTO lexicon
-                (strongs, language, word, transliteration, pronunciation,
-                 short_definition, full_definition, etymology, usage_count,
-                 semantic_domain, related_words)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, batch)
+            conn.executemany(sql, batch)
             conn.commit()
 
         progress.update(task, completed=count)
 
     console.print(f"  [green]✓[/green] Imported {count} entries")
+
+
+def import_lexicon(conn: sqlite3.Connection, filepath: Path, language: str, name: str):
+    """Import a lexicon file into the database."""
+    parser = parse_greek_lexicon if language == "greek" else parse_hebrew_lexicon
+    _import_lexicon_entries(conn, parser, filepath, name)
 
 
 def import_lexicon_tflsj(conn: sqlite3.Connection, filepath: Path, name: str):
     """Import a TFLSJ (Full LSJ) Greek lexicon file into the database."""
-    console.print(f"Importing {name} (Full LSJ Greek lexicon)...")
-
-    count = 0
-    batch = []
-
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TextColumn("{task.completed} entries"),
-        console=console,
-    ) as progress:
-        task = progress.add_task(f"  {name}", total=None)
-
-        for entry in parse_tflsj_lexicon(filepath):
-            batch.append((
-                entry['strongs'],
-                entry['language'],
-                entry['word'],
-                entry['transliteration'],
-                entry.get('pronunciation', ''),
-                entry['short_definition'],
-                entry.get('full_definition', ''),
-                entry.get('etymology', ''),
-                entry.get('usage_count', 0),
-                entry.get('semantic_domain', '[]'),
-                entry.get('related_words', '[]'),
-            ))
-
-            count += 1
-
-            if len(batch) >= 1000:
-                conn.executemany("""
-                    INSERT OR REPLACE INTO lexicon
-                    (strongs, language, word, transliteration, pronunciation,
-                     short_definition, full_definition, etymology, usage_count,
-                     semantic_domain, related_words)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, batch)
-                conn.commit()
-                batch = []
-                progress.update(task, completed=count)
-
-        if batch:
-            conn.executemany("""
-                INSERT OR REPLACE INTO lexicon
-                (strongs, language, word, transliteration, pronunciation,
-                 short_definition, full_definition, etymology, usage_count,
-                 semantic_domain, related_words)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, batch)
-            conn.commit()
-
-        progress.update(task, completed=count)
-
-    console.print(f"  [green]✓[/green] Imported {count} entries")
+    _import_lexicon_entries(conn, parse_tflsj_lexicon, filepath, name)
 
 
 def import_lexicon_bdb(conn: sqlite3.Connection, filepath: Path, name: str):
     """Import the BDB Hebrew lexicon JSON file into the database."""
-    console.print(f"Importing {name} (Full BDB Hebrew lexicon)...")
-
-    count = 0
-    batch = []
-
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TextColumn("{task.completed} entries"),
-        console=console,
-    ) as progress:
-        task = progress.add_task(f"  {name}", total=None)
-
-        for entry in parse_bdb_lexicon(filepath):
-            batch.append((
-                entry['strongs'],
-                entry['language'],
-                entry['word'],
-                entry['transliteration'],
-                entry.get('pronunciation', ''),
-                entry['short_definition'],
-                entry.get('full_definition', ''),
-                entry.get('etymology', ''),
-                entry.get('usage_count', 0),
-                entry.get('semantic_domain', '[]'),
-                entry.get('related_words', '[]'),
-            ))
-
-            count += 1
-
-            if len(batch) >= 1000:
-                conn.executemany("""
-                    INSERT OR REPLACE INTO lexicon
-                    (strongs, language, word, transliteration, pronunciation,
-                     short_definition, full_definition, etymology, usage_count,
-                     semantic_domain, related_words)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, batch)
-                conn.commit()
-                batch = []
-                progress.update(task, completed=count)
-
-        if batch:
-            conn.executemany("""
-                INSERT OR REPLACE INTO lexicon
-                (strongs, language, word, transliteration, pronunciation,
-                 short_definition, full_definition, etymology, usage_count,
-                 semantic_domain, related_words)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, batch)
-            conn.commit()
-
-        progress.update(task, completed=count)
-
-    console.print(f"  [green]✓[/green] Imported {count} entries")
+    _import_lexicon_entries(conn, parse_bdb_lexicon, filepath, name)
 
 
 def import_lexicon_abbott_smith(conn: sqlite3.Connection, filepath: Path, name: str):

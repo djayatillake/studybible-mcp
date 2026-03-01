@@ -13,5 +13,5 @@ uvicorn>=0.24.0
 # Vector search dependencies
 sqlite-vec>=0.1.0
 
-# Embedding generation (optional, only needed for generate_embeddings.py)
-openai>=1.0.0
+# Embedding generation (optional): pip install studybible-mcp[embeddings]
+# openai>=1.0.0
