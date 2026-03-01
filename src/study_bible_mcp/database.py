@@ -7,6 +7,8 @@ Uses SQLite with async access via aiosqlite.
 import json
 import re
 import sqlite3
+import struct
+from collections import deque
 from pathlib import Path
 from typing import Any
 
@@ -70,6 +72,26 @@ class StudyBibleDB:
     async def __aexit__(self, *args):
         await self.close()
     
+    async def _fetchall(self, sql: str, params: tuple | list = ()) -> list[dict]:
+        """Execute SQL and return all rows as dicts."""
+        async with self.conn.execute(sql, params) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+    async def _fetchone(self, sql: str, params: tuple | list = ()) -> dict | None:
+        """Execute SQL and return one row as dict, or None."""
+        async with self.conn.execute(sql, params) as cursor:
+            row = await cursor.fetchone()
+            return dict(row) if row else None
+
+    async def _table_has_rows(self, table: str) -> bool:
+        """Check if a table exists and has at least one row."""
+        try:
+            async with self.conn.execute(f"SELECT 1 FROM {table} LIMIT 1") as cursor:
+                return await cursor.fetchone() is not None
+        except Exception:
+            return False
+
     # =========================================================================
     # Lexicon queries
     # =========================================================================
@@ -86,12 +108,7 @@ class StudyBibleDB:
     async def get_lexicon_entry(self, strongs: str) -> dict | None:
         """Get a single lexicon entry by Strong's number."""
         strongs = self._normalize_strongs(strongs)
-        async with self.conn.execute(
-            "SELECT * FROM lexicon WHERE strongs = ?",
-            (strongs,)
-        ) as cursor:
-            row = await cursor.fetchone()
-            return dict(row) if row else None
+        return await self._fetchone("SELECT * FROM lexicon WHERE strongs = ?", (strongs,))
     
     async def search_lexicon(
         self,
@@ -120,10 +137,7 @@ class StudyBibleDB:
         
         sql += " ORDER BY usage_count DESC LIMIT ?"
         params.append(limit)
-        
-        async with self.conn.execute(sql, params) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        return await self._fetchall(sql, params)
     
     async def get_related_words(self, strongs: str) -> list[dict]:
         """Get words related to a Strong's number."""
@@ -140,7 +154,7 @@ class StudyBibleDB:
                     if full_entry:
                         results.append(full_entry)
             return results
-        except:
+        except Exception:
             return []
     
     # =========================================================================
@@ -238,38 +252,19 @@ class StudyBibleDB:
     async def get_verse(self, reference: str) -> dict | None:
         """Get a verse by reference."""
         normalized = self._normalize_reference(reference)
-        
-        # Try exact match first
-        async with self.conn.execute(
-            "SELECT * FROM verses WHERE reference = ?",
-            (normalized,)
-        ) as cursor:
-            row = await cursor.fetchone()
-            if row:
-                return dict(row)
-        
-        # Try pattern match
-        async with self.conn.execute(
-            "SELECT * FROM verses WHERE reference LIKE ?",
-            (f"%{normalized}%",)
-        ) as cursor:
-            row = await cursor.fetchone()
-            return dict(row) if row else None
+        # Try exact match first, then pattern match
+        return (
+            await self._fetchone("SELECT * FROM verses WHERE reference = ?", (normalized,))
+            or await self._fetchone("SELECT * FROM verses WHERE reference LIKE ?", (f"%{normalized}%",))
+        )
     
     async def get_verses_with_strongs(self, strongs: str, limit: int = 20) -> list[dict]:
         """Find verses containing a specific Strong's number."""
         strongs = self._normalize_strongs(strongs)
-        
-        async with self.conn.execute(
-            """
-            SELECT * FROM verses 
-            WHERE word_data LIKE ?
-            LIMIT ?
-            """,
-            (f'%"{strongs}"%', limit)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        return await self._fetchall(
+            "SELECT * FROM verses WHERE word_data LIKE ? LIMIT ?",
+            (f'%"{strongs}"%', limit),
+        )
     
     # =========================================================================
     # Cross-reference queries
@@ -278,24 +273,18 @@ class StudyBibleDB:
     async def get_cross_references(self, reference: str) -> list[dict]:
         """Get cross-references for a verse."""
         normalized = self._normalize_reference(reference)
-        
-        async with self.conn.execute(
+        return await self._fetchall(
             "SELECT * FROM cross_references WHERE source = ? OR source LIKE ?",
-            (normalized, f"%{normalized}%")
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
-    
+            (normalized, f"%{normalized}%"),
+        )
+
     async def get_thematic_references(self, theme: str) -> list[dict]:
         """Get references for a theological theme."""
         theme_lower = theme.lower().replace(" ", "_")
-        
-        async with self.conn.execute(
+        return await self._fetchall(
             "SELECT * FROM thematic_references WHERE theme = ? OR theme LIKE ?",
-            (theme_lower, f"%{theme_lower}%")
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+            (theme_lower, f"%{theme_lower}%"),
+        )
     
     # =========================================================================
     # Name queries
@@ -304,21 +293,9 @@ class StudyBibleDB:
     async def lookup_name(self, name: str, name_type: str | None = None) -> list[dict]:
         """Look up a biblical name."""
         name_pattern = f"%{name}%"
-        
         if name_type:
-            async with self.conn.execute(
-                "SELECT * FROM names WHERE name LIKE ? AND type = ?",
-                (name_pattern, name_type)
-            ) as cursor:
-                rows = await cursor.fetchall()
-        else:
-            async with self.conn.execute(
-                "SELECT * FROM names WHERE name LIKE ?",
-                (name_pattern,)
-            ) as cursor:
-                rows = await cursor.fetchall()
-        
-        return [dict(row) for row in rows]
+            return await self._fetchall("SELECT * FROM names WHERE name LIKE ? AND type = ?", (name_pattern, name_type))
+        return await self._fetchall("SELECT * FROM names WHERE name LIKE ?", (name_pattern,))
     
     # =========================================================================
     # Morphology queries
@@ -326,12 +303,7 @@ class StudyBibleDB:
     
     async def get_morphology(self, code: str, language: str = "greek") -> dict | None:
         """Get morphology parsing for a code."""
-        async with self.conn.execute(
-            "SELECT * FROM morphology WHERE code = ? AND language = ?",
-            (code, language.lower())
-        ) as cursor:
-            row = await cursor.fetchone()
-            return dict(row) if row else None
+        return await self._fetchone("SELECT * FROM morphology WHERE code = ? AND language = ?", (code, language.lower()))
 
     # =========================================================================
     # Vector similarity queries
@@ -346,7 +318,6 @@ class StudyBibleDB:
             row = await cursor.fetchone()
             if row:
                 # sqlite-vec returns bytes, need to decode
-                import struct
                 embedding_bytes = row[0]
                 if embedding_bytes:
                     return list(struct.unpack(f'{len(embedding_bytes)//4}f', embedding_bytes))
@@ -372,7 +343,6 @@ class StudyBibleDB:
             source = await cursor.fetchone()
 
         # Convert embedding to bytes for sqlite-vec
-        import struct
         embedding_bytes = struct.pack(f'{len(embedding)}f', *embedding)
 
         # Find similar verses
@@ -392,10 +362,7 @@ class StudyBibleDB:
 
         sql += " ORDER BY distance LIMIT ?"
         params.append(limit)
-
-        async with self.conn.execute(sql, params) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        return await self._fetchall(sql, params)
 
     async def find_similar_passages(
         self,
@@ -416,7 +383,6 @@ class StudyBibleDB:
             return []
 
         # Convert embedding to bytes for sqlite-vec
-        import struct
         embedding_bytes = struct.pack(f'{len(embedding)}f', *embedding)
 
         # Search against passage embeddings
@@ -459,7 +425,7 @@ class StudyBibleDB:
         Orders by: exact name match first, then by number of aliases
         (more aliases = more prominent biblical figure), then family edges.
         """
-        async with self.conn.execute(
+        return await self._fetchall(
             """SELECT p.* FROM graph_people p
                LEFT JOIN (
                    SELECT from_person_id as pid, COUNT(*) as cnt FROM graph_family_edges GROUP BY from_person_id
@@ -474,26 +440,21 @@ class StudyBibleDB:
                    LENGTH(COALESCE(p.also_called, '')) DESC,
                    COALESCE(SUM(fe.cnt), 0) DESC
                LIMIT 10""",
-            (name, f"%{name}%", name)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+            (name, f"%{name}%", name),
+        )
 
     async def graph_find_place(self, name: str) -> list[dict]:
         """Find a place by name (fuzzy match)."""
-        async with self.conn.execute(
+        return await self._fetchall(
             "SELECT * FROM graph_places WHERE LOWER(name) LIKE LOWER(?) LIMIT 10",
-            (f"%{name}%",)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+            (f"%{name}%",),
+        )
 
     async def graph_get_ancestors(
         self, person_id: str, max_generations: int = 10
     ) -> list[dict]:
         """Get ancestors using recursive CTE."""
-        async with self.conn.execute(
-            """
+        return await self._fetchall("""
             WITH RECURSIVE ancestors AS (
                 SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
                        0 as generation, 'self' as relationship
@@ -511,18 +472,13 @@ class StudyBibleDB:
                   AND a.generation < ?
             )
             SELECT * FROM ancestors ORDER BY generation
-            """,
-            (person_id, max_generations)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        """, (person_id, max_generations))
 
     async def graph_get_descendants(
         self, person_id: str, max_generations: int = 10
     ) -> list[dict]:
         """Get descendants using recursive CTE."""
-        async with self.conn.execute(
-            """
+        return await self._fetchall("""
             WITH RECURSIVE descendants AS (
                 SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
                        0 as generation, 'self' as relationship
@@ -540,11 +496,7 @@ class StudyBibleDB:
                   AND d.generation < ?
             )
             SELECT * FROM descendants ORDER BY generation
-            """,
-            (person_id, max_generations)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        """, (person_id, max_generations))
 
     async def graph_find_path(
         self, person1_id: str, person2_id: str, max_depth: int = 15
@@ -573,7 +525,6 @@ class StudyBibleDB:
                 adjacency.setdefault(tid, []).append((fid, reverse_rel))
 
         # BFS
-        from collections import deque
         queue = deque([(person1_id, [person1_id])])
         visited = {person1_id}
 
@@ -632,112 +583,77 @@ class StudyBibleDB:
 
     async def graph_get_family(self, person_id: str) -> dict:
         """Get immediate family of a person."""
-        result = {"parents": [], "children": [], "partners": [], "siblings": []}
-
-        # Parents (people who are father_of or mother_of this person)
-        async with self.conn.execute(
-            """SELECT p.*, e.relationship_type FROM graph_family_edges e
-               JOIN graph_people p ON p.id = e.from_person_id
-               WHERE e.to_person_id = ?
-                 AND e.relationship_type IN ('father_of', 'mother_of')""",
-            (person_id,)
-        ) as cursor:
-            for row in await cursor.fetchall():
-                result["parents"].append(dict(row))
-
-        # Children
-        async with self.conn.execute(
-            """SELECT p.*, e.relationship_type FROM graph_family_edges e
-               JOIN graph_people p ON p.id = e.to_person_id
-               WHERE e.from_person_id = ?
-                 AND e.relationship_type IN ('father_of', 'mother_of')""",
-            (person_id,)
-        ) as cursor:
-            for row in await cursor.fetchall():
-                result["children"].append(dict(row))
-
-        # Partners
-        async with self.conn.execute(
-            """SELECT p.* FROM graph_family_edges e
-               JOIN graph_people p ON p.id = CASE
-                   WHEN e.from_person_id = ? THEN e.to_person_id
-                   ELSE e.from_person_id END
-               WHERE (e.from_person_id = ? OR e.to_person_id = ?)
-                 AND e.relationship_type = 'partner_of'""",
-            (person_id, person_id, person_id)
-        ) as cursor:
-            for row in await cursor.fetchall():
-                result["partners"].append(dict(row))
-
-        # Siblings
-        async with self.conn.execute(
-            """SELECT p.* FROM graph_family_edges e
-               JOIN graph_people p ON p.id = CASE
-                   WHEN e.from_person_id = ? THEN e.to_person_id
-                   ELSE e.from_person_id END
-               WHERE (e.from_person_id = ? OR e.to_person_id = ?)
-                 AND e.relationship_type = 'sibling_of'""",
-            (person_id, person_id, person_id)
-        ) as cursor:
-            for row in await cursor.fetchall():
-                result["siblings"].append(dict(row))
-
-        return result
+        return {
+            "parents": await self._fetchall(
+                """SELECT p.*, e.relationship_type FROM graph_family_edges e
+                   JOIN graph_people p ON p.id = e.from_person_id
+                   WHERE e.to_person_id = ?
+                     AND e.relationship_type IN ('father_of', 'mother_of')""",
+                (person_id,),
+            ),
+            "children": await self._fetchall(
+                """SELECT p.*, e.relationship_type FROM graph_family_edges e
+                   JOIN graph_people p ON p.id = e.to_person_id
+                   WHERE e.from_person_id = ?
+                     AND e.relationship_type IN ('father_of', 'mother_of')""",
+                (person_id,),
+            ),
+            "partners": await self._fetchall(
+                """SELECT p.* FROM graph_family_edges e
+                   JOIN graph_people p ON p.id = CASE
+                       WHEN e.from_person_id = ? THEN e.to_person_id
+                       ELSE e.from_person_id END
+                   WHERE (e.from_person_id = ? OR e.to_person_id = ?)
+                     AND e.relationship_type = 'partner_of'""",
+                (person_id, person_id, person_id),
+            ),
+            "siblings": await self._fetchall(
+                """SELECT p.* FROM graph_family_edges e
+                   JOIN graph_people p ON p.id = CASE
+                       WHEN e.from_person_id = ? THEN e.to_person_id
+                       ELSE e.from_person_id END
+                   WHERE (e.from_person_id = ? OR e.to_person_id = ?)
+                     AND e.relationship_type = 'sibling_of'""",
+                (person_id, person_id, person_id),
+            ),
+        }
 
     async def graph_get_person_events(self, person_id: str) -> list[dict]:
         """Get all events a person participated in."""
-        async with self.conn.execute(
+        return await self._fetchall(
             """SELECT e.* FROM graph_person_event_edges pe
                JOIN graph_events e ON e.id = pe.event_id
                WHERE pe.person_id = ?
                ORDER BY e.sort_key""",
-            (person_id,)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+            (person_id,),
+        )
 
     async def graph_get_event_places(self, event_id: str) -> list[dict]:
         """Get all places where an event occurred."""
-        async with self.conn.execute(
+        return await self._fetchall(
             """SELECT p.* FROM graph_event_place_edges ep
                JOIN graph_places p ON p.id = ep.place_id
                WHERE ep.event_id = ?""",
-            (event_id,)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+            (event_id,),
+        )
 
     async def graph_get_place_events(self, place_id: str) -> list[dict]:
         """Get all events at a place."""
-        async with self.conn.execute(
+        return await self._fetchall(
             """SELECT e.* FROM graph_event_place_edges ep
                JOIN graph_events e ON e.id = ep.event_id
                WHERE ep.place_id = ?
                ORDER BY e.sort_key""",
-            (place_id,)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+            (place_id,),
+        )
 
     async def graph_get_place_people(self, place_id: str) -> dict:
         """Get people born/died at a place."""
-        result = {"born_here": [], "died_here": [], "visited": []}
-
-        async with self.conn.execute(
-            "SELECT * FROM graph_people WHERE birth_place_id = ?",
-            (place_id,)
-        ) as cursor:
-            for row in await cursor.fetchall():
-                result["born_here"].append(dict(row))
-
-        async with self.conn.execute(
-            "SELECT * FROM graph_people WHERE death_place_id = ?",
-            (place_id,)
-        ) as cursor:
-            for row in await cursor.fetchall():
-                result["died_here"].append(dict(row))
-
-        return result
+        return {
+            "born_here": await self._fetchall("SELECT * FROM graph_people WHERE birth_place_id = ?", (place_id,)),
+            "died_here": await self._fetchall("SELECT * FROM graph_people WHERE death_place_id = ?", (place_id,)),
+            "visited": [],
+        }
 
     # Map from our DB abbreviations to Theographic abbreviations
     _THEOGRAPHIC_BOOK_MAP = {
@@ -820,28 +736,13 @@ class StudyBibleDB:
 
     async def graph_has_data(self) -> bool:
         """Check if graph tables have data."""
-        try:
-            async with self.conn.execute(
-                "SELECT COUNT(*) FROM graph_people"
-            ) as cursor:
-                row = await cursor.fetchone()
-                return row[0] > 0
-        except Exception:
-            return False
+        return await self._table_has_rows("graph_people")
 
     async def has_vector_tables(self) -> bool:
         """Check if vector tables exist and have data."""
         if not self._vec_loaded:
             return False
-        try:
-            async with self.conn.execute(
-                "SELECT COUNT(*) FROM verse_vectors"
-            ) as cursor:
-                row = await cursor.fetchone()
-                return row[0] > 0
-        except Exception as e:
-            logger.warning(f"Vector table check failed: {e}")
-            return False
+        return await self._table_has_rows("verse_vectors")
 
     # =========================================================================
     # Aquifer content queries
@@ -882,14 +783,7 @@ class StudyBibleDB:
 
     async def has_aquifer_data(self) -> bool:
         """Check if aquifer_content table exists and has data."""
-        try:
-            async with self.conn.execute(
-                "SELECT COUNT(*) FROM aquifer_content"
-            ) as cursor:
-                row = await cursor.fetchone()
-                return row[0] > 0
-        except Exception:
-            return False
+        return await self._table_has_rows("aquifer_content")
 
     async def get_study_notes(self, reference: str) -> list[dict]:
         """Get study notes + translation notes for a verse reference.
@@ -902,8 +796,7 @@ class StudyBibleDB:
         if not aq_ref:
             return []
 
-        # Match exact refs and ranges containing this verse
-        sql = """
+        return await self._fetchall("""
             SELECT * FROM aquifer_content
             WHERE resource_type IN ('study_notes', 'translation_notes_uw', 'translation_notes_sil')
               AND (
@@ -911,10 +804,7 @@ class StudyBibleDB:
                 OR (start_ref <= ? AND end_ref >= ? AND is_range = 1)
               )
             ORDER BY resource_type, start_ref
-        """
-        async with self.conn.execute(sql, (aq_ref, aq_ref, aq_ref)) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        """, (aq_ref, aq_ref, aq_ref))
 
     async def get_chapter_study_notes(self, book: str, chapter: int) -> list[dict]:
         """Get all study notes for an entire chapter."""
@@ -922,68 +812,42 @@ class StudyBibleDB:
         if not book_num:
             return []
 
-        sql = """
+        return await self._fetchall("""
             SELECT * FROM aquifer_content
             WHERE resource_type IN ('study_notes', 'translation_notes_uw', 'translation_notes_sil')
               AND book = ?
               AND chapter_start = ?
             ORDER BY resource_type, start_ref
-        """
-        async with self.conn.execute(sql, (book, chapter)) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        """, (book, chapter))
+
+    async def _search_aquifer_by_type(self, resource_type: str, query: str) -> list[dict]:
+        """Search aquifer_content by type — exact title match then LIKE fallback."""
+        exact = await self._fetchall(
+            "SELECT * FROM aquifer_content WHERE resource_type = ? AND LOWER(title) = LOWER(?)",
+            (resource_type, query),
+        )
+        if exact:
+            return exact
+
+        pattern = f"%{query}%"
+        return await self._fetchall(
+            """SELECT * FROM aquifer_content
+               WHERE resource_type = ?
+                 AND (LOWER(title) LIKE LOWER(?) OR LOWER(content_plain) LIKE LOWER(?))
+               ORDER BY
+                 CASE WHEN LOWER(title) LIKE LOWER(?) THEN 0 ELSE 1 END,
+                 LENGTH(title)
+               LIMIT 10""",
+            (resource_type, pattern, pattern, pattern),
+        )
 
     async def get_bible_dictionary(self, topic: str) -> list[dict]:
         """Search the Bible dictionary by title or content."""
-        # Try exact title match first
-        async with self.conn.execute(
-            "SELECT * FROM aquifer_content WHERE resource_type = 'dictionary' AND LOWER(title) = LOWER(?)",
-            (topic,)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            if rows:
-                return [dict(row) for row in rows]
-
-        # Fall back to LIKE search on title and content
-        pattern = f"%{topic}%"
-        async with self.conn.execute(
-            """SELECT * FROM aquifer_content
-               WHERE resource_type = 'dictionary'
-                 AND (LOWER(title) LIKE LOWER(?) OR LOWER(content_plain) LIKE LOWER(?))
-               ORDER BY
-                 CASE WHEN LOWER(title) LIKE LOWER(?) THEN 0 ELSE 1 END,
-                 LENGTH(title)
-               LIMIT 10""",
-            (pattern, pattern, pattern)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        return await self._search_aquifer_by_type("dictionary", topic)
 
     async def get_key_terms(self, term: str) -> list[dict]:
         """Search FIA Key Terms by title or content."""
-        # Try exact title match first
-        async with self.conn.execute(
-            "SELECT * FROM aquifer_content WHERE resource_type = 'key_terms' AND LOWER(title) = LOWER(?)",
-            (term,)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            if rows:
-                return [dict(row) for row in rows]
-
-        # Fall back to LIKE search
-        pattern = f"%{term}%"
-        async with self.conn.execute(
-            """SELECT * FROM aquifer_content
-               WHERE resource_type = 'key_terms'
-                 AND (LOWER(title) LIKE LOWER(?) OR LOWER(content_plain) LIKE LOWER(?))
-               ORDER BY
-                 CASE WHEN LOWER(title) LIKE LOWER(?) THEN 0 ELSE 1 END,
-                 LENGTH(title)
-               LIMIT 10""",
-            (pattern, pattern, pattern)
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        return await self._search_aquifer_by_type("key_terms", term)
 
     async def search_aquifer_content(
         self,
@@ -1007,9 +871,7 @@ class StudyBibleDB:
         sql += " ORDER BY CASE WHEN LOWER(title) LIKE LOWER(?) THEN 0 ELSE 1 END, LENGTH(title) LIMIT ?"
         params.extend([pattern, limit])
 
-        async with self.conn.execute(sql, params) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        return await self._fetchall(sql, params)
 
     # =========================================================================
     # ACAI entity queries
@@ -1017,33 +879,20 @@ class StudyBibleDB:
 
     async def has_acai_data(self) -> bool:
         """Check if acai_entities table exists and has data."""
-        try:
-            async with self.conn.execute(
-                "SELECT COUNT(*) FROM acai_entities"
-            ) as cursor:
-                row = await cursor.fetchone()
-                return row[0] > 0
-        except Exception:
-            return False
+        return await self._table_has_rows("acai_entities")
 
     async def get_acai_entity(self, name: str) -> dict | None:
         """Get an ACAI entity by name (case-insensitive, fuzzy)."""
-        # Try exact match first
-        async with self.conn.execute(
-            "SELECT * FROM acai_entities WHERE LOWER(name) = LOWER(?)",
-            (name,)
-        ) as cursor:
-            row = await cursor.fetchone()
-            if row:
-                return dict(row)
+        exact = await self._fetchone(
+            "SELECT * FROM acai_entities WHERE LOWER(name) = LOWER(?)", (name,)
+        )
+        if exact:
+            return exact
 
-        # Try LIKE match
-        async with self.conn.execute(
+        return await self._fetchone(
             "SELECT * FROM acai_entities WHERE LOWER(name) LIKE LOWER(?) ORDER BY reference_count DESC LIMIT 1",
-            (f"%{name}%",)
-        ) as cursor:
-            row = await cursor.fetchone()
-            return dict(row) if row else None
+            (f"%{name}%",),
+        )
 
     # =========================================================================
     # ANE (Ancient Near East) context queries
@@ -1051,26 +900,16 @@ class StudyBibleDB:
 
     async def has_ane_data(self) -> bool:
         """Check if ane_entries table exists and has data."""
-        try:
-            async with self.conn.execute(
-                "SELECT COUNT(*) FROM ane_entries"
-            ) as cursor:
-                row = await cursor.fetchone()
-                return row[0] > 0
-        except Exception:
-            return False
+        return await self._table_has_rows("ane_entries")
 
     async def get_ane_dimensions(self) -> list[dict]:
         """Get all available ANE dimensions with entry counts."""
-        sql = """
+        return await self._fetchall("""
             SELECT dimension, dimension_label, COUNT(*) as entry_count
             FROM ane_entries
             GROUP BY dimension, dimension_label
             ORDER BY dimension
-        """
-        async with self.conn.execute(sql) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        """)
 
     async def get_ane_context(
         self,
@@ -1092,7 +931,6 @@ class StudyBibleDB:
         join_clause = ""
 
         if reference:
-            # Parse the reference to get book abbreviation and chapter
             normalized = self._normalize_reference(reference)
             parts = normalized.split(".")
             book_abbr = parts[0] if parts else ""
@@ -1126,9 +964,7 @@ class StudyBibleDB:
         """
         params.append(limit)
 
-        async with self.conn.execute(sql, params) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(row) for row in rows]
+        return await self._fetchall(sql, params)
 
 
 def create_schema(conn: sqlite3.Connection):
