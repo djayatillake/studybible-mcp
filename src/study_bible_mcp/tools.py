@@ -54,6 +54,25 @@ import json
 
 from mcp.types import Tool
 
+
+def _parse_json_field(value, default=None):
+    """Parse a JSON string field, returning default if parsing fails or value is already the right type."""
+    if value is None:
+        return default
+    if not isinstance(value, str):
+        return value
+    try:
+        return json.loads(value)
+    except (json.JSONDecodeError, TypeError):
+        return default
+
+
+def _truncate(text: str, limit: int, suffix: str = "\n\n*[Truncated]*") -> str:
+    """Truncate text to limit characters, appending suffix if truncated."""
+    if len(text) <= limit:
+        return text
+    return text[:limit] + suffix
+
 TOOLS = [
     Tool(
         name="word_study",
@@ -727,16 +746,11 @@ def format_lexicon_entry(entry: dict) -> str:
             label = "Full Definition"
 
         lines.append(f"### {label}")
-        # Truncate very long definitions
-        if len(full_def) > 3000:
-            full_def = full_def[:3000] + "\n\n*[Definition truncated — full entry available in the lexicon]*"
-        lines.append(full_def)
+        lines.append(_truncate(full_def, 3000, "\n\n*[Definition truncated — full entry available in the lexicon]*"))
         lines.append("")
     elif full_def:
         lines.append("### Definition")
-        if len(full_def) > 3000:
-            full_def = full_def[:3000] + "\n\n*[Definition truncated]*"
-        lines.append(full_def)
+        lines.append(_truncate(full_def, 3000, "\n\n*[Definition truncated]*"))
         lines.append("")
     elif short_def:
         lines.append("### Definition")
@@ -754,18 +768,11 @@ def format_lexicon_entry(entry: dict) -> str:
         lines.append("")
 
     # Semantic range
-    if entry.get('semantic_domain'):
-        try:
-            domains = entry['semantic_domain']
-            if isinstance(domains, str):
-                import json
-                domains = json.loads(domains)
-            if domains:
-                lines.append("### Semantic Range")
-                lines.append(", ".join(domains))
-                lines.append("")
-        except:
-            pass
+    domains = _parse_json_field(entry.get('semantic_domain'))
+    if domains:
+        lines.append("### Semantic Range")
+        lines.append(", ".join(domains))
+        lines.append("")
 
     # Usage count
     if entry.get('usage_count'):
@@ -773,46 +780,31 @@ def format_lexicon_entry(entry: dict) -> str:
         lines.append("")
 
     # Related words
-    if entry.get('related_words'):
-        try:
-            related = entry['related_words']
-            if isinstance(related, str):
-                import json
-                related = json.loads(related)
-            if related:
-                lines.append("### Related Words")
-                for r in related:
-                    if isinstance(r, dict):
-                        lines.append(f"- {r.get('strongs', '')} {r.get('word', '')} - {r.get('gloss', '')}")
-                    else:
-                        lines.append(f"- {r}")
-                lines.append("")
-        except:
-            pass
+    related = _parse_json_field(entry.get('related_words'))
+    if related:
+        lines.append("### Related Words")
+        for r in related:
+            if isinstance(r, dict):
+                lines.append(f"- {r.get('strongs', '')} {r.get('word', '')} - {r.get('gloss', '')}")
+            else:
+                lines.append(f"- {r}")
+        lines.append("")
 
     # Abbott-Smith definition (NT-focused)
     abbott_def = entry.get('abbott_smith_def')
     if abbott_def:
         lines.append("### Abbott-Smith Definition (NT-Focused)")
-        if len(abbott_def) > 3000:
-            abbott_def = abbott_def[:3000] + "\n\n*[Definition truncated — full entry available in Abbott-Smith]*"
-        lines.append(abbott_def)
+        lines.append(_truncate(abbott_def, 3000, "\n\n*[Definition truncated — full entry available in Abbott-Smith]*"))
         lines.append("")
 
     # LXX / Hebrew equivalents
-    lxx_data = entry.get('lxx_hebrew')
-    if lxx_data:
-        try:
-            import json
-            lxx = lxx_data if isinstance(lxx_data, list) else json.loads(lxx_data)
-            if lxx:
-                lines.append("### LXX / Hebrew Equivalents")
-                for item in lxx:
-                    if isinstance(item, dict):
-                        lines.append(f"- {item.get('strongs', '')} {item.get('hebrew', '')}")
-                lines.append("")
-        except:
-            pass
+    lxx = _parse_json_field(entry.get('lxx_hebrew'))
+    if lxx:
+        lines.append("### LXX / Hebrew Equivalents")
+        for item in lxx:
+            if isinstance(item, dict):
+                lines.append(f"- {item.get('strongs', '')} {item.get('hebrew', '')}")
+        lines.append("")
 
     # Synonyms
     syn_text = entry.get('synonyms')
@@ -844,24 +836,16 @@ def format_verse(verse: dict, include_original: bool = True, include_morphology:
         lines.append(verse['text_original'])
         lines.append("")
     
-    if verse.get('word_data'):
-        try:
-            import json
-            words = verse['word_data']
-            if isinstance(words, str):
-                words = json.loads(words)
-            
-            if words and include_original:
-                lines.append("### Word Analysis")
-                for w in words:
-                    if isinstance(w, dict):
-                        word_line = f"- **{w.get('word', '')}** ({w.get('strongs', '')}): {w.get('gloss', '')}"
-                        if include_morphology and w.get('morph'):
-                            word_line += f" [{w['morph']}]"
-                        lines.append(word_line)
-                lines.append("")
-        except:
-            pass
+    words = _parse_json_field(verse.get('word_data'))
+    if words and include_original:
+        lines.append("### Word Analysis")
+        for w in words:
+            if isinstance(w, dict):
+                word_line = f"- **{w.get('word', '')}** ({w.get('strongs', '')}): {w.get('gloss', '')}"
+                if include_morphology and w.get('morph'):
+                    word_line += f" [{w['morph']}]"
+                lines.append(word_line)
+        lines.append("")
     
     return "\n".join(lines)
 
@@ -888,28 +872,14 @@ def format_name_entry(entry: dict, acai_data: dict | None = None) -> str:
             acai_parts.append(f"**Description**: {acai_data['description']}")
 
         # Variant names
-        if acai_data.get('referred_to_as'):
-            try:
-                variants = acai_data['referred_to_as']
-                if isinstance(variants, str):
-                    import json
-                    variants = json.loads(variants)
-                if variants:
-                    acai_parts.append(f"**Also known as**: {', '.join(str(v) for v in variants[:5])}")
-            except:
-                pass
+        variants = _parse_json_field(acai_data.get('referred_to_as'))
+        if variants:
+            acai_parts.append(f"**Also known as**: {', '.join(str(v) for v in variants[:5])}")
 
         # Roles
-        if acai_data.get('roles'):
-            try:
-                roles = acai_data['roles']
-                if isinstance(roles, str):
-                    import json
-                    roles = json.loads(roles)
-                if roles:
-                    acai_parts.append(f"**Roles**: {', '.join(str(r) for r in roles)}")
-            except:
-                pass
+        roles = _parse_json_field(acai_data.get('roles'))
+        if roles:
+            acai_parts.append(f"**Roles**: {', '.join(str(r) for r in roles)}")
 
         if acai_data.get('reference_count'):
             acai_parts.append(f"**Referenced in**: {acai_data['reference_count']} verses")
@@ -922,34 +892,20 @@ def format_name_entry(entry: dict, acai_data: dict | None = None) -> str:
             lines.extend(acai_parts)
             lines.append("")
 
-    if entry.get('relationships'):
-        try:
-            import json
-            rels = entry['relationships']
-            if isinstance(rels, str):
-                rels = json.loads(rels)
-            if rels:
-                lines.append("**Relationships**:")
-                for key, value in rels.items():
-                    if value:
-                        lines.append(f"- {key.title()}: {value}")
-                lines.append("")
-        except:
-            pass
+    rels = _parse_json_field(entry.get('relationships'))
+    if rels:
+        lines.append("**Relationships**:")
+        for key, value in rels.items():
+            if value:
+                lines.append(f"- {key.title()}: {value}")
+        lines.append("")
 
-    if entry.get('references'):
-        try:
-            import json
-            refs = entry['references']
-            if isinstance(refs, str):
-                refs = json.loads(refs)
-            if refs:
-                lines.append("**Key References**: " + ", ".join(refs[:10]))
-                if len(refs) > 10:
-                    lines.append(f"(and {len(refs) - 10} more)")
-                lines.append("")
-        except:
-            pass
+    refs = _parse_json_field(entry.get('references'))
+    if refs:
+        lines.append("**Key References**: " + ", ".join(refs[:10]))
+        if len(refs) > 10:
+            lines.append(f"(and {len(refs) - 10} more)")
+        lines.append("")
 
     return "\n".join(lines)
 
@@ -989,60 +945,45 @@ def format_study_notes(notes: list[dict]) -> str:
             if title:
                 lines.append(f"**{title}**")
             if content:
-                # Truncate very long notes
-                if len(content) > 2000:
-                    content = content[:2000] + "\n\n*[Note truncated]*"
-                lines.append(content)
+                lines.append(_truncate(content, 2000, "\n\n*[Note truncated]*"))
             lines.append("")
 
     return "\n".join(lines)
 
 
-def format_dictionary_article(articles: list[dict]) -> str:
-    """Format Bible dictionary articles."""
-    if not articles:
-        return "No dictionary article found for this topic.\n"
+def _format_content_items(items: list[dict], limit: int, truncation_note: str, empty_msg: str) -> str:
+    """Format a list of content items (articles, terms) with title + truncated body."""
+    if not items:
+        return empty_msg
 
     lines = []
-
-    for article in articles:
-        title = article.get('title', 'Untitled')
-        content = article.get('content_plain', '')
-
+    for item in items:
+        title = item.get('title', 'Untitled')
+        content = item.get('content_plain', '')
         lines.append(f"## {title}")
         lines.append("")
-
         if content:
-            # Truncate very long articles
-            if len(content) > 4000:
-                content = content[:4000] + "\n\n*[Article truncated — full text available in the Tyndale Bible Dictionary]*"
-            lines.append(content)
+            lines.append(_truncate(content, limit, truncation_note))
         lines.append("")
-
     return "\n".join(lines)
+
+
+def format_dictionary_article(articles: list[dict]) -> str:
+    """Format Bible dictionary articles."""
+    return _format_content_items(
+        articles, 4000,
+        "\n\n*[Article truncated — full text available in the Tyndale Bible Dictionary]*",
+        "No dictionary article found for this topic.\n",
+    )
 
 
 def format_key_terms(terms: list[dict]) -> str:
     """Format FIA Key Terms results."""
-    if not terms:
-        return "No key term found matching this query.\n"
-
-    lines = []
-
-    for term in terms:
-        title = term.get('title', 'Untitled')
-        content = term.get('content_plain', '')
-
-        lines.append(f"## {title}")
-        lines.append("")
-
-        if content:
-            if len(content) > 3000:
-                content = content[:3000] + "\n\n*[Term entry truncated]*"
-            lines.append(content)
-        lines.append("")
-
-    return "\n".join(lines)
+    return _format_content_items(
+        terms, 3000,
+        "\n\n*[Term entry truncated]*",
+        "No key term found matching this query.\n",
+    )
 
 
 # =========================================================================
@@ -1087,11 +1028,7 @@ def format_ane_context(entries: list[dict]) -> str:
                 lines.append("")
 
             # ANE parallels
-            parallels_raw = entry.get("ane_parallels", "[]")
-            try:
-                parallels = json.loads(parallels_raw) if isinstance(parallels_raw, str) else parallels_raw
-            except (json.JSONDecodeError, TypeError):
-                parallels = []
+            parallels = _parse_json_field(entry.get("ane_parallels"), [])
             if parallels:
                 lines.append("**ANE Parallels:**")
                 for p in parallels:
@@ -1103,21 +1040,13 @@ def format_ane_context(entries: list[dict]) -> str:
                 lines.append("")
 
             # Key references
-            refs_raw = entry.get("key_references", "[]")
-            try:
-                refs = json.loads(refs_raw) if isinstance(refs_raw, str) else refs_raw
-            except (json.JSONDecodeError, TypeError):
-                refs = []
+            refs = _parse_json_field(entry.get("key_references"), [])
             if refs:
                 lines.append(f"**Key References:** {', '.join(refs)}")
                 lines.append("")
 
             # Scholarly sources
-            sources_raw = entry.get("scholarly_sources", "[]")
-            try:
-                sources = json.loads(sources_raw) if isinstance(sources_raw, str) else sources_raw
-            except (json.JSONDecodeError, TypeError):
-                sources = []
+            sources = _parse_json_field(entry.get("scholarly_sources"), [])
             if sources:
                 lines.append(f"**Sources:** {'; '.join(sources)}")
                 lines.append("")
@@ -1164,31 +1093,26 @@ def format_year(year: int | None) -> str:
     return f"AD {year}"
 
 
+def _render_family_list(people: list[dict], heading: str, lines: list[str]) -> None:
+    """Render a list of ancestors or descendants into lines."""
+    if people and len(people) > 1:
+        lines.append(f"### {heading}")
+        for p in people:
+            if p["generation"] == 0:
+                continue
+            indent = "  " * p["generation"]
+            rel = p["relationship"].replace("_of", "").title()
+            year_str = f" ({format_year(p.get('birth_year'))})" if p.get("birth_year") else ""
+            lines.append(f"{indent}- **{p['name']}** ({rel}){year_str}")
+        lines.append("")
+
+
 def format_genealogy(person_name: str, ancestors: list[dict], descendants: list[dict]) -> str:
     """Format a genealogy tree for display."""
     lines = [f"## Genealogy of {person_name}\n"]
 
-    if ancestors and len(ancestors) > 1:
-        lines.append("### Ancestors")
-        for a in ancestors:
-            if a["generation"] == 0:
-                continue
-            indent = "  " * a["generation"]
-            rel = a["relationship"].replace("_of", "").title()
-            year_str = f" ({format_year(a.get('birth_year'))})" if a.get("birth_year") else ""
-            lines.append(f"{indent}- **{a['name']}** ({rel}){year_str}")
-        lines.append("")
-
-    if descendants and len(descendants) > 1:
-        lines.append("### Descendants")
-        for d in descendants:
-            if d["generation"] == 0:
-                continue
-            indent = "  " * d["generation"]
-            rel = d["relationship"].replace("_of", "").title()
-            year_str = f" ({format_year(d.get('birth_year'))})" if d.get("birth_year") else ""
-            lines.append(f"{indent}- **{d['name']}** ({rel}){year_str}")
-        lines.append("")
+    _render_family_list(ancestors, "Ancestors", lines)
+    _render_family_list(descendants, "Descendants", lines)
 
     if len(ancestors) <= 1 and len(descendants) <= 1:
         lines.append("No genealogical data found in the Theographic database.\n")
@@ -1450,6 +1374,11 @@ def mermaid_place_network(
     people: dict,
 ) -> str:
     """Generate a Mermaid graph showing a place's connections to events and people."""
+    born = people.get("born_here", [])
+    died = people.get("died_here", [])
+    if not events and not born and not died:
+        return ""
+
     lines = ["```mermaid", "graph TD"]
 
     place_id = _mermaid_id(place["name"])
@@ -1465,9 +1394,6 @@ def mermaid_place_network(
             lines.append(f'    {place_id} --- {eid}["{label}"]')
 
     # People born/died
-    born = people.get("born_here", [])
-    died = people.get("died_here", [])
-
     for p in born[:8]:
         pid = _mermaid_id(p["name"]) + "_b"
         lines.append(f'    {pid}["{p["name"]}"] -->|born| {place_id}')
