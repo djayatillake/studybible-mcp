@@ -7,7 +7,6 @@ Supports both stdio and SSE transports for local and remote deployment.
 """
 
 import asyncio
-import json
 import logging
 import os
 import re
@@ -29,9 +28,10 @@ from .database import StudyBibleDB
 # Purple book with gold cross icon (32x32 PNG, base64 encoded)
 ICON_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAtklEQVR42mNgGOmAEZtgQ9TV/7SwrGGZNiNeB9DKYnwOYcGl6MajG1S1VENOA6s4E4yxounvfw0NDZpYjm4mckgz0drnhMxmIdew5bO3M9w+twfOr5veS5Y5TAOdDUcdMOAOYCE2wWEDqkYueNVEpnpSxwHIqR3ZcmziqMBzNA1QJwqwFTLocT5aEI06YNQBow6gaUGEDUAqGk/qhwCu1iutWsY4+wW0bJYT1S+gZUgMqq7ZKAAA/oE/8EmGTpMAAAAASUVORK5CYII="
 from .tools import (
-    TOOLS, format_lexicon_entry, format_verse, format_name_entry,
+    TOOLS, _truncate, format_lexicon_entry, format_verse, format_name_entry,
     format_genealogy, format_person_events, format_place_history,
     format_passage_entities, format_connection_path,
+    format_enriched_verse,
     mermaid_genealogy, mermaid_connection_path, mermaid_person_timeline,
     mermaid_place_network,
     format_study_notes, format_dictionary_article, format_key_terms,
@@ -67,6 +67,11 @@ server = Server(
 
 # Database connection (initialized on startup)
 db: StudyBibleDB | None = None
+
+
+def text(msg: str) -> list[TextContent]:
+    """Wrap a string in a single-element TextContent list."""
+    return [TextContent(type="text", text=msg)]
 
 
 def get_db_path() -> Path:
@@ -114,61 +119,19 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     if db is None:
         db_path = get_db_path()
         if not db_path.exists():
-            return [TextContent(
-                type="text",
-                text=f"Database not found at {db_path}. Please run 'python scripts/build_database.py' first."
-            )]
+            return text(f"Database not found at {db_path}. Please run 'python scripts/build_database.py' first.")
         db = StudyBibleDB(db_path)
         await db.connect()
 
+    handler = _TOOL_HANDLERS.get(name)
+    if not handler:
+        return text(f"Unknown tool: {name}")
+
     try:
-        if name == "word_study":
-            return await handle_word_study(arguments)
-        elif name == "lookup_verse":
-            return await handle_lookup_verse(arguments)
-        elif name == "search_lexicon":
-            return await handle_search_lexicon(arguments)
-        elif name == "get_cross_references":
-            return await handle_get_cross_references(arguments)
-        elif name == "lookup_name":
-            return await handle_lookup_name(arguments)
-        elif name == "parse_morphology":
-            return await handle_parse_morphology(arguments)
-        elif name == "search_by_strongs":
-            return await handle_search_by_strongs(arguments)
-        elif name == "find_similar_passages":
-            return await handle_find_similar_passages(arguments)
-        elif name == "explore_genealogy":
-            return await handle_explore_genealogy(arguments)
-        elif name == "people_in_passage":
-            return await handle_people_in_passage(arguments)
-        elif name == "explore_person_events":
-            return await handle_explore_person_events(arguments)
-        elif name == "explore_place":
-            return await handle_explore_place(arguments)
-        elif name == "find_connection":
-            return await handle_find_connection(arguments)
-        elif name == "graph_enriched_search":
-            return await handle_graph_enriched_search(arguments)
-        elif name == "get_study_notes":
-            return await handle_get_study_notes(arguments)
-        elif name == "get_bible_dictionary":
-            return await handle_get_bible_dictionary(arguments)
-        elif name == "get_key_terms":
-            return await handle_get_key_terms(arguments)
-        elif name == "get_ane_context":
-            return await handle_get_ane_context(arguments)
-        else:
-            return [TextContent(
-                type="text",
-                text=f"Unknown tool: {name}"
-            )]
+        return await handler(arguments)
     except Exception as e:
         logger.exception(f"Error in tool {name}")
-        return [TextContent(
-            type="text",
-            text=f"Error: {str(e)}"
-        )]
+        return text(f"Error: {str(e)}")
 
 
 async def handle_word_study(args: dict[str, Any]) -> list[TextContent]:
@@ -183,10 +146,10 @@ async def handle_word_study(args: dict[str, Any]) -> list[TextContent]:
         entries = await db.search_lexicon(word, language=language, limit=1)
         entry = entries[0] if entries else None
     else:
-        return [TextContent(type="text", text="Please provide either 'strongs' number or 'word' to study.")]
+        return text("Please provide either 'strongs' number or 'word' to study.")
 
     if not entry:
-        return [TextContent(type="text", text="No entry found for the given word/Strong's number.")]
+        return text("No entry found for the given word/Strong's number.")
 
     # Get verses where this word appears
     verses = await db.get_verses_with_strongs(entry["strongs"], limit=5)
@@ -198,7 +161,7 @@ async def handle_word_study(args: dict[str, Any]) -> list[TextContent]:
         for v in verses:
             result += f"\n**{v['reference']}**: {v['text_english']}\n"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
@@ -208,12 +171,12 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
     include_morphology = args.get("include_morphology", False)
 
     if not reference:
-        return [TextContent(type="text", text="Please provide a verse reference (e.g., 'John 3:16').")]
+        return text("Please provide a verse reference (e.g., 'John 3:16').")
 
     verse = await db.get_verse(reference)
 
     if not verse:
-        return [TextContent(type="text", text=f"Verse not found: {reference}")]
+        return text(f"Verse not found: {reference}")
 
     result = format_verse(verse, include_original, include_morphology)
 
@@ -222,7 +185,7 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
     if genre:
         result += f"\n\n---\n{format_genre_guidance(genre)}"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_search_lexicon(args: dict[str, Any]) -> list[TextContent]:
@@ -232,12 +195,12 @@ async def handle_search_lexicon(args: dict[str, Any]) -> list[TextContent]:
     limit = args.get("limit", 10)
 
     if not query:
-        return [TextContent(type="text", text="Please provide a search query.")]
+        return text("Please provide a search query.")
 
     entries = await db.search_lexicon(query, language=language, limit=limit)
 
     if not entries:
-        return [TextContent(type="text", text=f"No entries found for '{query}'.")]
+        return text(f"No entries found for '{query}'.")
 
     result = f"## Lexicon Search: '{query}'\n\nFound {len(entries)} entries:\n\n"
 
@@ -245,7 +208,7 @@ async def handle_search_lexicon(args: dict[str, Any]) -> list[TextContent]:
         result += f"### {entry['strongs']} - {entry['word']} ({entry['transliteration']})\n"
         result += f"{entry['short_definition']}\n\n"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]:
@@ -256,25 +219,25 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
     if theme:
         refs = await db.get_thematic_references(theme)
         if not refs:
-            return [TextContent(type="text", text=f"No cross-references found for theme '{theme}'.")]
+            return text(f"No cross-references found for theme '{theme}'.")
 
         result = f"## Cross-References: {theme}\n\n"
         for ref in refs:
             result += f"- **{ref['reference']}**: {ref['note']}\n"
-        return [TextContent(type="text", text=result)]
+        return text(result)
 
     elif reference:
         refs = await db.get_cross_references(reference)
         if not refs:
-            return [TextContent(type="text", text=f"No cross-references found for {reference}.")]
+            return text(f"No cross-references found for {reference}.")
 
         result = f"## Cross-References for {reference}\n\n"
         for ref in refs:
             result += f"- {ref['target']}\n"
-        return [TextContent(type="text", text=result)]
+        return text(result)
 
     else:
-        return [TextContent(type="text", text="Please provide either 'reference' or 'theme'.")]
+        return text("Please provide either 'reference' or 'theme'.")
 
 
 async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
@@ -283,12 +246,12 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     name_type = args.get("type")  # person, place, thing
 
     if not name:
-        return [TextContent(type="text", text="Please provide a name to look up.")]
+        return text("Please provide a name to look up.")
 
     entries = await db.lookup_name(name, name_type=name_type)
 
     if not entries:
-        return [TextContent(type="text", text=f"No entries found for '{name}'.")]
+        return text(f"No entries found for '{name}'.")
 
     # Try to get ACAI enrichment data
     acai_data = None
@@ -305,7 +268,7 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
         result += format_name_entry(entry, acai_data=acai_data)
         result += "\n---\n\n"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_parse_morphology(args: dict[str, Any]) -> list[TextContent]:
@@ -314,12 +277,12 @@ async def handle_parse_morphology(args: dict[str, Any]) -> list[TextContent]:
     language = args.get("language", "greek")
 
     if not code:
-        return [TextContent(type="text", text="Please provide a morphology code to parse.")]
+        return text("Please provide a morphology code to parse.")
 
     parsing = await db.get_morphology(code, language)
 
     if not parsing:
-        return [TextContent(type="text", text=f"Unknown morphology code: {code}")]
+        return text(f"Unknown morphology code: {code}")
 
     result = f"## Morphology: {code}\n\n"
     result += f"**Language**: {parsing['language'].title()}\n"
@@ -342,7 +305,7 @@ async def handle_parse_morphology(args: dict[str, Any]) -> list[TextContent]:
 
     result += f"\n**Full Parsing**: {parsing['parsing']}\n"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
@@ -351,12 +314,12 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
     limit = args.get("limit", 20)
 
     if not strongs:
-        return [TextContent(type="text", text="Please provide a Strong's number (e.g., 'G26' or 'H3068').")]
+        return text("Please provide a Strong's number (e.g., 'G26' or 'H3068').")
 
     # Get lexicon entry first
     entry = await db.get_lexicon_entry(strongs)
     if not entry:
-        return [TextContent(type="text", text=f"Unknown Strong's number: {strongs}")]
+        return text(f"Unknown Strong's number: {strongs}")
 
     # Get verses
     verses = await db.get_verses_with_strongs(strongs, limit=limit)
@@ -370,7 +333,7 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
     else:
         result += "No verses found with this Strong's number in the database.\n"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent]:
@@ -379,33 +342,24 @@ async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent
     limit = args.get("limit", 10)
 
     if not reference:
-        return [TextContent(type="text", text="Please provide a verse reference (e.g., 'John 3:16').")]
+        return text("Please provide a verse reference (e.g., 'John 3:16').")
 
     # Check if vector search is available
     if not db._vec_loaded:
         error_detail = db._vec_error or "sqlite-vec extension not available"
-        return [TextContent(
-            type="text",
-            text=f"Vector search unavailable: {error_detail}"
-        )]
+        return text(f"Vector search unavailable: {error_detail}")
 
     has_vectors = await db.has_vector_tables()
     if not has_vectors:
-        return [TextContent(
-            type="text",
-            text="Vector embeddings have not been generated yet. "
-                 "Run 'python scripts/generate_embeddings.py' to create them (~$0.01 via OpenAI API)."
-        )]
+        return text("Vector embeddings have not been generated yet. "
+                 "Run 'python scripts/generate_embeddings.py' to create them (~$0.01 via OpenAI API).")
 
     # Find similar passages
     similar = await db.find_similar_passages(reference, limit=limit)
 
     if not similar:
-        return [TextContent(
-            type="text",
-            text=f"No similar passages found for {reference}. "
-                 "The verse may not exist or embeddings may not be generated."
-        )]
+        return text(f"No similar passages found for {reference}. "
+                 "The verse may not exist or embeddings may not be generated.")
 
     # Get the source verse for context
     source_verse = await db.get_verse(reference)
@@ -438,21 +392,27 @@ async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent
             result += f"⚡ **Genre**: {passage_genre} (source is {source_genre})\n\n"
 
         # Show passage text (truncated if very long)
-        text = passage['text_combined']
-        if len(text) > 500:
-            text = text[:500] + "..."
-        result += f"{text}\n\n"
+        passage_text = _truncate(passage['text_combined'], 500, "...")
+        result += f"{passage_text}\n\n"
 
         # Add verse count info
         if passage['verse_count'] > 1:
             result += f"*({passage['verse_count']} verses in this passage)*\n\n"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 # =========================================================================
 # Aquifer content handlers
 # =========================================================================
+
+async def _check_aquifer_data() -> list[TextContent] | None:
+    """Check if Aquifer data is available. Returns error response or None."""
+    has_data = await db.has_aquifer_data()
+    if not has_data:
+        return text("Aquifer data not available. Run 'python scripts/download_stepbible.py --aquifer' and rebuild the database.")
+    return None
+
 
 async def handle_get_study_notes(args: dict[str, Any]) -> list[TextContent]:
     """Handle get_study_notes tool - get study notes for a verse or chapter."""
@@ -460,14 +420,10 @@ async def handle_get_study_notes(args: dict[str, Any]) -> list[TextContent]:
     chapter_only = args.get("chapter_only", False)
 
     if not reference:
-        return [TextContent(type="text", text="Please provide a Bible reference (e.g., 'John 3:16' or 'Genesis 1').")]
+        return text("Please provide a Bible reference (e.g., 'John 3:16' or 'Genesis 1').")
 
-    has_data = await db.has_aquifer_data()
-    if not has_data:
-        return [TextContent(
-            type="text",
-            text="Study notes not available. Run 'python scripts/download_stepbible.py --aquifer' and rebuild the database."
-        )]
+    if err := await _check_aquifer_data():
+        return err
 
     if chapter_only or ':' not in reference.strip():
         # Chapter-level: parse book and chapter
@@ -486,12 +442,12 @@ async def handle_get_study_notes(args: dict[str, Any]) -> list[TextContent]:
         notes = await db.get_study_notes(reference)
 
     if not notes:
-        return [TextContent(type="text", text=f"No study notes found for {reference}.")]
+        return text(f"No study notes found for {reference}.")
 
     result = f"## Study Notes: {reference}\n\n"
     result += format_study_notes(notes)
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_get_bible_dictionary(args: dict[str, Any]) -> list[TextContent]:
@@ -499,23 +455,19 @@ async def handle_get_bible_dictionary(args: dict[str, Any]) -> list[TextContent]
     topic = args.get("topic", "")
 
     if not topic:
-        return [TextContent(type="text", text="Please provide a topic to look up.")]
+        return text("Please provide a topic to look up.")
 
-    has_data = await db.has_aquifer_data()
-    if not has_data:
-        return [TextContent(
-            type="text",
-            text="Bible dictionary not available. Run 'python scripts/download_stepbible.py --aquifer' and rebuild the database."
-        )]
+    if err := await _check_aquifer_data():
+        return err
 
     articles = await db.get_bible_dictionary(topic)
 
     if not articles:
-        return [TextContent(type="text", text=f"No dictionary article found for '{topic}'.")]
+        return text(f"No dictionary article found for '{topic}'.")
 
     result = format_dictionary_article(articles)
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_get_key_terms(args: dict[str, Any]) -> list[TextContent]:
@@ -523,23 +475,19 @@ async def handle_get_key_terms(args: dict[str, Any]) -> list[TextContent]:
     term = args.get("term", "")
 
     if not term:
-        return [TextContent(type="text", text="Please provide a term to look up.")]
+        return text("Please provide a term to look up.")
 
-    has_data = await db.has_aquifer_data()
-    if not has_data:
-        return [TextContent(
-            type="text",
-            text="Key terms not available. Run 'python scripts/download_stepbible.py --aquifer' and rebuild the database."
-        )]
+    if err := await _check_aquifer_data():
+        return err
 
     terms = await db.get_key_terms(term)
 
     if not terms:
-        return [TextContent(type="text", text=f"No key term found for '{term}'.")]
+        return text(f"No key term found for '{term}'.")
 
     result = format_key_terms(terms)
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 # =========================================================================
@@ -554,16 +502,13 @@ async def handle_get_ane_context(args: dict[str, Any]) -> list[TextContent]:
 
     has_data = await db.has_ane_data()
     if not has_data:
-        return [TextContent(
-            type="text",
-            text="ANE context data not available. Rebuild the database with ANE data files in data/ane_context/."
-        )]
+        return text("ANE context data not available. Rebuild the database with ANE data files in data/ane_context/.")
 
     # If no arguments provided, list available dimensions
     if not reference and not dimension and not period:
         dimensions = await db.get_ane_dimensions()
         result = format_ane_dimensions(dimensions)
-        return [TextContent(type="text", text=result)]
+        return text(result)
 
     entries = await db.get_ane_context(
         reference=reference,
@@ -579,10 +524,7 @@ async def handle_get_ane_context(args: dict[str, Any]) -> list[TextContent]:
             parts.append(f"dimension={dimension}")
         if period:
             parts.append(f"period={period}")
-        return [TextContent(
-            type="text",
-            text=f"No ANE context entries found for {', '.join(parts)}."
-        )]
+        return text(f"No ANE context entries found for {', '.join(parts)}.")
 
     header = "## Ancient Near East Context"
     if reference:
@@ -590,7 +532,7 @@ async def handle_get_ane_context(args: dict[str, Any]) -> list[TextContent]:
     header += "\n\n"
 
     result = header + format_ane_context(entries)
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 # =========================================================================
@@ -601,10 +543,7 @@ async def _check_graph_data() -> list[TextContent] | None:
     """Check if graph data is available. Returns error response or None."""
     has_data = await db.graph_has_data()
     if not has_data:
-        return [TextContent(
-            type="text",
-            text="Graph data not available. Run 'python scripts/import_theographic.py' to import Theographic Bible Metadata."
-        )]
+        return text("Graph data not available. Run 'python scripts/import_theographic.py' to import Theographic Bible Metadata.")
     return None
 
 
@@ -618,11 +557,11 @@ async def handle_explore_genealogy(args: dict[str, Any]) -> list[TextContent]:
     generations = args.get("generations", 5)
 
     if not person_name:
-        return [TextContent(type="text", text="Please provide a person's name.")]
+        return text("Please provide a person's name.")
 
     matches = await db.graph_find_person(person_name)
     if not matches:
-        return [TextContent(type="text", text=f"No person found matching '{person_name}' in the Theographic database.")]
+        return text(f"No person found matching '{person_name}' in the Theographic database.")
 
     person = matches[0]
     ancestors = []
@@ -657,7 +596,7 @@ async def handle_explore_genealogy(args: dict[str, Any]) -> list[TextContent]:
     if diagram:
         result += f"\n### Family Tree Diagram\n{diagram}\n"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_people_in_passage(args: dict[str, Any]) -> list[TextContent]:
@@ -667,7 +606,7 @@ async def handle_people_in_passage(args: dict[str, Any]) -> list[TextContent]:
 
     reference = args.get("reference", "")
     if not reference:
-        return [TextContent(type="text", text="Please provide a Bible reference (e.g., 'Romans 8' or 'Genesis 22:1').")]
+        return text("Please provide a Bible reference (e.g., 'Romans 8' or 'Genesis 22:1').")
 
     # Determine if this is a chapter or verse reference
     ref_stripped = reference.strip()
@@ -688,10 +627,10 @@ async def handle_people_in_passage(args: dict[str, Any]) -> list[TextContent]:
             book_abbr = normalized.split(".")[0]
             entities = await db.graph_get_chapter_entities(book_abbr, int(chapter_str))
         else:
-            return [TextContent(type="text", text=f"Could not parse reference: {reference}. Use 'Romans 8' or 'Genesis 22:1' format.")]
+            return text(f"Could not parse reference: {reference}. Use 'Romans 8' or 'Genesis 22:1' format.")
 
     result = format_passage_entities(reference, entities)
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_explore_person_events(args: dict[str, Any]) -> list[TextContent]:
@@ -701,11 +640,11 @@ async def handle_explore_person_events(args: dict[str, Any]) -> list[TextContent
 
     person_name = args.get("person", "")
     if not person_name:
-        return [TextContent(type="text", text="Please provide a person's name.")]
+        return text("Please provide a person's name.")
 
     matches = await db.graph_find_person(person_name)
     if not matches:
-        return [TextContent(type="text", text=f"No person found matching '{person_name}' in the Theographic database.")]
+        return text(f"No person found matching '{person_name}' in the Theographic database.")
 
     person = matches[0]
     events = await db.graph_get_person_events(person["id"])
@@ -724,7 +663,7 @@ async def handle_explore_person_events(args: dict[str, Any]) -> list[TextContent
     if diagram:
         result += f"\n### Timeline Diagram\n{diagram}\n"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_explore_place(args: dict[str, Any]) -> list[TextContent]:
@@ -734,11 +673,11 @@ async def handle_explore_place(args: dict[str, Any]) -> list[TextContent]:
 
     place_name = args.get("place", "")
     if not place_name:
-        return [TextContent(type="text", text="Please provide a place name.")]
+        return text("Please provide a place name.")
 
     matches = await db.graph_find_place(place_name)
     if not matches:
-        return [TextContent(type="text", text=f"No place found matching '{place_name}' in the Theographic database.")]
+        return text(f"No place found matching '{place_name}' in the Theographic database.")
 
     place = matches[0]
     events = await db.graph_get_place_events(place["id"])
@@ -751,7 +690,7 @@ async def handle_explore_place(args: dict[str, Any]) -> list[TextContent]:
     if diagram:
         result += f"\n### Place Network Diagram\n{diagram}\n"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_find_connection(args: dict[str, Any]) -> list[TextContent]:
@@ -762,15 +701,15 @@ async def handle_find_connection(args: dict[str, Any]) -> list[TextContent]:
     name1 = args.get("person1", "")
     name2 = args.get("person2", "")
     if not name1 or not name2:
-        return [TextContent(type="text", text="Please provide both person1 and person2 names.")]
+        return text("Please provide both person1 and person2 names.")
 
     matches1 = await db.graph_find_person(name1)
     matches2 = await db.graph_find_person(name2)
 
     if not matches1:
-        return [TextContent(type="text", text=f"No person found matching '{name1}'.")]
+        return text(f"No person found matching '{name1}'.")
     if not matches2:
-        return [TextContent(type="text", text=f"No person found matching '{name2}'.")]
+        return text(f"No person found matching '{name2}'.")
 
     person1 = matches1[0]
     person2 = matches2[0]
@@ -783,7 +722,7 @@ async def handle_find_connection(args: dict[str, Any]) -> list[TextContent]:
     if diagram:
         result += f"\n### Relationship Diagram\n{diagram}\n"
 
-    return [TextContent(type="text", text=result)]
+    return text(result)
 
 
 async def handle_graph_enriched_search(args: dict[str, Any]) -> list[TextContent]:
@@ -793,67 +732,45 @@ async def handle_graph_enriched_search(args: dict[str, Any]) -> list[TextContent
 
     reference = args.get("reference", "")
     if not reference:
-        return [TextContent(type="text", text="Please provide a verse reference (e.g., 'Genesis 22:1').")]
+        return text("Please provide a verse reference (e.g., 'Genesis 22:1').")
 
     # Get the verse text
     verse = await db.get_verse(reference)
     normalized = db._normalize_reference(reference)
     entities = await db.graph_get_verse_entities(normalized)
 
-    lines = [f"## {reference}\n"]
+    # Build family data for each person mentioned
+    family_data = {}
+    for p in entities.get("people", []):
+        name = p.get("entity_name", p.get("entity_id"))
+        person_matches = await db.graph_find_person(name)
+        if person_matches:
+            family_data[name] = await db.graph_get_family(person_matches[0]["id"])
 
-    if verse:
-        lines.append(verse.get("text_english", ""))
-        lines.append("")
-        if verse.get("text_original"):
-            lines.append(f"**Original**: {verse['text_original']}")
-            lines.append("")
+    result = format_enriched_verse(reference, verse, entities, family_data)
+    return text(result)
 
-    # Add entity context
-    people = entities.get("people", [])
-    places = entities.get("places", [])
-    events = entities.get("events", [])
 
-    if people:
-        lines.append("### People Mentioned")
-        for p in people:
-            name = p.get("entity_name", p.get("entity_id"))
-            lines.append(f"\n**{name}**")
-            # Get family context for each person
-            person_matches = await db.graph_find_person(name)
-            if person_matches:
-                family = await db.graph_get_family(person_matches[0]["id"])
-                parts = []
-                if family["parents"]:
-                    parent_names = ", ".join(pr["name"] for pr in family["parents"])
-                    parts.append(f"Parents: {parent_names}")
-                if family["partners"]:
-                    partner_names = ", ".join(pr["name"] for pr in family["partners"])
-                    parts.append(f"Spouse: {partner_names}")
-                if family["children"]:
-                    child_names = ", ".join(c["name"] for c in family["children"][:5])
-                    suffix = f" (+{len(family['children'])-5} more)" if len(family["children"]) > 5 else ""
-                    parts.append(f"Children: {child_names}{suffix}")
-                if parts:
-                    lines.append("  " + " | ".join(parts))
-        lines.append("")
-
-    if places:
-        lines.append("### Places Mentioned")
-        for p in places:
-            lines.append(f"- **{p.get('entity_name', p.get('entity_id'))}**")
-        lines.append("")
-
-    if events:
-        lines.append("### Events")
-        for e in events:
-            lines.append(f"- **{e.get('entity_name', e.get('entity_id'))}**")
-        lines.append("")
-
-    if not people and not places and not events:
-        lines.append("*No entity data available for this verse in the Theographic database.*\n")
-
-    return [TextContent(type="text", text="\n".join(lines))]
+_TOOL_HANDLERS = {
+    "word_study": handle_word_study,
+    "lookup_verse": handle_lookup_verse,
+    "search_lexicon": handle_search_lexicon,
+    "get_cross_references": handle_get_cross_references,
+    "lookup_name": handle_lookup_name,
+    "parse_morphology": handle_parse_morphology,
+    "search_by_strongs": handle_search_by_strongs,
+    "find_similar_passages": handle_find_similar_passages,
+    "explore_genealogy": handle_explore_genealogy,
+    "people_in_passage": handle_people_in_passage,
+    "explore_person_events": handle_explore_person_events,
+    "explore_place": handle_explore_place,
+    "find_connection": handle_find_connection,
+    "graph_enriched_search": handle_graph_enriched_search,
+    "get_study_notes": handle_get_study_notes,
+    "get_bible_dictionary": handle_get_bible_dictionary,
+    "get_key_terms": handle_get_key_terms,
+    "get_ane_context": handle_get_ane_context,
+}
 
 
 async def run_server():

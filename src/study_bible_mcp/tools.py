@@ -1226,6 +1226,68 @@ def format_connection_path(person1: str, person2: str, path: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def format_enriched_verse(reference: str, verse: dict | None, entities: dict, family_data: dict[str, dict]) -> str:
+    """Format a verse with its entity context and family relationships.
+
+    Args:
+        reference: The verse reference string
+        verse: The verse dict (or None)
+        entities: Dict with 'people', 'places', 'events' lists
+        family_data: Map of person name -> family dict from graph_get_family
+    """
+    lines = [f"## {reference}\n"]
+
+    if verse:
+        lines.append(verse.get("text_english", ""))
+        lines.append("")
+        if verse.get("text_original"):
+            lines.append(f"**Original**: {verse['text_original']}")
+            lines.append("")
+
+    people = entities.get("people", [])
+    places = entities.get("places", [])
+    events = entities.get("events", [])
+
+    if people:
+        lines.append("### People Mentioned")
+        for p in people:
+            name = p.get("entity_name", p.get("entity_id"))
+            lines.append(f"\n**{name}**")
+            family = family_data.get(name)
+            if family:
+                parts = []
+                if family["parents"]:
+                    parent_names = ", ".join(pr["name"] for pr in family["parents"])
+                    parts.append(f"Parents: {parent_names}")
+                if family["partners"]:
+                    partner_names = ", ".join(pr["name"] for pr in family["partners"])
+                    parts.append(f"Spouse: {partner_names}")
+                if family["children"]:
+                    child_names = ", ".join(c["name"] for c in family["children"][:5])
+                    suffix = f" (+{len(family['children'])-5} more)" if len(family["children"]) > 5 else ""
+                    parts.append(f"Children: {child_names}{suffix}")
+                if parts:
+                    lines.append("  " + " | ".join(parts))
+        lines.append("")
+
+    if places:
+        lines.append("### Places Mentioned")
+        for p in places:
+            lines.append(f"- **{p.get('entity_name', p.get('entity_id'))}**")
+        lines.append("")
+
+    if events:
+        lines.append("### Events")
+        for e in events:
+            lines.append(f"- **{e.get('entity_name', e.get('entity_id'))}**")
+        lines.append("")
+
+    if not people and not places and not events:
+        lines.append("*No entity data available for this verse in the Theographic database.*\n")
+
+    return "\n".join(lines)
+
+
 # =========================================================================
 # Mermaid diagram formatters
 # =========================================================================
