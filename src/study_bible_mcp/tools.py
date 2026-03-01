@@ -643,6 +643,7 @@ USE THIS when:
 - Studying Levitical purity, clean/unclean categories, or scapegoat rituals
 - Encountering literary forms (chiasm, inclusio, lament, oracle)
 - Needing background on daily life, agriculture, or material culture
+- Encountering "soul," "spirit," nephesh, or ruach language (Hebrew vs. Greek anthropology)
 - Any passage where modern Western assumptions might obscure the ANE meaning
 - Needing the interpretive methodology (derivation hierarchy, confidence calibration)
 
