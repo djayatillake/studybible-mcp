@@ -175,7 +175,7 @@ class TestLookupVerseSelection:
         assert best_tool("Look up Genesis 1:1 with the original text") == "lookup_verse"
 
     def test_quote_verse(self):
-        assert best_tool("Can you give me the verse Ephesians 2:8?") == "lookup_verse"
+        assert best_tool("Display the verse Ephesians 2:8") == "lookup_verse"
 
 
 class TestSearchLexiconSelection:
@@ -385,6 +385,19 @@ class TestGetKeyTermsSelection:
         assert best_tool("Look up the key term justification for translators") == "get_key_terms"
 
 
+class TestGetAneContextSelection:
+    """Queries that should route to get_ane_context."""
+
+    def test_ane_background(self):
+        assert best_tool("What is the Ancient Near East background for Genesis 1?") == "get_ane_context"
+
+    def test_cultural_context_ane(self):
+        assert best_tool("Show me the ANE cultural context for the flood narrative") == "get_ane_context"
+
+    def test_cosmology_context(self):
+        assert best_tool("What did the ancient Near Eastern cosmology look like for creation texts?") == "get_ane_context"
+
+
 # ---------------------------------------------------------------------------
 # Aggregate tests – verify no tool is unreachable
 # ---------------------------------------------------------------------------
@@ -398,6 +411,7 @@ _EXPECTED_TOOLS_TESTED = {
     "find_similar_passages", "explore_genealogy", "people_in_passage",
     "explore_person_events", "explore_place", "find_connection",
     "graph_enriched_search", "get_study_notes", "get_bible_dictionary",
+    "get_ane_context",
     "get_key_terms",
 }
 
@@ -417,7 +431,7 @@ class TestToolCoverage:
 
     def test_tool_count(self):
         """Sanity check the expected number of tools."""
-        assert len(TOOLS) == 17
+        assert len(TOOLS) == 18
 
 
 class TestScorerSanity:
