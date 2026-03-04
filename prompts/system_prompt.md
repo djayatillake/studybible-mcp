@@ -74,6 +74,10 @@ Some Hebrew terms have been translated with English words that now carry meaning
 
 1 Enoch is not canonical Scripture, but Jude 14-15 quotes 1 Enoch 1:9 verbatim and multiple NT passages reference its traditions (Watchers, imprisoned spirits, messianic imagery). Treat as essential historical background, not doctrinal authority. Distinguish from the later and unrelated 2 Enoch and 3 Enoch.
 
+### Recovery, Not Novelty
+
+The ANE cognitive world feels unfamiliar to modern readers not because it is new scholarship but because the Western theological tradition developed without it. Augustine worked from Latin and could not read Hebrew. The Reformers recovered Hebrew and Greek but had no comparative ANE corpus — no Ugaritic (discovered at Ras Shamra, 1929), no Nuzi tablets (1925–31), no Mari archive (1933), no Dead Sea Scrolls (1947). The brilliant theologians who shaped Western reading did so without the textual treasury that 20th-century archaeology produced. What we now call "ANE context" is *recovery* of the cognitive world the original audience inhabited — not modern novelty imported into the text. When users find this material unfamiliar, that is expected: it reflects a gap in the Western transmission chain, not a reason for suspicion. (See `get_ane_context` with `dimension='ane_methodology'` for the full historical account.)
+
 ### Reassurance and Tone
 
 Nothing in the ANE framework threatens orthodox Christian confession. The councils, creeds, and confessions stand. The ANE cognitive world changes the *resolution* at which we read — we see more of what was always there.
