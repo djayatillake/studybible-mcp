@@ -967,12 +967,12 @@ def _make_shared_routes():
 
 
 async def run_sse_server(host: str, port: int):
-    """Run the MCP server with SSE transport for remote connections."""
+    """Run the MCP server with SSE transport only (legacy)."""
     try:
         from mcp.server.sse import SseServerTransport
         from starlette.applications import Starlette
         from starlette.routing import Route
-        from starlette.responses import JSONResponse, Response
+        from starlette.responses import JSONResponse
         from starlette.middleware import Middleware
         from starlette.middleware.cors import CORSMiddleware
         import uvicorn
@@ -986,7 +986,6 @@ async def run_sse_server(host: str, port: int):
     sse = SseServerTransport("/messages")
 
     async def handle_sse(request):
-        """Handle SSE connection for MCP protocol."""
         async with sse.connect_sse(
             request.scope, request.receive, request._send
         ) as streams:
@@ -996,11 +995,9 @@ async def run_sse_server(host: str, port: int):
             )
 
     async def handle_messages(request):
-        """Handle POST messages for SSE transport."""
         await sse.handle_post_message(request.scope, request.receive, request._send)
 
     async def root(request):
-        """Root endpoint with service information."""
         return JSONResponse({
             "name": "Study Bible MCP Server",
             "version": "1.0.0",
@@ -1009,87 +1006,88 @@ async def run_sse_server(host: str, port: int):
             "endpoints": {
                 "/sse": "SSE connection endpoint",
                 "/messages": "Message POST endpoint",
-                "/health": "Health check endpoint",
+                "/health": "Health check",
                 "/privacy": "Privacy policy",
-                "/static/icon.png": "Server icon",
-                "/download/study_bible.db": "Download pre-built database (~600MB)",
             },
             "tools": [tool.name for tool in TOOLS],
         })
 
-    shared_routes = _make_shared_routes()
-
     app = Starlette(
         routes=[
             Route("/", endpoint=root, methods=["GET"]),
-            *shared_routes,
+            *_make_shared_routes(),
             Route("/sse", endpoint=handle_sse),
             Route("/messages", endpoint=handle_messages, methods=["POST"]),
         ],
         middleware=[
-            Middleware(
-                CORSMiddleware,
-                allow_origins=["*"],
-                allow_credentials=True,
-                allow_methods=["*"],
-                allow_headers=["*"],
-            )
+            Middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
+                       allow_methods=["*"], allow_headers=["*"])
         ],
     )
 
-    # Wrap with rate limiting
     rate_limited_app = RateLimitMiddleware(app)
-
     logger.info(f"Starting SSE server on {host}:{port}")
-    logger.info(f"SSE endpoint: http://{host}:{port}/sse")
-    logger.info(f"Health check: http://{host}:{port}/health")
 
-    config = uvicorn.Config(
-        rate_limited_app,
-        host=host,
-        port=port,
-        log_level="info",
-        access_log=True,
-    )
-    server_instance = uvicorn.Server(config)
-    await server_instance.serve()
+    config = uvicorn.Config(rate_limited_app, host=host, port=port, log_level="info", access_log=True)
+    await uvicorn.Server(config).serve()
 
 
 async def run_http_server(host: str, port: int):
-    """Run the MCP server with Streamable HTTP transport."""
+    """Run the MCP server with both Streamable HTTP and SSE transports.
+
+    Serves Streamable HTTP at /mcp and SSE at /sse for backwards compatibility.
+    """
     try:
+        from mcp.server.sse import SseServerTransport
         from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
         from starlette.applications import Starlette
         from starlette.routing import Route, Mount
-        from starlette.responses import JSONResponse, Response
+        from starlette.responses import JSONResponse
         from starlette.middleware import Middleware
         from starlette.middleware.cors import CORSMiddleware
         from collections.abc import AsyncIterator
         import uvicorn
     except ImportError:
         logger.error(
-            "Streamable HTTP transport requires additional dependencies. "
+            "HTTP transport requires additional dependencies. "
             "Install with: pip install 'study-bible-mcp[sse]' or pip install starlette uvicorn"
         )
         sys.exit(1)
 
+    # Streamable HTTP session manager
     session_manager = StreamableHTTPSessionManager(app=server)
+
+    # SSE transport for backwards compatibility
+    sse = SseServerTransport("/messages")
 
     @contextlib.asynccontextmanager
     async def lifespan(app: Starlette) -> AsyncIterator[None]:
         async with session_manager.run():
             yield
 
+    async def handle_sse(request):
+        async with sse.connect_sse(
+            request.scope, request.receive, request._send
+        ) as streams:
+            await server.run(
+                streams[0], streams[1],
+                server.create_initialization_options()
+            )
+
+    async def handle_messages(request):
+        await sse.handle_post_message(request.scope, request.receive, request._send)
+
     async def root(request):
-        """Root endpoint with service information."""
         return JSONResponse({
             "name": "Study Bible MCP Server",
             "version": "1.0.0",
             "description": "Bible study tools with Greek/Hebrew lexicons via MCP",
-            "transport": "streamable-http",
+            "transports": ["streamable-http", "sse"],
             "endpoints": {
-                "/mcp": "Streamable HTTP MCP endpoint",
-                "/health": "Health check endpoint",
+                "/mcp": "Streamable HTTP MCP endpoint (recommended)",
+                "/sse": "SSE connection endpoint (legacy)",
+                "/messages": "SSE message POST endpoint",
+                "/health": "Health check",
                 "/privacy": "Privacy policy",
                 "/static/icon.png": "Server icon",
                 "/download/study_bible.db": "Download pre-built database (~600MB)",
@@ -1097,42 +1095,28 @@ async def run_http_server(host: str, port: int):
             "tools": [tool.name for tool in TOOLS],
         })
 
-    shared_routes = _make_shared_routes()
-
     app = Starlette(
         lifespan=lifespan,
         routes=[
             Route("/", endpoint=root, methods=["GET"]),
-            *shared_routes,
+            *_make_shared_routes(),
             Mount("/mcp", app=session_manager.handle_request),
+            Route("/sse", endpoint=handle_sse),
+            Route("/messages", endpoint=handle_messages, methods=["POST"]),
         ],
         middleware=[
-            Middleware(
-                CORSMiddleware,
-                allow_origins=["*"],
-                allow_credentials=True,
-                allow_methods=["*"],
-                allow_headers=["*"],
-            )
+            Middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
+                       allow_methods=["*"], allow_headers=["*"])
         ],
     )
 
-    # Wrap with rate limiting
     rate_limited_app = RateLimitMiddleware(app)
+    logger.info(f"Starting server on {host}:{port}")
+    logger.info(f"  Streamable HTTP: http://{host}:{port}/mcp")
+    logger.info(f"  SSE (legacy):    http://{host}:{port}/sse")
 
-    logger.info(f"Starting Streamable HTTP server on {host}:{port}")
-    logger.info(f"MCP endpoint: http://{host}:{port}/mcp")
-    logger.info(f"Health check: http://{host}:{port}/health")
-
-    config = uvicorn.Config(
-        rate_limited_app,
-        host=host,
-        port=port,
-        log_level="info",
-        access_log=True,
-    )
-    server_instance = uvicorn.Server(config)
-    await server_instance.serve()
+    config = uvicorn.Config(rate_limited_app, host=host, port=port, log_level="info", access_log=True)
+    await uvicorn.Server(config).serve()
 
 
 @click.command()
@@ -1141,26 +1125,13 @@ async def run_http_server(host: str, port: int):
     type=click.Choice(["stdio", "sse", "http"]),
     default="stdio",
     envvar="TRANSPORT",
-    help="Transport protocol to use",
+    help="Transport protocol to use (http serves both Streamable HTTP and SSE)",
 )
-@click.option(
-    "--host",
-    default="0.0.0.0",
-    help="Host for SSE/HTTP transport",
-)
-@click.option(
-    "--port",
-    default=8080,
-    type=int,
-    envvar="PORT",
-    help="Port for SSE/HTTP transport (default: 8080, or PORT env var)",
-)
-@click.option(
-    "--db-path",
-    type=click.Path(),
-    envvar="STUDY_BIBLE_DB",
-    help="Path to SQLite database",
-)
+@click.option("--host", default="0.0.0.0", help="Host for SSE/HTTP transport")
+@click.option("--port", default=8080, type=int, envvar="PORT",
+              help="Port for SSE/HTTP transport (default: 8080, or PORT env var)")
+@click.option("--db-path", type=click.Path(), envvar="STUDY_BIBLE_DB",
+              help="Path to SQLite database")
 def main(transport: str, host: str, port: int, db_path: str | None):
     """Run the Study Bible MCP server."""
     if db_path:
