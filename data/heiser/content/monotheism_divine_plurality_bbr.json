@@ -1,0 +1,59 @@
+{
+  "source_key": "drmsh_articles",
+  "title": "Monotheism, Polytheism, Monolatry, or Henotheism? Toward an Assessment of Divine Plurality in the Hebrew Bible (BBR 2008)",
+  "author": "heiser",
+  "type": "paper",
+  "publication": "Bulletin for Biblical Research 18.1 (2008): 1-30",
+  "url": "https://digitalcommons.liberty.edu/lts_fac_pubs/277",
+  "entries": [
+    {
+      "title": "The Consensus View of Monotheistic Evolution Is Circular and Fails",
+      "chapter_or_episode": "Section 1: The Consensus View",
+      "content_summary": "The dominant critical consensus since the 19th century holds that Israel's faith evolved from polytheism/henotheism to monotheism. This view is marred by circular reasoning — it assumes what it seeks to prove. Evidence: (1) Psalm 82, with its clear reference to a pantheon over which Yahweh presides, is supposedly 'late' — but if there was a campaign to stamp out polytheism, why was it 'missed'? Because there are approximately 185 occurrences of elohim, ha-elohim, bene elohim, bene ha-elohim, elim, bene elim in divine council contexts in the Qumran material ALONE. Second Temple Jews, willing to die rather than worship other gods, did not consider these texts a threat to monotheism. (2) The rhetorical use argument (Psalm 82 uses polytheistic language to promote monotheism) ignores pre-exilic texts like Psalms 24 and 29 that contain the same divine council language.",
+      "content_detail": "The alternative view — that plural elohim are merely humans or idols — also fails. Making the elohim of Psalm 82 human requires ignoring: Psalm 89:5-7 which places the council 'in the clouds'; the Deut 32:8-9 backdrop where divine beings (not humans) administer the nations; the death sentence 'you shall die like humans' which is nonsensical if addressed to humans. The modern term 'monotheism' (coined in the 17th century) does not accurately capture the beliefs of the biblical writers. Both the evolutionary view and the traditional protective view bring theology to the text rather than deriving it from the text.",
+      "page_range": "pp. 1-8",
+      "references": [
+        {"reference": "Psa.82.1", "relevance": "primary"},
+        {"reference": "Psa.82.6", "relevance": "primary"},
+        {"reference": "Psa.82.7", "relevance": "primary"},
+        {"reference": "Psa.82.8", "relevance": "primary"},
+        {"reference": "Psa.89.5", "relevance": "primary"},
+        {"reference": "Psa.89.6", "relevance": "primary"},
+        {"reference": "Psa.89.7", "relevance": "primary"},
+        {"reference": "Psa.29.1", "relevance": "primary"},
+        {"reference": "Deu.32.8", "relevance": "primary"},
+        {"reference": "Deu.32.9", "relevance": "primary"},
+        {"reference": "Deu.4.19", "relevance": "supporting"},
+        {"reference": "Deu.4.20", "relevance": "supporting"},
+        {"reference": "Exo.15.11", "relevance": "supporting"},
+        {"reference": "Deu.10.17", "relevance": "supporting"}
+      ],
+      "themes": ["divine_council", "elohim_plural", "psalm82_judgment"]
+    },
+    {
+      "title": "Denial Statements in Deuteronomy Are Incomparability Claims, Not Denials of Existence",
+      "chapter_or_episode": "Section 1.2: Deuteronomy",
+      "content_summary": "The phrases 'there is no other' (Deut 4:35,39) and 'there is no god beside me' (Deut 32:39) occur IN THE SAME CHAPTERS that assume and affirm the existence of other gods (Deut 4:19-20; 32:8-9,17). Four proofs that these are incomparability claims: (1) The same constructions occur for Babylon (Isa 47:8,10) and Nineveh (Zeph 2:15) — 'I am, and there is none else beside me' — obviously not claiming to be the only city. (2) The Hebrew levaddo ('alone/beside') need not mean exclusive isolation — in 1 Kings 18:1-6, Ahab goes levaddo but obviously has servants; in Psalm 51:4, David sins 'against you alone' though he also sinned against Bathsheba and Uriah. (3) The negative particle 'eyn + 'od can express incomparability rather than nonexistence. (4) Deuteronomy 32:8-9,17 in the same chapter explicitly assumes the existence of other elohim (sons of God, shedim/demons).",
+      "content_detail": "Hans Rechenmacher's linguistic study argued the denial phrases point to exclusivistic monotheism, but as Nathan MacDonald showed, his methodology is flawed — he assumes what he seeks to prove and fails to explain why the construction cannot describe incomparability. MacDonald observes that in every case where 'eyn + 'od occurs in questions/answers, 'what is being questioned is not the absolute existence of an object, but only if there is an object in a person's immediate domain.'",
+      "page_range": "pp. 4-8",
+      "references": [
+        {"reference": "Deu.4.35", "relevance": "primary"},
+        {"reference": "Deu.4.39", "relevance": "primary"},
+        {"reference": "Deu.32.39", "relevance": "primary"},
+        {"reference": "Deu.4.19", "relevance": "primary"},
+        {"reference": "Deu.4.20", "relevance": "primary"},
+        {"reference": "Deu.32.8", "relevance": "primary"},
+        {"reference": "Deu.32.9", "relevance": "primary"},
+        {"reference": "Deu.32.17", "relevance": "primary"},
+        {"reference": "Isa.47.8", "relevance": "primary"},
+        {"reference": "Isa.47.10", "relevance": "primary"},
+        {"reference": "Zep.2.15", "relevance": "primary"},
+        {"reference": "Deu.10.17", "relevance": "supporting"},
+        {"reference": "Exo.15.11", "relevance": "supporting"},
+        {"reference": "1Ki.18.1", "relevance": "supporting"},
+        {"reference": "Psa.51.4", "relevance": "supporting"}
+      ],
+      "themes": ["elohim_plural", "deut32_worldview", "divine_council"]
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "source_key": "drmsh_articles",
+  "title": "Divine Council (Lexham Bible Dictionary)",
+  "author": "heiser",
+  "type": "article",
+  "publication": "The Lexham Bible Dictionary (Bellingham, WA: Lexham Press, 2012)",
+  "url": "https://www.thedivinecouncil.com/DivineCouncilLBD.pdf",
+  "entries": [
+    {
+      "title": "The Satan (Hassatan) in Job — An Adversary in the Divine Council, Not the Devil",
+      "chapter_or_episode": "The Satan",
+      "content_summary": "The hassatan in Job 1-2 is NOT a proper name — it has the Hebrew definite article prefixed (ha-satan = 'the Adversary'). This figure is therefore not the Devil as known in the New Testament. The Adversary's behavior in Job 1-2 is consistent with lesser deities in Ugaritic council scenes who report to a higher deity. He is the deity responsible for checking on human misbehavior. He is not 'talking back to God' but pointing out that humans behave well only when not under duress. Yahweh decides to test the Adversary's estimation, knowing Job will endure.",
+      "content_detail": "Peggy Day's study 'An Adversary in Heaven' established that the hassatan is a functional role in the divine council, not a specific named entity. This is consistent with the Ugaritic parallel where lesser deities reported to El on the misbehavior of humans or other gods.",
+      "page_range": "pp. 5-6",
+      "references": [
+        {"reference": "Job.1.6", "relevance": "primary"},
+        {"reference": "Job.1.7", "relevance": "primary"},
+        {"reference": "Job.1.8", "relevance": "primary"},
+        {"reference": "Job.1.9", "relevance": "primary"},
+        {"reference": "Job.1.10", "relevance": "primary"},
+        {"reference": "Job.1.11", "relevance": "primary"},
+        {"reference": "Job.1.12", "relevance": "primary"},
+        {"reference": "Job.2.1", "relevance": "primary"},
+        {"reference": "Job.2.2", "relevance": "primary"},
+        {"reference": "Job.2.6", "relevance": "primary"}
+      ],
+      "themes": ["divine_council"]
+    },
+    {
+      "title": "Daniel 4 and 7 — The Watchers and the Divine Council Judgment Scene",
+      "chapter_or_episode": "Decision Making in the Divine Council",
+      "content_summary": "Daniel 4:17 describes Nebuchadnezzar's punishment as 'by the decree of the Watchers, the decision by the word of the holy ones' — but seven verses later (Dan 4:24), the same sentence is 'a decree of the Most High.' The Aramaic phrase shallitin shemay'a (Dan 4:26) can be translated either 'heaven rules' (corporate personification) or 'the heavenly ones rule' (council authority). The decree is from the Watchers, yet it is the singular Most High who rules — the council's decrees are Yahweh's decrees. Daniel 7:9-12 describes a divine council meeting: plural 'thrones' are set up, the Ancient of Days is seated, the 'court' (council) is seated, books of judgment are opened, and the fourth beast is killed. The 'holy ones of the Most High' (Dan 7:25) who receive the kingdom are probably divine beings (not humans) — humans enter later: 'the people of the holy ones' (Dan 7:27).",
+      "content_detail": "In Daniel 7, the Son of Man bears the title 'rider on the clouds' — a title reserved exclusively for Yahweh in the OT, with this one exception. This character is distinct from the Ancient of Days (the enthroned deity) yet bears a divine title. Along with the Angel of YHWH as 'man of war,' this passage formed the basis for Judaism's doctrine of two powers in heaven, a point of orthodoxy until the second century AD.",
+      "page_range": "pp. 4-6",
+      "references": [
+        {"reference": "Dan.4.17", "relevance": "primary"},
+        {"reference": "Dan.4.24", "relevance": "primary"},
+        {"reference": "Dan.4.26", "relevance": "primary"},
+        {"reference": "Dan.7.9", "relevance": "primary"},
+        {"reference": "Dan.7.10", "relevance": "primary"},
+        {"reference": "Dan.7.13", "relevance": "primary"},
+        {"reference": "Dan.7.14", "relevance": "primary"},
+        {"reference": "Dan.7.25", "relevance": "primary"},
+        {"reference": "Dan.7.26", "relevance": "primary"},
+        {"reference": "Dan.7.27", "relevance": "primary"}
+      ],
+      "themes": ["divine_council", "watchers_tradition", "two_powers", "messianic_expectation"]
+    },
+    {
+      "title": "Deuteronomy 32:17 — Demons, Gods, Idols, and the Host of Heaven Are the Same Beings",
+      "chapter_or_episode": "Understanding Elohim / Deuteronomy 32",
+      "content_summary": "Deuteronomy 32:17 reads: 'They sacrificed to demons (shedim) who are not God (eloah — SINGULAR), to gods (elohim) they did not know.' The singular eloah means the demons are NOT Yahweh — but they ARE elohim (gods/divine beings). Translations rendering this as 'demons that were no gods' are inaccurate — eloah is never plural or collective in the Hebrew Bible. The lesser elohim are not merely idols: ancient idolaters knew statues were not identical to the deities they represented. A deity's non-corporeal essence was unlimited by time and space and could manifest in all its 'bodies' simultaneously. The shedim, the 'other gods' (elohim acherim), and the 'host of heaven' are all the same entities — the sons of God to whom the nations were allotted at Babel (Deut 32:8-9 / 4:19-20).",
+      "content_detail": "The chain of identification across Deuteronomy: host of heaven (4:19) = other gods/acherim elohim (17:3; 29:25) = sons of God/bene elohim (32:8 DSS) = shedim/demons (32:17). These are real spiritual entities, not merely idols. Passages like Deut 4:28 and 7:25 link these beings to the statues that represented them, but the beings themselves are real. Psalm 97:7 demands that the lesser elohim worship Yahweh — a puzzling command if no such entities exist.",
+      "page_range": "pp. 6-12",
+      "references": [
+        {"reference": "Deu.32.17", "relevance": "primary"},
+        {"reference": "Deu.17.3", "relevance": "primary"},
+        {"reference": "Deu.29.25", "relevance": "primary"},
+        {"reference": "Deu.4.19", "relevance": "primary"},
+        {"reference": "Deu.4.20", "relevance": "primary"},
+        {"reference": "Deu.32.8", "relevance": "primary"},
+        {"reference": "Deu.32.9", "relevance": "primary"},
+        {"reference": "Deu.4.28", "relevance": "supporting"},
+        {"reference": "Deu.7.25", "relevance": "supporting"},
+        {"reference": "Psa.97.7", "relevance": "supporting"},
+        {"reference": "Isa.43.10", "relevance": "supporting"},
+        {"reference": "Isa.47.8", "relevance": "supporting"}
+      ],
+      "themes": ["elohim_plural", "deut32_worldview", "divine_council"]
+    },
+    {
+      "title": "Genesis 48:15-16 — Jacob Fuses God and the Angel with a Singular Verb",
+      "chapter_or_episode": "Structure of the Divine Council",
+      "content_summary": "Genesis 48:15-16 is a key binitarian text. Jacob blesses Joseph's sons by invoking three entities with a SINGULAR verb: 'The God (ha-elohim) before whom my fathers walked, the God (ha-elohim) who has been my shepherd all my life, the Angel (ha-mal'akh) who has redeemed me from all evil — may HE bless (yevarekh — SINGULAR) the boys.' If two separate persons were in view, the verb would be plural. The singular verb denotes a tight fusion of the two divine beings — God and the Angel are one. The Angel that embodies Yahweh's presence parallels Baal's role as co-regent warrior for El.",
+      "content_detail": "This is complicated by the biblical teaching that God is eternal while angels are created beings. The explicit parallel of 'God' and 'Angel' does not imply God is an angel. Rather, it affirms that this Angel IS God. Joshua 5:13-15 has the Angel lead Israel 'sword drawn in his hand' as captain of Yahweh's host — this precise description occurs in only two other places, both describing the Angel (Num 22:23; 1 Chr 21:16).",
+      "page_range": "pp. 3-4, 8-9",
+      "references": [
+        {"reference": "Gen.48.15", "relevance": "primary"},
+        {"reference": "Gen.48.16", "relevance": "primary"},
+        {"reference": "Exo.3.1", "relevance": "supporting"},
+        {"reference": "Exo.3.14", "relevance": "supporting"},
+        {"reference": "Exo.23.20", "relevance": "supporting"},
+        {"reference": "Exo.23.23", "relevance": "supporting"},
+        {"reference": "Jdg.2.1", "relevance": "supporting"},
+        {"reference": "Jdg.6.11", "relevance": "supporting"},
+        {"reference": "Jos.5.13", "relevance": "supporting"},
+        {"reference": "Jos.5.14", "relevance": "supporting"},
+        {"reference": "Jos.5.15", "relevance": "supporting"},
+        {"reference": "Num.22.23", "relevance": "supporting"},
+        {"reference": "1Ch.21.16", "relevance": "supporting"},
+        {"reference": "Hos.12.3", "relevance": "supporting"},
+        {"reference": "Gen.32.24", "relevance": "supporting"},
+        {"reference": "Gen.32.30", "relevance": "supporting"},
+        {"reference": "Gen.35.7", "relevance": "supporting"}
+      ],
+      "themes": ["angel_of_yahweh", "two_powers", "messianic_expectation"]
+    }
+  ]
+}

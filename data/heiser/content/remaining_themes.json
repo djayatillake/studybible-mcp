@@ -1,0 +1,82 @@
+{
+  "source_key": "unseen_realm",
+  "title": "Remaining Themes: Eden Rebellion, Nachash, Image of God (from Heiser's publicly available works)",
+  "author": "heiser",
+  "type": "book",
+  "entries": [
+    {
+      "title": "The Nachash of Eden — A Shining Divine Being, Not a Talking Snake",
+      "chapter_or_episode": "The Nachash",
+      "content_summary": "The Hebrew nachash (H5175) in Genesis 3:1 has three semantic ranges: (1) as a noun: serpent/snake; (2) as a verb root: to practice divination/enchantment (Gen 30:27; 44:5,15; Lev 19:26; Deut 18:10; 1 Kings 20:33; 2 Kings 17:17; 21:6); (3) as an adjective: shining/bronze (cognate with nechoshet/copper/bronze). The Eden figure should be understood as a luminous divine being — a 'shining one.' Ezekiel 28:12-17 describes this being as: 'the signet of perfection, full of wisdom and perfect in beauty,' who was 'in Eden, the garden of God,' covered with precious stones, 'an anointed guardian cherub' on 'the holy mountain of God,' who 'walked among the stones of fire,' and was 'blameless from the day you were created, until unrighteousness was found in you.' Isaiah 14:12 describes this figure as 'Helel ben Shachar' (Shining One, son of the Dawn). The nachash was not a common animal but a high-ranking divine being — a member of the divine council who rebelled against Yahweh.",
+      "content_detail": "The word arum ('crafty/shrewd') in Gen 3:1 is not inherently negative — it is used positively for prudence in Proverbs (12:16; 13:16; 14:8; 22:3). The nachash's shrewdness is that of a divine being, not an animal. Eden was the divine council meeting place — Ezekiel 28:2 calls it the 'seat of the gods' (moshav elohim), and 28:13-16 equates the 'garden of God' with the 'holy mountain of God' where the divine council met. The nachash was 'among the stones of fire' — the council members (cf. the fiery seraphim of Isaiah 6). His punishment in Genesis 3:14 ('on your belly you shall go') is a demotion from his exalted status, not a biological transformation of a literal snake. The enmity between the nachash's 'seed' and the woman's 'seed' (Gen 3:15) is the protoevangelium — the first prophecy of the cosmic conflict resolved by Christ.",
+      "page_range": "Derived from What is an Elohim chapter, Deut 32:8 paper, LBD entry",
+      "references": [
+        {"reference": "Gen.3.1", "relevance": "primary"},
+        {"reference": "Gen.3.14", "relevance": "primary"},
+        {"reference": "Gen.3.15", "relevance": "primary"},
+        {"reference": "Eze.28.2", "relevance": "primary"},
+        {"reference": "Eze.28.12", "relevance": "primary"},
+        {"reference": "Eze.28.13", "relevance": "primary"},
+        {"reference": "Eze.28.14", "relevance": "primary"},
+        {"reference": "Eze.28.15", "relevance": "primary"},
+        {"reference": "Eze.28.16", "relevance": "primary"},
+        {"reference": "Eze.28.17", "relevance": "primary"},
+        {"reference": "Isa.14.12", "relevance": "primary"},
+        {"reference": "Isa.14.13", "relevance": "supporting"},
+        {"reference": "Isa.14.14", "relevance": "supporting"},
+        {"reference": "Isa.14.15", "relevance": "supporting"},
+        {"reference": "Rev.12.9", "relevance": "supporting"},
+        {"reference": "Rev.20.2", "relevance": "supporting"}
+      ],
+      "themes": ["nachash_serpent", "edenic_rebellion", "divine_council"]
+    },
+    {
+      "title": "The Eden Rebellion — The First of Three Supernatural Rebellions",
+      "chapter_or_episode": "Eden Rebellion",
+      "content_summary": "The primeval history (Genesis 1-11) contains three supernatural rebellions that escalate the cosmic conflict: (1) The nachash's rebellion in Eden (Genesis 3) — a divine council member tempts humanity to disobey, resulting in exile from the divine abode and the protoevangelium (Gen 3:15); (2) The sons of God/Watchers transgression (Genesis 6:1-4) — divine beings cross the boundary between the heavenly and earthly realms by taking human wives, producing the Nephilim, and unleashing a corruption so severe it provokes the Flood; (3) The Babel event (Genesis 11) — humanity's united rebellion prompts Yahweh to disinherit all nations, assigning them to lesser divine beings (Deuteronomy 32:8-9), and starting over with Abraham (Genesis 12:1-3). Each rebellion provokes a divine response that advances the cosmic conflict narrative toward its resolution in Christ.",
+      "content_detail": "Eden was the divine council's meeting place (Ezek 28:13-16) — the cosmic mountain where heaven and earth intersect. Adam was God's first human representative, walking with God in the garden (the divine abode). Job 15:7-8 alludes to this: 'Are you the first man who was born? Have you listened in the council (sod) of God?' Adam was created to do on earth what the council does in heaven — to image God's rule over creation. The nachash disrupted this vocation. The curse on the nachash ('enmity between your seed and her seed') sets up the entire biblical metanarrative — the conflict between the seed of the woman (ultimately Christ) and the seed of the serpent (the forces of evil). The three rebellions together explain why the world is broken: Eden explains the human condition, the Watchers explain the proliferation of evil and the giant clans, and Babel explains the existence of hostile pagan nations under corrupt divine authorities.",
+      "page_range": "Derived from LBD entry, Deut 32 papers, podcast transcripts",
+      "references": [
+        {"reference": "Gen.3.1", "relevance": "primary"},
+        {"reference": "Gen.3.15", "relevance": "primary"},
+        {"reference": "Gen.6.1", "relevance": "primary"},
+        {"reference": "Gen.6.2", "relevance": "primary"},
+        {"reference": "Gen.6.4", "relevance": "primary"},
+        {"reference": "Gen.11.1", "relevance": "primary"},
+        {"reference": "Gen.11.9", "relevance": "primary"},
+        {"reference": "Gen.12.1", "relevance": "primary"},
+        {"reference": "Gen.12.3", "relevance": "primary"},
+        {"reference": "Deu.32.8", "relevance": "primary"},
+        {"reference": "Deu.32.9", "relevance": "primary"},
+        {"reference": "Job.15.7", "relevance": "supporting"},
+        {"reference": "Job.15.8", "relevance": "supporting"},
+        {"reference": "Eze.28.13", "relevance": "supporting"},
+        {"reference": "Eze.28.14", "relevance": "supporting"}
+      ],
+      "themes": ["edenic_rebellion", "nachash_serpent", "watchers_tradition", "babel_allotment"]
+    },
+    {
+      "title": "The Image of God — Humans as Yahweh's Earthly Imagers",
+      "chapter_or_episode": "Image of God",
+      "content_summary": "Genesis 1:26-27 has God announcing to His divine council ('let US make man in OUR image') His decision to create humanity as His earthly representatives. The 'image' (tselem) and 'likeness' (demut) are functional and vocational — humans are God's imagers, tasked with extending Eden's sacred space over all creation. They do on earth what the divine council does in heaven: govern, steward, and represent God's authority. The council witnesses the announcement (plural 'us/our') but only Yahweh creates (singular verb 'so God created' in v.27). The 'image of God' concept means humans were designed to be the earthly counterpart to the heavenly council — vice-regents of the visible world under Yahweh's authority, just as the divine beings are vice-regents of the unseen world.",
+      "content_detail": "In the ancient Near East, kings placed images (statues) of themselves in territories they conquered to represent their rule. Humans are God's living 'statues' — His representative images placed on earth to rule on His behalf. This is why attacking the image of God (murder) is treated as an attack on God Himself (Gen 9:6). The image concept also explains the Great Commission: God's original intent was for His image-bearers to fill the earth with His presence. After the three rebellions fractured this plan, God calls Abraham to restart it (Gen 12:1-3), and ultimately Christ — the perfect image of God (Col 1:15; Heb 1:3) — completes what Adam failed to do. Believers are being 'conformed to the image of His Son' (Rom 8:29) — the restoration of the imager vocation. In the new creation, redeemed humans will take the place of the corrupt divine council members who failed in their governance of the nations (1 Cor 6:3 — 'we will judge angels').",
+      "page_range": "Derived from LBD entry, Gen 1:26 variant analysis, podcast transcripts",
+      "references": [
+        {"reference": "Gen.1.26", "relevance": "primary"},
+        {"reference": "Gen.1.27", "relevance": "primary"},
+        {"reference": "Gen.9.6", "relevance": "primary"},
+        {"reference": "Gen.12.1", "relevance": "supporting"},
+        {"reference": "Gen.12.3", "relevance": "supporting"},
+        {"reference": "Col.1.15", "relevance": "supporting"},
+        {"reference": "Heb.1.3", "relevance": "supporting"},
+        {"reference": "Rom.8.29", "relevance": "supporting"},
+        {"reference": "1Co.6.3", "relevance": "supporting"},
+        {"reference": "Psa.8.5", "relevance": "supporting"},
+        {"reference": "Psa.8.6", "relevance": "supporting"},
+        {"reference": "Heb.2.7", "relevance": "supporting"},
+        {"reference": "Heb.2.8", "relevance": "supporting"}
+      ],
+      "themes": ["image_of_god", "divine_council", "reclaiming_nations"]
+    }
+  ]
+}

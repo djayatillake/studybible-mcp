@@ -1,0 +1,21 @@
+{
+  "variants": [
+    {
+      "reference": "Psa.82.1",
+      "mt_reading": "God stands in the divine assembly; in the midst of the gods he passes judgment",
+      "mt_hebrew": "אֱלֹהִים נִצָּב בַּעֲדַת־אֵל בְּקֶרֶב אֱלֹהִים יִשְׁפֹּט",
+      "variant_source": "MT_preserved",
+      "variant_reading": "The MT correctly preserves the divine council language. The second elohim MUST be plural because of the preposition 'in the midst of' (beqereb) — one cannot be in the midst of one. Many English translations (e.g., NASB 'rulers') obscure this. The word adat-el ('assembly of El/God') is an exact Ugaritic parallel: 'dt 'ilm ('assembly of the gods').",
+      "variant_original": "Same as MT",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser demonstrates in multiple papers (ETS 2010, Bibliotheca Sacra 2001, DOTWPW dictionary entry) that the plural elohim of Psalm 82 are divine beings, not human judges. Key arguments: (1) They are called 'sons of the Most High' (bene Elyon) — Elyon is exclusively a divine title; (2) Psalm 89:5-7 places the same council 'in the clouds' (basshahaq) — no humans rule from the clouds; (3) The particle 'aken' in v.7 creates a contrast requiring non-human subjects — 'I had thought you were gods... but you shall die like humans'; (4) If they were humans, sentencing them to die like humans is nonsensical; (5) The judgment in Psalm 82:8 uses the same lemma (nahal) as Deuteronomy 32:8-9, linking it to the Babel allotment of nations to divine beings.",
+      "scholarly_consensus": "The plural elohim in Psalm 82 are divine beings/members of the heavenly council. The 'human judges' interpretation lacks textual support and derives from theological anxiety about polytheism.",
+      "preferred_for_hlt": "God (Elohim) takes his stand in the divine council (assembly of El); in the midst of the gods (elohim) he renders judgment",
+      "hlt_rationale": "The MT correctly preserves the divine council language. The HLT renders both occurrences of elohim faithfully and makes the divine council setting explicit.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    }
+  ]
+}

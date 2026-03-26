@@ -1,0 +1,1492 @@
+Scholars Crossing 
+Scholars Crossing 
+LBTS Faculty Publications and Presentations 
+2008 
+Monotheism, Polytheism, Monolatry, or Henotheism? Toward an 
+Monotheism, Polytheism, Monolatry, or Henotheism? Toward an 
+Assessment of Divine Plurality in the Hebrew Bible 
+Assessment of Divine Plurality in the Hebrew Bible 
+Michael Heiser 
+Liberty University, mshmichaelsheiser@gmail.com 
+Follow this and additional works at: https://digitalcommons.liberty.edu/lts_fac_pubs 
+ Part of the Biblical Studies Commons, Comparative Methodologies and Theories Commons, Ethics in 
+Religion Commons, History of Religions of Eastern Origins Commons, History of Religions of Western 
+Origin Commons, Other Religion Commons, and the Religious Thought, Theology and Philosophy of 
+Religion Commons 
+Recommended Citation 
+Recommended Citation 
+Heiser, Michael, "Monotheism, Polytheism, Monolatry, or Henotheism? Toward an Assessment of Divine 
+Plurality in the Hebrew Bible" (2008). LBTS Faculty Publications and Presentations. 277. 
+https://digitalcommons.liberty.edu/lts_fac_pubs/277 
+This Article is brought to you for free and open access by Scholars Crossing. It has been accepted for inclusion in 
+LBTS Faculty Publications and Presentations by an authorized administrator of Scholars Crossing. For more 
+information, please contact scholarlycommunications@liberty.edu. 
+
+---PAGE---
+Offprint from: Bulletin for Biblical Research 18.1 (2008)
+ç Copyright 2008 The Institute for Biblical Research. 
+All rights reserved.
+Bulletin for Biblical Research 18.1 (2008) 1–30
+Monotheism, Polytheism, 
+Monolatry, or Henotheism? 
+Toward an Assessment of Divine Plurality
+in the Hebrew Bible
+michael s. heiser
+academic editor, logos bible software
+Israel’s view of God and his relationship to other divine beings in the He-
+brew Bible has long been the subject of scholarly debate. The dominant
+critical consensus since the late nineteenth century holds that Israel’s
+faith evolved from polytheism or henotheism to monotheism. Passages in
+the Hebrew Bible that assume the existence of other gods are compared to
+other passages that put forth the declaration that “there are no other gods
+besides” the God of Israel as proof of this view. Other scholars who reject
+this evolutionary paradigm tend to assume passages evincing divine plu-
+rality actually speak of human beings, or that the other gods are merely
+idols. This view insists that “monotheism” must mean that the existence
+of other gods is denied. Both views are problematic and fall short of doing
+justice to the full description of Israel’s view of God and the heavenly host
+in the Hebrew Bible. This article overviews the difﬁculties of each view
+and offers a coherent alternative.
+Key Words: monotheism, polytheism, henotheism, monolatry, divine
+council, God, gods, angels, host of heaven, idols, Israelite religion, Psalm
+82, Deuteronomy 32
+Introduction
+Most scholars whose work focuses on Israelite religion recognize that the
+Hebrew Bible contains a number of references assuming and even af-
+ﬁrming the existence of other gods. As a corollary to this observation,
+scholars also frequently assert that no explicit denial of the existence of
+other gods occurs until the time of Deutero-Isaiah and thereafter (6th
+century b.c.e.) in a presumed campaign by zealous scribes to expunge
+such references from the sacred text. Even the Shema and the ﬁrst com-
+mandment do not consign the other gods to fantasy, since the demand is
+made that no other gods should be worshipped. The data apparently in-
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+2
+forms us that Israelite religion evolved from polytheism to henotheistic
+monolatry to monotheism.
+While this viewpoint dominates scholarly discussion of Israelite reli-
+gion, the question ought to be asked whether it is lucid. Does the view-
+point derive from the known data from earliest times into the Common
+Era, or is the reasoning offered in its support circular? Are terms like
+“polytheism” and “henotheism” truly adequate to describe what the writ-
+ers of the biblical canon believed?
+Treatments of the issue and the relevant passages by other Jewish and
+Christian scholars often assume the biblical writers spoke only of idols
+when discussing other gods, or that references to plural µyhIløa” in certain
+passages are best understood as referring to human beings. These options
+are also ﬂawed in that they bring theology to the text. These alternatives
+assume that a 17th-century word (“monotheism”) has or can rightly be im-
+posed on the theology of Israel and that, without this term, it must be ac-
+knowledged that Israelite religion was indeed henotheistic or polytheistic.
+This article argues that the consensus view on divine plurality in the
+Hebrew Bible is marred because it assumes what it seeks to prove. It
+thereby fails to handle the evidence of late canonical and noncanonical
+texts that “retain” a council of gods in Israelite and Jewish theology. A fresh
+perspective is needed. The article also argues that scholars need not be
+driven to choose between a presumed evolution toward monotheism for
+Israel’s religion, a rhetorical use of polytheism to promote monotheism,
+and arguments that suggest the text cannot mean what it plainly says. In
+an effort to address these issues and in anticipation of certain questions, it
+is expedient to detail the weaknesses of what are hereafter referred to as
+the “consensus view” and the “traditional approach.”
+1. The Consensus View of Monotheistic Evolution: 
+Overview and Evaluation
+1.1. Psalm 82
+It is not difﬁcult to demonstrate that the Hebrew Bible assumes and af-
+ﬁrms the existence of other gods. The textbook passage is Psalm 82. Verse
+one (excluding the superscription) of that Psalm reads:
+:fPøv‘yi µyhIløa” br,q,B} laEAtd'[“B" bX:ni µyhIløa”
+God stands in the divine council; in the midst of the gods he passes
+judgment.
+The ﬁrst µyhIløa” is clearly referring to a singular entity (God) due to subject-
+verb agreement and other contextual clues. The second µyhIløa” is obviously
+plural due to the preposition br,q,B}, because God cannot be said to be
+standing in the midst of a (singular) god or Himself. The Trinity is ruled out
+immediately as an explanation, because the plural gods over whom the
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+3
+God of Israel presides are here being sentenced to die for their corrupt rule
+of nations on the earth.
+Psalm 82 is considered late in composition on several grounds.1 The
+clear reference to a pantheon over which Yahweh presides must be ex-
+plained, since by this time Israelite religion is assumed to have evolved into
+an “intolerant monotheism.” As a result, many scholars consider Psalm 82
+to be either a vestige of polytheism overlooked by monotheistic redactors,
+or perhaps a deliberate rhetorical use of Israel’s polytheistic past to declare
+the new outlook of monotheism.2 After the exile, so it is put forth, the gods
+of the nations are relegated to the status of angels.
+Both proposals fail on a number of levels.3 With respect to the ﬁrst op-
+tion, it is evasive to appeal to inept redactors when one’s theory of a cam-
+paign to stamp out polytheistic texts encounters a “problem passage,” es-
+pecially when Psalm 82 is by no means the only text evincing divine
+plurality and a divine council “missed” by scribes. There are explicit ref-
+erences to gods and a divine council in Second Temple period Jewish lit-
+erature. In the Qumran sectarian material alone, there are approximately
+185 occurrences of µyhIløa”, µyhIløa”h:, µyhIløa” yneB}, µyhIløa”h: yneB}, µylIaE, µylIaE yneB} in
+contexts where a divine council is mentioned with the same vocabulary
+(hd;[E, d/s, lh:q:) utilized in texts of the Hebrew Bible for a divine assembly.4
+In fact, it is apparent that some of these references allude to or draw on ca-
+nonical material. If there was an alleged campaign to correct ancient texts
+and their polytheistic views, the postexilic Jewish community either did
+not get the message or ignored it. However, the presumptions of an evo-
+lution from polytheism to monotheism and the incompatibility of mono-
+theism with a council of lesser gods are so entrenched in critical scholar-
+ship that scholars such as Carol Newsom in her work on the Qumran Songs
+of the Sabbath Sacriﬁce coin oxymoronic terms like “angelic elim” to explain
+the material.5 It is more coherent to abandon the evolutionary paradigm
+and ask how it was that (1) late biblical authors had no qualms about an
+assembly of gods under Yahweh; and (2) Second Temple Jews, willing to
+suffer death rather than worship other gods, failed to consider divine coun-
+cil texts in the Hebrew Bible as a threat to monotheism.
+Concerning the second viewpoint, that polytheism is being used rhe-
+torically in Psalm 82, much is made of the last verse in that psalm, where
+1. See Marvin Tate, Psalms 51–100 (WBC 20; Dallas, TX: Word, 2002), xxv. Throughout this
+article I use “Deutero-Isaiah” for convenience.
+2. See, for example, Mark S. Smith, The Origins of Biblical Monotheism: Israel’s Polytheistic
+Background and the Ugaritic Texts (Oxford: Oxford University Press, 2003); Simon B. Parker,
+“The Beginning of the Reign of God—Psalm 82 as Myth and Liturgy,” Revue Biblique 102
+(1995): 532–59.
+3. Michael S. Heiser, “The Divine Council in Late Canonical and Non-Canonical Second
+Temple Jewish Literature” (Ph.D. diss., University of Wisconsin–Madison, 2004).
+4. Heiser, “The Divine Council,” 176–213.
+5. Carol A. Newsom, Songs of the Sabbath Sacriﬁce: A Critical Edition (HSM 27; Atlanta:
+Scholars Press, 1985), 23–24.
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+4
+God is asked to rise up and possess the nations (82:8). This is interpreted
+as a new idea of the psalmist to encourage the exilic community—that, de-
+spite exile, Yahweh will rise up and take the nations as his own having
+sentenced the other gods to death. This view ignores preexilic texts such
+as Psalm 24 and 29, long recognized as some of the most ancient material
+in the canon.6 For example, Ps 29:1 contains plural imperatives directed at
+the µylIaE yneB}, pointing to a divine council context. Verse 10 declares, 
+“The Lord sits enthroned over the ﬂood; the Lord sits enthroned as
+king forever.” In Israelite cosmology, the ﬂood upon which Yahweh
+sat was situated over the solid dome that covered the round, ﬂat
+earth. Since it cannot coherently be asserted that the author would as-
+sert that Gentile nations were not under the dome and ﬂood, this
+verse reﬂects the idea of world kingship. The Song of Moses, also
+among the oldest poetry in the Hebrew Bible, echoes the thought. In
+Exodus 15:18 the text reads, “The Lord will reign forever and ever.”
+As F. M. Cross noted over thirty years ago, “The kingship of the gods
+is a common theme in early Mesopotamian and Canaanite epics. The
+common scholarly position that the concept of Yahweh as reigning or
+king is a relatively late development in Israelite thought seems
+untenable.” 7 
+Both of these perspectives (redactional bungling or rhetorical bril-
+liance) are used to explain the presence of afﬁrmations of other gods in
+texts where they are “out of place,” texts of late redaction or composition.
+The primary examples are Deuteronomy and Deutero-Isaiah.
+1.2. Deuteronomy
+The consensus view argues that Deuteronomy provides evidence of an
+evolution of Israelite religion toward an exclusivistic monotheism. The ar-
+gument is offered on the basis of passages that forcefully contend there are
+“no other gods besides Yahweh.” This view seems coherent until one re-
+alizes that these “denial phrases” occur in the same chapters of Deuter-
+onomy that assume and afﬁrm the existence of other gods (Deuteronomy
+4 and 32). In answer to the juxtaposition of polytheistic and monotheistic
+material in these passages, scholars argue that this phenomenon indicates
+either a rhetorical merging of polytheistic and monotheistic traditions or
+blunders by the redactors when updating the older traditions to monothe-
+ism. Since the evolutionary trajectory is assumed from the outset, an ei-
+ther-or fallacy is set forth for discussion.
+6. Some scholars date the poetry of this psalm between the 12th and 10th centuries b.c.e.
+See F. M. Cross, Canaanite Myth and Hebrew Epic: Essays in the History of the Religion of Israel (Cam-
+bridge: Harvard University Press, 1973), 90–93. See also David Noel Freedman, “Who is Like
+Thee Among the Gods?” in Ancient Israelite Religion: Essays in Honor of Frank Moore Cross (ed.
+Patrick D. Miller Jr., Paul D. Hanson, and S. Dean McBride; Philadelphia: Fortress, 1987), 317.
+7. F. M. Cross and D. N. Freedman, Studies in Ancient Yahwistic Poetry (Missoula, MT:
+Scholars Press, 1975), 45, n. 59. 
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+5
+The ﬁrst issue before us is to determine whether the relevant phrases
+in Deuteronomy 4 and 32 actually deny the existence of other gods. The
+parade examples are Deut 4:35, 39, and 32:39.
+Deut 4:35 “You were shown these things so that you might know that
+the Lord, he is the God (µyhIløa”h:); besides him there is no other (d/[ ˆyaE
+/Db"l}mI).”
+Deut 4:39 “Know therefore this day, and lay it to your heart, that Yah-
+weh, he is the God (µyhIløa”h:) in heaven above and on the earth beneath;
+there is no other (d/[ ˆyaE).”
+Deut 32:29 “See now that I, even I, am he, and there is no god besides
+me (ydiM:[I µyhIløa” ˆyaEw]); I kill and I make alive; I wound and I heal; and
+there is none that can deliver out of my hand.”
+With respect to Deut 4:35, 39, µyhIløa”h: aWh hwhy is a verbless clause with
+the pronoun emphasizing the subject, but what does it mean that Yahweh
+is µyhIløa”h:? Is this a denial of the existence of other gods? How can that be
+reconciled with the presumption of other gods in these passages: Deut
+4:10–20; 32:8–9?8 It is at least equally probable from a linguistic perspec-
+tive that the phrase means that Yahweh is superior or incomparable.9 That
+is, Yahweh is the God par excellence, as Deut 10:17 states: µk<yhEløa” hwhy yKI
+µyhIløa”h: yhEløa” aWh (“for the Lord our God, he is the God of the gods”). If the
+other gods to whom Yahweh is compared here do not exist in the mind of
+the writer, where is the praise, and perhaps even the honesty, in the state-
+ment? Other passages in the Torah, such as Exod 15:18, beg the same ques-
+tion. When the author wrote “Lord, who is like you among the µyla?” did
+he really mean, “Lord who is like you among the imaginary beings that
+really aren’t there”? When the ﬁnal redactors, presumably zealous over
+the new idea of monotheism, allowed Deut 10:17 and Exod 15:18 to stand,
+did they simply err, or were they content to put polytheistic language into
+the mouth of Moses? How does such language accomplish rhetorical per-
+suasion if the audience does not believe that any other deities exist to
+whom Yahweh may be compared?
+But what about the second half of the statements of Deut 4:35, 39
+(/Db"l}mI d/[ ˆyaE)? Must the phrasing be construed as a denial of the existence
+of all other gods except Yahweh? There are several difﬁculties with this
+understanding.
+First, similar constructions are used in reference to Babylon and Moab
+in Isa 47:8, 10 and Nineveh in Zeph 2:15. In Isa 47:8, 10 Babylon says to her-
+self, d/[ ysIp}a"w] ynia“ (“I am, and there is none else besides me”). The claim is
+not that she is the only city in the world but that she has no rival. Nineveh
+8. Reading Deut 32:8–9 with LXX and Qumran material. See n. 15.
+9. The same kind of situation is found in 1 Kgs 18:21, a passage considered part of the
+Deuteronomistic history. Elijah challenges the crowd at Carmel, “If Yahweh is µyhIløa”h:, follow
+him, but if Baal, then follow him.” Yahweh’s status as µyhIløa”h: need not mean that Baal does not
+exist. It more likely means, “Yahweh is the unrivaled God (of Israel or in general).”
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+6
+makes the identical claim in Zeph 2:15 (d/[ ysIp}a"w] ynia“). In these instances,
+the constructions cannot constitute the denial of the existence of other
+cities and nations. The point being made is very obviously the concept of
+incomparability.
+Second, /Db"l}mI and other related forms (/Db"l}, db"l}) need not mean
+“alone” in some exclusive sense. That is, a single person in a group could
+be highlighted or focused on. 1 Kgs 18:1–6 is an example. The passage
+deals with the end of the three-year drought and famine during the ca-
+reer of Elijah. After meeting with Elijah, Ahab calls Obadiah, the steward
+of his house, and together they set on a course of action to ﬁnd grass in or-
+der to save their remaining horses and mules. Verse 6a then reads: ba:j}a"
+/Db"l} dj:a<AËr,d,B} Ël"h: Why;d]b"[øw] /Db"l} dj:a< Ër,d,B} Ël"h: (“Ahab went one way by
+himself [/Db"l}], and Obadiah went another way by himself [/Db"l}]”). While
+it may be possible to suggest that Obadiah literally went through the land
+completely unaccompanied in his search, it is preposterous to say that the
+king of Israel went completely alone to look for grass—without body-
+guards or servants. The point is that /Db"l} (and by extension /Db"l}mI) need
+not refer to complete isolation or solitary presence. Another example is Ps
+51:4 [Hebrew, v. 6], which reads in part: ytIaf:j: ÚD]b"l} Úl} (“against you, you
+alone, I have sinned”). God was not the only person against whom David
+had sinned. He had sinned against his wife and certainly Uriah. This is
+obviously heightened rhetoric designed to highlight the One who had
+been primarily offended. It was God against whom David’s offense was
+incomparable.10
+Third, the negation of such excluding prepositions and adverbs need
+not be construed as denials of existence. The construction can be some sort
+of incomparability statement. As Nathan MacDonald noted in his recent
+work, Deuteronomy and the Meaning of ‘Monotheism,’ the only consideration
+of the negative particle ˆyaE followed by the adverb d/[ with or without the
+subsequent excluding particle (db"L}mI, sp<a<) is that of Hans Rechenmacher.11
+The ﬁrst part of Rechenmacher’s study was a linguistic analysis of Hebrew
+verbless sentences with particles of negation. He concludes his analysis
+with an examination of prepositions and adverbs with an excluding sense,
+including those found in the verses from Deuteronomy and (Deutero-)
+10. Among several possible examples, two will sufﬁce. In Eccl 7:29 Solomon states, “See,
+this alone (db"l}) I found, that God made man upright, but they have sought out many schemes”
+(ESV). Is that the only thought or conclusion Solomon ever drew in his life? In Judg 7:5 we read
+(ESV), “So he brought the people down to the water. And the Lord said to Gideon, ‘Every one
+who laps the water with his tongue, as a dog laps, you shall set by himself [db"l}]. Likewise, ev-
+ery one who kneels down to drink.’” Are we to conclude that Gideon took all 300 men who
+passed this test and isolated them from each other? It is more coherent to say they were set
+aside as a group. The point would be that the group of 300 was set aside in comparison to the
+rest of the soldiers.
+11. Hans Rechenmacher, “Außer mir gibt es keinen Gott!” Eine sprach- und literaturwissen-
+schaftliche Studie zur Ausschließlichkeitsformel (ATSAT 49; St. Ottilien: EOS Verlag, 1997).
+spread is 12 points short
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+7
+Isaiah under consideration.12 Rechenmacher argues that the examples in
+Deuteronomy 4 point to exclusivistic monotheism, but he fails to explain
+why the construction in these texts cannot be describing incomparability.
+It seems he did not make this connection because of prior assumptions
+about the evolution of Israelite religion brought to the data.
+MacDonald points out several methodological problems with Rechen-
+macher’s study that are beyond the scope of this article.13 For the present
+purpose, it must be asked whether the negative particle ˆyaE + d/[ requires
+non-existence (as opposed to incomparability) and whether similar com-
+binations (d/[ sp<a<) offer the same semantic possibility. The question is
+relevant for the purpose of establishing an overlap with the denial phrases
+in Deuteronomy 32 and Deutero-Isaiah (see below).
+Fourth, other verses in Deuteronomy 32 make it clear that the exis-
+tence of other gods is assumed by the writer.14 Deut 32:8–9 and its explicit
+parallel, Deut 4:19–20, have Yahweh placing the Gentile nations under the
+authority of lesser divine beings:
+Deut 32:8 When the Most High gave to the nations their inheritance,
+when he divided mankind, he ﬁxed the borders of the peoples ac-
+cording to the number of the sons of God [µyhlah ynb].15 9 But the
+Lord’s portion is his people, Jacob his allotted heritage.
+12. Ibid., 97–114, cited in Nathan MacDonald, Deuteronomy and the Meaning of ‘Monothe-
+ism’ (FAT 2/1; Tübingen: Mohr Siebeck, 2003), 82.
+13. For instance, MacDonald notes that, “Rechenmacher assumes, without argument,
+that d/[ is exchangeable for a preposition with excluding function and personal sufﬁx.” Mac-
+Donald counters by observing that on two occasions (Deut 4:35; Isa 45:21), “d/[ ˆyaE occurs with
+an excluding prepositional construction . . . and such an exchange would create a tautologous
+expression.” Lastly, as McDonald and other scholars have noted, neither the usual temporal
+sense of adverbial d/[ (“still, yet”) nor the conjunctive sense (“additionally, also, again”) ﬁt
+Deut 4:35, 39 and 32:39. If one accepts the list provided in BDB for those texts where d/[ does
+not have either of these meanings, one is left with seven occurrences of the adverb, all of which
+occur in questions or answers to questions. MacDonald notes that “in each case, what is being
+questioned is not the absolute existence of an object, but only if there is an object in a person’s
+immediate domain. . . . In each of the questions what is being asked is whether the one being
+questioned has an additional [item or] member besides the ones already taken into account”
+(MacDonald, Deuteronomy, 83–84).
+14. See the ensuing discussion for more on Deut 32:8–9.
+15. Textual critics of the Hebrew Bible are unanimous in agreement that the Qumran
+reading (in brackets) is superior to the Masoretic text in Deut 32:8, which reads laEr;c‘yi yneB}
+(“sons of Israel”). See, for example, P. W. Skehan, “A Fragment of the ‘Song of Moses’ (Deut 32)
+from Qumran,” BASOR 136 (1954) 12–15; idem, “Qumran and the Present State of Old Testa-
+ment Text Studies: The Masoretic Text,” JBL 78 (1959): 21; Julie Duncan, “A Critical Edition of
+Deuteronomy Manuscripts from Qumran, Cave IV. 4QDtb, 4QDte, 4QDth, 4QDtj, 4QDtb,
+4QDtk, 4QDtl” (Ph.D. diss., Harvard University, 1989); Emanuel Tov, Textual Criticism of the
+Hebrew Bible (Minneapolis: Fortress, 1992), 269; Eugene Ulrich et al., eds., Qumran Cave 4.IX:
+Deuteronomy to Kings (DJD XIV; Oxford: Clarendon, 1995), 75–79; Sanders, The Provenance of
+Deuteronomy 32, 156; J. Tigay, Deuteronomy, The JPS Torah Commentary (Philadelphia: Jewish
+Publication Society, 1996), 514–18.
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+8
+Deut 4:19 Lest you lift up your eyes to heaven, and when you see the
+sun and the moon and the stars, all the host of heaven, you be drawn
+away and bow down to them and serve them, whom the Lord your
+God has allotted to all the peoples under the whole heaven. 20 But the
+Lord has taken you and brought you out of the iron furnace, out of
+Egypt, to be a people of his own inheritance, as you are this day. 
+Some scholars seek to argue that the “sons of God” and “host of heaven”
+in the passages refer only to idols or astronomical bodies.16 This issue will
+be discussed in more detail below in another section of this article. At this
+juncture, attention need only be drawn to Deut 32:17, a text that, alluding
+to the failures of Israel in disobeying the warnings of Deut 4:19–20,17 quite
+clearly has Moses referring to the other µyhIløa” as evil spiritual entities
+(µydv): “They [Israel] sacriﬁced to demons (µydiV´l") who are not God (H'løa”),18
+to gods (µyhIløa”) they did not know; new ones that had come along recently,
+whom your fathers had not reverenced.” 
+While these lesser µyhIløa” are linked to the statues that represented
+them in the mind of their worshippers (Deut 4:28; 7:25; 28:64), these beings
+must be considered real spiritual entities. Indeed, it cannot be presumed
+that ancient people considered a humanly fabricated statue or fetish object
+to be identical with the god in whose likeness it was fashioned. As one
+scholar of ancient cult objects notes:
+When a non-physical being manifested in a statue, this anchored the
+being in a controlled location where living human beings could in-
+teract with it through ritual performance. . . . In order for human be-
+ings to interact with deities and to persuade them to create, renew,
+and maintain the universe, these beings had to be brought down to
+earth. . . . This interaction had to be strictly controlled in order to
+avoid both the potential dangers of unrestricted divine power and the
+pollution of the divine by the impurity of the human world. While the
+ability of deities to act in the visible, human realm was brought about
+through their manifestation in a physical body, manifestation in one
+body did not in any sense restrict a deity, for the non-corporeal es-
+sence of a deity was unlimited by time and space, and could manifest
+in all its “bodies,” in all locations, all at one time.19
+16. See below for “star language” in Deutero-Isaiah and a refutation of the approach that
+this language refers only to inanimate astronomical bodies.
+17. For example, Deut 17:3; 29:25–26; 30:17; 31:16; 32:16.
+18. Note that H'løa” is singular, and so the translation “. . . who are not gods” is inaccurate.
+Such a translation is also awkward in light of the following plural µyhIløa”. Arguing that the
+µyhla were merely idols creates contradictions with other portions of Deuteronomy and the
+Hebrew Bible. See the ensuing discussion.
+19. Gay Robins, “Cult Statues in Ancient Egypt,” in Cult Image and Divine Representation
+in the Ancient Near East (ASOR Book Series 10; ed. Neal H. Walls; Boston: American Schools of
+Oriental Research, 2005), 1–2.
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+9
+To reject the reality of these entities in the Israelite worldview is to cast the
+canonical writer as someone who did not believe in the reality of demons,
+a position out of step with other canonical authors.
+In addition to vv. 8–9 and 17, another portion of Deuteronomy 32 as-
+sumes the reality of other gods. Deut 32:43 is well known to textual critics,
+since the text-critical data make it abundantly clear that this verse was al-
+tered from its original form for theological reasons.20 A comparison of the
+MT with 4QDeutq demonstrates this (see table, p. 10). It is signiﬁcant that
+MT lacks the second line, an explicit reference to divine beings (µyhIløa”), in
+what should be the ﬁrst bicolon. MT also changes µyim"v… to µyi/G. This alter-
+ation seems odd, but the motive becomes clear if µyim"v… is understood not
+as “heavens” but as “heavenly beings,” a meaning found elsewhere in the
+Hebrew Bible.21 This pairing was apparently deliberately eliminated to
+avoid the reference to other “divine beings.”22 The canonical author de-
+mands the other gods, evil spiritual entities hostile to Israel, to bow before
+the incomparable Yahweh.23
+20. Most, if not all, scholars hold that these changes came in the Hellenistic period. This
+conclusion is guided not by actual data but by the assumption that Israelite religion was
+steadily evolving toward an exclusivistic monotheism that rejected the existence of other gods
+after the exile. As this article details, this assumption has signiﬁcant ﬂaws. In terms of textual
+data, all that is known for sure is that the Qumran material, the oldest witness to this passage,
+contained references to other gods, whereas the later text of MT does not. The data says noth-
+ing about when the alteration of MT took place. In view of the abundant canonical and non-
+canonical postexilic and Hellenistic Jewish material in which the existence of other gods is as-
+sumed, it is far more coherent to postulate that these textual changes came much later during
+the period of textual “standardization” circa 100 c.e. One cannot argue that Hellenistic Juda-
+ism in particular considered such “demythologizing” a theological duty, for the LXX is often
+quite literal in passages where other gods are afﬁrmed (e.g., Ps 82:1 [LXX 81:1]; 89:7 [LXX
+88:7]). This means that the fact that certain LXX passages do soften language that points to
+other gods (see the next footnote) indicates only that some Jews felt uncomfortable with divine
+plurality, not that Judaism as a whole could not process such language in the context of the
+uniqueness of Yahweh. The abundant testimony to divine plurality in a divine council in the
+Qumran material (Heiser, “The Divine Council,” 176–213) informs us that even the most con-
+servative sects of Judaism in the ﬁrst century might not object to the language of divine plu-
+rality. The Masoretic text rose to prominence only after centuries of textual diversity and not
+by “intrinsic factors related to the textual transmission, but by political and socioreligious
+events and developments” (Emanuel Tov, “Textual Criticism [OT],” in Anchor Bible Dictionary
+[ed. D. N. Freedman; New York: Doubleday, 1992], 6:407). The social and religious pressures
+that led to textual standardization in the ﬁrst century c.e. are a much better milieu for these
+textual changes, and so the theological motivation behind them does not undermine the thesis
+of this article, it strengthens it.
+21. The parallelism in both Job 15:15 and Jer 14:22 supports this translation. See also Al-
+exander Rofé, “The End of the Song of Moses (Deuteronomy 32:43),” in Deuteronomy: Issues and
+Interpretation (ed. Alexander Rofé; New York: Continuum / T. & T. Clark, 2002), 50.
+22. Arie van der Kooij, “The Ending of the Song of Moses: On the Pre-Masoretic Version
+of Deut 32:43,” in Studies in Deuteronomy in Honor of C. J. Labuschagne on the Occasion of his 65th
+Birthday (ed. F. García Martínez, A. Hilhorst, J. T. A. G. M. van Ruiten, and A. S. van der Woude;
+VTSup; Leiden: Brill, 1994), 93. See also the comments of Tigay (Deuteronomy, 516).
+23. The notion that this language is merely poetic—as though the use of poetry means the
+writer did not believe something expressed in poetry—is addressed brieﬂy in the subsequent
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+10
+The denial phrases in Deuteronomy 4 and 32 must therefore be con-
+textualized in light of the canonical book as a whole. The primary phrases
+of concern are ydiM:[I µyhIløa” ˆyaEw] and aWh ynia“ ynia“. With respect to the former,
+in an Ugaritic text with parallel language Baal says: ªa˙dy d ymlk ºl ªilm (“I
+alone am the one who can be king over the gods”).24 This is certainly no
+statement for exclusivistic monotheism at Ugarit! The phrase points to in-
+comparability—only Baal among all the other gods of the Ugaritic pan-
+theon was El’s co-regent. More will be said about this phrase in the ensuing
+discussion of Deutero-Isaiah.
+With respect to ynia“ aWh ynia“ in Deut 32:39, the most thorough work is
+that of C. H. Williams.25 This study concluded that these are not state-
+ments of sole self-existence or divine interchangeability (“I am the same”).
+MT
+4QDeutq a
+wm[ µywg wnynrh
+wm[ µymv wnynrh
+O nations, acclaim His people!
+Rejoice, O heavenly ones,b with 
+Him!
+µyhla lx wl wwjtvhw
+Bow down, all you gods, before 
+Him!
+µwqy wydb[Aµd yk
+µwqy wynb µd yk
+For he will avenge the blood of 
+his servants;
+For he will avenge the blood of 
+his sons;
+wyrxl byvy µqnw
+wyrxl byvy µqnw
+He will exact vengeance on his 
+adversaries,
+He will exact vengeance on his 
+adversaries.
+µlvy wyancmlw
+He will repay those who hate 
+him,
+wm[ wtmda rpkw
+wm[ tmda rpkyw
+And make atonement for his land 
+(and) his people.
+And make atonement for his 
+people’s land.
+a. For the published text of 4QDeutq, see P. W. Skehan, “A Fragment of the ‘Song of Moses’
+(Deut. 32) from Qumran,” BASOR 136 (1954) 12–15; Eugene Ulrich, Frank Moore Cross and
+Sidnie White Crawford, eds., Qumran Cave 4/IX: Deuteronomy, Joshua, Judges, Kings (DJD 14;
+Oxford: Oxford University Press, 1996), 137–42, pl. 31. LXX agrees with 4QDeutq but adds yet
+another bicolon to the ﬁrst as a secondary, explanatory gloss that softens the divine vocabulary
+by inserting angels into the parallelism (Tigay, Deuteronomy, 516–17).
+b. See the discussion for this translation.
+24. KTU 1.4.vii.49–52.
+25. C. H. Williams, I Am He: The Interpretation of ªAni Huª in Jewish and Early Christian Lit-
+erature (WUNT 2/113; Tübingen: Mohr Siebeck, 2000), 39–52.
+discussion. For now it is sufﬁcient to note that having the canonical writer claim Yahweh is su-
+perior to beings that the writer didn’t believe existed would be vacuous praise.
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+11
+As such, ynia“ aWh ynia“ cannot be construed as an expression that inherently
+denies the existence of other deities. Sanders adds, “On the basis of this co-
+lon alone it is difﬁcult to decide if it is a claim for the absoluteness of Yah-
+weh (i.e., the existence of other gods is denied), or the incomparability of
+Yahweh.”26 The solution seems to lie in balancing the colon ydiM:[I µyhIløa” ˆyaEw]
+(“there is no god besides me”) with the phrase lyXIm" ydiY;mI ˆyaEw] (“there is none
+that can deliver out of my hand”). Hence a comparison is again being
+made: Yahweh’s ability versus the ability of opposing gods. Sanders says
+elsewhere:
+How do we translate ydm[? Theoretically ‘with’, ‘beside’, and ‘like’ are
+our options. In other parts of the song the existence of other gods is
+not denied but they are regarded as powerless; cf. v. 31, 37–38, 43a
+(4QDtq). This circumstance seems to render the translation ‘with’ less
+convincing. It is the incomparability [of God] . . . that is confessed
+here. The phrase ydiM:[I µyhIløa” ˆyaEw] must have virtually the same mean-
+ing as the far more common expression of YHWH’s incomparability
+by the phrase . . . k ˆya. The possibility of translating µ[ by ‘like’ is also
+suggested by some Ugaritic evidence. . . . In KTU 1.6:i.44–45 Ilu and
+Athiratu are comparing various candidates for Baºalu’s succession.
+Ilu rejects one of them, stating: dq ªanm l yr˛ ºm bºl l yºdb mr˙ ºm bn dgn
+ktmsm (“One of feeble strength cannot run like Baºalu, one who
+knuckles down cannot poise the lance like the son of Daganu”; lines
+50–52). Since at this moment Baºalu is not among the living anymore,
+the translation ‘with’ is obviously unacceptable here. It has long been
+perceived that ‘like’ is the preferable translation.27
+The point above regarding the relationship between Yahweh’s incompara-
+bility and his uniqueness is an important one. The fact that there is no deity
+who can save those whom Yahweh has targeted for judgment speaks to
+both aspects. This uniqueness in turn compels the confession that Yahweh
+alone is the “true” God (Jer 10:10). This is the heart of Israel’s theology. 
+As one scholar recently noted in a work on the question of monothe-
+ism in Deuteronomy:
+[T]he belief in one God is the central issue in the theology of Deuter-
+onomy. In later times, the monotheistic statements of Deuteronomy
+(esp. 4:35, 39; 6:4; 7:9; 32:39) are used by the monotheistic religions of
+Late Antiquity, Judaism and Christianity, to support their argument
+against those who did not believe in one God. . . . As far as the belief
+in one God is concerned, Deuteronomy is not concerned with a theo-
+retical monotheism, but rather gives a confession of faith. The mono-
+theism of Deuteronomy emerged from the struggle against idolatry.
+Moreover, the decline of Israel is attributed to the following of other
+26. Paul Sanders, The Provenance of Deuteronomy 32 (Leiden: Brill, 1996), 226.
+27. Ibid., 238; cf. n. 788 (emphasis mine). On the Ugaritic evidence, see also Johannes C. de
+Moor, The Seasonal Pattern in the Ugaritic Myth of Baºlu According to the Version of Ilimilku (AOAT
+16; Kevelaer: Butzon & Bercker / Neukirchen-Vluyn: Neukirchener Verlag, 1971), 203.
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+12
+gods. The existence of other gods is not denied, however, only their power
+and signiﬁcance for Israel.28
+If one sees a link between the composition of Deuteronomy and the Deu-
+teronomistic History, the case for understanding these kinds of phrases in
+terms of incomparability rather than denial of existence becomes even
+stronger. The absence of any unmistakable denial of the existence of other
+gods in Deuteronomy and the Dtr literature is bolstered by a study of the
+concept of alien deities in that material by Yair Hoffman.29 Hoffman stud-
+ied the occurrence and distribution of rkn µyhwla, rz la, and µyrja µyhwla to
+discern whether Israel’s faith reﬂected a monotheism that denied the ex-
+istence of other gods, or if such phrases denoted only a difference in per-
+spective (“they are other gods since they are not ours”).30 Based on the
+infrequent number of occurrences and their distribution, Hoffman con-
+cluded the ﬁrst two phrases could not decisively answer the question. The
+third phrase, the most relevant to the study, resulted in more clarity. By
+way of summation, Hoffman found:
+The qualifying phrase t[dy al rva veriﬁes that by the phrase µyhwla
+µyrja Dtr did not intend a conclusive denial of deities other than
+Yahweh. . . . I suggest that the creation of the expression µyrja µyhwla
+reﬂects Dtr’s vague feeling that a term was needed which could ex-
+press the dichotomy, though not absolute contradistinction, between
+Yahweh and all other gods. . . . The creation of a term was vital for the
+Dtr who wanted to contrast other deities with Yahweh not on the
+level of existence, but on the level of potency. . . . Thus the concept of
+“other gods” expressed by the term µyrja µyhwla is that they exist,
+they may even be “helpful” for their natural worshippers, but not for
+Israel, which can be helped only by Yahweh. Such a concept of other
+gods leads indirectly to the belief that Yahweh is mightier than the
+other gods, and therefore it is not only immoral but stupid for Israel
+to transgress his covenant. The concept of the sovereignty of Yahweh
+over all deities, though not his exclusiveness, and the idea that it is le-
+gitimate for each nation to worship its own gods, are well attested in
+Deut 4:19–20. Here Israel is warned not to worship the sun, the moon,
+and the stars, “whom the Lord has allotted (qlj) unto all nations un-
+der the whole world.31
+To summarize, the confessional statements of Deut 4:35, 39 and 32:12,
+39 must be viewed against the backdrop of the Most High’s dealings with
+28. J. T. A. G. M. van Ruiten, “The Use of Deuteronomy 32:39 in Monotheistic Controver-
+sies in Rabbinic Literature,” in Studies in Deuteronomy in Honor of C. J. Labuschagne on the Oc-
+casion of his 65th Birthday (ed. F. García Martínez et al.; Leiden: Brill, 1994), 223 (emphasis mine).
+29. Yair Hoffman, “The Concept of ‘Other Gods’ in Deuteronomistic Literature,” in Politics
+and Theopolitics in the Bible and Postbiblical Literature (ed. Henning Graf Reventlow, Yair Hoff-
+man, and Benjamin Uffenheimer; JSOTSup 171; Shefﬁeld: JSOT Press, 1994), 66–84.
+30. Ibid., 71. Emphasis is the author’s.
+31. Ibid., 71–72.
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+13
+the Gentile nations and the gods he appointed to govern them. It would be
+nonsensical to conclude that Deut 4:19–20 and 32:8–9 show Yahweh giving
+the nations up to the governance of non-existent beings. The writer is not
+suggesting in turn that Yahweh allotted non-existent beings to the nations
+so as to explain why the nations outside Israel worship non-existent be-
+ings. The implication is that the declarations of Deut 4:35, 39 and 32:12, 39
+are best understood as reﬂecting a worldview that accepted the reality of
+other gods, along with Yahweh’s utter uniqueness among them, not a
+worldview that denied the existence of lesser µyhIløa”. The same picture
+emerges in Deutero-Isaiah.
+1.3. Deutero-Isaiah
+Nearly ﬁfty years ago, James Barr noted that in no case did Deuteronomy
+deny the existence of other deities. Barr suggested that, in view of the use
+of identical phrasings, the same could be said for (Deutero-) Isaiah:
+It may also be asked whether the question of mere existence [of other
+gods] is as important as has been commonly held for those later texts
+such as Deutero-Isaiah which are supposed to maintain the fullest
+type of monotheism. When we read in Psalm 14:1 that the fool has
+said in his heart µyhIløa” ˆyaE, we are commonly agreed that the foolish
+man is no absolute atheist asserting the non-existence of God; he is
+denying his signiﬁcance, refusing to reckon with God. Is it not pos-
+sible to understand in much the same way those places where Deu-
+tero-Isaiah uses the same negative particle?”32
+Deutero-Isaiah is consistent with Deuteronomy since the phrases in
+his work on which scholars depend for arguing other gods do not exist, are
+the same, or are similar to those just discussed in Deuteronomy 4 and 32.
+There is also solid evidence that Isaiah utilizes the worldview of Deuter-
+onomy 4 and 32, as well as Psalm 82. If so, then his alleged denials of the
+existence of other gods must be contextualized by his broader theology.
+To begin, scholars of the book of Isaiah have long recognized the pres-
+ence of the divine council in the book of Isaiah, particularly Isa 40:1–8:33
+32. James Barr, The Problem of Israelite Monotheism (TGUOS 17; Glasgow: Glasgow Uni-
+versity, 1957–1958), 53–54.
+33. See, for example, H. H. Rowley, “The Council of Yahweh,” JTS 45 (1944): 151–57;
+Kingsbury, “Prophets and the Council of Yahweh,” 279–86; Polley, “Hebrew Prophecy Within
+the Council of Yahweh,” 141–56; Christopher R. Seitz, “The Divine Council: Temporal Transi-
+tion and New Prophecy in the Book of Isaiah,” JBL 109:2 (1990): 229–47; Frank Moore Cross,
+“The Council of Yahweh in Deutero-Isaiah,” JNES 12 (1953): 274–77; Martti Nissinen, “Prophets
+in the Divine Council,” 4–19. Two features of Isa 40:1–8 demonstrate the presence of the divine
+council. First, there are several plural imperatives in vv. 1 (Wmj“n' Wmj“n'; “console”), 2 (War]qIw] . . .  WrB}D';
+“speak . . . and call”), and 3 (WrV‘y' . . . WNP"; “prepare . . . make straight”) as well as plural sufﬁxes
+(v. 1, µk<yhEløa” [note the masculine 2pl], “your God”; v. 3, WnyhEløalE, “for our God”). The commands
+are issued to an unseen audience and require actions that cannot be fulﬁlled by earthly ad-
+dressees. Seitz and others have pointed out that interpreting yMI[" as a vocative is ruled out by
+the parallel µil"v…Wry] blEAl[", which is clearly the intended object and not a vocative. See especially
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+14
+Scholars have also taken note of the familiar mythological motifs in the
+book associated with Yahweh’s assembly—the same sort of “star” language
+referring to divine beings noted in the discussion of Deuteronomy 4 and
+32. For example, consider Isa 40:22–26:
+22 (It is) he that sits / is enthroned upon the circle of the earth, and
+its inhabitants (are) as grasshoppers; he stretches out the heavens as
+a curtain, and spreads them out as a tent in which to dwell. 23 He
+brings princes to naught; the rulers of this world he makes as nothing.
+24 No sooner are they planted, no sooner are they sown, no sooner do
+they take root in the ground, than he blows on them and they wither,
+and a whirlwind sweeps them away like chaff. 25 “To whom will you
+compare me? Or who is my equal?” says the Holy One. 26 Lift up
+your eyes to the heights and see: who created these? He who brings
+out their host by number, calling them all by name; by the greatness
+of his might, and because he is strong in power not one is missing.
+This passage is intriguing on several levels. The reference to the “circle of
+the earth” (v. 22; ≈r,a:h: gWj) and “stretching out (hf</Nh") the heavens as a tent
+(lh<aøK:) in which to dwell” (v. 22) are overt references to the mythological
+dwelling of El.34 Likewise, the imperative to lift up the eyes “to the heights”
+(µ/rm:) in context with these references speaks of the dwelling of El, the
+place where the old council gods meet with the high God.
+The wording of Isa 40:23 is of special interest: “He brings princes to
+naught; the rulers of this world he makes as nothing.” The word for
+“princes” here is not the familiar and expected µyric…, but µyniz]/r, a word that
+is certainly within the semantic range of royal sons.35 This becomes note-
+worthy once it is recalled that in Ugaritic religion divine royal sons bore the
+34. Habel notes, “The heights of that horizon [˙ûg] are the cosmic North, the traditional
+mythological abode of the gods” (Norman C. Habel, “He Who Stretches Out the Heavens,”
+CBQ 34:4 [1972]: 417–18). See also Luis I. J. Stadelmann, The Hebrew Conception of the World: A
+Philological and Literary Study (AnBib 39; Rome: Pontiﬁcal Institute, 1970), 42–43, 126; E. The-
+odore Mullen, The Divine Council in Canaanite and Early Hebrew Literature (HSM 24; Missoula,
+MT: Scholars Press, 1980), 195–98; F. M. Cross, Canaanite Myth and Hebrew Epic, 36; Marjo C. A.
+Korpel, A Rift in the Clouds: Ugaritic and Hebrew Descriptions of the Divine (Münster: Ugarit-Ver-
+lag, 1990), 376–82.
+35. The word µyniz]/r is a Qal masculine plural participle from ˆzr. The verb occurs else-
+where for royalty in Judg 5:3; Ps 2:2; Prov 8:15; 31:4; Hab 1:10.
+hL:sIm} hb:r;[“B: WrV‘y' and the ensuing description of this activity in vv. 4–5. Second, there is alter-
+nation of speakers in vv. 1–6. The speaker who issues the plural imperatives of vv. 1–2 is pre-
+sumably Yahweh (addressing his divine court), due to the fact that he refers to the inhabitants
+of Jerusalem as “my people” and pronounces the sins of those people as having been pardoned.
+The speaker changes in v. 3, where a voice from the assembly who has just heard the instruc-
+tion of Yahweh calls out (to plural addressees again) to make preparation for the arrival of
+Yahweh and his glory (v. 5). This heavenly voice then addresses another personage with a sin-
+gular imperative (v. 6a, . . . ar;q} rmEaø l/q; “a voice said, ‘call . . .’”). The text-critical issue in Isa
+6:8, which involves a difference in grammatical person of the verb, affects only the potential
+identiﬁcation of the herald, not the plurality of the audience in the scene (see Seitz, “Divine
+Council,” 238–46).
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+15
+title tp†,36 the philological equivalent to fpv, the same term used in Psalm
+82 for the gods who were judging (lw,[:AWfP}v‘TI yt"m:Ad[") the nations unjustly
+(cf. Deut 4:19–20 and 32:8–9).
+To deny that Deutero-Isaiah has the same “starry” sons of God in view
+here, one has to argue that the prophet is referring exclusively to literal as-
+tronomical bodies. This assertion is difﬁcult to defend, since the result of
+that choice is that Isaiah is describing how God commands chunks of rock
+and balls of gas, which somehow affect events on earth—speciﬁcally the
+corrupt judgment of Psalm 82. To say the least, this smacks of modern as-
+trology. It is much more coherent to have Isaiah accepting the worldview
+of Psalm 82 as including a council lesser µyhIløa” who can in no way compare
+to Yahweh.
+As in the case of Deuteronomy, it also cannot be argued that Deutero-
+Isaiah uses this star language with reference only to humanly fabricated
+idols that might depict astral deities. The star language of Isaiah 40 pro-
+vides no hint that the writer was speaking of manufactured physical ob-
+jects. Moreover, elsewhere Deutero-Isaiah informs us that the object and
+the deity were not identical. The statement in Isa 46:1 that “Bel bows down;
+Nebo stoops; their idols are on beasts and livestock” suggests a distinction
+between the two. Bel and Nebo are powerless to avoid “their images” be-
+ing carried off into captivity. As with all the passages heretofore consid-
+ered, the writer’s point in Isaiah 46 is Yahweh’s incomparability (46:5), not
+the non-existence of the other gods. Unlike Bel and Nebo, whose images
+can be carried off, Yahweh, who has no image, has carried the nation of Is-
+rael since its birth, and will carry them out of Babylon (46:1–4).
+It is against this backdrop and the larger scope of Deuteronomy that
+Isaiah’s “none besides me” statements must be understood. Failure to do so
+leaves one with inner-biblical and logical contradictions. There are three
+primary passages to which scholars appeal to assert Isaiah denied the ex-
+istence of other gods:
+Isa 43:10–12
+10 “You are my witnesses,” declares Yahweh, “and my
+servant whom I have chosen, that you may know and believe me, and
+understand that I am He (aWh ynia“). Before me no god was formed
+(rx"/nAalø yn'p:l}), neither shall there be after me. 11 I, I am Yahweh, and
+besides me there is no savior (['yv¥/m ydi[:l}B"mI ˆyaEw]). 12 I declared and
+saved and I proclaimed, when there was no strange (god) among you:
+and you are my witnesses,” says Yahweh, “that I am God.” 
+Isa 44:6–8
+6 Thus says Yahweh the King of Israel, and its Redeemer,
+Yahweh who creates the hosts: “I am the ﬁrst, and I am the last; and
+besides me there is no god (µyhIløa” ˆyaE yd'[:l}B"mIW). 7 Who is like me? Let
+36. Lowell K. Handy, Among the Host of Heaven: The Syro-Palestinian Pantheon as Bureau-
+cracy (Winona Lake, IN: Eisenbrauns, 1994), 113; Cyrus H. Gordon, “tp†,” Ugaritic Textbook:
+Glossary, Indices (revised reprint; AnOr 38; Rome: Pontiﬁcal Biblical Institute, 1998), 505–6;
+Nicholas Wyatt, “Titles of the Ugaritic Storm God,” UF 24 (1992): 422. Wyatt in particular notes
+that tp† may be taken as referring to “ruling” (mlk).
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+16
+him proclaim it, let him declare and set it forth before me. Who has
+announced from of old the things that are coming? Let them tell me
+what is yet to be. 8 Fear not, neither be afraid; have I not told you from
+of old and declared it? And you are my witnesses. Is there a god be-
+sides me (ydi[:l}B"mI H'/la” vyeh“)? There is no Rock; I know not any.” 
+Isa 45:5–7, 14, 18, 21–22
+5 “I am Yahweh, and there is no other (ˆyaEw]
+d/[), besides me there is no God (µyhIløa” ˆyaE ytIl:Wz): I gird you, though
+you do not know me, 6 that men may know, from the rising of the sun
+and from the west, that there is none besides me; I am Yahweh, and
+there is no other (d/[ ˆyaEw]). 7 I form the light and create darkness; I
+make prosperity and create calamity: I Yahweh do all these things.”
+14 Thus says Yahweh: “The wealth of Egypt, and merchandise of
+Ethiopia and of the Sabeans, men of stature, shall come over to you
+and be yours; they shall follow you; in chains they shall come over
+and fall down before you; they shall make supplication to you, say-
+ing, ‘God is with you only, and there is no other, there is no god be-
+sides him’ (µyhIløa” sp<a< d/[ ˆyaEw]).” 18 For thus says Yahweh, who created
+the heavens—he is God—who formed the earth and made it; he hath
+established it; he did not create it a chaos; he formed it to be inhab-
+ited. “I am Yahweh; and there is no other (d/[ ˆyaEw]).” 21 Declare and
+present your case; let them take counsel together! Who told this long
+ago? Who declared it of old? Was it not I, Yahweh? And there is no
+other god besides me; a just God and a Savior; there is none besides
+me (ytIl:Wz ˆyia"). 22 Turn to me and be saved, all the ends of the earth!
+For I am God, and there is no other (d/[ ˆyaEw]).
+The following eleven “denial phrases” can be drawn from the above
+passages in Isaiah—phrases that are either identical or nearly identical to
+those found in Deut 4:35, 39 and 32:12, 39:
+['yv¥/m ydi[:l}B"mI ˆyaEw] (1)1
+µyhIløa” ˆyaE yd'[:l}B"mIW (2)1
+:yTI[}d;y;AlB" rWx ˆyaEw] yd'[:l}B"mI H'/la” vyeh“ (3)1
+yd'[:l}B"mI µyhIløa” d/[AˆyaEw] (4)1
+µyhIløa” ˆyaE ytIl:Wz (5)1
+:ytIl:Wz ˆyia" (6)1
+d/[ ˆyaEw] (7)1
+µyhIløa” sp<a< d/[ ˆyaEw] (8)1
+yd;[:l}BI sp<a<AyKI (9)1
+rz; µk<B: ˆyaEw] (10)
+laE rx"/nAalø yn'p:l} (11)
+The ﬁrst observation is that the prepositions (yd[lb [m], ytlwz), the adverb
+spa, and the adverbial phrase dw[ ˆyaw in the above list are interchangeable.
+In Isa 45:6, yd[lbm is juxtaposed with both spa and dw[ ˆya. In like manner,
+Isa 45:21 has yd[lbm in tandem with ytlwz and dw[ ˆya. These interchanges
+allow an important methodological consideration. In some cases the con-
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+17
+struction containing an excluding preposition or the adverbial phrase
+found in Deut 4:35, 39 and 32:12, 39 is identical to those occurring in denial
+phrases in Isaiah. On other occasions, a semantically congruent preposi-
+tion or adverb is used by the author. In order for one to argue that the de-
+nial phrases indicate one thing in Deuteronomy (other gods are real but
+are not Yahweh) and another in Isaiah (other gods do not exist at all), one
+would have to produce distinctive prepositions or adverbs in these syn-
+tactical structures or different “negative particle plus excluding preposi-
+tion or adverb” constructions. This is not where the data leads.
+Phrases 1 through 4 in our listing each have the negative particle ˆya
+and the preposition ydlbm in common (save for number 3, where vyeh“ forms
+a rhetorical question with an expected negative answer instead of ˆya).
+Deut 4:35 utilizes this same combination (/db"l}mI d/[ ˆyaE; “there is none be-
+sides him”). Deut 32:39 echoes the same thought, albeit with a different
+preposition (ydiM:[I µyhIløa” ˆyaE; “there is no God besides me”). In view of the
+earlier discussion that the wording of Deut 4:35, 39 and Deut 32:39 does
+not equate to a denial of the existence of other gods, on what grounds must
+we conclude that the same language in Isaiah means there are no gods?
+Phrases 5 and 6 represent Isa 45:5, 21, and point to the use of the
+preposition ytlwz to describe Yahweh’s relationship to other gods (ˆyaE ytIl:Wz
+µyhIløa”; “besides me there is no god” and ytIl:Wz ˆyia"; “there is none [no god]
+besides me”). Isa 45:21 transparently correlates this phrase with the use of
+yd[lbm in tandem with dw[ ˆya, the same combination as in Deut 4:35. This
+interchange elicits the conclusion that the negative particle with excluding
+ytlwz does not intend to tell the reader that no other gods exist, only that
+Yahweh is unique.
+Moving on, the phrase dw[ ˆya also occurs in numbers 7 and 8 in our
+list, thereby aligning those references with the incomparability statements
+of Deut 4:35, 39. In addition to what has already been said about this cor-
+relation, it should also be noted that in Isa 46:9 dw[ ˆya occurs in parallel
+with ˆya followed by the comparative preposition k, which implicitly al-
+lows for the existence of other gods. The terms in the ninth phrase in our
+list, yd;[:l}BI sp<a<AyKI, have already been seen to overlap with terms in Deu-
+teronomy. As a result, phrases 7 through 9 in our list are not evidence that
+Isaiah denies the existence of other gods.
+Phrase number 10 comes from Isa 43:12 and reads rz; µk<B: ˆyaEw] (“and
+among you there were no strange (gods)”). The distinct feature here is the
+word rz; coupled with the particle of negation, ˆyaE. This combination is
+found in Deut 32:12, which is presupposed in Deut 31:29.37 Due to its cor-
+relation with Deut 32:39 and Deut 4:35, 39, it cannot be argued that Deut
+32:12 conveys the idea of exclusivistic monotheism. The syntactical over-
+laps once again compel us to rule out the tenth phrase.
+This leaves only phrase number 11: laE rx"/nAalø yn'p:l}. It is a claim of
+Yahweh’s pre-existence with respect to all other gods; hence Yahweh is
+37. Sanders, Provenance of Deuteronomy 32, 394.
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+18
+incomparable among the gods. Yahweh, the One who created all the mem-
+bers of the heavenly host (cf. Neh 9:6; Isa 40:26; Ps 33:6), is ontologically
+pre-eminent. The phrase does not deny that Yahweh created other gods.
+There is no other god who can claim either creative power or chronological
+priority, and there will never be another like him.
+Finally, Hebrew syntax aside, if one reads the denial statements in
+Deutero-Isaiah it is not difﬁcult to discern upon what basis the denial lan-
+guage occurs. Is the language concerned with making the point that Yah-
+weh is the only god who exists, or is the text intending something else? In
+Isa 43:10–12, it is Yahweh’s claim to be alone in his pre-existence, his ability
+to save, and his national deliverance. In Isa 44:6–8 the focus is on certain at-
+tributes of Yahweh. In the texts from Isaiah 45, there are very obvious com-
+parisons between Yahweh’s deeds, justice, salvation, and deliverance of his
+children and the impotence of the other gods. All these passages are trans-
+parently concerned with comparing Yahweh to other gods—not comparing
+Yahweh to beings that do not exist; that would be empty praise indeed.
+2. Traditional Concerns with Divine Plurality 
+in Israelite Religion
+Traditional approaches to afﬁrmations of divine plurality in the Hebrew
+Bible are understandably motivated by theological concerns, most notably
+a perceived compromise of monotheism. The problem is one of language
+and its assumptions. On one hand, it is assumed that the modern person’s
+deﬁnition of “monotheism” can rightly be imposed on the ancient Israelite
+mind. On the other hand, it is also assumed that any disconnect between
+the modern notion of “monotheism” and the theology of the ancient faith-
+ful Israelite can accurately be labeled with modern terms like “polythe-
+ism” or “henotheism.”
+2.1 Psalm 82: Gods or Men?
+With these assumptions ﬁrmly in place, traditional objections to divine
+plurality usually take the form of appeals to the denial statements dis-
+cussed above, casting the plural µyhIløa” of certain passages as human be-
+ings, or asserting that the other µyhIløa” are only idols. It is convenient to
+return to several verses in Psalm 82:
+:fPøv‘yi µyhIløa” br,q,B} laEAtd'[“B" bX:ni µyhIløa” πs:a:l} r/mz}mI 1
+God stands in the divine council; in the midst of the gods he passes
+judgment.
+:µk<L}KU ˆ/yl}[< yneb}W µT<a" µyhIløa” yTIr]m"a:Aynia“ 6
+:WlPøTI µyric…h" dj"a"k}W ˆWtWmT} µd;a:K} ˆkEa: 7
+6 “I said, ‘you are gods, sons of the Most High, all of you’. 7 Therefore
+you shall die as humans do, and you shall fall as one of the princes.
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+19
+In verse six, the plural µyhIløa” of 82:1 are referred to once again as µyhIløa” but
+are further identiﬁed as sons of the God of Israel (the Most High). It is well
+known that the phrases µyhIløa” yneB}, µyhIløa”h: yneB}, and µylIaE yneB} have certiﬁable
+linguistic counterparts in Ugaritic texts to a council of gods under El, and
+that the meaning of these phrases in the Hebrew Bible points to divine be-
+ings.38 Traditional Christian and Jewish scholars have commonly argued
+that similar phrases, such as references to Moses as µyhIløa” (Exod 4:16; 7:1),
+Israel as Yahweh’s “son” (Exod 4:23; Hos 11:1), and Israelites as “sons of the
+living God” (Hos 1:10 [Hebrew, 2:1]) inform us that the µyhIløa” of Psalm 82
+are human rulers, namely, the elders of Israel.
+As a number of other scholars have pointed out, this position is inco-
+herent for several reasons. First, if the µyhIløa” in Psalm 82 are humans, why
+are they sentenced to die “like humans”? This sounds as awkward as sen-
+tencing a child to grow up, or a dog to bark. The point of v. 6 is that, in re-
+sponse to their corruption, the µyhIløa” will be stripped of their immortality
+at God’s discretion and die as humans die. A clear contrast is intended by
+both the grammar and structure of the Hebrew text, saving us from such
+logic.39 Second, what is the scriptural basis for the idea that this psalm has
+God presiding over a council of humans that governs the nations of the
+earth? At no time in the Hebrew Bible did Israel’s elders ever have juris-
+diction over all the nations of the earth. In fact, other divine council texts
+such as Deut 32:8–9 have the situation exactly opposite—Israel was sepa-
+rated from the nations to be God’s personal possession and the focus of his
+38. There are several general phrases for a council of gods that provide a conceptual par-
+allel with the Hebrew Bible: phr ªilm—“the assembly of El / the gods” (Gregorio Del Olmo Lete
+and Joaquín Sanmartín, “phr,” A Dictionary of the Ugaritic Language in the Alphabetic Tradition
+(rev. ed.; trans. W. G. E. Watson; HONME 67; Leiden: Brill, 2003) 2:669; KTU 1.47:29, 1.118:28,
+1.148:9 [hereafter, DULAT]); phr bn ªilm—“the assembly of the sons of El / the gods” (DULAT
+2:669; KTU 1.4.III:14); phr kkbm—“the assembly of the stars” (DULAT 2:670; KTU 1.10.I:4; the
+phrase is parallel to bn ªil in the same text; see Job 38:7–8); mphrt bn ªil—“the assembly of the
+gods” (DULAT 2:566; see KTU 1.65:3; cf. 1.40:25, 42 along with bn ªil in 1.40:33, 41 and its re-
+construction in parallel lines in the same text—lines 7, 16, 24; 1.62:7; 1.123:15). Of closer lin-
+guistic relationship to material in the Hebrew Bible are: ºdt ªilm—“assembly of El / the gods”
+(DULAT 1:152; see KTU 1.15.II: 7, 11); dr ªil—“assembly (circle) of El” (DULAT 1:279–80. See
+KTU 1.15.III:19; 1.39:7; 1.162:16; 1.87:18); dr bn ªil—“assembly (circle) of the sons of El” (DULAT
+1:279–80; see KTU 1.40:25, 33–34); dr dt smm—“assembly (circle) of those of heaven” (DULAT
+1:279–80; see KTU 1.10.I: 3, 5); dr ªil wphr bºl—“the assembly (circle) of El and the assembly of
+Baal” (DULAT 1:279–80; see KTU 1.39:7; 1.62:16; 1.87:18).
+This list hardly exhausts the parallels between the dwelling place of El, which served as
+the meeting place of the divine council at Ugarit, and the abode of Yahweh. For the other lin-
+guistic parallels for each council and their respective modes of operation, see Heiser, “The Di-
+vine Council,” 39–69. For other works that overview the divine council and the sons of God, see
+Gerald Cooke, “The Sons of (the) God(s),” ZAW 76 (1964): 22–47; Mullen, The Divine Council;
+idem, “Assembly, Divine,” in Anchor Bible Dictionary 2:214–17; S. B. Parker, “Sons of (the)
+God(s),” in Dictionary of Deities and Demons in the Bible, 204–8 (hereafter, DDD); Matitiahu
+Tsevat, “God and the Gods in Assembly,” HUCA 40–41 (1969–1970): 123–37; J. Morgenstern,
+“The Mythological Background of Psalm 82,” HUCA 14 (1939): 29–126.
+39. W. S. Prinsloo, “Psalm 82: Once Again, Gods or Men?” Biblica 76:2 (1995), 219–28; and
+Lowell Handy, “Sounds, Words and Meanings in Psalm 82,” JSOT 47 (1990): 51–66; Cyrus Gor-
+don, “µyhla in Its Reputed Meaning of Rulers, Judges,” JBL 54 (1935): 139–44.
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+20
+rule. Third, why would the corrupt decisions of a group of humans shake
+the foundations of the earth (v. 5)? The statement of Ps 82:5 is comprehen-
+sible if the council in question were composed of cosmic beings whose
+sphere of authority went beyond a human Sanhedrin.40
+It is also worth pointing out that one cannot argue that the references
+to the gods / sons of God outside Psalm 82 speak of humans. Job 38:7–8 has
+the sons of God present at the creation of the world, rendering a human in-
+terpretation impossible. The same can be said for Ps 89:5–7 (Hebrew, vv. 6–
+8), where the sons of God of Yahweh’s council are in heaven in the throne
+room of God, not on earth.
+2.2 Deuteronomy 32 and the Canonical Israelite Worldview
+The real problem with the human view of Psalm 82, however, is that this
+view cannot be reconciled with the passages that form the conceptual
+backdrop to Psalm 82. That is, the idea that the sons of God were created
+by Yahweh and ordained to rule the nations comes from somewhere in the
+biblical corpus, namely Deuteronomy 4 and 32. Those chapters clearly
+speak of an act of God to divide the nations of the earth among the sons
+of God as a punishment for rebellion before there ever was a nation of Israel.
+As a result, the idea that the elders of Israel are the backdrop for the coun-
+cil of Psalm 82 cannot be sustained. This necessitates that we turn our at-
+tention to the appropriate passages in Deuteronomy.
+Deut 32:8–9 When the Most High gave to the nations their inheri-
+tance, when he divided mankind, he ﬁxed the borders of the peoples
+according to the number of the sons of God [µyhlah ynb]. But the
+Lord’s portion is his people, Jacob his allotted heritage.41 
+40. There are speciﬁc reasons why human beings and God’s chosen nation Israel are re-
+ferred to as God’s children in the aforementioned verses. The subject is too far-reaching for
+this paper, but the foundational reason is that in the Israelite worldview, the earthly family of
+the Most High was originally intended to dwell where the Most High and the heavenly council
+dwelt. Hence the explicit and frequent overlap between Israelite and wider Canaanite mate-
+rial with respect to descriptions of Yahweh’s abode, his council, divine Sonship (in heaven and
+on earth), and council activity. The bibliography related to these themes is copious, though not
+synthesized. See for example, Richard J. Clifford, The Cosmic Mountain in Canaan and the Old
+Testament (HSM 4; Cambridge: Harvard University Press, 1972); B. Byrne, “Sons of God”—“Seed
+of Abraham”: A Study of the Idea of the Sonship of God of All Christians in Paul Against the Jewish
+Background (AnBib 83; Rome: Pontiﬁcal Institute Press, 1979); Harald Risenfeld, “Sons of God
+and Ecclesia: An Intertestamental Analysis,” in Renewing the Judeo-Christian Wellsprings (New
+York: Crossroad Publishing Company, 1987), 89–104; James Tabor, “Firstborn of Many Broth-
+ers: A Pauline Notion of Apotheosis,” Society of Biblical Literature 1984 Seminar Papers (Atlanta:
+Scholars Press, 1984), 295–303; Devorah Dimant, “Men as Angels: The Self-Image of the Qum-
+ran Community” in Religion and Politics in the Ancient Near East (ed. Adele Berlin; Bethesda,
+MD: University Press of America, 1996), 93–103.
+41. Textual critics of the Hebrew Bible are unanimous in agreement that the Qumran
+reading (in brackets) is superior to the Masoretic text in Deut 32:8. See footnote 15 for docu-
+mentation and discussion of this reading.
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+21
+The event referred to in Deut 32:8–9 harks back to events at the Tower of
+Babel. The statement in Deut 32:9 that “the Lord’s portion is his people, Ja-
+cob his allotted inheritance” provides the key for understanding the con-
+trast between vv. 8 and 9. In v. 9 the nation of Israel (here called “Jacob”)
+is described as Yahweh’s allotted inheritance. The parallelism requires the
+“nations” of v. 8 to be given as an inheritance as well, but to whom? 32:8b
+provides the answer, but a parallel makes sense only if the original reading
+of v. 8b included a reference to other beings (the “sons of God”) to whom
+the other nations could be given.
+While Deut 32:8–9 described the nations being given over to gods42
+who were not Yahweh, Deut 4:19–20 gives us the opposite side of the pu-
+nitive coin:
+19 And beware lest you lift up your eyes to heaven, and when you see
+the sun and the moon and the stars, all the host of heaven (µyim"V…h" ab:x}),
+and be drawn away and bow down to them and serve them, which the
+Lord your God has allotted (ql"j:) to them, to all the peoples under the
+whole heaven. 20 But the Lord took (jq'l:) you and brought you out of
+the iron furnace, out of Egypt, to be a people of his own inheritance
+(hl:j“n' µ["l} /l t/yh}lI), as you are this day. 
+Tigay notes that these passages “seem to reﬂect a biblical view that . . . as
+punishment for man’s repeated spurning of His authority in primordial
+times (Gen. 3–11), God deprived mankind at large of true knowledge of
+Himself and ordained that it should worship idols and subordinate celes-
+tial beings. . . . He selected Abraham and his descendants as the objects of
+His personal attention to create a model nation.” 43 In a punitive decision
+reminiscent of Romans 1, then, God “gave humanity up” to their persis-
+tent resistance to taking him as their Sovereign. God subsequently called
+Israel into existence as His own. Hence each pagan nation was put under
+42. Deut 32:8a reads µyi/G ˆ/yl}[< ljEn]h"B}. ljEn]h"B} is pointed as a Hiphil inﬁnitive absolute, but
+it should probably be understood as a defective spelling of the inﬁnitive construct: ljIn}h"B}
+(Sanders, Provenance of Deuteronomy 32, 154). The object of the inﬁnitive form is µyi/G. As San-
+ders notes, the Hiphil of the verb ljn can be “connected both with an accusativus personae (the
+inheriting person; hence, “When the Most High gave the nations their inheritance”) or with
+an accusativus rei (the object inherited by this person; and so rendering, “When the Most High
+gave the nations as an inheritance”). Instructive parallels include Deut 1:38; 3:28; 21:16; 31:7;
+Josh 1:6; 1 Sam 2:8; Zech 8:12; and Prov 8:21 (Sanders, Provenance of Deuteronomy 32, 154). Both
+options are syntactically possible, but which should be preferred? The answer is to be found
+in Deut 32:9: “But the Lord’s portion is his people, Jacob is his allotted inheritance.” Verse nine
+clearly presents the nation Jacob/Israel as being taken (cp. Deut 4:19–20) as an allotted (qlj) in-
+heritance. Deuteronomy 4:19–20 makes the active “taking” clear. Note also the wordplay with
+the Hiphil verb in v. 8. The parallelism of MT’s verse nine would require “nations” be given
+as an inheritance to the sons of God by the Most High.
+43. Tigay, Deuteronomy, 435. The same idea contained in these verses also seems to be the
+point of 1 Samuel 26:19, quoting a distraught David: “Now let my lord the king listen to his
+servant’s words. If the Lord has incited you against me, then may he accept an offering. If,
+however, men have done it, may they be cursed before the Lord! They have now driven me
+from my share in the Lord’s inheritance and have said, ‘Go, serve other gods’” (niv).
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+22
+the administration of a being of inferior status to Yahweh, but Israel would
+be tended to by the “God of gods,” the “Lord of lords” (Deut 10:17).44 This
+backdrop to Psalm 82 renders untenable the view that the µyhIløa” of that
+psalm are humans.
+2.3 The Host of Heaven: Idols Only?
+The last objection offered by scholars concerned with perceived implica-
+tions of divine plurality in the Hebrew Bible are that the host of heaven
+referenced by Deut 4:19–20 (and so, Deut 32:8–9) are merely idols. While
+the Old Testament at times refers to idols as µyhIløa”—something inevitable
+for the biblical writer given the behavior of the Gentile nations—it is not
+coherent to argue that the Old Testament writer always intends to convey
+to readers that the gods of the nations are idols.
+When this argument is put forth, it is frequently inferred from Deut
+4:15–18, where God, through Moses, warns His people to not make idols,
+lest they be turned aside to worship the sun, moon, stars, etc. However,
+as noted brieﬂy above, Deut 32:17 quite clearly has Moses referring to
+the other µyhIløa” as evil spiritual entities (µydv): “They [Israel] sacriﬁced to
+demons (µydiV´l") who are not God (H'løa”),45 to gods (µyhIløa”) they did not
+know; new ones that had come along recently, whom your fathers had
+not reverenced.”
+Other passages from Deuteronomy make it clear that idols are not in
+view when it comes to host of heaven language, in that the gods referred
+to are those entities whom Yahweh allotted to the other nations.46 Trian-
+gulating Deut 4:19–20; 32:8–9 with other references to the foreign gods in
+Deuteronomy—the gods / host of heaven allotted to other nations, gods
+whom Israel “had not known”—compels the conclusion that the biblical
+writer considered them real entities. These gods, whom Israel later wor-
+shipped in apostasy, are called demons. To have these other gods as only
+idols would then mean that Yahweh instituted idolatry among the nations.
+The following verses are relevant:
+Deut 17:2–3 2 If there is found among you, within any of your towns
+which the Lord your God is giving you, a man or woman who does
+what is evil in the sight of the Lord your God, in transgressing his
+covenant, 3 who has gone and served other gods (µyhIløa”) and bowed
+down before them, the sun or the moon or any of the host of heaven
+(µyim"V…h" ab:x}Alk:l}), which I have forbidden. . . .47
+44. See n. 18 on the singular form. 
+45. Since H'løa” is singular, the translation “. . . who are not gods” is inaccurate. Addition-
+ally, H'løa” is spelled without mappiq in BHS (Westminster 4.0, 4.2) in Deut 32:17. BHS does have
+mappiq in most cases where the form is spelled plene (H'/la”), as often occurs in Job. However,
+the plene spelling occurs in Deut 32:15 without mappiq in BHS.
+46. Passages outside Deuteronomy need to be similarly contextualized. For example,
+1 Kgs 14:9 should be balanced with texts such as 2 Kgs 19:18.
+47. The prohibition was given in Deut 4:19–20.
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+23
+Deut 29:25 They turned to the service of other gods (µyhIløa”) and wor-
+shiped them, gods whom they had not known and whom He [God]
+had not allotted (ql"j:) to them. 
+The retrospect to the warnings and worldview of Deut 4:19–20; 32:8–9 is
+unmistakable. It is hardly persuasive to assume the writer would have
+Yahweh setting statues of wood and stone over the nations. Moreover, to
+be consistent, any interpretation of Deut 4:19–20 and 32:8–9 must be co-
+herent in Psalm 82. It is equally incoherent that Yahweh would sentence
+the other µyhIløa” to die like mortals if they were only wood and stone, or
+that Yahweh would be presiding over wood and stone statues in heaven
+(cf. Ps 89:5–7 [Hebrew, vv. 6–8]). The writer of Deuteronomy did not con-
+sider the host of heaven (sun, moon, starry host) whom Yahweh allotted to
+the Gentile nations only as humanly fabricated idols.
+It is also unsustainable to suppose that the biblical writer merely
+sought to prohibit the worship of idols associated with astronomical phe-
+nomena. It was commonly believed in the ancient world, including Israel,
+that the heavenly bodies were either animate beings or were inhabited or
+controlled by animate beings.48 The classic divine council passage, 1 Kgs 22,
+utilizes the heavenly host terminology for what are clearly divine beings:
+19 And Micaiah said, “Therefore hear the word of the Lord: I saw the
+Lord sitting on his throne, and all the host of heaven (µyim"V…h" ab:x})
+standing (dmE[ø) beside him on his right hand and on his left. 20 and the
+Lord said, ‘Who will entice Ahab, that he may go up and fall at
+Ramoth-gilead?’ And one said one thing, and another said another. 21
+Then a spirit (j'Wrh:) came forward (axEYew') and stood before the Lord,
+saying, ‘I will entice him.’ 22 And the Lord said to him, ‘By what
+means?’ And he said, ‘I will go out, and will be a lying spirit in the
+mouth of all his prophets.’ And he said, ‘You are to entice him, and
+you shall succeed; go out and do so.’ 23 Now therefore behold, the
+Lord has put a lying spirit in the mouth of all these your prophets; the
+Lord has declared disaster for you.” (english standard version)
+Yahweh is not holding council with physical chunks of stone and balls of
+gas. The text clearly equates the host of heaven with spiritual beings (a
+member of the host “comes forth,” “stands” before Yahweh, and speaks;
+v. 21). This issue brings to light another signiﬁcant problem for those who
+seek to deny that such language refers to real divine entities in the canon-
+ical worldview of Israel. Consider the following texts:
+Neh 9:6 6 You are the Lord, you alone. You have made heaven, the
+heaven of heavens, and all their host (µa:b:x}Alk:w]), the earth and all that
+is upon it, the seas and all that is in them; and you preserve all of
+them; and the host of heaven (µyim"V…h" ab:x}) worships you. 
+48. F. Lelli, “Stars,” DDD, 809–15; I. Zatelli, “Astrology and the Worship of the Stars in the
+Bible.” ZAW 103 (1991): 86–99.
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+24
+Ps 148:1–5 1 Praise the Lord! Praise the Lord from the heavens;
+praise him in the heights! 2 Praise him, all his angels (wyk:a:l}m"); praise
+him, all his hosts (/ya:b:x})! 3 Praise him, sun and moon, praise him, all
+you shining stars! 4 Praise him, you highest heavens, and you waters
+above the heavens! 5 Let them praise the name of the Lord! For he
+commanded and they were created.
+The parallelism in these passages makes clear the conceptual overlap, in
+that it has the heavenly host worshipping and praising Yahweh, their cre-
+ator. The description is also point-for-point consistent with the broader
+ancient Near Eastern worldview that assumed that the stars were animate
+beings.49 Readers familiar with conceptual metaphor know that one can-
+not argue that the language in these texts is merely poetic, as though poetic
+expressions do not convey the actual belief system of the ancient writer.
+Conceptual metaphors or poetic expressions are not based on what a per-
+son’s view of reality does not entail. Rather, the metaphor is a means of
+framing and categorizing something that is believed. Further, there is little
+coherence in the idea that theological content cannot be drawn from poetic
+texts. One wonders what moderns could know about the beliefs of any of
+the ancient Near Eastern civilizations if we eliminated from consideration
+what we read in their poetic epics. Taking the Baal Cycle as a speciﬁc ex-
+ample, we would very little about the religious belief of the people of
+Ugarit if we took such an approach.
+2.4 The First Commandment: “No Other Gods before Me”
+The ﬁrst commandment of the Decalogue (Exod 20:3) charged the Israel-
+ites, “You shall have no other gods (µyhIløa”) before me (yn;p:Al[").” It has
+longed been observed that this command does not actually deny the ex-
+istence of other gods, despite being a very obvious opportunity to make
+such a position clear. Rather, the focus is on which god is exclusively wor-
+thy of worship.50 If that be the case, then the question of what exactly is
+meant that no other gods are “before” (ynpAl[) Yahweh must be answered.
+Building on an observation of Werner Schmidt, that while the command
+does not explicitly deny that other gods exist, it likely prohibits other gods
+from being in Yahweh’s presence, John H. Walton suggests that the phrase
+ynpAl[ should be understood spatially in Exod 20:3, with the result that
+other gods are removed from the picture of Yahweh’s governance.51 More
+49. See Stadelmann, The Hebrew Conception of the World.
+50. See for example: Umberto Cassuto, Commentary on Exodus (Jerusalem: Magnes, 1967),
+235–41; Brevard Childs, Exodus (Philadelphia: Westminster, 1974), 402–4; John Durham, Exodus
+19–40 (WBC 3; Waco: Word, 1987), 284–85; Moshe Greenberg, “The Decalogue Tradition Crit-
+ically Examined,” in The Ten Commandments in History and Tradition (ed. B. Segal and G. Levi;
+Jerusalem: Magnes, 1985), 83–120; Tigay, Deuteronomy, 63–64.
+51. John H. Walton, “Interpreting the Bible as an Ancient Near Eastern Document” (pa-
+per presented at Southern Seminary, 2004), 11–13. I am grateful to Dr. Walton for supplying
+me with a copy of his essay prior to its publication.
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+25
+speciﬁcally, Walton argues that when ynpAl[ occurs with a sufﬁxed object
+pronoun that is personal, or a stated object that is a person, the resulting
+phrase should be understood spatially. If the ﬁrst commandment is un-
+derstood in this light, the conclusion follows in Walton’s analysis:
+The Israelites were not to construe Yahweh as operating within a com-
+munity of gods. There was to be no thought of pantheon or consort.
+He does not function as the head of a pantheon with a divine assem-
+bly. In short, he works alone. The signiﬁcance of this is that the pan-
+theon/divine assembly concept carried with it the idea of distribution
+of power among many divine beings. The ﬁrst commandment be-
+comes a simple statement that Yahweh’s power is absolute, not being
+distributed among other deities or limited by the will of the assembly
+. . . Although it does not say explicitly that no other gods exist, it does
+remove them from the presence of Yahweh. If Yahweh does not share
+power, authority or jurisdiction with them, they are not gods in any
+meaningful sense of the word. The ﬁrst commandment does not insist
+that the other gods are non-existent, but that they are powerless; it
+disenfranchises them. It does not simply say that they should not be
+worshiped; it leaves them with no status worthy of worship.52
+Certain parts of this interpretation of the Decalogue are quite consistent
+with the views put forth in this article. The ﬁrst commandment does not
+deny the existence of other gods. Yahweh is certainly incomparable, hold-
+ing absolute, unlimited power. The framing of the argument and other
+conclusions that extend from it make it difﬁcult to sustain, however.
+There are certainly instances where ynpAl[ is coupled with a sufﬁxed
+object pronoun that refers to a person, or where ynpAl[ is followed by a
+personal stated object, where the phrase either cannot be understood spa-
+tially, or where doing so would result in very awkward exegesis. For ex-
+ample, a syntactical search53 of the Hebrew Bible for both constructions
+yields examples such as Deut 21:16 (“then on the day when he assigns his
+possessions as an inheritance to his sons, he may not treat the beloved son
+as the ﬁrstborn in place of the son who is not preferred [ha:WnC‘h"Aˆb< yneP}Al[",
+who is the ﬁrstborn”). The sense here is not spatial, but perhaps temporal
+(giving the beloved son an inheritance before the less preferred ﬁrstborn) or
+abstractly locational (giving the beloved son an inheritance in place of the
+less preferred ﬁrstborn). Other examples include Deut 2:25 (“This day I
+will begin to put the dread and fear of you on the peoples [µyMI["h: yneP}Al["] who
+are under the whole heaven . . .”), where the idea appears to be a fear put
+into the hearts of the foreign people, not something in their literal presence
+in a spatial sense. In Gen 32:22 Jacob’s bribe of Esau “. . . passed on ahead of
+him (yn;P:Al["; i.e., Jacob),” an instance where the context conveys something
+52. Ibid., 13–14.
+53. These two constructions were searched using the syntactically tagged database of the
+Hebrew Bible created by Francis I. Andersen and A. Dean Forbes, The Andersen-Forbes Phrase
+Marker Analysis, Logos Bible Software, Bellingham, WA, 2006.
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+26
+quite antithetical to the spatial meaning—the gift was certainly not in Ja-
+cob’s presence as he had sent it away to Esau. Consequently, the fact that
+the spatial sense can be conveyed in the Hebrew Bible is not an argument
+that it is conveyed in Exod 20:3.
+Other elements of Walton’s conclusion are more fundamentally prob-
+lematic. The statement that Yahweh “does not function as the head of a
+pantheon with a divine assembly” cannot be upheld. If this were the cor-
+rect interpretation of the ﬁrst commandment, it would stand out as a glar-
+ing contradiction to several explicit texts discussed above that have
+Yahweh superior in the heavenly council among its divine constituent
+members. This assertion is not the primary focus of Walton’s conclusion,
+though. The idea that Yahweh does not share power appears to be more of
+a concern. The coherence of this conclusion depends on what is meant by
+“sharing” power. Walton claims the other gods have been completely dis-
+enfranchised, and that this disenfranchisement is what makes them un-
+worthy of worship.
+There are two problems with this articulation. First, there is an un-
+necessary link between shared power and being unworthy of worship. As
+has been detailed here, Yahweh’s ontological uniqueness and incompara-
+ble power are the basis of his exclusive claim to worship, not whether he
+shares power with lesser beings. One can embrace that Yahweh is the
+unique, incomparable, sovereign head of his divine council without imag-
+ining any circumstance where the lesser members deserve worship. 
+Second, the Scripture is clear that Yahweh does indeed share his power
+with the members of his heavenly host, albeit while retaining his ultimate
+sovereignty. Several of the passages considered above make this unmis-
+takable. The disinheritance of the nations and their subjugation under the
+sons of God in Deut 4:19–20; 32:8–9 portray a sovereign act of Yahweh,
+whereby he rejects direct rule of rebellious humanity. The sons of God are
+not portrayed as presumptively moving into this vacuum. They were put
+over the nations by Yahweh, and then subsequently judged in Psalm 82 for
+their corrupt administration. This is shared dominion, albeit of a punitive
+bent. Yahweh must be the sovereign head of these beings in Israelite reli-
+gion, otherwise a truly polytheistic picture would emerge. The biblical au-
+thor was careful to make Yahweh’s headship clear. The same portrayal was
+seen in 1 Kgs 22:19–23, where Yahweh decrees the end of Ahab but leaves
+it to the members of his council to accomplish his sovereign will. This
+shared, symbiotic rulership is illustrated again in Dan 4:17 [Aramaic 4:14].
+Nebuchadnezzar’s humiliation is described as handed down by members
+of the heavenly host who are working under the authority of God: “The
+sentence is by decree of the watchers, and the decision is by the word of
+the holy ones, to the end that the living may know that the Most High
+rules the kingdom of men and gives it to whomever he wants, and sets it
+over the humblest of men.” It isn’t clear just what role the members of the
+heavenly host play in the decree, but it cannot be said they had no role at
+all. How would the writer wish to convey that point by utilizing such vo-
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+27
+cabulary? 1 Kings 22 might perhaps provide an analogy. There the mem-
+bers of the heavenly council participated in the decision, not in terms of
+Yahweh’s decree that it was time for Ahab’s death, but in the way that his
+death would be accomplished. This description of decision-making capac-
+ity on the part of lesser µyhIløa” plays an important role in what Patrick Miller
+referred to as the “cosmic-political” role of the divine council, a fundamen-
+tal component of Israelite religion and Old Testament theology.54
+The ﬁrst commandment, then, does not constitute any sort of denial of
+the existence of other gods or of the divine council in Israelite religion. The
+point of the command, like so many other declarations in the Torah and
+elsewhere, is that Israelites were to have Yahweh as their sole object of
+worship.55
+3. Monotheism, Henotheism, Monolatry, or Polytheism? 
+The Inadequacy of Modern Terminology 
+for Orthodox Yahwism
+Does the afﬁrmation of the reality of other µyhIløa” by the canonical authors
+disqualify Israelite religion as monotheistic? Are other terms used in aca-
+demic discourse for ancient religious pantheons more appropriate? The
+short answer to both questions, in my view, is a qualiﬁed no. The answer
+is qualiﬁed with respect to the realization that little is solved by applying
+or refusing to apply a single modern term to Israel’s ancient view of God.
+“Monotheism” as a term was coined in the 17th century not as an ant-
+onym to “polytheism,” but to “atheism.”56 A monotheist, then, was a person
+who believed there was a God, not someone who believed there was only
+one spiritual entity that could or should be named by the letters G-O-D.
+This understanding of the term has been lost in contemporary discourse,
+and so it would be pointless to call for its re-introduction.
+A more coherent approach is to describe what Israelites believed about
+their God rather than trying to encapsulate that belief in a single word.
+When scholars have addressed this tension, however, a shift to description
+over terminology has not been the strategy. Rather, scholars have tried to
+qualify the modern vocabulary. Terms like “inclusive monotheism” or “tol-
+erant monolatry” have been coined in an attempt to accurately classify
+54. Patrick D. Miller, “Cosmology and World Order in the Old Testament: The Divine
+Council as Cosmic-Political Symbol,” in Israelite Religion and Biblical Theology: Collected Essays
+(ed. Patrick D. Miller; JSOTSup 267; Shefﬁeld: Shefﬁeld Academic Press, 2000), 422–44.
+55. Bruce Waltke and Michael O’Connor capture this meaning in their understanding of
+ynpAl[ in Exod 20:3—“Thou shalt have no other gods over against me” (Bruce K. Waltke and
+Michael O’Connor, An Introduction to Biblical Hebrew Syntax (Winona Lake, IN: Eisenbrauns,
+1990), 218.
+56. MacDonald, Deuteronomy and the Meaning of ‘Monotheism,’ 1–21. As studies of the ori-
+gin and development of the term show, “monotheism” was initially not meant as an antonym
+to “polytheism” but to “atheism.”
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+28
+Israelite religion in both preexilic and postexilic stages.57 These terms
+have not found broad acceptance because they are oxymoronic to the
+modern ear.
+Other scholars have argued for an “incipient monotheism” that could
+perhaps include the afﬁrmation of other gods who were inferior. There is
+precedent for this idea in the scholarly exchanges over henotheism, mono-
+latry, and Israelite religion. Historically, henotheism assumes all gods are
+species equals and the elevation of one god is due to socio-political fac-
+tors—not theological nuancing. Quoting Max Müller’s seminal work on the
+subject, Yusa writes that henotheism was a technical term coined “to des-
+ignate a peculiar form of polytheism . . . [where] each god is, ‘at the time a
+real divinity, supreme and absolute’ not limited by the powers of any other
+gods.”58 Müller called this idea “belief in single gods . . . a worship of one
+god after another.”59 T. J. Meek referred to preexilic Israelite religion as both
+henotheistic and monolatrous,60 thereby equating the two, based on the
+prohibition of worshipping other gods. But did the canonical Israelite
+writer believe that Yahweh was superior on the basis of socio-political fac-
+tors, or was Yahweh intrinsically “other” with respect to his nature and cer-
+tain attributes? Did the writer view Yahweh as only a being who could not
+be limited by the powers of other deities, or was there something unique
+about Yahweh that both transcended and produced this total freedom?
+H. H. Rowley, reacting to the work of Meek, moved toward the idea of
+uniqueness but did so using the word “henotheism.” What distinguished
+Mosaic religion in his mind from that of other “henotheists” was “not so
+much the teaching that Yahweh was to be the only God for Israel as the
+proclamation that Yahweh was unique.”61 Rowley’s focus on uniqueness
+was on the right track, but his approach has the disadvantage of trying to
+convince the academic community to redeﬁne a term whose meaning by
+now is entrenched.
+The proposal offered here is that scholars should stop trying to deﬁne
+Israel’s religion with singular, imprecise modern terms and instead stick to
+describing what Israel believed. “Monotheism” as it is currently under-
+stood means that no other gods exist. This term is inadequate for describ-
+ing Israelite religion, but suggesting it be done away with would no doubt
+cause considerable consternation among certain parts of the academic com-
+57. For these terms and their discussion, see Juha Pakkala, Intolerant Monotheism in the
+Deuteronomistic History (Publications of the Finnish Exegetical Society 76; Göttingen: Vanden-
+hoeck & Ruprecht, 1999), 1–20, 224–33; MacDonald, Deuteronomy and the Meaning of ‘Monothe-
+ism,’ 21–71.
+58. Yusa, “Henotheism,” Encyclopedia of Religion 6:266. Yusa is quoting from F. Max Müller,
+Selected Essays on Language, Mythology, and Religion, vol. 2 (1881; repr. New York: AMS, 1978),
+136–37.
+59. Yusa, “Henotheism,” Encyclopedia of Religion 6:266. 
+60. T. J. Meek, “Monotheism and the Religion of Israel,” JBL 61 (1942): 21–43.
+61. H. H. Rowley, “Moses and Monotheism,” in From Moses to Qumran: Studies in the Old
+Testament (New York: Association Press, 1963), 45. 
+
+---PAGE---
+Heiser: Monotheism, Polytheism, Monolatry, or Henotheism?
+29
+munity, not to mention the interested laity. “Henotheism” and “monola-
+try,” while perhaps better, are inadequate because they do not say enough
+about what the canonical writer believed. Israel was certainly “monola-
+trous,” but that term comments only on what Israel believed about the
+proper object of worship, not what it believed about Yahweh’s nature and
+attributes with respect to the other gods.
+In my judgment, describing what Israel believed about Yahweh need
+not involve the kind of high philosophical speculation that most modern
+scholarship wants to deny the ancient Israelite. Several simple ideas have
+been communicated to the reader by the canonical authors that allow a de-
+scription that demonstrates a ﬁrm, uncompromising belief in Yahweh’s
+“species uniqueness” among the other gods assumed to exist. Israel did not
+believe the other gods were species-equal with Yahweh and essentially in-
+terchangeable. Israel did not believe that Yahweh should be viewed as the
+supreme god only because of his deeds on behalf of Israel. The canonical
+authors considered Yahweh to be in a class by himself. He was “species-
+unique.”62
+In briefest terms, the statements in the canonical text (poetic or other-
+wise) inform the reader that, for the biblical writer, Yahweh was an µyhIløa”,
+but no other µyhIløa” was Yahweh—and never was nor could be. This notion al-
+lows for the existence of other µyhIløa” and is more precise than the terms
+“polytheism” and “henotheism.” It is also more accurate than “mono-
+theism,” though it preserves the element of that conception that is most
+important to traditional Judaism and Christianity: Yahweh’s solitary “oth-
+erness” with respect to all that is, in heaven and in earth.
+But on what grounds can this description be derived? The elements of
+the text that allow this approach have been copiously documented in the
+scholarly literature. As Isa 43:10 and 44:6–8 afﬁrm, the canonical writers as-
+sumed that their God was uncreated and always existed and that the other
+gods were subsequent. This alone points to intrinsic superiority to and dis-
+tinction from all the other gods. The other gods were not, chronologically
+speaking, co-existent. Moreover, the pre-existent and uncreated Yahweh
+created all the other members of the host of heaven (Neh 9:6, Ps 148:1–5).
+Their life derives from him, not vice versa. Rather than socio-political fac-
+tors, the canonical writer believed the God of Israel alone was sovereign
+62. Interestingly, species uniqueness is the basis for God’s distinction from the other gods
+in later Jewish writers. For example, 2 (Slavonic) Enoch (J) 2:2 afﬁrms that while other gods are
+feckless, they exist and are temporary: “And do not turn away from the Lord, and worship
+vain gods, gods who did not create the heaven and the earth or any created thing; for they will
+perish, and so will those who worship them.” The same book later has God inform Enoch that,
+“There is no adviser and no successor to my creation. I am self-eternal and not made by
+hands” (33:4). Sibylline Oracles confess that “God is alone, unique, and supreme” since he is
+“self-generated [and] unbegotten.” Yet in the same text one reads that, “if gods beget and yet
+remain immortal, there would have been more gods born than men.” See John J. Collins, “Siby-
+lline Oracles, Fragments,” OTP 1:470 (the citations are from Fragment 1:16; Fragment 2:1;
+Fragment 3:4).
+
+---PAGE---
+Bulletin for Biblical Research 18.1
+30
+and deserving of worship because his nature was unique (pre-existence)
+and his power was unquestionably superior (creator of all that is).
+One could object that the idea of “species uniqueness” is unintelli-
+gible with respect to divine beings, perhaps by analogy to the human
+world. I am human, yet no other human is me, but all humans share the
+same species status. Hence one can be unique in properties, but species
+uniqueness is a fallacy. The analogy with humankind is ﬂawed, however,
+since no such claim as pre-existence before all humans is seriously offered.
+An attribute shared by no other member in the species by deﬁnition makes
+that entity species unique despite any other shared qualities.63 In other
+words, a species unique being need not be unique in every attribute. The
+entity must only be considered to be set apart in a way or ways that are
+completely exclusive.
+Conclusion
+The approach to divine plurality and the matter of monotheism offered
+here is theologically and philosophically sound, while giving primacy of
+place to the data of the Hebrew Bible. Scholarship is not advanced by ele-
+vating presuppositions to the level of hermeneutical ﬁlters or by forcing
+vocabulary, grammar, syntax, and comparative data in a comfortable theo-
+logical box. It is my hope that scholars will be encouraged to re-evaluate
+their assumptions about the reality of divine plurality in Israel’s world-
+view and how to parse that reality in understanding Israelite religion.
+63. This issue would take us into the matter of just what is an µyhIløa” is. Traditional theo-
+logians have operated on the assumption that the word µyhIløa” denotes an ontologically unique
+thing or person. Those who work in the Hebrew text, however, know that there are variety of
+beings referred to as µyhIløa”. In addition to the many references in this article to the µyhIløa” of the
+Gentile nations, the Hebrew Bible describes several other beings or groups of beings as µyhIløa”:
+(1) demons (Deut 32:17); (2) spirits from Sheol (including the human dead; 1 Sam 28:13);
+(3) the Angel of Yahweh (Hos 12:4–5 [Hebrew text] and Gen 48:15–16, noting the compounded
+subjects with the singular verb Ëreb:y]); and (4) perhaps even angels (see Gen 28:12 and 32:1–2,
+with 35:1–7, noting the alternation between singular and plural predication). The data dem-
+onstrates that µyhIløa” is not restricted to Yahweh, and so the term itself cannot denote an on-
+tologically unique being. That assumption is, at least in part, drawn from the use of µyhIløa” as
+a proper noun for the God of Israel. But that usage is in no way exclusive. In briefest terms,
+an µyhIløa” is a being whose proper “habitation” was considered the “spirit world,” and whose
+primary existence was a disembodied one. Hence Yahweh is an µyhIløa”, but he has attributes
+that nonetheless make him species unique with respect to all µyhIløa”. 
+
+---PAGE---

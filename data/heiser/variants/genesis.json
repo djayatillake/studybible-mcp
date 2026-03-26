@@ -1,0 +1,39 @@
+{
+  "variants": [
+    {
+      "reference": "Gen.6.2",
+      "mt_reading": "the sons of God saw that the daughters of man were attractive",
+      "mt_hebrew": "בְנֵי־הָאֱלֹהִים (bny h-'lhym)",
+      "variant_source": "MT_preserved",
+      "variant_reading": "sons of God (divine beings) — the MT correctly preserves bene ha-elohim here. The variant is interpretive: the Sethite interpretation (that 'sons of God' means the line of Seth) is a post-biblical reinterpretation with no manuscript support.",
+      "variant_original": "בְנֵי־הָאֱלֹהִים",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser argues that every OT usage of bene ha-elohim / bene elohim refers to divine beings, never to human lineages. The phrase is used in Job 1:6; 2:1; 38:7 unambiguously of divine beings presenting before Yahweh. The Sethite interpretation was a rabbinic innovation to avoid the 'offensive' reading of divine-human interbreeding. The Watchers tradition (1 Enoch 6-16) preserves the older, correct understanding that the sons of God in Genesis 6 were divine beings who transgressed their proper domain.",
+      "scholarly_consensus": "The MT reading bene ha-elohim is correct and refers to divine beings. The Sethite interpretation is a theological reinterpretation without textual support.",
+      "preferred_for_hlt": "the sons of God (divine beings) saw that the daughters of Adam were beautiful",
+      "hlt_rationale": "The Hebrew bene ha-elohim always refers to divine beings in the OT (Job 1:6; 2:1; 38:7). The Sethite interpretation is rejected as a later theological alteration of meaning. The HLT makes the divine nature of these beings explicit.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"},
+        {"manuscript": "1 Enoch 6-16", "manuscript_date": "~300 BCE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Gen.19.24",
+      "mt_reading": "Then the LORD rained on Sodom and Gomorrah sulfur and fire from the LORD out of heaven",
+      "mt_hebrew": "וַיהוָה הִמְטִיר עַל־סְדֹם וְעַל־עֲמֹרָה גָּפְרִית וָאֵשׁ מֵאֵת יְהוָה מִן־הַשָּׁמָיִם",
+      "variant_source": "MT_preserved",
+      "variant_reading": "The MT preserves the remarkable two-Yahweh reading: one Yahweh on the ground (who has been present with Abraham in human form since Genesis 18:1) rains fire from another Yahweh in heaven. This is a key two-powers-in-heaven text.",
+      "variant_original": "Same as MT",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser identifies this as one of the clearest two-powers-in-heaven texts. The visible Yahweh (who appeared to Abraham at Mamre in human form, ate food, and walked with Abraham) rains fire from the invisible Yahweh in heaven. The text deliberately uses the name Yahweh twice — not 'the LORD rained fire from heaven' but 'Yahweh rained fire from Yahweh out of heaven.' This is the second Yahweh figure — the pre-incarnate Christ.",
+      "scholarly_consensus": "The double use of Yahweh is preserved in all major textual traditions. Alan Segal identified this as a key 'two powers' text in Jewish theology.",
+      "preferred_for_hlt": "Then Yahweh (the visible Yahweh on earth, Jesus) rained on Sodom and Gomorrah sulfur and fire from Yahweh (the invisible Yahweh) out of heaven",
+      "hlt_rationale": "The MT preserves the two-Yahweh reading. The HLT makes explicit what the text clearly states: two distinct Yahweh figures acting in concert — one visible on earth, one in heaven.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    }
+  ]
+}

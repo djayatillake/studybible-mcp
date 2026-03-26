@@ -1,0 +1,45 @@
+{
+  "variants": [
+    {
+      "reference": "Deu.32.8",
+      "mt_reading": "according to the number of the sons of Israel",
+      "mt_hebrew": "בְּנֵי יִשְׂרָאֵל (bny yśr'l)",
+      "variant_source": "DSS_4QDeutj",
+      "variant_reading": "according to the number of the sons of God",
+      "variant_original": "בְּנֵי אֱלֹהִים (bny 'lwhym)",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser argues this is the single most important textual variant in the OT. The 4QDeutj manuscript clearly reads bny 'lwhym (sons of God). 4QDeutq has spaces for additional letters after 'l, ruling out simple parablepsis. The MT reading 'sons of Israel' was a deliberate theological alteration to eliminate reference to divine beings. The Table of Nations (Gen 10) has 70 nations — matching the 70 sons of El at Ugarit (KTU 1.4:VI.46). Israel did not exist at the time of Babel, making 'sons of Israel' anachronistic. The MT reading cannot explain how 4QDeutj acquired the full consonants of 'lwhym. The LXX majority reads 'angels of God' (angelōn theou), also presupposing the 'sons of God' Hebrew Vorlage.",
+      "scholarly_consensus": "The DSS/LXX reading 'sons of God' is almost certainly original. The MT altered it to avoid the appearance of polytheism. This is now the majority view among text-critical scholars.",
+      "preferred_for_hlt": "according to the number of the sons of God (divine beings)",
+      "hlt_rationale": "DSS 4QDeutj and 4QDeutq plus the LXX preserve the original reading. The MT deliberately changed 'sons of God' to 'sons of Israel' to suppress the divine council theology. The parallel corruption in Deu.32.43 confirms intentional alteration.",
+      "witnesses": [
+        {"manuscript": "4QDeutj", "manuscript_date": "~150-100 BCE", "reading_support": "supports_variant"},
+        {"manuscript": "4QDeutq", "manuscript_date": "~150-100 BCE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX (majority)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"},
+        {"manuscript": "Aquila Codex 85", "manuscript_date": "~130 CE", "reading_support": "supports_variant"},
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
+        {"manuscript": "Aquila Codex X", "manuscript_date": "~130 CE", "reading_support": "supports_mt"},
+        {"manuscript": "Symmachus Codex X", "manuscript_date": "~170 CE", "reading_support": "supports_mt"},
+        {"manuscript": "Theodotion", "manuscript_date": "~150 CE", "reading_support": "supports_mt"}
+      ]
+    },
+    {
+      "reference": "Deu.32.43",
+      "mt_reading": "Rejoice, O nations, with his people (shorter text, missing bicolon referencing divine beings)",
+      "mt_hebrew": "הַרְנִינוּ גוֹיִם עַמּוֹ",
+      "variant_source": "DSS_4QDeutq",
+      "variant_reading": "Rejoice, O heavens, with him, and bow down to him, all gods/divine beings. Rejoice, O nations, with his people, and let all the angels of God strengthen themselves in him.",
+      "variant_original": "הרנינו שמים עמו והשתחוו לו כל אלהים / כל בני אלים",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "The MT is demonstrably incomplete when the literary structure is analyzed. Every colon in the Qumran and LXX texts has its partner (a bicolon), but the MT lacks the parallel colon referencing divine beings. The missing colon was deliberately eliminated to avoid reference to 'divine beings.' This parallel corruption with Deu.32.8 strongly argues both texts were intentionally altered for the same reason. The writer of Hebrews quotes Deu.32.43 (LXX/DSS reading) in Hebrews 1:6: 'Let all God's angels worship him.'",
+      "scholarly_consensus": "The longer reading preserved in 4QDeutq and the LXX is original. The MT deliberately shortened the text to eliminate the reference to gods/divine beings bowing to Yahweh.",
+      "preferred_for_hlt": "Rejoice, O heavens, with him, and bow down to him, all divine beings (sons of God). O nations, rejoice with his people, and let all the angels of God strengthen themselves in him.",
+      "hlt_rationale": "4QDeutq and LXX preserve the complete literary structure. The MT shortened it to suppress divine council language. The writer of Hebrews quotes this longer reading in Heb 1:6.",
+      "witnesses": [
+        {"manuscript": "4QDeutq", "manuscript_date": "~150-100 BCE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"},
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"}
+      ]
+    }
+  ]
+}

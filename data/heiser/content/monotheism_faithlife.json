@@ -1,0 +1,47 @@
+{
+  "source_key": "drmsh_articles",
+  "title": "Understanding Israelite Monotheism (Faithlife Study Bible)",
+  "author": "heiser",
+  "type": "articles",
+  "url": "https://www.thedivinecouncil.com/UnderstandingIsraeliteMonotheism.pdf",
+  "entries": [
+    {
+      "title": "Deuteronomy 32:17 — Demons are Elohim, Not Merely Idols",
+      "chapter_or_episode": "The Gods of the Old Testament",
+      "content_summary": "Deuteronomy 32:17 describes the gods (elohim) worshiped in disobedience as 'demons' (shedim) — low-ranking divine beings known in other ANE texts. They are not merely idols of wood and stone. Elsewhere in Deuteronomy, the writer describes these 'other gods' (acherim elohim) as the heavenly host (Deut 17:3). The same heavenly host terminology is used for actual spirit beings assembled in Yahweh's presence (1 Kings 22:19-23). Deuteronomy 4:19-20 and its explicit parallel Deut 32:8-9 together demonstrate that heavenly host terminology designates more than celestial objects — these celestial objects ARE the gods. In Deut 32:8-9, the writer calls them 'sons of God.'",
+      "content_detail": "The starry host description of Deut 4:19-20 also occurs in Job 38:7, which refers to the presence of 'sons of God' at creation. 'Sons of God' is a common designation for divine beings (Job 1:6; 2:1), and in Psalm 82:6, the psalmist explicitly refers to the 'sons of the Most High' as gods (elohim). The Hebrew text uses elohim to refer to five different entities — though this distinction is rarely clear in English translations.",
+      "page_range": "pp. 1-2",
+      "references": [
+        {"reference": "Deu.32.17", "relevance": "primary"},
+        {"reference": "Deu.17.3", "relevance": "primary"},
+        {"reference": "Deu.4.19", "relevance": "primary"},
+        {"reference": "Deu.4.20", "relevance": "primary"},
+        {"reference": "Deu.32.8", "relevance": "primary"},
+        {"reference": "Deu.32.9", "relevance": "primary"},
+        {"reference": "1Ki.22.19", "relevance": "supporting"},
+        {"reference": "Job.38.7", "relevance": "supporting"},
+        {"reference": "Job.1.6", "relevance": "supporting"},
+        {"reference": "Job.2.1", "relevance": "supporting"},
+        {"reference": "Psa.82.6", "relevance": "supporting"}
+      ],
+      "themes": ["elohim_plural", "deut32_worldview", "sons_of_god"]
+    },
+    {
+      "title": "Denial Statements Express Incomparability, Not Non-Existence of Other Gods",
+      "chapter_or_episode": "Denial Statements in the OT",
+      "content_summary": "Deuteronomy 4 and 32 affirm BOTH the existence of other gods AND their antagonism toward God — yet both chapters also use language presumed to deny the existence of other gods (Deut 4:35 'besides him there is no other'; Deut 4:39 'there is no other'; Deut 32:39 'there is no god beside me'). These 'denial phrases' do not assert nonexistence — they contend that no other gods COMPARE to Yahweh. The proof: the same denial statements occur in reference to Babylon (Isaiah 47:8,10 — 'I am, and there is none else beside me') and Nineveh (Zephaniah 2:15). Babylon is not claiming to be the only city in the world — she asserts she has no rival. The OT asserts the absolute and utterly incomparable uniqueness of Yahweh. No other god can claim to be uncreated or have His attributes.",
+      "content_detail": "If the biblical writers could use elohim for entities besides Yahweh, they did not equate 'god' with only one entity. The modern term 'monotheism' does not accurately capture the beliefs of the biblical writers. This disconnect is caused by the desire of modern readers to reserve the word 'god' for one being, whereas the biblical writers did not share this desire. Biblical monotheism means: Yahweh is an elohim, but no other elohim is Yahweh. There is only one Yahweh. He is species unique.",
+      "page_range": "pp. 2-3",
+      "references": [
+        {"reference": "Deu.4.35", "relevance": "primary"},
+        {"reference": "Deu.4.39", "relevance": "primary"},
+        {"reference": "Deu.32.39", "relevance": "primary"},
+        {"reference": "Isa.47.8", "relevance": "primary"},
+        {"reference": "Isa.47.10", "relevance": "primary"},
+        {"reference": "Zep.2.15", "relevance": "primary"},
+        {"reference": "Exo.15.11", "relevance": "supporting"}
+      ],
+      "themes": ["elohim_plural", "divine_council"]
+    }
+  ]
+}

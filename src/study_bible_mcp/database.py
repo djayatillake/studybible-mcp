@@ -979,6 +979,200 @@ class StudyBibleDB:
 
         return await self._fetchall(sql, params)
 
+    # =========================================================================
+    # Heiser / HLT queries
+    # =========================================================================
+
+    async def has_heiser_data(self) -> bool:
+        """Check if heiser_content table exists and has data."""
+        return await self._table_has_rows("heiser_content")
+
+    async def get_heiser_context_by_reference(
+        self, reference: str, limit: int = 20
+    ) -> list[dict]:
+        """Get Heiser scholarship entries relevant to a verse reference."""
+        normalized = self._normalize_reference(reference)
+        parts = normalized.split(".")
+        book = parts[0] if parts else ""
+        chapter = int(parts[1]) if len(parts) > 1 else None
+
+        params: list = []
+        conditions = []
+
+        if book:
+            conditions.append("vi.book = ?")
+            params.append(book)
+        if chapter:
+            conditions.append("vi.chapter = ?")
+            params.append(chapter)
+
+        # Try exact verse match first, then chapter-level
+        exact = await self._fetchall(
+            """SELECT DISTINCT hc.*, vi.reference AS matched_ref, vi.relevance,
+                      GROUP_CONCAT(DISTINCT ht.theme_key) AS themes
+               FROM heiser_content hc
+               JOIN heiser_verse_index vi ON hc.id = vi.content_id
+               LEFT JOIN heiser_theme_index hti ON hc.id = hti.content_id
+               LEFT JOIN heiser_themes ht ON hti.theme_key = ht.theme_key
+               WHERE vi.reference = ?
+               GROUP BY hc.id
+               ORDER BY vi.relevance DESC
+               LIMIT ?""",
+            (normalized, limit),
+        )
+        if exact:
+            return exact
+
+        # Fall back to chapter-level
+        where = f" AND {' AND '.join(conditions)}" if conditions else ""
+        return await self._fetchall(
+            f"""SELECT DISTINCT hc.*, vi.reference AS matched_ref, vi.relevance,
+                       GROUP_CONCAT(DISTINCT ht.theme_key) AS themes
+                FROM heiser_content hc
+                JOIN heiser_verse_index vi ON hc.id = vi.content_id
+                LEFT JOIN heiser_theme_index hti ON hc.id = hti.content_id
+                LEFT JOIN heiser_themes ht ON hti.theme_key = ht.theme_key
+                WHERE 1=1{where}
+                GROUP BY hc.id
+                ORDER BY vi.relevance DESC
+                LIMIT ?""",
+            (*params, limit),
+        )
+
+    async def get_heiser_context_by_theme(
+        self, theme_key: str, limit: int = 20
+    ) -> list[dict]:
+        """Get Heiser scholarship entries for a given theme."""
+        return await self._fetchall(
+            """SELECT DISTINCT hc.*, ht.theme_label, ht.description AS theme_description,
+                      GROUP_CONCAT(DISTINCT vi.reference) AS verse_refs
+               FROM heiser_content hc
+               JOIN heiser_theme_index hti ON hc.id = hti.content_id
+               JOIN heiser_themes ht ON hti.theme_key = ht.theme_key
+               LEFT JOIN heiser_verse_index vi ON hc.id = vi.content_id
+               WHERE hti.theme_key = ?
+               GROUP BY hc.id
+               LIMIT ?""",
+            (theme_key, limit),
+        )
+
+    async def get_heiser_themes(self) -> list[dict]:
+        """List all Heiser theological themes."""
+        return await self._fetchall(
+            """SELECT ht.*,
+                      (SELECT COUNT(*) FROM heiser_theme_index hti WHERE hti.theme_key = ht.theme_key) AS entry_count
+               FROM heiser_themes ht
+               ORDER BY ht.theme_key"""
+        )
+
+    async def get_textual_variants(self, reference: str) -> list[dict]:
+        """Get textual variants for a reference, with manuscript witnesses."""
+        normalized = self._normalize_reference(reference)
+        variants = await self._fetchall(
+            "SELECT * FROM textual_variants WHERE reference = ?", (normalized,)
+        )
+        for v in variants:
+            witnesses = await self._fetchall(
+                "SELECT * FROM manuscript_witnesses WHERE variant_id = ?", (v["id"],)
+            )
+            v["witnesses"] = witnesses
+        return variants
+
+    async def get_hlt_verse(self, reference: str) -> dict | None:
+        """Get the HLT translation for a single verse."""
+        normalized = self._normalize_reference(reference)
+        return await self._fetchone(
+            "SELECT * FROM hlt_verses WHERE reference = ?", (normalized,)
+        )
+
+    async def get_hlt_annotations(self, reference: str) -> list[dict]:
+        """Get HLT bracket annotations for a verse."""
+        normalized = self._normalize_reference(reference)
+        return await self._fetchall(
+            "SELECT * FROM hlt_annotations WHERE reference = ? ORDER BY word_position",
+            (normalized,),
+        )
+
+    async def get_hlt_study_notes(
+        self, reference: str, note_type: str | None = None
+    ) -> list[dict]:
+        """Get HLT study notes for a verse, optionally filtered by type."""
+        normalized = self._normalize_reference(reference)
+        if note_type:
+            return await self._fetchall(
+                "SELECT * FROM hlt_study_notes WHERE reference = ? AND note_type = ? ORDER BY priority",
+                (normalized, note_type),
+            )
+        return await self._fetchall(
+            "SELECT * FROM hlt_study_notes WHERE reference = ? ORDER BY priority",
+            (normalized,),
+        )
+
+    async def upsert_hlt_verse(self, data: dict) -> int:
+        """Insert or update an HLT verse translation. Returns the row id."""
+        sql = """INSERT INTO hlt_verses
+                    (reference, book, chapter, verse, hlt_text, hlt_text_annotated,
+                     base_text_source, variant_used, word_data_hlt, translation_notes,
+                     confidence, status, last_updated)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                 ON CONFLICT(reference) DO UPDATE SET
+                    hlt_text=excluded.hlt_text,
+                    hlt_text_annotated=excluded.hlt_text_annotated,
+                    base_text_source=excluded.base_text_source,
+                    variant_used=excluded.variant_used,
+                    word_data_hlt=excluded.word_data_hlt,
+                    translation_notes=excluded.translation_notes,
+                    confidence=excluded.confidence,
+                    status=excluded.status,
+                    last_updated=excluded.last_updated"""
+        async with self.conn.execute(sql, (
+            data["reference"], data["book"], data["chapter"], data["verse"],
+            data["hlt_text"], data["hlt_text_annotated"],
+            data.get("base_text_source", "MT"), data.get("variant_used"),
+            data.get("word_data_hlt"), data.get("translation_notes"),
+            data.get("confidence", "high"), data.get("status", "draft"),
+        )) as cursor:
+            await self.conn.commit()
+            return cursor.lastrowid
+
+    async def upsert_hlt_annotation(self, data: dict) -> int:
+        """Insert or update an HLT bracket annotation."""
+        sql = """INSERT INTO hlt_annotations
+                    (reference, annotation_type, annotation_text, word_position,
+                     explanation, heiser_content_id)
+                 VALUES (?, ?, ?, ?, ?, ?)
+                 ON CONFLICT(reference, annotation_type, word_position) DO UPDATE SET
+                    annotation_text=excluded.annotation_text,
+                    explanation=excluded.explanation,
+                    heiser_content_id=excluded.heiser_content_id"""
+        async with self.conn.execute(sql, (
+            data["reference"], data["annotation_type"], data["annotation_text"],
+            data.get("word_position"), data["explanation"],
+            data.get("heiser_content_id"),
+        )) as cursor:
+            await self.conn.commit()
+            return cursor.lastrowid
+
+    async def upsert_hlt_study_note(self, data: dict) -> int:
+        """Insert or update an HLT study note. Returns the row id."""
+        sql = """INSERT INTO hlt_study_notes
+                    (reference, book, chapter, verse, note_type, title, content,
+                     heiser_content_ids, related_verses, priority)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 ON CONFLICT(reference, note_type, title) DO UPDATE SET
+                    content=excluded.content,
+                    heiser_content_ids=excluded.heiser_content_ids,
+                    related_verses=excluded.related_verses,
+                    priority=excluded.priority"""
+        async with self.conn.execute(sql, (
+            data["reference"], data["book"], data["chapter"], data["verse"],
+            data["note_type"], data["title"], data["content"],
+            data.get("heiser_content_ids"), data.get("related_verses"),
+            data.get("priority", 5),
+        )) as cursor:
+            await self.conn.commit()
+            return cursor.lastrowid
+
 
 def create_schema(conn: sqlite3.Connection):
     """Create the database schema."""
@@ -1260,6 +1454,144 @@ def create_schema(conn: sqlite3.Connection):
         );
         CREATE INDEX IF NOT EXISTS idx_ane_bm_book ON ane_book_mappings(book);
         CREATE INDEX IF NOT EXISTS idx_ane_bm_entry ON ane_book_mappings(entry_id);
+    """)
+    conn.commit()
+
+    # --- Heiser Literal Translation (HLT) tables ---
+    conn.executescript("""
+        -- Heiser/Van Dorn scholarship content
+        CREATE TABLE IF NOT EXISTS heiser_content (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_work TEXT NOT NULL,
+            source_author TEXT NOT NULL,
+            source_type TEXT NOT NULL,
+            chapter_or_episode TEXT,
+            title TEXT,
+            content_summary TEXT NOT NULL,
+            content_detail TEXT,
+            page_range TEXT,
+            url TEXT,
+            UNIQUE(source_work, chapter_or_episode, title)
+        );
+        CREATE INDEX IF NOT EXISTS idx_heiser_source ON heiser_content(source_work);
+
+        -- Maps heiser_content entries to specific verses
+        CREATE TABLE IF NOT EXISTS heiser_verse_index (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content_id INTEGER NOT NULL REFERENCES heiser_content(id),
+            reference TEXT NOT NULL,
+            book TEXT NOT NULL,
+            chapter INTEGER,
+            verse INTEGER,
+            relevance TEXT DEFAULT 'primary',
+            UNIQUE(content_id, reference)
+        );
+        CREATE INDEX IF NOT EXISTS idx_heiser_vi_ref ON heiser_verse_index(reference);
+        CREATE INDEX IF NOT EXISTS idx_heiser_vi_book ON heiser_verse_index(book);
+
+        -- Theological themes from Heiser's framework
+        CREATE TABLE IF NOT EXISTS heiser_themes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            theme_key TEXT UNIQUE NOT NULL,
+            theme_label TEXT NOT NULL,
+            description TEXT NOT NULL,
+            parent_theme TEXT,
+            heiser_key_works TEXT
+        );
+
+        -- Maps themes to content and verses
+        CREATE TABLE IF NOT EXISTS heiser_theme_index (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            theme_key TEXT NOT NULL REFERENCES heiser_themes(theme_key),
+            content_id INTEGER REFERENCES heiser_content(id),
+            reference TEXT,
+            UNIQUE(theme_key, content_id, reference)
+        );
+        CREATE INDEX IF NOT EXISTS idx_heiser_ti_theme ON heiser_theme_index(theme_key);
+
+        -- Textual variants (MT vs DSS/LXX/SP)
+        CREATE TABLE IF NOT EXISTS textual_variants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            reference TEXT NOT NULL,
+            book TEXT NOT NULL,
+            chapter INTEGER,
+            verse INTEGER,
+            mt_reading TEXT NOT NULL,
+            mt_hebrew TEXT,
+            variant_source TEXT NOT NULL,
+            variant_reading TEXT NOT NULL,
+            variant_original TEXT,
+            variant_significance TEXT,
+            heiser_analysis TEXT,
+            heiser_content_id INTEGER,
+            scholarly_consensus TEXT,
+            preferred_for_hlt TEXT,
+            hlt_rationale TEXT,
+            UNIQUE(reference, variant_source)
+        );
+        CREATE INDEX IF NOT EXISTS idx_tv_ref ON textual_variants(reference);
+        CREATE INDEX IF NOT EXISTS idx_tv_book ON textual_variants(book);
+
+        -- Manuscript witnesses for variants
+        CREATE TABLE IF NOT EXISTS manuscript_witnesses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            variant_id INTEGER NOT NULL REFERENCES textual_variants(id),
+            manuscript TEXT NOT NULL,
+            manuscript_date TEXT,
+            reading_support TEXT
+        );
+
+        -- The HLT translation
+        CREATE TABLE IF NOT EXISTS hlt_verses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            reference TEXT UNIQUE NOT NULL,
+            book TEXT NOT NULL,
+            chapter INTEGER,
+            verse INTEGER,
+            hlt_text TEXT NOT NULL,
+            hlt_text_annotated TEXT NOT NULL,
+            base_text_source TEXT DEFAULT 'MT',
+            variant_used INTEGER,
+            word_data_hlt TEXT,
+            translation_notes TEXT,
+            confidence TEXT DEFAULT 'high',
+            status TEXT DEFAULT 'draft',
+            last_updated TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_hlt_ref ON hlt_verses(reference);
+        CREATE INDEX IF NOT EXISTS idx_hlt_book ON hlt_verses(book);
+
+        -- HLT bracket annotations
+        CREATE TABLE IF NOT EXISTS hlt_annotations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            reference TEXT NOT NULL,
+            annotation_type TEXT NOT NULL,
+            annotation_text TEXT NOT NULL,
+            word_position INTEGER,
+            explanation TEXT NOT NULL,
+            heiser_content_id INTEGER,
+            UNIQUE(reference, annotation_type, word_position)
+        );
+        CREATE INDEX IF NOT EXISTS idx_hlt_ann_ref ON hlt_annotations(reference);
+
+        -- HLT study notes
+        CREATE TABLE IF NOT EXISTS hlt_study_notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            reference TEXT NOT NULL,
+            book TEXT NOT NULL,
+            chapter INTEGER,
+            verse INTEGER,
+            note_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            heiser_content_ids TEXT,
+            related_verses TEXT,
+            priority INTEGER DEFAULT 5,
+            UNIQUE(reference, note_type, title)
+        );
+        CREATE INDEX IF NOT EXISTS idx_hlt_sn_ref ON hlt_study_notes(reference);
+        CREATE INDEX IF NOT EXISTS idx_hlt_sn_book ON hlt_study_notes(book);
+        CREATE INDEX IF NOT EXISTS idx_hlt_sn_type ON hlt_study_notes(note_type);
     """)
     conn.commit()
 

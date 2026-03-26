@@ -1,0 +1,160 @@
+{
+  "sources": [
+    {
+      "source_key": "unseen_realm",
+      "title": "The Unseen Realm: Recovering the Supernatural Worldview of the Bible",
+      "author": "heiser",
+      "type": "book",
+      "publisher": "Lexham Press",
+      "year": 2015,
+      "isbn": "978-1577995562",
+      "description": "Heiser's magnum opus. Presents the divine council worldview, the three supernatural rebellions (Eden, Genesis 6, Babel), the Deuteronomy 32 worldview, two powers in heaven, and the cosmic conflict narrative that unifies the entire biblical story.",
+      "key_themes": ["divine_council", "two_powers", "nephilim_giants", "watchers_tradition", "deut32_worldview", "edenic_rebellion", "babel_allotment", "sons_of_god", "elohim_plural", "psalm82_judgment", "cherem_warfare", "messianic_expectation", "image_of_god", "reclaiming_nations", "angel_of_yahweh", "nachash_serpent", "cosmic_geography"],
+      "chapter_count": 42,
+      "notes": "The foundational work for the HLT. Nearly every theme is covered. Must be cataloged chapter by chapter with verse-level indexing."
+    },
+    {
+      "source_key": "supernatural",
+      "title": "Supernatural: What the Bible Teaches About the Unseen Realm — And Why It Matters",
+      "author": "heiser",
+      "type": "book",
+      "publisher": "Lexham Press",
+      "year": 2015,
+      "isbn": "978-1577995586",
+      "description": "Popular-level companion to The Unseen Realm. Covers the same themes in more accessible language. Useful for generating study notes aimed at general readers.",
+      "key_themes": ["divine_council", "nephilim_giants", "watchers_tradition", "deut32_worldview", "sons_of_god", "reclaiming_nations"],
+      "chapter_count": 34,
+      "notes": "Use as a supplement to The Unseen Realm for clearer, more concise explanations suitable for study notes."
+    },
+    {
+      "source_key": "bible_unfiltered",
+      "title": "The Bible Unfiltered: Approaching Scripture on Its Own Terms",
+      "author": "heiser",
+      "type": "book",
+      "publisher": "Lexham Press",
+      "year": 2017,
+      "isbn": "978-1683590606",
+      "description": "Collection of short columns originally published in Bible Study Magazine. Each column addresses a specific passage or concept with scholarly insight in accessible format.",
+      "key_themes": ["divine_council", "elohim_plural", "sons_of_god", "deut32_worldview"],
+      "chapter_count": 60,
+      "notes": "Short-form columns make excellent study note source material. Each column typically addresses 1-3 specific verses."
+    },
+    {
+      "source_key": "reversing_hermon",
+      "title": "Reversing Hermon: Enoch, the Watchers, and the Forgotten Mission of Jesus Christ",
+      "author": "heiser",
+      "type": "book",
+      "publisher": "Defender Publishing",
+      "year": 2017,
+      "isbn": "978-0998142630",
+      "description": "Detailed treatment of how 1 Enoch and the Watchers tradition influenced the NT writers. Shows that Jesus's mission directly targeted the consequences of the Watchers' transgression. Covers the Nephilim, cosmic geography of Mount Hermon and Bashan, the baptism of Jesus as a cosmic confrontation, and the Transfiguration.",
+      "key_themes": ["watchers_tradition", "nephilim_giants", "cosmic_geography", "messianic_expectation"],
+      "chapter_count": 16,
+      "notes": "Essential for NT passages that reference the Watchers tradition (Jude, 2 Peter, parts of Revelation). Also critical for understanding the geographic theology of Jesus's ministry."
+    },
+    {
+      "source_key": "angels",
+      "title": "Angels: What the Bible Really Says About God's Heavenly Host",
+      "author": "heiser",
+      "type": "book",
+      "publisher": "Lexham Press",
+      "year": 2018,
+      "isbn": "978-1683592549",
+      "description": "Comprehensive treatment of angelic beings in the Bible — their nature, roles, ranks, and activities. Covers seraphim, cherubim, the Angel of YHWH, the divine council members, and the distinction between faithful and rebellious divine beings.",
+      "key_themes": ["divine_council", "angel_of_yahweh", "sons_of_god", "nachash_serpent"],
+      "chapter_count": 20,
+      "notes": "Primary source for understanding the nature and hierarchy of divine beings. Critical for annotating any passage mentioning angels or divine beings."
+    },
+    {
+      "source_key": "demons",
+      "title": "Demons: What the Bible Really Says About the Powers of Darkness",
+      "author": "heiser",
+      "type": "book",
+      "publisher": "Lexham Press",
+      "year": 2020,
+      "isbn": "978-1683593850",
+      "description": "Distinguishes between different categories of evil spiritual beings: the nachash/Satan, the rebellious divine council members (gods of the nations), the Watchers/sons of God from Genesis 6, and the spirits of dead Nephilim (demons proper in Second Temple understanding). Shows the biblical text supports these as distinct categories.",
+      "key_themes": ["nachash_serpent", "watchers_tradition", "nephilim_giants", "deut32_worldview", "divine_council"],
+      "chapter_count": 18,
+      "notes": "Critical for understanding the demonology framework. The distinction between demons (disembodied Nephilim spirits) and fallen divine beings is important for accurate translation."
+    },
+    {
+      "source_key": "world_turned_upside_down",
+      "title": "The World Turned Upside Down: Finding the Gospel in the Stranger Things of the Bible",
+      "author": "heiser",
+      "type": "book",
+      "publisher": "Lexham Press",
+      "year": 2023,
+      "description": "Published posthumously. Explores the most challenging and 'strange' passages in the Bible through the lens of the supernatural worldview. Covers passages that are often skipped or spiritualized away.",
+      "key_themes": ["divine_council", "nephilim_giants", "watchers_tradition", "cosmic_geography"],
+      "notes": "Posthumous work. Contains Heiser's mature reflections on difficult passages."
+    },
+    {
+      "source_key": "naked_bible_podcast",
+      "title": "The Naked Bible Podcast",
+      "author": "heiser",
+      "type": "podcast",
+      "year_start": 2012,
+      "year_end": 2023,
+      "episode_count": 430,
+      "url": "https://nakedbiblepodcast.com",
+      "description": "Long-running podcast covering every corner of Heiser's research. Many episodes do verse-by-verse exposition of biblical books with detailed scholarly analysis. Transcripts are available for many episodes.",
+      "key_themes": ["divine_council", "two_powers", "nephilim_giants", "watchers_tradition", "deut32_worldview", "cosmic_geography", "angel_of_yahweh", "nachash_serpent", "edenic_rebellion", "babel_allotment", "sons_of_god", "elohim_plural", "psalm82_judgment", "cherem_warfare", "messianic_expectation", "image_of_god", "reclaiming_nations"],
+      "notes": "The most granular source. Many episodes cover specific passages verse by verse. Priority episodes: the Deuteronomy series, the divine council series, the 1 Enoch series, and the Psalm 82 episodes."
+    },
+    {
+      "source_key": "deut32_paper",
+      "title": "Deuteronomy 32:8 and the Sons of God",
+      "author": "heiser",
+      "type": "paper",
+      "publication": "Bibliotheca Sacra",
+      "year": 2001,
+      "description": "Academic paper arguing that the Dead Sea Scrolls reading of Deuteronomy 32:8 ('sons of God') is original and that the Masoretic reading ('sons of Israel') is a deliberate theological alteration. Foundational for the Deuteronomy 32 worldview.",
+      "key_themes": ["deut32_worldview", "sons_of_god"],
+      "notes": "The academic foundation for the single most important textual variant in the HLT project."
+    },
+    {
+      "source_key": "dissertation",
+      "title": "The Divine Council in Late Canonical and Early Apocalyptic Literature",
+      "author": "heiser",
+      "type": "dissertation",
+      "institution": "University of Wisconsin-Madison",
+      "year": 2004,
+      "url": "https://digitalcommons.liberty.edu/fac_dis/99/",
+      "description": "Heiser's doctoral dissertation tracing the divine council concept through the Hebrew Bible and into Second Temple apocalyptic literature. Provides the academic underpinning for the popular works.",
+      "key_themes": ["divine_council", "psalm82_judgment", "sons_of_god", "elohim_plural"],
+      "notes": "The most rigorous academic treatment. Essential for scholarly credibility of the HLT translation choices."
+    },
+    {
+      "source_key": "two_powers_paper",
+      "title": "Two Powers in Heaven: Early Rabbinic Reports about Christianity and Gnosticism",
+      "author": "heiser",
+      "type": "paper",
+      "description": "Analysis of the 'two powers in heaven' tradition in Jewish theology — the concept of a second divine figure (the visible Yahweh) alongside the invisible transcendent Yahweh. Shows this was mainstream Judaism before rabbinic suppression.",
+      "key_themes": ["two_powers", "angel_of_yahweh", "messianic_expectation"],
+      "notes": "Critical for christophany annotations. Establishes that the two-Yahweh reading is not a Christian invention but pre-Christian Jewish theology."
+    },
+    {
+      "source_key": "drmsh_articles",
+      "title": "drmsh.com Blog Articles and FaithLife Content",
+      "author": "heiser",
+      "type": "articles",
+      "url": "https://drmsh.com",
+      "description": "Collection of blog posts, articles, and shorter scholarly pieces published on Heiser's website and through FaithLife/Logos Bible Software.",
+      "key_themes": ["divine_council", "two_powers", "nephilim_giants", "watchers_tradition", "deut32_worldview", "sons_of_god", "elohim_plural"],
+      "notes": "Useful for specific verse-level commentary and accessible explanations."
+    },
+    {
+      "source_key": "vandorn_giants",
+      "title": "Giants: Sons of the Gods",
+      "author": "vandorn",
+      "type": "book",
+      "publisher": "Waters of Creation Publishing",
+      "year": 2013,
+      "isbn": "978-0615836089",
+      "description": "Comprehensive study of the giant traditions in the Bible and Second Temple literature. Traces the Nephilim lineage through the conquest narratives and identifies the theological significance of the giant clans.",
+      "key_themes": ["nephilim_giants", "watchers_tradition", "cherem_warfare", "cosmic_geography"],
+      "notes": "Primary source for Van Dorn's scholarship on giants. Complements Heiser's work with additional detail on the giant clan genealogies and their geographic territories."
+    }
+  ]
+}

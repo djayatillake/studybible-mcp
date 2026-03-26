@@ -1,0 +1,58 @@
+{
+  "source_key": "drmsh_articles",
+  "title": "Jesus' Quotation of Psalm 82:6 in John 10:34: A Different View of John's Theological Strategy (SBL 2012)",
+  "author": "heiser",
+  "type": "paper",
+  "publication": "2012 SBL Regional Meeting",
+  "url": "https://www.thedivinecouncil.com/Heiser%20Psa82inJohn10%20RegSBL2011.pdf",
+  "entries": [
+    {
+      "title": "The Mortal View of Psalm 82:6 Undermines Jesus' Claim to Deity in John 10",
+      "chapter_or_episode": "Section 0: Introduction",
+      "content_summary": "Three problems with the standard 'mortal view' that Psalm 82:6 refers to human beings: (1) How is it a coherent defense of John's high Christology to have Jesus say 'I can call myself the son of God because every Jew can too'? The mortal view does nothing to advance John's strategic goal of portraying Jesus as the incarnate Logos and monogenes son of God — it casts Jesus as just another mortal. (2) If Jesus cites a text any Jew could cite, why would his audience react with outrage and call for stoning (John 10:30-31,39)? (3) The mortal interpretation of Psalm 82:6 would be utterly foreign to any Hebrew Bible scholar focused on Israelite religion — the divine council context makes the divine beings reading transparently obvious.",
+      "content_detail": "The mortal view options include: (a) Israel's judges in view — but nowhere in the Hebrew Bible are Moses' appointed judges called elohim; (b) Israelites at Sinai — a midrashic fabrication with no textual basis (the Angel of Death at Sinai is nowhere in the text, 'law' in John 10:34 cannot refer to the Psalms given at Sinai); (c) humans who received divine revelation — but this doesn't explain the audience's rage, since every prophet claimed divine commission without being charged with blasphemy.",
+      "page_range": "pp. 1-10",
+      "references": [
+        {"reference": "Jhn.10.30", "relevance": "primary"},
+        {"reference": "Jhn.10.33", "relevance": "primary"},
+        {"reference": "Jhn.10.34", "relevance": "primary"},
+        {"reference": "Jhn.10.35", "relevance": "primary"},
+        {"reference": "Jhn.10.36", "relevance": "primary"},
+        {"reference": "Jhn.10.38", "relevance": "primary"},
+        {"reference": "Jhn.10.39", "relevance": "primary"},
+        {"reference": "Psa.82.1", "relevance": "primary"},
+        {"reference": "Psa.82.6", "relevance": "primary"},
+        {"reference": "Psa.82.7", "relevance": "primary"}
+      ],
+      "themes": ["psalm82_judgment", "messianic_expectation", "divine_council"]
+    },
+    {
+      "title": "Jesus Claims Divine Council Membership and Co-Regency — The Alternative Reading of John 10:34",
+      "chapter_or_episode": "Section 3: An Alternative Proposal",
+      "content_summary": "Heiser proposes that John understood the elohim of Psalm 82 as divine beings and has Jesus presuming the same. Jesus' quotation serves TWO purposes: (1) He reminds his detractors that there are other non-human divine beings (elohim) in their Scriptures who are also sons of God — the phrase 'sons of God' is used in the Hebrew Bible only of non-human divine beings. By linking his statements (10:30,38) to Psalm 82, Jesus claims his own divinity and membership in the divine council. (2) But John 10:30 and 10:38 go even further — when Jesus says 'the Father is in me, and I in him' and 'I and the Father are one,' he connects himself to the council co-regency. In effect, he equates himself as co-regent to the lord of the council, Yahweh himself. THIS is why the blasphemy charge makes sense — Jesus is not claiming to be just another son of God, but the unique co-regent, the second Yahweh.",
+      "content_detail": "The 'word of God that came' in John 10:35 refers NOT to the law at Sinai but to the utterance itself in Psalm 82:6 — the pronouncement from God in the divine council scene. 'To whom the word of God came' = the gods (elohim) of the divine council in 82:1b. Compare Exodus 23:20-23 where the Name (the presence/essence of Yahweh, cf. Deut 4:37) is IN the Angel, who is therefore Yahweh in human form. Jesus is making the same claim: the Father is in him. He is lord of the council. This interpretation is consistent with: (1) Psalm 82 in its original ANE context; (2) other instances of 'sons of God' being divine in the Hebrew Bible; (3) John's portrayal of Jesus as God. No other view meets all three criteria.",
+      "page_range": "pp. 11-14",
+      "references": [
+        {"reference": "Jhn.10.30", "relevance": "primary"},
+        {"reference": "Jhn.10.34", "relevance": "primary"},
+        {"reference": "Jhn.10.35", "relevance": "primary"},
+        {"reference": "Jhn.10.38", "relevance": "primary"},
+        {"reference": "Psa.82.1", "relevance": "primary"},
+        {"reference": "Psa.82.6", "relevance": "primary"},
+        {"reference": "Psa.82.7", "relevance": "primary"},
+        {"reference": "Exo.23.20", "relevance": "supporting"},
+        {"reference": "Exo.23.21", "relevance": "supporting"},
+        {"reference": "Exo.23.23", "relevance": "supporting"},
+        {"reference": "Deu.4.37", "relevance": "supporting"},
+        {"reference": "Psa.2.7", "relevance": "supporting"},
+        {"reference": "Gen.6.2", "relevance": "supporting"},
+        {"reference": "Job.1.6", "relevance": "supporting"},
+        {"reference": "Job.2.1", "relevance": "supporting"},
+        {"reference": "Job.38.7", "relevance": "supporting"},
+        {"reference": "Deu.32.8", "relevance": "supporting"},
+        {"reference": "Deu.32.43", "relevance": "supporting"}
+      ],
+      "themes": ["psalm82_judgment", "messianic_expectation", "two_powers", "divine_council", "angel_of_yahweh"]
+    }
+  ]
+}

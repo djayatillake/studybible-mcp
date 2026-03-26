@@ -1,0 +1,523 @@
+Annual Meeting, Evangelical Theological Society, 2010 
+Dr. Michael S. Heiser, Logos Bible Software; mheiser@logos.com  
+www.thedivinecouncil.com; www.twopowersinheaven.com; www.nakedbibleblog.com  
+ 
+Should the Plural אלהים of Psalm 82 
+Be Understood as Men or Divine Beings? 
+1. Introduction 
+ 
+Psalm 82 has long been a nuisance for Jewish and Christian interpreters. As Morgenstern noted in his 
+lengthy study of the psalm, “Although its text is in almost perfect condition
+ 
+and better far than the text 
+of the vast majority of the Psalms, scarcely any psalm seems to have troubled interpreters more or to 
+have experienced a wider range of interpretation and a more disturbing uncertainty and lack of finality 
+than Psalm 82.”1 Morgenstern is correct, but as I will suggest in this paper, the reason for the confusion 
+stems from several defects in our own thinking and methods, not the clarity of the text. For the ancient 
+orthodox Israelite, there was no conundrum. 
+ 
+ 
+To begin, the very first verse assaults our theological sensitivities: 
+ 
+ א  ֱֹֽלהִִ֗ ים נִ צ  ָּ֥ב
+בַּ ףֲ דַּ ת־א  ֵ֑ ל בְׁ ְּקֶ ֶ֖ רֶ ב א  ֹלהִ ִ֣ ים יִשְׁ פ  ֱֽ ט׃ 
+God (אלהים) stands in the divine assembly; in the midst of the gods (אלהים) he passes judgment. 
+ 
+The first occurrence of אלהים is correctly translated “God” obviously to be taken as singular for 
+reasons of grammatical subject-verb agreement (נִ צ  ָּ֥ב). The second אלהים is equally obvious as a 
+plural since it is the object of the preposition (בְׁ ְּקֶ ֶ֖ רֶ ב). One cannot be in the midst of one (and for 
+anyone thinking of the Trinity here, as we will see, that presumption in this verse leads to heretical 
+theology no one in this room would embrace). The grammar and syntax are crystal clear. The God of 
+Israel is, in Psalm 82, presiding over a group—a council (ףֲ דַּ ת)—of  אלהים. The plurality point is also 
+echoed in verses 6-7 where the אלהים suffer the loss of their immortality: 
+                                                          
+1 J. Morgenstern, “The Mythological Background of Psalm 82,” HUCA 14 (1939): 29. 
+
+---PAGE---
+6 אֲ ֱֽנִ י־א ָ֭ מַּ רְׁ תִ י א  ֹלהִ ִ֣ ים אַּ תֶ ֵ֑ ם ּובְׁ נ  ֶ֖י ףֶ לְׁ יִֹ֣ון כֻּ לְׁ כֶ ֱֽם׃ 
+7 א ָ֭ כ  ן כְׁ א  ד  ִ֣ם תְׁ מּותֵ֑ ּון ּוכְׁ אַּ חַּ ֶ֖ ד הַּ ש  רִ ִ֣ ים תִ פ  ֱֽ לּו׃ 
+I said, „You are gods (אלהים), even sons of the Most High (בני עליון), all of you;  
+nevertheless, like humans you will die, and fall like any prince.‟   
+ 
+But how can this be? How could the psalmist tolerate the existence of multiple אלהים within the 
+context of Israelite monotheism? How can the Hebrew Bible affirm plural אלהים in this psalm and yet 
+deny that there are other gods in other passages? To cut to the chase, the first question is misguided—
+having many אלהים does nothing to undermine an orthodox Israelite view of Yahweh. The second 
+question derives from an erroneous assumption—that the existence of other אלהים is denied in the 
+Hebrew Bible. But both questions telegraph clearly why so many Jewish and Christian (evangelical) 
+interpreters argue that the plural אלהים of Psalm 82 are humans. Seeing these אלהים as divine 
+beings is viewed as a threat to monotheism, the heart of biblical theology. Making them human is the 
+easiest path to removing the problem. But is it correct? My answer is “No.” In this paper, I hope to show 
+why arguing that these אלהים are human beings is completely incoherent and, more importantly, 
+completely unnecessary for defending a monotheistic biblical theology. Toward that end, I will address 
+how an Israelite would have understood the term אלהים, thereby providing a corrective to our own 
+mistaken understanding. This will help us see that plural אלהים are no threat to monotheism. I’ll then 
+provide a positive defense that the plural אלהים in Psalm 82 are divine beings by highlighting some 
+transparent details from the text why the plural אלהים in Psalm 82 cannot be humans. Lastly, I’ll take a 
+negative approach, demonstrating that there is no coherent argument in favor of the human 
+identification. 
+ 
+2. The Meaning of אלהים 
+2.1. The Variety of אלהים 
+Anyone who works in the Hebrew text and not English translations of the Old Testament will; readily 
+detect that there are actually five different entities referenced as אלהים in the Hebrew Bible.  
+
+---PAGE---
+A. Yahweh, the God of Israel (over 2000 times) 
+B. The אלהים of Yahweh’s heavenly council, both loyal and disloyal (Psa 82; Psa 89; cf. Deut 
+32:8-9, 43; Psa 58:112) 
+C. The gods of foreign nations (e.g., 1 Kings 11:33) 
+D. Demons (Deut 32:173) 
+E. The disembodied human dead (1 Sam 28:13) 
+F. Angels (Gen 35:7 – cf. the context of the plural predicator with אלהים subject4) 
+This fact alone should immediately and unambiguously tell us that the word אלהים ought *not* be 
+identified with one particular set of attributes. That is our fundamental mistake. We are accustomed to 
+equating the word spelled g-o-d with the God of Israel and his unique attributes. As a result, the idea 
+that other gods are indeed real—even if that is what the biblical text says—has been something to 
+escape or obscure.  
+But the Hebrew text should not be translated or exegeted so that it conforms to our theological 
+expectations or needs. Yet that is precisely what many translators and scholars do in Psalm 82 in the 
+name of fidelity to true God. We ought to know intuitively that the biblical writers would not equate 
+Yahweh in an ontological or qualitative sense with demons, angels, the human disembodied dead, the 
+gods of the nations, or subservient members of Yahweh’s own council. אלהים as a term does not refer 
+to a set of attributes or ontology. Those issues are not explicated by a term; they are described in the 
+Hebrew Bible. So what does אלהים mean then? 
+2.2. What  אלהים Denotes 
+All the figures called אלהים in the Hebrew Bible have one thing in common: they all inhabit the non-
+human realm. That is, they are by nature not part of the world of humankind, a world of necessary 
+embodiment. אלהים is what I call a “place of residence” term. It identifies the proper domain of the 
+entity described by it. It labels the entity in terms of its residence, if you will. Yahweh, the lesser gods, 
+                                                          
+2 There is a text-critical issue with this instance. For text-critical reasons, as well as reasons of literary parallelism, 
+MT consonantal אלם should be vocalized א  לִ ם or emended to א  לִ ים. See Marvin E. Tate, Psalms 51-100 (WBC 20; 
+Dallas: Word, 2002) 82; Mitchell Dahood, Psalms II:51-100 (AB 16; New York: Doubleday, 1968) 57; M. Heiser, 
+“Should אלהים (ʾ       ) with Plural Predication Be Translated ‘Gods’?” Bible Translator 61:3 (July 2010): 135-136. 
+3 See M. Heiser. “Does Deuteronomy 32:17 Assume or Deny the Reality of Other Gods?” Bible Translator 59:3 (July 
+2008): 137-145. 
+4 See M. Heiser, “Should אלהים (ʾ       ) with Plural Predication Be Translated ‘Gods’?” Bible Translator 61:3 (July 
+2010): 135-136; cf. Dr. Heiser’s other 2010 ETS paper, “What is/are (an) elohim?” available from Dr. Heiser. 
+
+---PAGE---
+angels, demons, and the disembodied dead are all rightful inhabitants of the spiritual (i.e., non-human) 
+world. They may be able to cross over to our world, as Scripture tells us, and certain humans may be 
+transported to their realm (prophets; Enoch), but their proper domain and our proper domain are two 
+separate places. Within the spiritual world there is ontological differentiation, rank, and power: Yahweh 
+is an אלהים, but no other אלהים is Yahweh. That was what an orthodox Israelite believed about 
+Yahweh. He was not one among equals; he was species unique. Our modern term (17th century) 
+“monotheism” is deficient for describing this, since it carries the mental baggage of identifying “g-o-d” 
+with a single set of attributes held only by Yahweh. However, the thought behind the term—that 
+Yahweh is utterly and eternally unique—remains completely intact. Our translations and our theology 
+ought to make this clear. We have nothing to fear from letting the text say what it says. 
+ 
+3. Positively: Why the אלהים of Psalm 82:1 are Divine Beings 
+The plural אלהים of Psalm 82:1 are called “sons of the Most High” in verse 6. We of course know that 
+for the Israelite, the Most High is Yahweh. Psalm 83:19 makes that equation explicitly. Elsewhere the 
+“sons of God” are very obviously divine beings (e.g., Job 1:6; 2:1; 38:7-8). However, there is one passage, 
+Hosea 1:10, that uses a similar phrase of humans (“sons of the living God”), and Israelites on occasion 
+were referred to as Yahweh’s “son” (Exo 4:22-23). How can we be sure that divine beings are in view in 
+Psalm 82? 
+3.1. Psalm 82 Should Not Be Isolated 
+If Psalm 82, with its plural אלהים in a council, were considered in isolation, we would be confronted 
+with ambiguity. That is not the case, though. We ought to interpret Scripture with Scripture. We can be 
+sure that Psalm 82 is not describing Yahweh presiding over a council or group of human judges for 
+several reasons readily discerned from the Hebrew Bible.  
+Rather than isolate Psalm 82, we need to ask whether there are any other passages that feature the 
+same language of divine plurality in a council found in Psalm 82 that rules out an equation of that 
+language with human beings. Fortunately, there is such a passage.  Psalm 89:5-7 eliminates any 
+ambiguity with respect to the language in question. 
+ 5     Let the heavens praise your wonders, O LORD,  
+your faithfulness in the assembly (קהל) of the holy ones!  
+ 6     For who in the clouds (בשחק) can be compared to the LORD?  
+Who among the sons of God/the gods (בני אלים) is like the LORD,  
+
+---PAGE---
+ 7     a God greatly to be feared in the council (סוד) of the holy ones,  
+and awesome above all who are around him?  
+ 
+Psalm 89 rules out the notion that Yahweh’s council of אלהים sons of God refers to an assembly of 
+humans because it explicitly places that council “in the clouds.” There is no text in the entirety of the 
+Hebrew Bible that says or suggests that there are a group of human judges in the heavens ruling with 
+Yahweh over the nations. That position is offered only because of a perceived threat to monotheism, 
+not because it has any textual merit. 
+3.2. Deuteronomy as a Backdrop to Psalm 82 
+The fact that Psalm 82 has the council אלהים being judged for their corrupt administration also rules 
+out humans (not to mention the Trinity). This is clear when ones asks what the council אלהים were 
+supposed to be administrating. The answer is found in the last verse of the psalm, where the psalmist 
+implores the God of Israel to rise up and “inherit” all the nations. The lemma behind “inherit” (נחל) 
+provides the context for the judgment of the psalm. This is precisely the same lemma used to describe 
+Yahweh’s punitive judgment of the nations at the tower of Babel, when Yahweh allotted the nations to 
+the sons of God, and allotted those same divine beings to the nations that he was disinheriting. The key 
+passages are Deut 32:8-9 and its parallel, Deut 4:19-20: 
+Deut 32:8 When the Most High gave to the nations their inheritance (Hiphil, נחל), 
+when he divided mankind, he fixed the borders of the peoples according to the number 
+of the sons of God [
+ בני
+האלהים].5 9 But the LORD’s portion is his people, Jacob his 
+allotted heritage (נחלה).  
+Deut 4:19 Lest you lift up your eyes to heaven, and when you see the sun and the moon 
+and the stars, all the host of heaven, you be drawn away and bow down to them and 
+serve them, whom the LORD your God has allotted to all the peoples under the whole 
+                                                          
+5 Textual critics of the Hebrew Bible are unanimous in agreement that the Qumran reading (in brackets) is superior 
+to the Masoretic text in Deut 32:8, which reads בני יׂשראל (“sons of Israel”).  See for example, M. Heiser, 
+“Deuteronomy 32:8 and the Sons of God,” BibSac 158 (Jan-March, 2001) 52-74; P. W. Skehan, “A Fragment of the 
+„Song of Moses‟ (Deut 32) from Qumran,” BASOR 136 (1954) 12-15; idem, “Qumran and the Present State of Old 
+Testament Text Studies: The Masoretic Text,” JBL 78 (1959) 21; Julie Duncan, “A Critical Edition of Deuteronomy 
+Manuscripts from Qumran, Cave IV.  4QDt b, 4QDt e, 4QDt h, 4QDt j, 4QDt b, 4QDt k, 4QDtl,” (Ph.D. diss., 
+Harvard University, 1989); Emanuel Tov, Textual Criticism of the Hebrew Bible  (Minneapolis: Fortress Press, 
+1992), 269; Eugene Ulrich et al., eds., Qumran Cave 4.IX: Deuteronomy to Kings (DJD XIV; Oxford: Clarendon 
+Press, 1995), 75-79; Sanders, The Provenance of Deuteronomy 32, 156; J. Tigay, Deuteronomy, The JPS Torah 
+Commentary (Philadelphia: Jewish Publication Society, 1996), 514-518. 
+
+---PAGE---
+heaven. 20 But the LORD has taken you and brought you out of the iron furnace, out of 
+Egypt, to be a people of his own inheritance (נחלה), as you are this day.  
+ 
+Both of these passages assume the reality of other אלהים.6 If we begin at Deut 4:19-20 and then work 
+toward chapter 32, we find that the “host of heaven” is identified as “other gods” (א  ֹלהִ ִ֣ ים אֲ ח  רִ ִ֔ ים) 
+worshipped by Israelites in defiance of Deut 4:19-20. If one traces א  ֹלהִ ִ֣ ים אֲ ח  רִ ִ֔ ים through 
+Deuteronomy, one discovers Deut 29:23-25 (Eng., 29:24-26), which contains phrases found in Deut 32:8-
+9, where the nations were allotted by YHWH to the sons of God: 
+24 . . . all the nations will say, ‘Why has the LORD done thus to this land? What caused 
+the heat of this great anger?’ 25 Then people will say, ‘It is because they abandoned the 
+covenant of the LORD, the God of their fathers, which he made with them when he 
+brought them out of the land of Egypt, 26 and went and served other gods ( א  ֹלהִ ִ֣ ים
+אֲ ח  רִ ִ֔ ים) and worshiped them, gods whom they had not known and whom he had not 
+allotted to them.  
+Later in Deut 32:17,7 these same אלהים are identified as demons.  
+ יִזְׁבְׁ חִ֗ ּו לַּ ש  דִ ים֙ ל  ִ֣ א א  ֹלִ֔ הַּ א  ֹלהִֶ֖ ים ל  ִ֣ א
+יְׁד  ףֵ֑ ּום חֲ ד  שִ ים֙ מִ ק  ר  ִ֣ ב ב ִ֔ אּו ל  ָּ֥ א ׂשְׁ ף  רֶ֖ ּום אֲ ב ת  יכֶ ֱֽם׃  
+“They sacrificed to demons—not to God—to gods they had not known,  
+new ones that had come recently which your fathers had not known about.” 
+Since these other אלהים, the host of heaven and sons of God in Deuteronomy, are described as 
+demons, we cannot deny their reality, at least if we care about getting our beliefs about the 
+spiritual world from the Bible. We also cannot say these other אלהים are mere idols, pieces of 
+wood and stone, since demons are not wood and stone.8  
+                                                          
+6 For a discussion of the Old Testament‟s “denial phrases” (e.g., “there is none besides me”; “there is none like me”) 
+that allegedly disallow the existence of other gods in biblical theology, see “Appendix 2” in the handout that 
+accompanied this paper, or Michael S. Heiser, “Monotheism, Polytheism, Monolatry, or Henotheism? Toward an 
+Assessment of Divine Plurality in the Hebrew Bible,” BBR 18:1 (2008): 1-30. 
+7 On this passage, see M. Heiser. “Does Deuteronomy 32:17 Assume or Deny the Reality of Other Gods?” Bible 
+Translator 59:3 (July 2008): 137-145. 
+8 For the ancient polytheist and the Israelite who lived in the context of polytheistic nations, what we see in 
+Deuteronomy would not constitute a conundrum. While both the entity and the cult object are called a god, it cannot 
+be presumed that ancient people considered a humanly fabricated statue or fetish object to be identical with the god 
+in whose likeness it was fashioned. As one scholar of ancient cult objects notes: "When a non-physical being 
+
+---PAGE---
+3.3. The Wider Context of Ancient Canaan (Ugarit, Phoenicia) 
+The final positive argument that we have a council of divine beings in Psalm 82 concerns the 
+comparative material. As students of the Hebrew Bible know, the discovery of the Ugaritic 
+material in 1929 provided a much more secure context for understanding the Old Testament than 
+Mesopotamia. The discovery effectively brought the era of Pan-Babylonianism to a close. The 
+language of Ugarit proved to be the closest cognate to biblical Hebrew. Its vocabulary provided 
+exact or near exact equivalents to hundreds of words in the Hebrew Bible, many of which were 
+hapax legomena. Ugaritic literature also provided explicit parallels to a range of biblical 
+passages. Descriptions of a divine council and its אלהים members were among those parallels, 
+along with exact parallels to names and epithets given to Yahweh, the God of Israel. Suffice it to 
+say that these line-for-line parallels are not contrived. Defending the human view of the אלהים 
+in Yahweh‟s council would not only require ignoring the context of other psalms and 
+Deuteronomy, but it requires turning a blind eye to psalm‟s own historical and linguistic context. 
+Those interested in this material can consult the bibliography in the handout. 
+ 
+In summary of the positive arguments, it is misguided to assume that the plural אלהים of Psalm 
+82 who are being judged for their corrupt governance of the nations are humans. This approach 
+lacks coherence. 
+                                                                                                                                                                                           
+manifested in a statue, this anchored the being in a controlled location where living human beings could interact 
+with it through ritual performance . . . In order for human beings to interact with deities and to persuade them to 
+create, renew, and maintain the universe, these beings had to be brought down to earth. . . . This interaction had to be 
+strictly controlled in order to avoid both the potential dangers of unrestricted divine power and the pollution of the 
+divine by the impurity of the human world.  While the ability of deities to act in the visible, human realm was 
+brought about through their manifestation in a physical body, manifestation in one body did not in any sense restrict 
+a deity, for the non-corporeal essence of a deity was unlimited by time and space, and could manifest in all its 
+“bodies,” in all locations, all at one time" (Gay Robins, “Cult Statues in Ancient Egypt,” in Cult Image and Divine 
+Representation in the Ancient Near East [ASOR Book Series 10; ed. Neal H. Walls; Boston: American Schools of 
+Oriental Research, 2005], 1-2). Michael Dick, another scholar who has devoted two decades of attention to the 
+subject of idolatry in Israel and the ancient Near East, agrees. In his scholarly work on the subject, Dick cites a 
+number of texts where the ancient idolater used deity language for the product of his hands, but also made an 
+intellectual distinction between the statue and the deity it represented, or which was thought to take residence in the 
+statue (Michael P. Dick, Born in Heaven, Made on Earth: The Making of the Cult Image in the Ancient Near East 
+[Winona Lake, IN: Eisenbrauns, 1999], 33-34). In one telling citation, the destruction of the statue of Shamash of 
+Sippar was not regarded as the death of Shamash. Indeed, Shamash could still be worshipped. 
+ 
+
+---PAGE---
+ 
+4. Negatively: Why the Human View of the Plural  אלהים  of Psalm 82 is Without Support 
+We’ve already touched on two of the strategies for defending the human identification of the plural 
+אלהים of Psalm 82: the fact that humans are at times called God’s sons. This strategy is ineffectual for 
+Psalm 82, especially since Psalm 89 clearly places the council of אלהים  in the clouds, not on earth. 
+There are two other attempted strategies used by those who wanted the plural אלהים  to be humans. 
+4.1. The Judges of Israel 
+Perhaps the most familiar argument for the human view of  אלהים  is the one that insists certain Old 
+Testament passages name the elders of Israel as אלהים  judges. Once we look at the passages used for 
+that argument, we’ll see that the argument lacks credibility. 
+ 
+Exodus 22:6-8 [Eng., 22:7-9] is an important text in this argument. The translation used here is from the 
+JPS Tanakh: 
+6 When a man gives money or goods to another for safekeeping, and they are stolen from 
+the man’s house—if the thief is caught, he shall pay double; 7 if the thief is not caught, the 
+owner of the house shall come near (נקרב) to God (האלהים) that he has not laid 
+hands on the other’s property. 8 In all charges of misappropriation—pertaining to an ox, 
+an ass, a sheep, a garment, or any other loss, whereof one party alleges, “This is it”—the 
+case of both parties shall come before God (האלהים): he whom God (אלהים) declares 
+guilty (ירשיען) shall pay double to the other.9  
+ 
+Scholars who deny that the plural אלהים in Ps 82:1 are divine beings assume that אלהים 
+ and  
+האלהים in Exod 22:6-8 are human beings (the elder-judges of Israel) and take the results of that 
+assumption to argue that Psalm 82 is describing Israelite judges, not gods in a divine council. The plural 
+predicate in Exod 22:8 (ירשיען) allegedly supports this view, for surely the passage speaks of Israel’s 
+judges rendering decisions for the people. There are several problems with this use of the passage. 
+                                                          
+9 Tanakh: The Holy Scriptures: A New Translation of the Holy Scriptures According to the Traditional Hebrew Text 
+(Philadelphia: The Jewish Publication Society, 1985).  The Tanakh translation follows the Hebrew versification. 
+
+---PAGE---
+ 
+First, it is worth noting that these judges (if we presume for the moment that  ה
+אלהים and אלהים 
+ 
+are plural and referring to people) are rendering decisions for the nation of Israel – not the nations of 
+the world as is the case in Psalm 82 and Deut 32. This contextual disconnect alone raises suspicions 
+about the merits of the use of the passage. The contextual incongruence aside, the argument here 
+actually depends on whether אלהים 
+ and האלהים in verse 8 is to be taken as singular or plural, and 
+whether it in fact refers to human beings.  
+ 
+Behind the assumption that אלהים 
+ and האלהים in Exod 22:8 are to be understood as semantically 
+plural human beings is the earlier story in Exodus, where Moses appointed judges at the suggestion of 
+his father-in-law, Jethro. This account is found in Exod 18:13-24. Note the occurrences of אלהים 
+ and 
+ הא
+להים carefully: 
+ 
+13 The next day, Moses sat as magistrate among the people, while the people stood 
+about Moses from morning until evening. 14 But when Moses’ father-in-law saw how 
+much he had to do for the people, he said, “What is this thing that you are doing to the 
+people? Why do you act alone, while all the people stand about you from morning until 
+evening?”  15 Moses replied to his father-in-law, “It is because the people come to me 
+to inquire of God (אלהים). 16 When they have a dispute, it comes before me, and I 
+decide between one person and another, and I make known the laws and teachings of 
+God.” 17 But Moses’ father-in-law said to him, “The thing you are doing is not right; 18 
+you will surely wear yourself out, and these people as well. For the task is too heavy for 
+you; you cannot do it alone. 19 Now listen to me. I will give you counsel, and God 
+(אלהים) be with you! You represent the people before God (האלהים): you bring the 
+disputes before God (האלהים), 20 and enjoin upon them the laws and the teachings, 
+and make known to them the way they are to go and the practices they are to follow. 21 
+You shall also seek out from among all the people capable men who fear God, 
+trustworthy men who spurn ill-gotten gain. Set these over them as chiefs of thousands, 
+hundreds, fifties, and tens, and 22 let them judge the people at all times. Have them 
+bring every major dispute to you, but let them decide every minor dispute themselves. 
+
+---PAGE---
+Make it easier for yourself by letting them share the burden with you. 23 If you do this—
+and God so commands you—you will be able to bear up; and all these people too will go 
+home unwearied.” 24 Moses heeded his father-in-law and did just as he had said.  
+ 
+Taken at face value, there is nothing in Exodus 18 that compels us to understand אלהים or האלהים 
+as semantically plural, something that is essential for the notion that the men appointed in the episode 
+are a convenient explanation for the אלהים and האלהים of both Exod 22:8 and Psa 82. Each 
+occurrence of 
+ א
+להים or האלהים in this passage can quite readily refer to the singular God of Israel. 
+And the same is true of Exodus 22. There is nothing in either passage that compels a plural translation. A 
+singular translation referring to God himself makes for a clear reading. Without compelling evidence for 
+a plural translation, the argument that the elders of Israel were אלהים judges turns to vapor.  But even 
+damaging is the fact that the men appointed by Moses in Exodus 18 are never actually called אלהים or 
+האלהים in the text. This account of the appointment of judges, then, is no support for seeing human 
+אלהים in Psalm 82. 
+ 
+There is one other passage that speaks of אלהים in a context similar to that of Exod 22:8. Exodus 21:2-
+6 must be brought into the discussion: 
+2 When you buy a Hebrew slave, he shall serve six years, and in the seventh he shall go 
+out free, for nothing. 3 If he comes in single, he shall go out single; if he comes in 
+married, then his wife shall go out with him. 4 If his master gives him a wife and she 
+bears him sons or daughters, the wife and her children shall be her master’s, and he 
+shall go out alone. 5 But if the slave plainly says, ‘I love my master, my wife, and my 
+children; I will not go out free,’ 6 then his master shall bring him to God (האלהים),10 
+and he shall bring him to the door or the doorpost. And his master shall bore his ear 
+through with an awl, and he shall be his slave forever.  
+ 
+                                                          
+10 The Tanakh translation adds a note here: “to the judges.” 
+
+---PAGE---
+The interpretation is put forth that the master is commanded to bring the slave before the elder-judges 
+of Israel before piercing his ear, and that these judges are called האלהים.  This position appears 
+coherent, but there are obstacles to its lucidity.   
+ 
+First, האלהים could be semantically singular, referring to the God of Israel, as was the case with Exod 
+18 and Exod 22. The promise about the status of the slave is being made in truth before God.  This is the 
+simplest reading. However, there is evidence that the redactor-scribes responsible for the final form of 
+the text did not interpret 
+ הא
+להים as singular—and also did not interpret a plurality as referring to 
+human beings! The key is the parallel passage in Deuteronomy 15. Later redactors apparently saw 
+האלהים as semantically plural since the parallel to it found in Deut 15:17 removes the word האלהים 
+from the instruction. This omission is inexplicable if the term was taken as singular, referring to YHWH. 
+Why would the God of Israel need to be removed from this text? Moreover, if  האלהים had been 
+construed as plural humans, Israel’s judges, the deletion is just as puzzling. What harm would there be if 
+the point of the passage was that Israel’s judges needed to approve the status of the slave? The excision 
+on the part of the Deuteronomist is quite understandable, though, if האלהים was intended as a 
+semantically plural word that referred to gods. Seventy years ago Cyrus Gordon pointed out that the 
+omission in Deuteronomy appears to have been theologically motivated.11  Gordon argued that 
+האלהים in Exod 21:6 referred to “household gods” like the teraphim of other passages. Bringing a 
+slave into one’s home in patriarchal culture required the consent and approval of one’s ancestors—
+departed human dead who were אלהים as we saw much earlier was the case in 1 Sam 28:13.  Under a 
+later redaction this phrase was omitted in the wake of Israel’s struggle with idolatry.  Only a plural 
+referring to multiple divine beings can coherently explain the deletion. As a result, this passage is also no 
+support for the plural human אלהים view. 
+ 
+4.2. Jesus’ Use of Psalm 82:6 in John 10:34 
+ 
+A second strategy for arguing the plural אלהים of Psalm 82 are humans attempts to utilize the 
+quotation of Psalm 82:6  by Jesus in John 10:34. I would suggest that this text has been fundamentally 
+                                                          
+11 Cyrus H. Gordon, "אלהים in Its Reputed Meaning of Rulers, Judges," Journal of Biblical Literature 54 (1935): 
+139-44. 
+
+---PAGE---
+misunderstood by New Testament scholars who approach it with little or no background knowledge of 
+the divine council. 
+Briefly, the context of Jesus’ quotation is crucial. In John 10:30 he has just told his audience that he and 
+the Father were one. Jesus isn’t going to follow that statement by essentially saying “I get to call myself 
+God because you mere mortals do it too by virtue of Psalm 82.” That approach undermines John’s 
+presentation in this chapter of the deity of Jesus, yet this is precisely the trajectory one finds of all the 
+published material on John 10:34 and its use of Psalm 82. 
+This backdrop is important for interpreting the significance of Jesus’ quotation of Psalm 82:6 in John 
+10:34-35.  I have never come across the view I have of this issue in print, and so it seems best to give the 
+full context of Jesus’ quotation in order to make my thoughts clear (John 10:22-42): 
+22 And it was at Jerusalem the feast of the dedication, and it was winter. 23 And Jesus walked in 
+the temple in Solomon's porch. 24 Then came the Jews round about him, and said to him, "How 
+long are you going to make us doubt? If you are the Christ, tell us plainly." 25 Jesus answered 
+them, "I told you, and you believed not: the works that I do in my Father's name, they bear 
+witness of me. 26 But you believe not, because you are not of my sheep, as I said to you. 27 My 
+sheep hear my voice, and I know them, and they follow me: 28 And I give to them eternal life; 
+and they shall never perish, neither shall anyone pluck them out of my hand. 29 My Father, who 
+gave them to me, is greater than all; and no one is able to pluck them out of my Father's hand. 30 
+I and my Father are one." 31 Then the Jews took up stones again to stone him. 32 Jesus answered 
+them, "Many good works have I shown you from my Father; for which of those works do you 
+stone me?" 33 The Jews answered him, saying, "For a good work we would not stone you; but for 
+blasphemy; and because that you, being a man, make yourself God." 
+The quotation of Psalm 82:6 follows: 
+34 Jesus answered them, "Is it not written in your law: 'I said, you are gods?' 35 If he [God] 
+called them gods, to whom the word of God came, and the scripture cannot be broken; 36 do 
+you say of him whom the Father has sanctified and sent into the world, 'You blaspheme!' 
+because I said, I am the Son of God? 37 If I do not the works of my Father, believe me not. 38 But 
+if I do, though you don't believe me, believe the works: that you may know, and believe, that 
+the Father is in me, and I in him." 39 Therefore they sought again to take him: but he escaped 
+out of their hand, 40 And went away again beyond Jordan into the place where John at first 
+baptized; and there he abode. 41 And many resorted unto him, and said, John did no miracle: but 
+all things that John spake of this man were true. 42 And many believed on him there. 
+Here is what we can glean without interpretive disagreement: 
+1. Jesus’ prefaced his quotation by asserting that he and the Father were one (10:30). 
+2. This claim was regarded as blasphemy in that Jesus was making himself out to be God (10:33). 
+
+---PAGE---
+3. In defense of his assertion, Jesus quoted Psalm 82:6.  That is, to establish his claim to be God, 
+Jesus went to Psalm 82:6. 
+4. He follows the quotation with the statement that the Father was in him, and he was in the 
+Father.  
+ 
+The consensus view of this quotation is that Jesus was endorsing the human אלהים view and thereby 
+arguing, “I have every right to call myself divine—you guys can do it as well on the basis of Psalm 82:6.”  
+The problem, of course, is that this amounts to Jesus saying “you mere mortals can call yourself gods, so 
+I can, too.”  If this is what John intends to communicate to go along with verse 30 to put forth the idea 
+of Jesus’ deity, it’s an inept strategy. 
+ 
+I propose that Jesus knew the אלהים of Psalm 82 were not human, and that Jesus was in fact asserting 
+his own unique ontological oneness with the Father.12  The human אלהים view derives from two 
+assumptions brought to the text:  (1) that it is required by the assumed impossibility of there being 
+other אלהים because of Judeo-Christian monotheism; and (2) that the phrase "to whom the word of 
+God came" refers to the Jews who received the law at Sinai (i.e., the Pharisees' forefathers).  This paper 
+has already dispensed with the first assumption, so we’ll move to the latter. 
+ 
+I would suggest that what first needs to be done is to come to terms with what is meant by “the word of 
+God” and who it is that receives that word in Psalm 82:6-7: 
+I said, ‘You are gods (אלהים), even sons of the Most High (בני עליון), all of you; 
+nevertheless, like humans you will die, and fall like any prince.’   
+ 
+The speaker (“I”) in the passage is the God of Israel, the God who is standing in the council in 82:1 
+among the אלהים. God announces that the אלהים of the council are his sons, but because of their 
+                                                          
+12 The notion that John 10:33 has Jesus only claiming to be a god (a la Mormon or Jehovah‟s Witness theology) is 
+not tenable.  A syntactical search of the Greek New Testament, however, reveals that the identical construction 
+found in John 10:33 occurs elsewhere in contexts referring specifically to God the Father. The search is 
+accomplished via the OpenText.org syntactically-tagged Greek New Testament database in the Libronix platform 
+developed by Logos Bible Software. The search query asks for all clauses where the predicator of the clause can be 
+any finite verb except εἰμί where the subject complement is the lexeme θεός with no definite article present. Any 
+clause component can intervene between these two elements.  Other than John 10:33, the following hits are yielded 
+by the query: Acts 5:29; Gal. 4:8, 9; 1 Thess. 1:9; 4:1; 2 Thess. 1:8; Titus 3:8; Heb. 9:14.  It is incoherent within the 
+immediate and broader context of the book in which each passage hit occurs to translate θεός as “a god.” 
+ 
+
+---PAGE---
+corruption (vv. 2-5), they will lose their immortality.  I believe that Jesus was referring to this utterance 
+itself when he quoted the psalm, not the Jewish nation receiving the law at Sinai or the revelation that 
+would become the Old Testament.  To illustrate the difference in the views:  
+ 
+Common Interpretation /  
+Jesus’ strategy assumes אלהים are human 
+My view / 
+Jesus’ strategy assumes אלהים are divine 
+ 
+The “word of God that came” = revelation from 
+God at Sinai, or the entire OT 
+ 
+ 
+“to whom the word of God came” = the Jews at 
+Sinai, or the Jews generally 
+ 
+ 
+Result = the Jews are the “sons of the Most High” 
+and אלהים -- so Jesus can call himself an אלהים as 
+well, since he’s a Jew, too. 
+ 
+The “word of God that came” = the utterance itself 
+in Psalm 82:6 – the pronouncement from God 
+ 
+“to whom the word of God came” = the אלהים of 
+the divine council in 82:1 
+ 
+ 
+Result = The Jews are not אלהים, and Jesus reminds 
+his enemies that their Scriptures say there are 
+other אלהים who are divine sons—and this on the 
+heels of declaring himself one with the Father (John 
+10:30) puts him in the position of not only claiming 
+divinity as a son of the Most High, but by claiming 
+to be above the sons of God since he is one with 
+the Father. 
+ 
+Nowhere in Psalm 82 do we have any hint of the Mosaic Law, Sinai, a Jewish nation, or the canonical 
+revelation given to the Jews.  Every element in the commonly held view must be inserted into the 
+passage.  My view is that Jesus is quoting Psalm 82:6 to put forth the idea that he was more than 
+human. He reminds his Jewish audience that there were in fact other אלהים besides the God of Israel, 
+and those אלהים were God’s sons. Because he calls himself the son of God and has in fact just claimed 
+to be one with Yahweh, not only puts himself in the class of the sons of the Most High of Psalm 82:6—
+divine אלהים—but implies that he is Lord of the council. This particular son of the Most High is one 
+with the Father. The Jewish authorities got the message, too—they charged him with blasphemy. Now 
+ask yourself, why would they do that if all Jesus was saying was “you mortal Jews get to call yourselves 
+sons of God, and אלהים, so I can, too.” That makes no sense at all. 
+CONCLUSION 
+The net result of this investigation is that, to hold the view that the plural אלהים  of Psalm 82 are 
+humans requires ignoring some very clear items:  
+
+---PAGE---
+(1) that five figures are called אלהים in the Hebrew Bible, which means the word cannot speak to one 
+set of attributes;  
+(2) that Psalm 82 and Deut 32 have a council of divine beings in the clouds and set over the disinherited 
+nations by Yahweh—authority that no text in the Old Testament assigns to human Israelite judges;  
+(3) that the אלהים cannot be merely idols, since demons are called and are real;  
+(4) that explicit ancient Canaanite parallels for a divine council of plural spirit beings exist; 
+(5) that there are no texts in the Hebrew Bible that call Israel’s judges אלהים; 
+(6) that Jesus’ use of Psalm 82:6 in John 10:34 is only a defense of his deity when the אלהים of Psalm 
+82 are presumed to be divine beings. 
+ 
+Let’s allow the text say what it says; we have no reason to fear it. 
+
+---PAGE---

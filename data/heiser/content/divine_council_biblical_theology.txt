@@ -1,0 +1,804 @@
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 1.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+DIVINE COUNCIL A term used by Hebrew Bible scholars for the heavenly host, the assembly of divine 
+beings who administer the affairs of the cosmos under Yahweh, the God of Israel. All ancient 
+Mediterranean cultures had some conception of a divine council, including Israel. However, Israelite 
+religion’s divine council was distinct. The structure of the Israelite divine council has implications for 
+understanding God and the unseen world in biblical theology. 
+Textual Evidence and its Ancient Canaanite Context 
+The Council of the Gods / God. Most Bible translations show that Israel believed in an assembly of 
+heavenly host under the authority of Yahweh. Modern translations do not show clearly that this 
+assembly is similar to pantheons of ancient Near Eastern cultures. A close reading of the Hebrew text 
+and comparisons with other ancient non-biblical texts from Canaan demonstrate this similarity (Mullen, 
+Handy, “Host”; Cross “Epic”; Smith “Early”; Smith, “Origin”; Korpel, Rift in the Clouds). 
+The clearest example is the cuneiform literature from Ras Shamra (Ugarit), discovered in the late 
+1920s. As a Semitic language, Ugaritic is closely related to biblical Hebrew—it shares vocabulary, as well 
+as morphological and syntactical features. Many of the Ugaritic tablets describe a council of gods in 
+words and phrases that are conceptually and linguistically parallel to the Hebrew Bible. The Ugaritic 
+divine council was led by El, the same word used in the Hebrew Bible for deity and as the proper name 
+for the God of Israel (e.g., Isa 40:18; 43:12). References to the “council of El” include: pḫr ʾilm (assembly 
+“of El” or “of the gods”; KTU 1.47:29, 1.118:28, 1.148:9); pḫr bn ʾilm (assembly “of the sons of El” or “of 
+the gods”; KTU 1.4.III:14); mpḫrt bn ʾilm (“assembly of the sons of El”; KTU 1.65:3; compare 1.40:25, 42); 
+and ʿdt ʾilm (assembly “of El” or “of the gods”; KTU 1.15.II:7, 11). 
+The Hebrew Bible has phrases that explicitly parallel these Ugaritic expressions (Parker, “Sons of 
+[the] God[s]”; Cooke, “The Sons of [the] God[s]”). Psalm 82:1 is perhaps the best example. It calls the 
+council (עֲ דַ ת־
+אֵ ל, adath-el) and describes gods under the authority of Israel’s God: “God (אֱ ֹלהִ ים, 
+elohim) stands in the council of El/the divine council (עֲ דַ ת־אֵ ל, adath-el); among the gods (אֱ ֹלהִ ים, 
+elohim) he passes judgment.” The second occurrence of אֱ ֹלהִ ים (elohim) must be semantically plural 
+due to the preposition “in the midst of.” This does not refer to the Trinity—Psalm 82 goes on to describe 
+how Israel’s God accuses the other 
+ֹאֱ ֹל
+הִ ים (elohim) of corruption and sentences them to die “like 
+humankind.” This plurality does not refer to human beings. Psalm 89:5–7 places the God of Israel “in the 
+assembly of the holy ones” (בִ קְ הַ לֹקְ דֹשִ ים, biqhal qedoshim) and then asks “For who in the clouds 
+(בַ שַ חַ ק, bashshachaq) can be compared to Yahweh? Who is like Yahweh among the sons of God (ֹבְ נֵי
+אֵ לִ ים, beney elim), a god greatly feared in the council of the holy ones (בְ סֹוד־קְ דֹשִ ים, besod-
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 2.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+qedoshim)?” Psalm 29:1 commands the same sons of God (בְ נֵיֹאֵ לִ ים, beney elim) to praise Yahweh 
+and give him due obeisance. Divine “sons of God” (בְ נֵיֹאֵ לִ ים, beney elim, בְ נֵיֹהָ אֱ ֹלהִ ים, beney 
+ha'elohim; or בְ נֵיֹאֱ ֹלהִ ים, beney elohim) appear in other biblical texts (Gen 6:2, 4; Job 1:6; 2:1; 38:7; 
+and Deut 32:8–9, 43 (Septuagint; Qumran); Heiser, “Deuteronomy 32:8”). 
+The Divine Abode and Meeting Place of the Divine Council. At Ugarit, the council of El and its gods met 
+on a mountain or lush garden (Clifford, The Cosmic Mountain). These descriptions are actually the same 
+place. The abode of El was at the “source of the two rivers” (mbk nhrm) in the “midst of the fountains of 
+the double-deep” (qrb ʾapq thmtm). El and his “assembled congregation” (pḫr mʿd) met to issue divine 
+decrees from the “tents of El” (ḏd ʾil) and his “tent shrine” (qrš; KTU 1.1.III:23; 1.2.III:5; 1.3.V:20–21; 
+1.4.IV:22–23; 1.6.I:34–35; 1.17.VI:48). This description of gods living and meeting in “tents” (ʾahlm) or 
+“tabernacles” (mšknt) is common at Ugarit (KTU 1.15.3.18–19). The Ugaritic god Baal, the deity who 
+oversaw the council for El, held meetings on Mount Ṣpn. Baal’s palace had “paved bricks” (lbnt) that 
+made Baal’s house “a house of the clearness of lapis lazuli” (bht ṭhrm ʾiqnʾum). 
+The Hebrew Bible uses similar place descriptions. The most obvious are the tabernacle (מִ שְ כַ ן, 
+mishkan) and Tent of Meeting (אֹהֶ לֹמֹועֵ ד, ohel mo'ed), both common in the Old Testament narrative. 
+Yahweh also dwelled on mountains (Sinai or Zion; e.g., Exod 34:26; 1 Kgs 8:10). In Psalm 48:3 the 
+Jerusalem temple is said to be located in the “heights of the north” (יַרְ כְ תֵ יֹצָ פֹון, yarkethey tsaphon). 
+Mount Zion is the “mount of assembly” (הַ ר־מֹועֵ ד, har-mo'ed), again located in yarketê ṣpn (ֹיַרְ כְ תֵ י
+צָ פֹון, yarkethey tsaphon; Isa 14:13). Additionally, Zion is described as a watery habitation (Isa 33:20–22; 
+Ezek 47:1–12; Zech 14:8; Joel 3:18). Ezekiel 28:13–16 equates the “holy mountain of God” (ֹהַ רֹקֹדֶ ש
+אֱ ֹלהִ ים, har qodesh elohim) with Eden, the “garden of God” (גַ ן־אֱ ֹלהִ ים, gan-elohim). Eden appears in 
+Ezek 28:2 as the “seat of the gods” (מֹושַ בֹאֱ ֹלהִ ים, moshav elohim). The description of Eden in Gen 
+2:6–15 refers to the “ground flow” that “watered the entire face of the earth.” At Sinai, Moses and 
+others saw the seated God of Israel, under whose feet was a “pavement of sapphire stone” (ֹלִ בְ נַ ת
+הַ סַ פִ יר, livnath hassappir; Exod 24:9–10). 
+The Structure of the Divine Council. The divine council at Ugarit may have had four tiers, but the 
+evidence is not conclusive (Smith, Origins, 41–53). A three-tiered understanding may be better. 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 3.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+The top tier consisted of El and his wife Athirat (Asherah). The second tier was the domain of their 
+royal family (“sons of El”; “princes”). One member of this second tier, Baal, served as the co-regent of El. 
+Despite being under El’s authority, he was called “most high” (Wyatt, “Titles”). A third tier was for 
+“craftsman deities,” while the fourth and lowest tier was reserved for the messengers (mlʾkm), 
+essentially servants or staff (Cho, Lesser Deities). 
+There is solid evidence in the Hebrew Bible for a three-tiered council. In the divine council of 
+Israelite religion, Yahweh was the supreme authority over a divine bureaucracy that included a second 
+tier of lesser אֱ ֹלהִ ים (elohim), also called the “sons of God” (בְ נֵיֹאֵ לִ ים, beney elim, בְ נֵיֹהָ אֱ ֹלהִ ים, 
+beney ha'elohim, or בְ נֵיֹאֱ ֹלהִ ים, beney elohim) or “sons of the Most High” (בְ נֵיֹעֶ לְ יֹון, beney elyon). It 
+may be significant that these “sons of God” are never clearly referred to as angels (מַ לְ אָ כִ ים, 
+mal'akhim) in the Hebrew Bible, as that word denoted the lowest tier of the Canaanite council, and thus 
+a third tier in the Israelite version. Still, mlʾkm at Ugarit were considered gods, despite their subordinate 
+role. It is possible that מַ לְ אָ כִ ים (mal'akhim) are referred to as אֱ ֹלהִ ים (elohim) in the Hebrew Bible. 
+In Israel’s divine council, the highest tier is different from the Canaanites’ conception. Instead of El 
+and Baal, his vice-regent, Yahweh occupied both slots in a sort of binitarian godhead (Heiser, “Divine 
+Council”). Yahweh is described in the Hebrew Bible by means of titles and abilities that both El and Baal 
+have in Canaanite literature—these two were conceptually fused in Yahweh. This literary and 
+theological device shows Yahweh superior to the two main divine authority figures in wider Canaanite 
+religion. 
+The way Yahweh filled the positions both of supreme ruler and vice-regent is also shown by His 
+occasional visible appearances (Hamori “When”; Hamori, “Embodiment”; Sommer, The Bodies of God). 
+For example, the Angel of Yahweh is sometimes indistinguishable from Yahweh (e.g., Exod 3:1–14). The 
+Angel is said to have Yahweh’s “Name” in him (Exod 23:20–23). Scholars have long noted the presence 
+of a “name theology” in the Hebrew Bible (Mettinger “Dethronement”; Huffmon, “Name”) where the 
+name is another way of referring to Yahweh Himself. Thus, Yahweh was in the Angel, and yet Yahweh 
+and the Angel could be simultaneously present (Judg 6). Both the God of Israel and the Angel are said to 
+have brought Israel out of Egypt (Judg 2:1–3; 1 Sam 8:8; Micah 6:4)—an observation that makes Deut 
+4:37 an important consideration for binitarianism, since that verse tells us the “Presence” of Yahweh 
+was responsible for the deliverance from Egypt. The divine presence must be understood as Yahweh 
+Himself, His “essence” as it were. The angel—as co-regent—fills Baal’s role as El’s warrior. It is the angel 
+who led Israel to the promised land as the captain of the Lord’s host, “sword drawn in his hand” (ֹחַ רְ בֹו
+שְ לּופָ הֹבְ יָדֹו, charbo sheluphah beyado)—a precise description found in only two other places in the 
+Hebrew Bible, both of which describe the angel of Yahweh (Num 22:23; 1 Chr 21:16). The result is that—
+while orthodox Yahwism could not accommodate cosmic rule being shared by two separate and distinct 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 4.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+deities (El and Baal)—it could tolerate Yahweh in two personages. That the angel had the 
+presence/name/essence of Yahweh in him, but was a distinct personage, meant he “was but wasn’t” 
+Yahweh. 
+The Israelite binitarian godhead is also indicated by the “rider on the clouds” motif in the Hebrew 
+Bible. This epithet was a well-known title for Baal (Herrmann, “Rider upon the Clouds”). For orthodox 
+Yahwists, Baal’s attributes were taken over by Yahweh, their rightful bearer. The Hebrew Bible 
+consistently refers to Yahweh as the one who rides the clouds (Psa 68:4, Psa 68:5 in Hebrew; 68:33, Psa 
+68:34 in Hebrew; 104:3; Deut 33:26; Isa 19:1) with one exception: the “son of man” in Dan 7:13. This 
+character in Dan 7 is distinct from the enthroned deity, the ancient of days, who was expected to bear 
+this Yahweh-title of the Hebrew Bible. This passage, along with the “man of war” (the angel) formed the 
+basis for Judaism’s doctrine of two powers in heaven, a point of orthodoxy until the second century AD 
+(Segal, Two Powers in Heaven). 
+The Hebrew Bible also informs us that at least some Israelites considered Yahweh to have had a 
+divine wife, Asherah (2 Kgs 21:1–7; 2 Chr 15:16). The archaeological picture echoes this belief, most 
+notably in the finds at Kuntillet ʿAjrud and Khirbet el-Qom, where inscriptions include prayers to Yahweh 
+and “his Asherah” (Dever). It should be noted, though, that “his Asherah” may refer to a shrine and not 
+the goddess (Hess, “Yahweh and his Asherah?”). It cannot be demonstrated that the theology of the 
+prophets and biblical writers contained this idea, or that it was permissible. Other figures and motifs 
+include “wisdom and the word” (Ringgren, Word and Wisdom). 
+Decision Making in the Divine Council 
+In the Ugaritic council, members would sometimes challenge each other during their deliberations 
+(Handy, “Authorization”). However, there are also passages in the Ugaritic material that nearly equate El 
+with the entire council (Mullen, “Divine Council,” 129, 142)—the decrees of the council are the decrees 
+of El. The Israelite conception of the divine council also included deliberation and opposition, yet the will 
+of God was ultimately done. 
+Council Member Participation. First Kings 22:19–23 is an important text regarding the participation of 
+council members: 
+“And Micah said, ‘ (‘)Therefore hear the word of the LORD: I saw the LORD sitting on his throne, and 
+all the host of heaven standing beside him on his right hand and on his left; and the LORD said, “Who 
+will entice Ahab, that he may go up and fall at Ramoth-gilead?” And one said one thing, and another said 
+another. Then a spirit came forward and stood before the LORD, saying, “I will entice him.” And the 
+LORD said to him, “By what means?” And he said, “I will go out, and will be a lying spirit in the mouth of 
+all his prophets.” And he said, “You are to entice him, and you shall succeed; go out and do so.” Now 
+therefore behold, the LORD has put a lying spirit in the mouth of all these, your prophets; the LORD has 
+declared disaster for you.’ ” 
+Yahweh decided that Ahab should die, but allows discussion about how he should die. After some 
+discussion, one spirit steps forward with a proposal. Yahweh accepts it and says that it will succeed. 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 5.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+Nothing in the passage suggests that Yahweh learns anything here, or that He didn’t know what the 
+suggestion would be. Nor does it support the idea that Yahweh predestinated the suggestion. The 
+narrative only demonstrates that Yahweh allowed council members to choose how to carry out the 
+decree. 
+The aftermath of the Babel incident shows that Yahweh expected that council beings use their own 
+free decision making capacity. In Deuteronomy 4:19–20 and 32:8–9, Yahweh divided and assigned the 
+nations to lesser gods (Heiser, “Sons of God”). Yahweh delegated authority—He rejected the nations as 
+His own people and took Israel as His portion. While Yahweh is ultimately sovereign, He does not 
+unilaterally govern the other nations. He leaves that to subordinates, who should rule according to His 
+will. When they don’t, they are judged. This is precisely the point of Psa 82, where Yahweh judges the 
+gods of his council who are responsible for corrupt rule over the nations of the earth. 
+Yahweh’s Will and Council Activity. Two examples of council deliberation in the book of Daniel make 
+the council almost a part of Yahweh. 
+Daniel 4 contains Nebuchadnezzar’s second dream. The announcement of Nebuchadnezzar’s 
+punishment is described in Dan 4:17: “The sentence is by the decree of the Watchers, the decision by 
+the word of the holy ones, to the end that the living may know that the Most High rules the kingdom of 
+men and gives it to whom he will and sets over it the lowliest of men.” Seven verses later (Dan 4:24) the 
+sentence is described thus: “This is the interpretation, O king: It is a decree of the Most High, which has 
+come upon my lord the king.” This line is followed by the ambiguous plural of 4:26: שַ לִ טִִ֖ ןֹשְ מַָ יּֽא 
+(shallitin shemay'). This Aramaic phrase can be translated either “heaven rules” (corporate 
+personification), or “the heavenly ones rule” (council authority). The second seems likely—the decree is 
+from the Watchers—but it is the (singular) Most High who rules. 
+Daniel 7 opens with the vision of the four beasts, symbols which parallel the four kingdoms in Dan 2. 
+Daniel 7:9–12 describes a divine council meeting. “Thrones” (plural) are set up. The Ancient of Days is 
+seated—the Son of Man does not sit. In Daniel 7:10 the “court” or council is then seated. The books of 
+judgment are opened, and the fourth beast is killed. The jointly ruling Ancient of Days and the Council 
+(and the Son of Man by implication) are identified with one another: 
+1. The judgment occurs after the council was in session. “The court shall sit in judgment and his 
+dominion shall be taken away” (Dan 7:26). 
+2. In Daniel 2 the fourth kingdom is destroyed by the kingdom of God. 
+3. The kingdom of God in Daniel 7 is given by God to the Son of Man, who shares it with the “holy 
+ones” of the Most High (Dan 7:25). These are probably not humans—humans are brought into joint 
+kingship later: it “shall be given to the people of the holy ones of the Most High” (Dan 7:27). 
+“Heavenly ones” is a term that refers to the divine council elsewhere (e.g., Psa 89:5–6; Job 15:15). 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 6.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+The Saṭan. The saṭan (הַ שָ טָ ן, hassatan) in Job 1–2 is not a proper name—it lacks the Hebrew definite 
+article prefixed to the noun (Peggy Day, An Adversary in Heaven). This “Adversary” (the meaning of the 
+Hebrew term) is therefore not the Devil, as known in the New Testament. Lowell Handy points out that 
+the Adversary’s behavior in Job 1–2 is consistent with that of various deities in council scenes in Ugaritic 
+material, where a lesser deity reports to a higher deity (Handy, “Authorization”). The Adversary is the 
+deity responsible for checking on the misbehavior of humans. He is actually not talking back to God, but 
+pointing out that humans behave well if they are not under duress. Yahweh decides to test the 
+Adversary’s estimation, knowing full well that Job will endure. 
+Monotheism in the Hebrew Bible and the Divine Council 
+Biblical Polytheism? The presence of a divine council in the Hebrew Bible does not means that Israel’s 
+religion was at one time polytheistic (there are many gods) or henotheistic (there are many gods, but 
+one is preferred) and later evolved to monotheism. Both views presume that the gods were equal. 
+Archaeological remains and passages in the Hebrew Bible show polytheism in Israel, but this was not 
+orthodox Israelite belief. The biblical writers refer to Yahweh as “the God” (הָ אֱ ֹלהִ ים, ha'elohim; 1 
+Kings 18:39)—He could not be compared with any others. While Yahweh was an אֱ ֹלהִ ים (elohim), He 
+was unique among the אֱ ֹלהִ ים (elohim). The orthodox Israelite knew that only one deity was the pre-
+existent Creator of all things (Isa 45:18). His status as Creator prevented other אֱ ֹלהִ ים (elohim) from 
+being equal. Yahweh was viewed as the Creator of the “host of heaven,” the other divine beings (Pss 
+33:6; 148:1–5; compare Neh 9:6; Job 38:7–8; 1 Kgs 22; Isa 14:13; Deut 4:19–20; 32:8–9, 43; with Deut 
+17:3; 29:25; 32:17). 
+Understanding the Term אֱ ֹלהִ ים (elohim) 
+The Confusion of English Translations. Modern English translations often obscure the Hebrew text’s 
+plural אֱ ֹלהִ ים (elohim), probably from a fear that it would undermine a belief in monotheism. For 
+example, the NASB renders the second אֱ ֹלהִ ים (elohim) in Psa 82:1 as “rulers.” Other translations are 
+more faithful, opting for “gods” or “divine beings,” but study Bibles usually note alternative readings like 
+“rulers” or “judges.” While rendering the second אֱ ֹלהִ ים (elohim) “gods” in Psa 82:1, the NIV 
+nevertheless in Psa 29:1 has “mighty ones” for bĕnê ʾēlı , m (literally “sons of the gods”). NASB (“sons of 
+the mighty”) and NKJV (“mighty ones”) follow suit. The translations for Deut 32:17 are also obscure. 
+There are two issues: whether to render ֹ ַאֱ ֹלֹ֔ ה (eloah) as singular or plural and how to translate the 
+verbless clause in which it appears ֹ ַל ֹ ֹ֣ אֹאֱ ֹלֹ֔ ה (lo' eloah). For example: 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 7.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+• ESV—“They sacrificed to demons that were no gods, to gods they had never known …” 
+• RSV—“They sacrificed to demons which were no gods, to gods they had never known …” 
+• CEV—“You offered sacrifices to demons, those useless gods that never helped you, new gods that 
+your ancestors never worshiped.” 
+Translations which translate ֹ ַאֱ ֹלֹ֔ ה (eloah) as plural produce a reading that denies that שֵ דִ ים (shedim, 
+“demons”) are gods. Such translations, however, are forced to juxtapose this denial with the next 
+clause, אֱ ֹלהִִ֖ יםֹל ֹ ֹ֣ אֹיְדָ ע֑ ּום (elohim lo' yeda'um) (“gods which they did not know”) which appears to 
+clearly contradict that denial. How can the demons be gods and not gods in the same verse? 
+Translations which take ֹ ַאֱ ֹלֹ֔ ה (eloah) as singular do not suffer this tension. There are in fact no 
+occasions in the Hebrew Bible where ֹ ַאֱ לֹוה (eloha) is contextually plural or is used as a collective noun 
+(Heiser, “Deuteronomy 32:17”). Denying the existence of gods in Deut 32:17 means denying the 
+existence of these demonic entities. 
+The Variety of אֱ ֹלהִ ים (elohim). There are a number of entities referred to as אֱ ֹלהִ ים (elohim) in the 
+Hebrew Bible. This variety gives a clue as to how the term should be understood. It can be used to 
+mean: 
+• Yahweh, the God of Israel (over 2000 times) 
+• The אֱ ֹלהִ ים (elohim) of Yahweh’s heavenly council (Psa 82) 
+• The gods of foreign nations (e.g., 1 Kgs 11:33) 
+• Demons (Deut 32:17) 
+• Spirits of the human dead (1 Sam 28:13) 
+• Angels (possible due to Gen 35:7, depending on the context of the plural predicator with אֱ ֹלהִ ים, 
+elohim; subject) 
+The אֱ ֹלהִ ים (elohim) of Yahweh’s council in Psa 82 are divine beings, not human rulers. This is obvious 
+from the parallel passage in Psa 89:5–8. In Psalm 82:6, the plural אֱ ֹלהִ ים (elohim) are called “sons of 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 8.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+the Most High.” These אֱ ֹלהִ ים (elohim) are not human since Psa 89:6 (Psa 89:7 in Hebrew) locates their 
+assembly or council in the clouds or heavens (בַ שַ חַ ק, vashshachaq) not on earth. 
+With respect to 1 Samuel 28:13 (part of the “medium of Endor” narrative), the text tells us that, 
+after being solicited by Saul to conjure the dead prophet Samuel, the medium exclaims, ֹאֱ ֹלהִ ים
+רָ אִ יתִ יֹעֹלִ יםֹמִ ן־הָ אָ רֶ ץ (elohim ra'ithiy olim min-ha'arets). The text could be translated two ways: “I 
+saw gods coming up from the earth” or, “I saw a god coming up from the earth.” Both are possible since 
+the plural participle form could reflect the plural morphology of אֱ ֹלהִ ים (elohim). Saul’s subsequent 
+question helps us decide with a singular reading since he asks the medium in 28:14, “What is his (third 
+masculine singular suffix) appearance?” The deceased Samuel who appears to Saul is an אֱ ֹלהִ ים 
+(elohim). While this might seem strange to us, the notion that the departed dead were “gods” (אֱ ֹלהִ ים, 
+elohim) is similar to ancient Canaanite thinking. 
+In Genesis 35:7, אֱ ֹלהִ ים (elohim) is the subject of a plural verb; and angels (מַ לְ אָ כִ ים, mal'akhim) 
+may be part of the context. Genesis 35:1–7 reads in part: 
+“God said to Jacob, ‘ (‘)Arise, go up to Bethel and dwell there. Make an altar there to the God (לָ אֵ ל, 
+la'el) who appeared to you when you fled from your brother Esau.’ So Jacob said to his household … ‘ 
+(‘)let us arise and go up to Bethel, so that I may make there an altar to the God (לָ אֵ ל, la'el) who 
+answered me in the day of my distress and has been with me wherever I have gone.’ And Jacob came to 
+Luz (that is, Bethel), which is in the land of Canaan, he and all the people who were with him, and there 
+he built an altar and called the place El-bethel, because there God had revealed himself to him (or, “the 
+gods revealed themselves to him”; נִ גְלּוֹאֵ לָ יוֹהָ אֱ ֹלהִ ים, niglu elaiw ha'elohim) when he fled from his 
+brother.” 
+This passage is not referring to Gen 28—that was not the episode in which Jacob was explicitly 
+described as fleeing from his brother. It seems to refer to Gen 32, in which Jacob has two encounters 
+with the divine while fleeing from Esau. The lesser known of these two encounters occurs in Gen 32:1, 
+where we read, “Jacob went on his way, and the angels of God (מַ לְ אֲ כֵ יֹאֱ ֹלהִ ים, mal'akhey elohim) 
+met him” (ESV). Upon seeing these beings, Jacob’s response was the exclamation, “This is the camp of 
+elohim” (Gen 32:1). In Genesis 32:22–32, Jacob wrestles with “a man” (Gen 32:24) whom Jacob refers to 
+as elohim (32:32). The divine nature of the man is reiterated in Hos 12:3–4 (12:4–5 in Hebrew). This 
+angel is also apparently deified in Gen 48:15–16 (ESV): 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 9.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+“And he blessed Joseph, and said, ‘ (‘)God (הָ אֱ ֹלהִ ים, ha'elohim), before whom my fathers 
+Abraham and Isaac walked, the God (הָ אֱ ֹלהִ ים, ha'elohim) who has been my shepherd all my life long 
+to this day, The angel (הַ מַ לְ אָ ְך, hammal'akh) who has redeemed me from all evil, bless (יְבָ רֵ ְך, 
+yevarekh; note the singular verb) the boys; and in them let my name be carried on, and the name of my 
+fathers Abraham and Isaac; and let them grow into a multitude in the midst of the earth.’ ” 
+The plural verb form of Gen 35:7 may be due to the fact that both Yahweh and the Angel who is the 
+visible Yahweh appeared to Jacob as he fled. However, the other angels of God may also be included in 
+the plural verb form. Angels as אֱ ֹלהִ ים (elohim) would agree with Canaanite culture and religion, and 
+makes good sense in light of what the term אֱ ֹלהִ ים (elohim) really means. 
+Defining the Term אֱ ֹלהִ ים (elohim). The fact that five different entities are called אֱ ֹלהִ ים (elohim) 
+shows that the word does not refer to only one set of attributes. This is the mistake of modern 
+interpreters and translators, who are accustomed to using the term “god” only when referencing the 
+God of Israel and His attributes. The biblical writers would not equate Yahweh in a qualitative sense with 
+demons, angels, the human disembodied dead, the gods of the nations, or the gods of Yahweh’s own 
+council. 
+All the things called אֱ ֹלהִ ים (elohim) in the Hebrew Bible have one thing in common: they all 
+inhabit the non-human realm. That is, they are by nature not part of the world of humankind, a world of 
+ordinary embodiment. אֱ ֹלהִ ים (elohim) as a term describes residence—it identifies the proper domain 
+of the entity described by it. Yahweh, the lesser gods, angels, demons, and the disembodied dead are all 
+rightful inhabitants of the spiritual world. They may cross over to the human world, as Scripture informs 
+us, and certain humans may be transported to their realm (e.g., prophets; Enoch), but their proper 
+domain and humanity’s proper domain are two separate places. Within the spiritual world—as in the 
+human world—there are differences of rank and power. Yahweh is an אֱ ֹלהִ ים (elohim), but no other 
+אֱ ֹלהִ ים (elohim) is Yahweh. This was what an orthodox Israelite believed. Yahweh was not one among 
+equals; He was unique. The modern term “monotheism,” coined in the 17th century (MacDonald, 
+“Deuteronomy and the Meaning of Monotheism,” 1–21), only uses the term god to describe a being 
+with attributes like Yahweh’s. This does not reflect the Hebrew Bible’s use of אֱ ֹלהִ ים (elohim). 
+However, the thought behind the term—that Yahweh is utterly and eternally unique—is consistent with 
+the sense of the modern word “monotheism.” 
+“No Other Gods beside Me”? 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 10.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+Common phrases in the Hebrew Bible which seem to deny the existence of other gods (e.g., Deut 4:35, 
+39; 32:12, 39) actually appear in passages that affirm the existence of other gods (Deut 4:19–20; 32:8–9, 
+17). These phrases show that Yahweh is incomparable among the other אֱ ֹלהִ ים (elohim), not that the 
+biblical writers contradict each other or that they are in the process of discovering monotheism. 
+Isaiah’s “denial statements” express incomparability, not non-existence of other gods (Isa 43:10–
+12). Similar language is used in Isa 47:8, 10. Babylon claims, “I am, and there is none else beside me.” 
+The claim is not that Babylon is the only city in the world, but that it has no rival. 
+A close reading of Deuteronomy and Isaiah shows the denial language’s context (Heiser, 
+“Monotheism”). The denials are not based on any claim that other אֱ ֹלהִ ים (elohim) do not exist, but on 
+Yahweh’s unique qualities. In Isaiah 43:10–12, the reference points are Yahweh’s pre-existence, ability 
+to save, and national deliverance. In Isaiah 45, the focus is on Yahweh’s justice, salvation, the 
+deliverance of His children, and the impotence of the other gods. Yahweh is being compared to lesser 
+gods—it would be empty praise to compare Him to beings that did not exist. 
+Human Beings as אֱ ֹלהִ ים (elohim)? The structure and terminology of Psa 82 shows that the psalm 
+describes a council of divine beings (Mullen, “Divine Council”; Prinsloo, “Psalm 82”; Tsevat, “God and the 
+Gods”; Kee, “The Heavenly Council”). The plural אֱ ֹלהִ ים (elohim) of Psa 82:1 are called “sons of the 
+Most High” in 82:6. The orthodox Israelite knew that the Most High is Yahweh (Psa 83:18). The plural 
+אֱ ֹלהִ ים (elohim) of the council are therefore “sons” of the God of Israel. Elsewhere the “sons of God” 
+are obviously divine beings (e.g., Job 1:6; 2:1; 38:7–8). However, there is one passage, Hos 1:10, that 
+uses a similar phrase of humans (“sons of the living God”), and Israelites on occasion were referred to as 
+Yahweh’s “sons” (Exod 4:22–23). 
+Psalm 82 and Psalm 89 in Tandem. Psalm 82’s council of plural אֱ ֹלהִ ים (elohim) would be ambiguous if 
+it were the only example. Without context, it might seem to describe Yahweh presiding over a council or 
+group of human judges. However, there is another passage that both uses the same language of divine 
+plurality in a council and rules out that language with human beings. 
+Psalm 89:5–7 places Yahweh’s council of אֱ ֹלהִ ים (elohim) “in the clouds.” This shows that these 
+“sons of God” are not humans—no text in the entirety of the Hebrew Bible suggests that there are a 
+group of human judges in the heavens ruling with Yahweh over the nations. 
+Deuteronomy 32 as the Backdrop to Psalm 82. Psalm 82 judges the council אֱ ֹלהִ ים (elohim) for their 
+corrupt administration—this also shows that they are not human. The last verse of the psalm shows 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 11.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+what the council אֱ ֹלהִ ים (elohim) were supposed to be administrating. The psalmist implores the God 
+of Israel to rise up and “inherit” all the nations. The lemma behind “inherit” (נחל, nchl) is precisely the 
+same lemma used to describe Yahweh’s punitive judgment of the nations at the tower of Babel. He 
+allotted the nations to the sons of God, and allotted those same divine beings to the nations that he was 
+disinheriting. The key passages are Deut 32:8–9 and its parallel, Deut 4:19–20: 
+• Deuteronomy 32:8: “When the Most High gave to the nations their inheritance (נחל, nchl), when 
+he divided mankind, he fixed the borders of the peoples according to the number of the sons of God 
+(בניֹהאלהים, bny h'lhym) But the LORD’s portion is his people, Jacob his allotted heritage 
+(נַ חֲ לָ תֹו, nachalatho).” 
+• Deuteronomy 4:19: “Lest you lift up your eyes to heaven, and when you see the sun and the moon 
+and the stars, all the host of heaven, you be drawn away and bow down to them and serve them, 
+whom the LORD your God has allotted to all the peoples under the whole heaven. But the LORD has 
+taken you and brought you out of the iron furnace, out of Egypt, to be a people of his own 
+inheritance (נַ חֲ לָ ה, nachalah), as you are this day.” 
+Both of these passages assume the reality of other אֱ ֹלהִ ים (elohim). Passages in Deut 4:19–20 through 
+32:8–9 identify the “host of heaven” as “other gods” (אֱ ֹלהִ ֹ֣ יםֹאֲ חֵ רִ ֹ֔ ים, elohim acherim) worshiped by 
+Israelites in defiance of Deut 4:19–20. For example, Deut 29:23–25 (Deut 29:24–26 in English) contains 
+phrases found in Deut 32:8–9, where the nations were allotted by Yahweh to the sons of God: 
+“All the nations will say, ‘ (‘)Why has the LORD done thus to this land? What caused the heat of this 
+great anger?’ Then people will say, ‘ (‘)It is because they abandoned the covenant of the LORD, the God 
+of their fathers, which he made with them when he brought them out of the land of Egypt, and went 
+and served other gods (אֱ ֹלהִ ֹ֣ יםֹאֲ חֵ רִ ֹ֔ ים, elohim acherim) and worshiped them, gods whom they had 
+not known and whom he had not allotted to them.’ ” 
+Deuteronomy 32:17 identifies these ֹֹ֣ ִאֱ ֹלה
+ים (elohim) (the hosts of heaven and sons of God) as 
+demons—real beings (Heiser, “Deuteronomy 32:17”). These אֱ ֹלהִ ֹ֣ ים (elohim) are not simply idols, 
+pieces of wood and stone. 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 12.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+Ancient Near Eastern idolaters knew that idols were not the actual deities they represent. While 
+both the entity and the cult object might be called אֱ ֹלהִ ֹ֣ ים (elohim), this does not mean that ancient 
+people considered a human-made statue to be identical to the god it looked like. As Robins, a scholar of 
+ancient cult objects notes: “When a non-physical being manifested in a statue, this anchored the being 
+in a controlled location where living human beings could interact with it through ritual performance … In 
+order for human beings to interact with deities and to persuade them to create, renew, and maintain 
+the universe, these beings had to be brought down to earth.… This interaction had to be strictly 
+controlled in order to avoid both the potential dangers of unrestricted divine power and the pollution of 
+the divine man realm was brought about through their manifestation in a physical body, manifestation 
+in one body did not in any sense restrict a deity, for the non-corporeal essence of a by the impurity of 
+the human world. While the ability of deities to act in the visible, human realm was brought about 
+through their manifestation in a physical body, manifestation in one body did not in any sense restrict a 
+deity, for the non-corporeal essence of a deity was unlimited by time and space, and could manifest in 
+all its ‘ (‘)bodies,’ in all locations, all at one time” (Robins, “Cult Statues in Ancient Egypt,” 1–2). 
+Human Elder-Judges of Israel and Plural אֱ ֹלהִ ֹ֣ ים (elohim). There are passages that seem to use 
+ֹאֱ ֹל
+הִ ֹ֣ ים (elohim) to mean the human elders of Israel acting as judges, but this is not the correct reading. 
+Exodus 22:6–8 (translation from the JPS Tanakh): 
+“When a man gives money or goods to another for safekeeping, and they are stolen from the man’s 
+house—if the thief is caught, he shall pay double; if the thief is not caught, the owner of the house shall 
+come near to God (הָ אֱ ֹלהִ ים, ha'elohim) that he has not laid hands on the other’s property. In all 
+charges of misappropriation—pertaining to an ox, an ass, a sheep, a garment, or any other loss, whereof 
+one party alleges, ‘ (‘)This is it’—the case of both parties shall come before God (הָ אֱ ֹלהִ ים, ha'elohim): 
+he whom God (אֱ ֹלהִ ים, elohim) declares guilty ( ֹ יַרְ שִ יע
+ן, yarshi'un) shall pay double to the other.” 
+If the אֱ ֹלהִ ים (elohim) and הָ אֱ ֹלהִ ים (ha'elohim) in Exod 22:6–8 were human beings (the elder-
+judges of Israel), Psa 82 may be describing Israelite judges. The plural predicate in Exod 22:8 (יַרְ שִ יע  ן, 
+yarshi'un) would seem to support this—if the passage speaks of Israel’s judges rendering decisions for 
+the people. However, there are several problems with this use of the passage. 
+First, these judges (if הָ אֱ ֹלהִ ים, ha'elohim; and אֱ ֹלהִ ים, elohim; are plural and referring to people) 
+give decisions for the nation of Israel—not the nations of the world as is the case in Psa 82 and Deut 32. 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 13.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+Also, אֱ ֹלהִ ים (elohim) and הָ אֱ ֹלהִ ים (ha'elohim) in Exod 22:8 might be singular, and might not refer to 
+human beings. 
+Exodus 18:13–24—where Moses appoints judges—might suggest that אֱ ֹלהִ ים (elohim) and 
+הָ אֱ ֹלהִ ים (ha'elohim) in Exod 22:8 are humans. However, the story of the judges uses אֱ ֹלהִ ים (elohim) 
+and הָ אֱ ֹלהִ ים (ha'elohim) to refer to God: 
+“The next day, Moses sat as magistrate among the people, while the people stood about Moses 
+from morning until evening. But when Moses’ father-in-law saw how much he had to do for the people, 
+he said, ‘ (‘)What is this thing that you are doing to the people? Why do you act alone, while all the 
+people stand about you from morning until evening? Moses replied to his father-in-law, ‘ (‘)It is because 
+the people come to me to inquire of God (אֱ ֹלהִ ים, elohim). When they have a dispute, it comes before 
+me, and I decide between one person and another, and I make known the laws and teachings of God.’ 
+But Moses’ father-in-law said to him, ‘ (‘)The thing you are doing is not right; you will surely wear 
+yourself out, and these people as well. For the task is too heavy for you; you cannot do it alone. Now 
+listen to me. I will give you counsel, and God (אֱ ֹלהִ ים, elohim) be with you! You represent the people 
+before God (הָ אֱ ֹלהִ ים, ha'elohim): you bring the disputes before God (הָ אֱ ֹלהִ ים, ha'elohim) and 
+enjoin upon them the laws and the teachings, and make known to them the way they are to go and the 
+practices they are to follow. You shall also seek out from among all the people capable men who fear 
+God, trustworthy men who spurn ill-gotten gain. Set these over them as chiefs of thousands, hundreds, 
+fifties, and tens, and let them judge the people at all times. Have them bring every major dispute to you, 
+but let them decide every minor dispute themselves. Make it easier for yourself by letting them share 
+the burden with you. If you do this—and God so commands you—you will be able to bear up; and all 
+these people too will go home unwearied.’ Moses heeded his father-in-law and did just as he had said.” 
+There is nothing in Exodus 18 to suggest that אֱ ֹלהִ ים (elohim) or הָ אֱ ֹלהִ ים (ha'elohim) are plural—
+these refer to the singular God of Israel. The same is true of Exodus 22. A singular translation referring to 
+God Himself is the correct reading. Without evidence for a plural translation, the אֱ ֹלהִ ים (elohim) 
+cannot be assumed to be the elders of Israel. Also, the men appointed by Moses in Exod 18 are never 
+actually called אֱ ֹלהִ ים (elohim) or 
+ֹהָ אֱ ֹל
+הִ ים (ha'elohim) in the text. This account of the appointment of 
+judges, then, does not support the אֱ ֹלהִ ים (elohim) in Psa 82 being humans. 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 14.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+There is one other passage that speaks of אֱ ֹלהִ ים (elohim) in a context similar to that of Exod 22:8. 
+Exodus 21:2–6 reads: 
+“When you buy a Hebrew slave, he shall serve six years, and in the seventh he shall go out free, for 
+nothing. If he comes in single, he shall go out single; if he comes in married, then his wife shall go out 
+with him. If his master gives him a wife and she bears him sons or daughters, the wife and her children 
+shall be her master’s, and he shall go out alone. But if the slave plainly says, ‘ (‘)I love my master, my 
+wife, and my children; I will not go out free,’ then his master shall bring him to God (הָ אֱ ֹלהִ ים, 
+ha'elohim), and he shall bring him to the door or the doorpost. And his master shall bore his ear through 
+with an awl, and he shall be his slave forever.” 
+It is possible that the master is commanded to bring the slave before the elder-judges of Israel 
+(הָ אֱ ֹלהִ ים, ha'elohim) before piercing his ear. However, this unlikely. 
+First, הָ אֱ ֹלהִ ים (ha'elohim) can be singular, referring to the God of Israel—as in Exod 18 and Exod 
+22. The promise about the status of the slave is being made in truth before God. However, there is 
+evidence that the redactor-scribes responsible for the final form of the text did not interpret הָ אֱ ֹלהִ ים 
+(ha'elohim) as singular—and also did not interpret a plurality as referring to human beings. The parallel 
+passage in Deut 15 shows that redactors saw הָ אֱ ֹלהִ ים (ha'elohim) as semantically plural: the parallel in 
+Deut 15:17 removes the word הָ אֱ ֹלהִ ים (ha'elohim) from the instruction. If this were thought to mean 
+the God of Israel, the redactors would not have removed it from the text. Again, if הָ אֱ ֹלהִ ים 
+(ha'elohim) had been understood as plural humans, Israel’s judges, they would not have removed it. If 
+הָ אֱ ֹלהִ ים (ha'elohim) were intended as a semantically plural word that referred to gods, then the 
+reason for deleting was theological (Gordon, “אלהים, 'lhym; in Its Reputed Meaning of Rulers”). 
+Gordon argued that הָ אֱ ֹלהִ ים (ha'elohim) in Exod 21:6 referred to “household gods” like the teraphim 
+of other passages. Bringing a slave into one’s home in patriarchal culture required the consent and 
+approval of one’s ancestors—departed human dead, ִֹאֱ ֹלה
+ים (elohim)—as in 1 Sam 28:13. This phrase 
+was later removed after Israel’s struggle with idolatry. Only a plural referring to multiple divine beings 
+can coherently explain the deletion. As a result, this passage also does not support the plural human 
+אֱ ֹלהִ ים (elohim) view. 
+Prophets and the Divine Council 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 15.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+Prophetic Commissioning: The Classical Prophets. There is also a connection between the divine council 
+and the office of prophet (1 Kings 22). 
+A prophet or prophetess was a spokesperson for Yahweh. They were commissioned in an encounter 
+with the divine: the prophet appeared in the divine throne room, where the council met and decrees 
+were issued (Kingsbury, “Prophets and the Council of Yahweh”; Nissinen, “Prophets and the Divine 
+Council”). Isaiah was taken to the throne-room of Yahweh (Isa 6:1–8), and the throne of the LORD came 
+to Ezekiel (Ezek 1:1–14, 26–28). Jeremiah was called by the word of the Lord (Jer 1:4). This word was 
+Yahweh (Jer 1:6–7), but was embodied in human form (Jer 1:9). Yahweh refers to this call when He said 
+of the false prophets, “If they had stood in my council, then they would have proclaimed my words to 
+my people, and they would have turned them from their evil way, and from the evil of their deeds” (Jer 
+23:16, 22). 
+Prophetic Commissioning: The Broader Context. Someone who serves as the righteous spokesperson 
+for God is also a prophet. God often meets with humans for spiritual business in the Bible: 
+• God walked with Adam in the garden, the divine abode. He was God’s first human representative. 
+Job 15:7–8 apparently alludes to this scene, as Eliphaz, one of Job’s friends, asks Job, “Are you the 
+first man who was born? Or were you brought forth before the hills? Have you listened in the 
+council (הַ בְ סֹוד, havsod) of God? Have you restricted wisdom to yourself?” 
+• Enoch “prophesied” (Jude 14; 15) and “walked with God” (Gen 5:24). 
+• Noah also “walked with God” (Gen 6:9). He was a “herald of righteousness” (2 Pet 2:5), and warned 
+his fellow men of the coming judgment of the flood (1 Pet. 3:20). 
+• The glory of Lord “appeared” to Abraham before he journeyed to Haran (Acts 7:2–4; Gen 15:1). 
+• Yahweh appeared to Isaac (Gen 26:1–5) and Jacob (Gen 28:10–22; 31:11–13; 32:22–32; see Hos 
+12:3–4). The patriarchs were Yahweh’s spokesmen, through whom the world would be blessed (Gen 
+12:1–3). 
+• He commissioned Moses at the burning bush (Exod 3:1–15) and many subsequent occasions (e.g., 
+19:16–20:21; 24:9–18; 33:7–11). 
+• Yahweh also directly commissioned the elders of Israel under Moses (Num 11:24–25). 
+• He also commissioned Joshua (Deut 31:14–23; Josh 5:13–15). 
+• Gideon met both Yahweh and the angel who was Yahweh—simultaneously (Judges 6). 
+• Deborah received messages from Yahweh under “the Palm of Deborah” (Judg 4:4–5). 
+• The word of the Lord “appeared” to Samuel to inform him of Eli’s fate (1 Sam 3:20–21). 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 16.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+The Divine Council as Prophetic Warriors and Witnesses. The prophets sometimes refer to the divine 
+council when they declare eschatological holy war (Miller, “Call to War”). The divine council (along with 
+human warriors) forms a cosmic army on the day of the Lord (Isa 13:1–8; Joel 3:11–12; Zech 14:1–5). 
+This language draws upon other material in the Hebrew Bible that describes the divine council as an 
+army (Deut 33:1–5; Psa 68:16–17; 2 Kgs 6:15–17). This is also the context for the common title for 
+Israel’s God, “Lord of hosts”—“host” is a word used frequently in the Hebrew Bible for a military force 
+(e.g., 2 Sam 3:23; Psa 108:12). 
+The divine council is the army of God, but also witnesses God’s decrees and acts. This idea is 
+common outside the Hebrew Bible in other descriptions of divine councils (Bokovy, “Invoking the 
+Council as Witnesses”). God often commands an unidentified group in a context that rules out a human 
+audience (Cross, “The Council of Yahweh”). “Comfort, comfort my people, says your God” (Isa 40:1–2). 
+The two imperatives “comfort” are grammatically plural in Hebrew, as are the ensuing commands 
+“Speak tenderly to Jerusalem and cry to her” (Isa 40:3). These commands are not directed at Jerusalem 
+or Israel, for they are the objects of the commands—they may be directed at the divine council (Cross, 
+“The Council of Yahweh”). Amos 3 describes the Lord’s intention to punish Israel. In Amos 3:7, we read 
+that “the Lord God does nothing without revealing his council (סֹוד, sod) to the prophets.” Plural 
+imperatives follow: “Proclaim to the strongholds … and say” and “Hear and testify against the house of 
+Jacob, declares the Lord God, the God of hosts” (Amos 3:10; 3:13). Again, Israel and Judah are not the 
+recipient of the commands—the divine council may be called upon to witness the judgment of the Lord 
+(Bokovy, “Invoking the Council as Witnesses”). 
+The Divine Council and New Testament Views of Christ 
+The binitarian structure of the Israelite divine council has implications for the high view of Christ in the 
+New Testament (Segal, “Trinitarian”; Stuckenbruck, “Angel”; Boyarin, “Memra”) 
+The Second Power in Heaven / Second Yahweh. A number of Jewish writers ca. 516 BC—AD 70 offered 
+opinions as to the identity of the “second Yahweh,” the second power in heaven (Mach, “Concepts of 
+Jewish Monotheism”; Hurtado, “How on Earth”; McGrath, The Only True God; Fossum, “Name”). These 
+Jewish writers suggested significant men from the Old Testament—such as Adam, Enoch, Abraham, and 
+Moses—and specific angels—Gabriel, Michael, and the “Prince of the Host” from Daniel 10. Some did 
+not attempt to further identify the angel of Yahweh (Gieschen, Angelomorphic Christology; Hannah, 
+Michael and Christ; Stuckenbruck, “Angel”). 
+For Christians, the second Yahweh was Jesus. It is for this reason that the New Testament describes 
+Jesus with all the descriptions of Yahweh’s co-regent: the name (which Jesus manifests by his presence: 
+John 17:6, 11–12, 26), the word (John 1:1), the cloud-rider (Matt 26:64), wisdom (1 Cor 1:24), and the 
+angel of Yahweh (Jude 5; Num 14:29; Fossum, “Name”; Fossum, “Image”; Segal, “Two Powers”; Boyarin, 
+“Memra”). 
+Jesus as the Unique Son of God (μονογενής, monogenēs). Jesus is the “only begotten” son of God—but 
+“only begotten” is a confusing translation. The Greek word is μονογενής (monogenēs). Not only does the 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 17.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+translation “only begotten” seem to contradict the obvious statements in the Old Testament about 
+other sons of God, it sounds as though there was a time when the Son did not exist—that He had a 
+beginning. The Council of Nicaea in 425 taught that the Son had always existed, but the idea of the 
+uncreated, eternal Son had been understood since the beginning of the Church—it was believed to be 
+the teaching of the New Testament. 
+The Greek word μονογενής (monogenēs) doesn’t actually mean “only begotten.” It presents a 
+problem neither with respect to Jesus having a beginning, nor with respect to divine “sons of God” who 
+are called gods (אֱ ֹלהִ ים, elohim) in the Old Testament. The confusion extends from a misunderstanding 
+of the root of the Greek word. For many years, μονογενής (monogenēs) was thought to have derived 
+from two Greek terms, μόνος (monos, “only”) and γεννάω (gennaō, “to beget, bear”). Scholars of Greek 
+eventually discovered, though, that the second part of the word μονογενής (monogenēs) does not come 
+from the Greek verb γεννάω (gennaō), but rather the noun γένος (genos, “class, kind”). The term literally 
+means “one of a kind” or “unique” with no connotation to time, origin or solitary existence. The validity 
+of this understanding is shown by the New Testament itself. In Hebrews 11:17, Isaac is called Abraham’s 
+μονογενής (monogenēs)—but Isaac was not the only son Abraham fathered, since he fathered Ishmael 
+prior to Isaac. The term must mean that Isaac was Abraham’s unique son—the son of the covenant 
+promises and the line through which the messiah would come. Just as Yahweh is an אֱ ֹלהִ ים (elohim), 
+and no other אֱ ֹלהִ ים (elohim) are Yahweh, so Jesus is the unique son, and no other sons of God are like 
+Him. 
+Jesus’ Quotation of Psalm 82 in John 10. John 10:34 may seem to imply that the אֱ ֹלהִ ים (elohim) in Psa 
+82:6 are human beings. However, this interpretation nullifies any sense that Jesus’ argument in John 10 
+is a defense of His own deity. In John 10:30, Jesus tells his audience that He and the Father were one. 
+The Jews were deeply offended by this comment, as indicated by their response in 10:31–33. They 
+picked up stones to kill Him, for they thought He was making Himself equal with God. Jesus’ response is 
+usually interpreted as a concession. That is, He was only saying of Himself what the Jews could say of 
+themselves, and used Psa 82:6 to show that humans can be called אֱ ֹלהִ ים (elohim). This view both 
+ignores the Old Testament context of the divine council and undermines John’s presentation of the deity 
+of Jesus in his gospel: 
+• Jesus’ asserted that He and the Father were one (Jn 10:30). 
+• The Jews thought this was blasphemy—Jesus was claiming to be God (Jn 10:33). 
+• In defense of His claim that He was one with God, Jesus quoted Psa 82:6. 
+• Following the quotation, He states that the Father is in Him, and He was in the Father. 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 18.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+The usual interpretation of this passage—that the אֱ ֹלהִ ים (elohim) were human—is based on two 
+assumptions: 
+1. Judaeo-Christian monotheism could not have other אֱ ֹלהִ ים (elohim). 
+2. “To whom the word of God came” refers to the Jews who received the law at Sinai (i.e. the 
+Pharisees’ forefathers). 
+However, both of these assumptions are wrong. It is already clear that there were other uses of אֱ ֹלהִ ים 
+(elohim). Also, “the word of God” was not the Law, and those who received it were not human. Psalm 
+82:6–7 says, “I said, ‘ (‘)You are gods (אֱ ֹלהִ ים, elohim), even sons of the Most High (בְ נֵיֹעֶ לְ יֹון, beney 
+elyon), all of you; nevertheless, like humans you will die, and fall like any prince.’ ” 
+The speaker (“I”) in the passage is the God of Israel, the God who is standing in the council in 82:1 
+among the lesser אֱ ֹלהִ ים (elohim). God announces that the אֱ ֹלהִ ים (elohim) of the council are His 
+sons, but because of their corruption (Psa 82:2–5), they will lose their immortality. The “word of God” in 
+the original context is the specific utterance of Yahweh to His council members. They, in turn, are the 
+recipients of that word (utterance). The recipients are not the Israelites at Sinai or any other group of 
+Jews. 
+Jesus refers to the original utterance spoken by God when He quoted the psalm, not the Jewish 
+nation receiving revelation, at Sinai or at any other time. Jesus is defending his statement to be one with 
+the Father by reminding his hearers that their Old Testament teaches that there were divine sons of God 
+who were אֱ ֹלהִ ים (elohim). 
+Differences in the views: 
+Common Interpretation 
+This Proposal 
+Jesus’ strategy assumes אֱ ֹלהִ ים (elohim) are 
+human 
+Jesus’ strategy assumes אֱ ֹלהִ ים (elohim) are 
+divine 
+The “word of God that came” = revelation from 
+God at Sinai, or some other event 
+The “word of God that came” = the utterance 
+itself in Psa 82:6—the pronouncement from 
+God 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 19.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+“to whom the word of God came” = the 
+Israelites at Sinai, or the Jews generally 
+“to whom the word of God came” = the 
+אֱ ֹלהִ ים (elohim) of the divine council in 82:1 
+The Jews are the “sons of the Most High” and 
+אֱ ֹלהִ ים (elohim)—so Jesus can call himself an 
+אֱ ֹלהִ ים (elohim) as well, since he’s a Jew. (This 
+view emphasizes Jesus’ mortality) 
+The Jews are not אֱ ֹלהִ ים (elohim), and Jesus 
+reminds them that their Scriptures say there are 
+other אֱ ֹלהִ ים (elohim) who are divine sons. 
+In John 10:36–38, Jesus asserts that his high status as the Son is based on Him doing the works of His 
+Father: the Father is “in him.” This phrase parallels Exod 23:20–21, where the Name—Yahweh’s 
+Presence—was in the angel of Yahweh. In John 10:36–38, Jesus claims that the Presence is in Him. He is 
+claiming to be the second power, or second Yahweh, which would in turn mean He was Lord of the 
+divine council with the invisible Yahweh (the Father). Thus, Jesus’ claim of oneness with the Father is 
+developed by the quotation and by what follows. The result is a powerful claim to deity, consistent with 
+the rest of the gospel of John. 
+Bibliography 
+Ackerman, James S. “The Rabbinic Interpretation of Psalm 82 and the Gospel of John.” Harvard 
+Theological Review 59:2 (1966): 186–191. 
+Bokovy, David E. “Invoking the Council as Witnesses in Amos 3:13.” Journal of Biblical Literature 127:1 
+(2008): 37–51 
+Boyarin, Daniel. “The Gospel of the Memra: Jewish Binitarianism and the Prologue to John.” Harvard 
+Theological Review 94:3 (2001): 243–284. 
+Boyarin, Daniel. “Two Powers in Heaven; Or, the Making of a Heresy,” Pages 331–370 in The Idea of 
+Biblical Interpretation: Essays in Honor of James L. Kugel. Edited by Hindy Najman and Judith H. 
+Newman. Leiden: Brill, 2004. 
+Burnett, Joel. A Reassessment of Biblical Elohim. Atlanta: Society of Biblical Literature, 2001. 
+Cho, Sang Youl. Lesser Deities in the Ugaritic Texts and the Hebrew Bible. New Jersey: Gorgias Press, 
+2007. 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 20.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+Clifford, Richard J. The Cosmic Mountain in Canaan and the Old Testament. Harvard Semitic Mongraphs 
+4. Cambridge: Harvard University Press, 1972. 
+Cooke, Gerald. “The Sons of (the) God(s),” Zeitschrift für die Alttestamentliche Wissenschaft 76 (1964): 
+22–47. 
+Cross, Frank Moore. “The Council of Yahweh in Second Isaiah,” Journal of Near Eastern Studies 12 
+(1953): 274–277 
+Cross, Frank Moore. “Canaanite Myth and Hebrew Epic.” Harvard, 1973. 
+Davis, Carl Judson. The Name and Way of the Lord: Old Testament Themes, New Testament Christology. 
+Journal for the Study of the New Testament Supplemental Series 129. Continuum / Sheffield 
+Academic Press, 1996. 
+Day, John. Yahweh and the Gods and Goddesses of Canaan. Journal for the Study of the Old Testament 
+Supplemental Series 265. Sheffield: Sheffield Academic Press, 1994. 
+Day, Peggy. An Adversary in Heaven: śaṭan in the Hebrew Bible. Harvard Semitic Monographs 43: 
+Cambridge: Harvard University Press, 1988. 
+Dever, William G. Did God Have a Wife? Archaeology and Folk Religion in Ancient Israel. Grand Rapids: 
+Eerdmans, 2005. 
+Fossum, Jarl E. “In the Beginning was the Name: Onomanology as the Key to Johannine Christology,” 
+Pages 109–134 in The Image of the Invisible God: Essays on the Influence of Jewish Mysticism on 
+Early Christianity. Göttingen: Vandenhoeck & Ruprecht, 1995. 
+Fossum, Jarl E. The Name of God and the Angel of the Lord: Samaritan and Jewish Concepts of 
+Intermediation and the Origin of Gnosticism. Tübingen: Mohr-Siebeck, 1985. 
+Gieschen, Charles A. Angelomorphic Christology: Antecedents and Early Evidence. Leiden: Brill, 1998. 
+Gordon, Cyrus H. “אלהים ('lhym) in Its Reputed Meaning of Rulers, Judges,” Journal of Biblical 
+Literature 54 (1935): 139–44. 
+Hamori, Esther J. “When Gods Were Men”: The Embodied God in Biblical and Near Eastern Literature. 
+Berlin: Walter DeGruyter, 2008. 
+Hamori, Esther J. “Divine Embodiment in the Hebrew Bible and Some Implications for Jewish and 
+Christian Incarnational Theologies,” Pages 161–183 in Bodies, Embodiment, and Theology of the 
+Hebrew Bible, ed. S. Tamar Kamionkowski and Wonil Kim. Library of the Hebrew Bible Old 
+Testament Series 465. Continuum / T&T Clark, 2010. 
+Hannah, Darrell D. Michael and Christ: Michael Traditions and Angel Christology in Early Christianity. 
+Wissenschaftliche Untersuchungen zum Neuen Testament 109. Tubingen: Mohr-Siebeck, 1999. 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 21.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+Handy, Lowell K. “The Authorization of Divine Power and the Guilt of God in the Book of Job: Useful 
+Ugaritic Parallels,” Journal for the Study of the Old Testament 60 (1993): 107–118 
+Handy, Lowell K. Among the Host of Heaven: The Syro-Palestinian Pantheon as Bureaucracy. Winona 
+Lake, Iowa: Eisenbrauns, 1994. 
+Hartley, John E. The Book of Job. New International Critical Commentary of the Old Testament; Grand 
+Rapids; Eerdmans, 1988. 
+Heiser, Michael S. “Deuteronomy 32:8 and the Sons of God,” Bibliotheca Sacra 158 (2001): 52–74. 
+Heiser, Michael S. “The Divine Council in Second Temple Literature,” Ph.D. diss., University of Wisconsin-
+Madison, 2004. 
+Heiser, Michael S. “Divine Council,” Dictionary of the Old Testament: Wisdom, Poetry, and Writings. 
+Downers Grove, Ill.: InterVarsity Press, 2008: 112–116. 
+Heiser, Michael S. “Divine Council,” Dictionary of the Old Testament: Prophets. Downers Grove, Ill.: 
+InterVarsity Press, 2011, forthcoming. 
+Heiser, Michael S. “Monotheism, Polytheism, Monolatry, or Henotheism? Toward an Assessment of 
+Divine Plurality in the Hebrew Bible” Bulletin for Biblical Research 18:1 (2008): 1–30. 
+Heiser, Michael S. “Does Deuteronomy 32:17 Assume or Deny the Reality of Other Gods?” Bible 
+Translator 59:3 (July 2008): 137–145. 
+Herrmann, W. “Rider Upon the Clouds,” Dictionary of Deities and Demons in the Bible. Grand Rapids: 
+Eerdmans, 1999: 703–704. 
+Hess, Richard S. “Yahweh and his Asherah? Epigraphic Evidence for Religious Pluralism in Old Testament 
+Times,” in One God, One Lord in a World of Religious Pluralism, ed. A.D. Clarke and B.W. Winter. 
+Cambridge: Tyndale House, 1991) 5–33. 
+Huffmon, H. B. “Name.” Pages 610–611 in Dictionary of Deities and Demons in the Bible. Grand Rapids: 
+Eerdmans, 1999. 
+Hurtado, Larry W. One God, One Lord: Early Christian Devotion and Ancient Jewish Monotheism. 
+Continuum / T&T Clark, 1988. 
+Hurtado, Larry W. One God, One Lord: Early Christian Devotion and Ancient Jewish Monotheism. 
+Philadelphia: Fortress, 1988. 
+Hurtado, Larry W. “The Binitarian Shape of Early Christian Worship,” Pages 187–213 in The Jewish Roots 
+of Christological Monotheism, Papers from the St. Andrews Conference on the Historical Origins of 
+the Worship of Jesus, ed. Carey C. Newman, James R. Davila and Gladys S. Lewis. SupJSJ 63; Leiden: 
+Brill, 1999. 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 22.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+Hurtado, Larry W. Lord Jesus Christ: Devotion to Jesus in Earliest Christianity. Grand Rapids: Eerdmans, 
+2003. 
+Hurtado, Larry W. How on Earth Did Jesus Become a God? Historical Questions about Earliest Jesus 
+Devotion. Grand Rapids: Eerdmans, 2005. 
+Kee, Min Suc “The Heavenly Council and Its Type Scene,” Journal for the Study of the Old Testament 31:3 
+(2007): 259–273 
+Kingsbury, Edwin C. “The Prophets and the Council of Yahweh,” Journal of Biblical Literature 83:3 (1964): 
+279–286 
+Korpel, Marjo C. A. A Rift in the Clouds: Ugaritic and Hebrew Descriptions of the Divine. Münster: Ugarit-
+Verlag, 1990. 
+MacDonald, Nathan. “Deuteronomy and the Meaning of Monotheism“. Future American Theologians 2. 
+Reihe 1: Mohr-Siebeck, 2003. 
+Mach, Michael “Concepts of Jewish Monotheism during the Hellenistic Period,” Pages 21–42 in The 
+Jewish Roots of Christological Monotheism, Papers from the St. Andrews Conference on the Historical 
+Origins of the Worship of Jesus. Edited by Carey C. Newman, James R. Davila and Gladys S. Lewis. 
+SupJSJ 63; Leiden: Brill, 1999. 
+McGrath, James F. The Only True God: Early Christian Monotheism in Its Jewish Context. University of 
+Illinois Press, 2009. 
+Mettinger, Tryggve N. D. “The Dethronement of Sabaoth: Studies in the Shem and Kabod Theologies“. 
+Coniectanea Biblia Old Testament Series 18. CWK Leerup, 1982. 
+Miller, Patrick D. “The Divine Council and the Prophetic Call to War,” Vetus Testamentum 18 (1968): 
+100–107. 
+Miller, Patrick D. “Cosmology and World Order in the Old Testament and the Divine Council as Cosmic-
+Political Symbol,” Pages 422–445 in Israelite Religion and Biblical Theology: Collected Essays. 
+Continuum. Sheffield Academic Press, 2000. 
+Mullen, E. Theodore Jr. The Divine Council in Canaanite and Early Hebrew Literature. Harvard Semitic 
+Monographs 24; Chico, Calif.: Scholars Press, 1980. 
+Mullen, E. Theodore Jr. “Divine Assembly,” Anchor Bible Dictionary 2.214–217. 
+Nissinen, Martii “Prophets and the Divine Council,” in Kein Land für sich allein: Studien zum 
+Kulturkontakt in Kanaan, IsraelPalästina und Ebirnari für Manfred Weippert zum 65. Geburstag/, 
+edited by U. Hübner und E. A. Knauf. OBO 186; Göttingen: Vandenhoeck & Rupprecht, 2002), 4–19. 
+Parker, Simon B. “Sons of (the) God(s),” Dictionary of Deities and Demons in the Bible. Grand Rapids: 
+Eerdmans, 1999): 794–798. 
+
+---PAGE---
+Michael S. Heiser, “Divine Council,” The Lexham Bible Dictionary, John D. Barry and Lazarus Wentz, eds. (Bellingham, WA: 
+Lexham Press, 2012). Page 23.  Exported from Logos Bible Software, 10:29 PM December 11, 2013. 
+Prinsloo, W. S. “Psalm 82: Once Again, Gods or Men?” Bibliotheca Sacra 76:2 (1995): 219–228. 
+Ringgren, Helmer. Word and Wisdom. Studies in the Hypostatization of Divine Qualities and Functions in 
+the Ancient Near East. Lund 1947. 
+Robins, Gay “Cult Statues in Ancient Egypt,” in Cult Image and Divine Representation in the Ancient Near 
+East. American Schools of Oriental Research Book Series 10; ed. Neal H. Walls; Boston: American 
+Schools of Oriental Research, 2005. 
+Segal, Alan F. Two Powers in Heaven: Early Rabbinic Reports about Christianity and Gnosticism. Leiden: 
+Brill, 1977. 
+Segal, Alan F. “ ‘ (‘)Two Powers in Heaven’ and Early Christian Trinitarian Thinking,” Pages 73–98 in The 
+Trinity. Edited by Stephen T. Davis, Daniel Kendall, Gerald O’Collins. Oxford: Oxford University Press, 
+2004. 
+Smith, Mark S. The Origins of Biblical Monotheism: Israel’s Polytheistic Background and the Ugaritic 
+Texts. New York: Oxford University Press, 2001. 
+Smith, Mark S. The Early History of God: Yahweh and Other Deities in Ancient Israel. 2nd ed.; Grand 
+Rapids: Eerdmans, 2002. 
+Smith, Mark S. God in Translation: Deities in Cross-Cultural Discourse in the Biblical World. Grand Rapids: 
+Eerdmans, 2010. 
+Sommer, Benjamin D. The Bodies of God and the World of Ancient Israel. Cambridge, 2009. 
+Stuckenbruck, Loren T. Angel Veneration and Christology: A Study in Early Judaism and in the Christology 
+of the Apocalypse of John. WUNT 70, 2 Reihe; Tübingen: Mohr-Siebeck, 1995. 
+Stuckenbruck, Loren T. and North, Wendy E. S. (eds). Early Jewish and Christian Monotheism. Continuum 
+/ T&T Clark, 2004. 
+Tsevat, Matitiahu. “God and the Gods in Assembly,” Hebrew Union College Annual 40–41 (1969–1970): 
+123–137 Series 495; Continuum / T&T Clark, 2008. 
+Wyatt, Nicholas. “The Titles of the Ugaritic Storm God,” Ugarit Forschungen 24 (1992): 403–424. 
+MICHAEL S. HEISER 
+ 
+
+---PAGE---

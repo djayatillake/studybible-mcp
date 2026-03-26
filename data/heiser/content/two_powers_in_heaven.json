@@ -1,0 +1,37 @@
+{
+  "source_key": "two_powers_drmsh",
+  "title": "Two Powers in Heaven",
+  "author": "heiser",
+  "type": "article",
+  "publication": "drmsh.com",
+  "url": "https://drmsh.com/the-naked-bible/two-powers-in-heaven/",
+  "entries": [
+    {
+      "title": "The Two Powers in Heaven — The Vice-Regent of the Divine Council",
+      "chapter_or_episode": "Main article",
+      "content_summary": "The original model for the 'two powers in heaven' idea was the role of the vice-regent of the divine council. In Canaanite religion, the high sovereign El ruled through an appointed second god (Baal). In Israelite religion, this position was filled not by a separate deity but by Yahweh himself in another form — a second, visible Yahweh who was the same essence but a distinct person. Ancient Israelites understood Yahweh as occupying both sovereign and vice-regent positions simultaneously. The binitarian portrayal reflects knowledge of 'two Yahwehs' — one invisible/spiritual, one visible/human form. These figures sometimes appear together (Gen 19:24 — 'Yahweh rained fire from Yahweh out of heaven'), sometimes distinguished (Zech 3:1-2 — 'Yahweh said to Satan, may Yahweh rebuke you'), sometimes undifferentiated.",
+      "content_detail": "Alan Segal's foundational 1977 work (Two Powers in Heaven: Early Rabbinic Reports about Christianity and Gnosticism) traced this concept to the Second Temple era (ca. 200 BCE), with biblical antecedents in Daniel 7:9ff (two thrones, the Ancient of Days and 'one like a son of man'), Exodus 23:20-23 (the angel in whom God's name dwells), and Exodus 15:3 (Yahweh as warrior). The two powers idea was not deemed heretical in Jewish theology until the second century CE — AFTER Christians identified Jesus as the incarnate second Yahweh. This belief in two powers was a contributing factor in the advent of 'binitarian monotheism' in Second Temple Judaism, which in turn contextualizes NT Christology. Both powers were believed to be good (not Zoroastrian dualism). The notion of two distinct deities at the top of the hierarchy was unthinkable to Israel — both were Yahweh.",
+      "page_range": "n/a",
+      "references": [
+        {"reference": "Gen.19.24", "relevance": "primary"},
+        {"reference": "Zec.3.1", "relevance": "primary"},
+        {"reference": "Zec.3.2", "relevance": "primary"},
+        {"reference": "Dan.7.9", "relevance": "primary"},
+        {"reference": "Dan.7.13", "relevance": "primary"},
+        {"reference": "Dan.7.14", "relevance": "primary"},
+        {"reference": "Exo.23.20", "relevance": "primary"},
+        {"reference": "Exo.23.21", "relevance": "primary"},
+        {"reference": "Exo.15.3", "relevance": "supporting"},
+        {"reference": "Gen.18.1", "relevance": "supporting"},
+        {"reference": "Gen.18.2", "relevance": "supporting"},
+        {"reference": "Gen.18.22", "relevance": "supporting"},
+        {"reference": "Gen.32.24", "relevance": "supporting"},
+        {"reference": "Gen.32.30", "relevance": "supporting"},
+        {"reference": "Jos.5.13", "relevance": "supporting"},
+        {"reference": "Jos.5.14", "relevance": "supporting"},
+        {"reference": "Jdg.13.22", "relevance": "supporting"}
+      ],
+      "themes": ["two_powers", "angel_of_yahweh", "messianic_expectation"]
+    }
+  ]
+}

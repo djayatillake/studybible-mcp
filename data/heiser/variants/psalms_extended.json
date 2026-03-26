@@ -1,0 +1,55 @@
+{
+  "variants": [
+    {
+      "reference": "Psa.29.1",
+      "mt_reading": "Ascribe to Yahweh, O sons of gods, ascribe to Yahweh glory and strength",
+      "mt_hebrew": "הָבוּ לַיהוָה בְּנֵי אֵלִים הָבוּ לַיהוָה כָּבוֹד וָעֹז (bene elim = sons of gods/the mighty)",
+      "variant_source": "translation_choice",
+      "variant_reading": "The Hebrew bene elim literally means 'sons of gods' or 'sons of the mighty ones.' Many translations obscure this: NIV has 'mighty ones,' NASB has 'sons of the mighty,' NKJV has 'mighty ones.' The Hebrew is transparent — these are divine beings being commanded to worship Yahweh. The same phrase bene elim appears in Psalm 89:6 in an explicitly heavenly/divine council context ('who in the clouds can be compared to Yahweh? who among the bene elim is like Yahweh?'). Psalm 29 is recognized as among the oldest poetry in the Hebrew Bible (12th-10th century BCE), predating any supposed 'evolution' toward monotheism.",
+      "variant_original": "Same text; translations obscure",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser notes that English Bible translations that render bene elim as 'mighty ones' or 'heavenly beings' rather than 'sons of gods' are camouflaging the text to protect monotheism. The NIV at Psalm 29:1 has 'mighty ones' — but the Hebrew is bene elim, the exact Ugaritic parallel for divine council members (bn 'il). Commanding nonexistent beings to ascribe glory to Yahweh would be hollow praise. Psalm 29:10 declares 'Yahweh sits enthroned over the flood... as king forever' — cosmic kingship language consistent with the divine council setting.",
+      "scholarly_consensus": "The bene elim of Psalm 29:1 are universally identified as divine beings by Semitics scholars. The psalm's Ugaritic parallels are among the best documented in the Hebrew Bible.",
+      "preferred_for_hlt": "Ascribe to Yahweh, O sons of the gods (divine beings of the heavenly council), ascribe to Yahweh glory and strength!",
+      "hlt_rationale": "The HLT renders bene elim literally as 'sons of the gods' with the explanatory gloss 'divine beings of the heavenly council' to make the divine council address explicit.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX (huioi theou)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Psa.89.6",
+      "mt_reading": "For who in the clouds can be compared to Yahweh? Who among the sons of gods is like Yahweh?",
+      "mt_hebrew": "כִּי מִי בַשַּׁחַק יַעֲרֹךְ לַיהוָה יִדְמֶה לַיהוָה בִּבְנֵי אֵלִים (mi basshahaq... bivne elim)",
+      "variant_source": "translation_choice",
+      "variant_reading": "This verse is the decisive proof that the divine council is in HEAVEN, not on earth. 'Who in the clouds (basshahaq)...' places the bene elim ('sons of gods') in the sky/heavens. Verse 7 continues: 'a God greatly feared in the council of the holy ones (besod qedoshim), and awesome above all who are around him.' This eliminates any possibility that the elohim/bene elim of Psalm 82:1,6 are human judges — no text in the Hebrew Bible places human judges in the clouds. The divine council meets in heaven, on Yahweh's cosmic mountain.",
+      "variant_original": "Same text; heavenly location specified",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser argues Psalm 89:5-7 is the key interpretive partner for Psalm 82. While Psalm 82 alone might be ambiguous (could the elohim be humans?), Psalm 89 removes all ambiguity by placing the same council 'in the clouds' with the same terminology (bene elim, qedoshim, sod). There is no text in the Hebrew Bible describing human judges assembled in heaven governing nations. The position that Psalm 82's elohim are humans 'is offered only because of a perceived threat to monotheism, not because it has any textual merit.'",
+      "scholarly_consensus": "The heavenly location of the council in Psalm 89:5-7 is undisputed. Its function as a parallel to Psalm 82 in establishing the divine nature of the council members is widely recognized.",
+      "preferred_for_hlt": "For who in the clouds (in heaven) can be compared to Yahweh? Who among the sons of the gods (divine council members) is like Yahweh, a God greatly feared in the divine council of the holy ones (divine beings), awesome above all who surround him?",
+      "hlt_rationale": "The HLT translates bene elim literally and makes the heavenly council setting explicit. The parallelism with Psalm 82 is noted in the study notes.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Psa.82.6",
+      "mt_reading": "I said, 'You are gods, and sons of the Most High, all of you'",
+      "mt_hebrew": "אֲנִי אָמַרְתִּי אֱלֹהִים אַתֶּם וּבְנֵי עֶלְיוֹן כֻּלְּכֶם (elohim attem u-vne elyon kullekem)",
+      "variant_source": "MT_preserved",
+      "variant_reading": "Yahweh declares the council members 'gods' (elohim) and 'sons of the Most High' (bene Elyon). Elyon is exclusively a divine title — it is NEVER used of humans in the Hebrew Bible or Ugaritic. Psalm 83:18 (83:19 MT) explicitly equates the Most High with Yahweh. These beings are divine sons of Yahweh/El Elyon. The following verse (v.7) sentences them to 'die like Adam (ke-adam)' — the death of immortal beings, stripped of their divine status as punishment for corrupt governance of the nations (the Deuteronomy 32 worldview).",
+      "variant_original": "Same text",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser: 'If they are going to die like humans, they are not humans' (citing Smick). The particle 'aken' in v.7 creates a strong antithetical contrast with v.6 — the grammar requires understanding v.6 as 'I had thought you were gods... BUT you will die like Adam.' This is the sentencing of divine beings to mortality as punishment. The 'shining ones' (ha-sarim) in v.7 connects to Isaiah 14:12 (Lucifer/the shining one) and to Canaanite mythology about the fall of the 'sons of the shining ones' (bn srm). Psalm 82:8 ('Rise up, O God, judge the earth, for you shall inherit all the nations') is the eschatological cry to reverse the Babel allotment — fulfilled in the Great Commission and Pentecost.",
+      "scholarly_consensus": "The divine beings interpretation of Psalm 82:6 is dominant in ANE and Hebrew Bible scholarship. The 'human judges' interpretation is recognized as deriving from theological concerns rather than textual evidence.",
+      "preferred_for_hlt": "I said, 'You are gods (elohim — divine beings), sons of the Most High (Elyon), all of you; nevertheless, like Adam you will die, and fall like one of the shining ones (the fallen divine rulers).'",
+      "hlt_rationale": "The HLT preserves the Hebrew elohim and Elyon, identifies the beings as divine, and renders ha-sarim as 'shining ones' (connecting to the Canaanite/Isaiah 14 tradition) rather than the generic 'princes.'",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX (theoi este)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    }
+  ]
+}

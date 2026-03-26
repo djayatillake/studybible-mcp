@@ -1,0 +1,44 @@
+{
+  "source_key": "naked_bible_podcast",
+  "title": "Naked Bible Podcast Episodes 434-435,438: Jude and the Watchers/1 Enoch",
+  "author": "heiser",
+  "type": "podcast",
+  "url": "https://nakedbiblepodcast.com",
+  "entries": [
+    {
+      "title": "Jude 6 — The Angels Who Left Their Proper Domain Are the Watchers of Genesis 6",
+      "chapter_or_episode": "Episodes 434-435",
+      "content_summary": "Jude 6: 'And the angels who did not stay within their own domain (arche) but left their proper dwelling (oiketerion), he has kept in eternal chains under gloomy darkness until the judgment of the great day.' This is a direct reference to the Watchers tradition — the divine beings of Genesis 6:1-4 who transgressed by leaving the heavenly realm to cohabit with human women. The word arche ('domain/position') refers to their assigned sphere of authority in the divine council. The word oiketerion ('dwelling place') is used only here and in 2 Corinthians 5:2 (of the resurrection body) — it refers to their proper spiritual habitation. Jude 7 then compares their sin to Sodom and Gomorrah, which 'in a similar way to these (angels)' pursued 'other flesh' (sarkos heteras) — just as the angels pursued flesh not their own (human women), the Sodomites pursued flesh not their own.",
+      "content_detail": "2 Peter 2:4-5 parallels Jude 6: 'God did not spare the angels who sinned but cast them into Tartarus (tartaroo — a Greek term for the prison of the Titans, used only here in the NT) and committed them to chains of gloomy darkness.' The word Tartarus is significant — it is the Greek mythological prison for divine beings who transgressed, a precise parallel to 1 Enoch's account of the Watchers being imprisoned. Peter then immediately references Noah and the Flood, connecting the angelic sin to the pre-Flood era of Genesis 6. Jude's citation of 1 Enoch 1:9 in Jude 14-15 confirms his familiarity with and acceptance of the Watchers tradition as interpretive context for Genesis 6.",
+      "page_range": "Episodes 434, 435, 438 transcripts",
+      "references": [
+        {"reference": "Jud.1.6", "relevance": "primary"},
+        {"reference": "Jud.1.7", "relevance": "primary"},
+        {"reference": "Jud.1.14", "relevance": "primary"},
+        {"reference": "Jud.1.15", "relevance": "primary"},
+        {"reference": "2Pe.2.4", "relevance": "primary"},
+        {"reference": "2Pe.2.5", "relevance": "primary"},
+        {"reference": "Gen.6.1", "relevance": "primary"},
+        {"reference": "Gen.6.2", "relevance": "primary"},
+        {"reference": "Gen.6.4", "relevance": "primary"}
+      ],
+      "themes": ["watchers_tradition", "nephilim_giants"]
+    },
+    {
+      "title": "The Azazel/Scapegoat Connection — Leviticus 16 and the Watchers Tradition",
+      "chapter_or_episode": "Episodes 434-435 (cross-reference)",
+      "content_summary": "The scapegoat ritual of Leviticus 16:8 sends one goat 'for Azazel' (la-azazel) into the wilderness. In 1 Enoch 10:4-8, Azazel is the leader of the Watchers who is bound and cast into a pit in the wilderness as punishment. The Day of Atonement ritual symbolically returns the sins of the people to the Watcher who originated the corruption. The wilderness/desert is the domain of Azazel — a hostile, spiritually dangerous territory outside the sacred space of Yahweh's land. This is cosmic geography: Israel (Yahweh's territory) vs. the wilderness (Azazel's prison/domain). The scapegoat ritual makes no sense without the Watchers tradition as background.",
+      "content_detail": "Most English translations render la-azazel as 'for the scapegoat' or 'as a scapegoat,' obscuring the proper name Azazel. The Hebrew text has two destinations: one goat 'for Yahweh' (la-YHWH) and one 'for Azazel' (la-azazel) — parallel constructions with proper names. The goat for Azazel is not sacrificed; it is sent alive into the wilderness bearing the sins of the people. This parallels 1 Enoch's account of Azazel being bound in the wilderness. The connection between the Day of Atonement and the Watchers was recognized in Second Temple Judaism and the Dead Sea Scrolls.",
+      "page_range": "Episodes 434-435",
+      "references": [
+        {"reference": "Lev.16.8", "relevance": "primary"},
+        {"reference": "Lev.16.10", "relevance": "primary"},
+        {"reference": "Lev.16.21", "relevance": "primary"},
+        {"reference": "Lev.16.22", "relevance": "primary"},
+        {"reference": "Gen.6.1", "relevance": "supporting"},
+        {"reference": "Gen.6.2", "relevance": "supporting"}
+      ],
+      "themes": ["watchers_tradition", "cosmic_geography"]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "variants": [
+    {
+      "reference": "Dan.7.13",
+      "mt_reading": "I saw in the night visions, and behold, with the clouds of heaven there came one like a son of man",
+      "mt_hebrew": "עִם עֲנָנֵי שְׁמַיָּא כְּבַר אֱנָשׁ אָתֵה הֲוָה (im ananey shemayya k-bar enash ateh hawah)",
+      "variant_source": "MT_preserved",
+      "variant_reading": "The 'one like a son of man' (k-bar enash) comes WITH THE CLOUDS — this is the 'Rider on the Clouds' epithet, a well-known title for Baal at Ugarit. In the Hebrew Bible, this title is used EXCLUSIVELY of Yahweh (Psalm 68:4; 68:33; 104:3; Deut 33:26; Isa 19:1). Daniel 7:13 is the ONLY exception — a human-looking figure who is NOT the Ancient of Days (the enthroned deity) yet bears a title reserved exclusively for Yahweh. This figure approaches the Ancient of Days and receives 'dominion, glory, and a kingdom' (v.14). Two divine figures sharing cosmic authority — the two-powers-in-heaven doctrine.",
+      "variant_original": "Same text; Aramaic section of Daniel",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser identifies Daniel 7:13 as the climactic two-powers text. The 'thrones' in v.9 are PLURAL — one for the Ancient of Days, another for the Son of Man. The Son of Man bears a Yahweh-only title (cloud rider) yet is distinct from the enthroned deity. This passage, combined with the Angel of YHWH as 'man of war,' formed the basis for Judaism's two-powers-in-heaven doctrine. The 'holy ones of the Most High' who share the kingdom (v.25) are divine council members; 'the people of the holy ones' (v.27) are the human believers who inherit through them. Jesus explicitly claims this title for himself (Mark 14:62), combining Daniel 7:13 with Psalm 110:1.",
+      "scholarly_consensus": "The Son of Man in Daniel 7 bearing a divine title while being distinct from the Ancient of Days is universally recognized as a 'two powers' text. It was central to early Christology.",
+      "preferred_for_hlt": "I was watching in the night visions, and behold — with the clouds of heaven (the divine title of Yahweh) one like a son of man (Jesus) was coming. He came to the Ancient of Days, and they brought him near before him.",
+      "hlt_rationale": "The HLT notes the divine significance of the cloud-rider title and identifies the Son of Man as a Yahweh figure / the pre-incarnate Christ. The study note explains the Ugaritic background and the two-thrones imagery.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX (Theodotion)", "manuscript_date": "~150 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX (OG)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Dan.4.17",
+      "mt_reading": "The sentence is by the decree of the watchers, the decision by the word of the holy ones",
+      "mt_hebrew": "בִּגְזֵרַת עִירִין פִּתְגָמָא וּמֵאמַר קַדִּישִׁין שְׁאֵלְתָא (bi-gezerat irin pitgama u-me'emar qaddishin she'elta)",
+      "variant_source": "MT_preserved",
+      "variant_reading": "The Watchers (irin, Aramaic) are divine council members who issue the decree. But in Dan 4:24, the same decree is called 'a decree of the Most High' — the council's decree IS Yahweh's decree. The Watchers terminology connects to 1 Enoch's Watchers tradition, where the same term refers to divine beings who watch over humanity. Daniel 4:17 is the canonical basis for the Watchers tradition that becomes prominent in 1 Enoch 1-36.",
+      "variant_original": "Same text; Watchers terminology preserved",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser identifies Daniel 4 as a key text connecting canonical Scripture to the Watchers tradition. The irin ('watchers') are divine council members whose decree is simultaneously the decree of the Most High. The ambiguous plural of Dan 4:26 (shallitin shemayya — 'heaven rules' or 'the heavenly ones rule') can refer either to corporate personification or council authority. The term 'watcher' in 1 Enoch for the divine beings who transgressed in Genesis 6 draws on this Danielic usage.",
+      "scholarly_consensus": "The Watchers of Daniel 4 are universally recognized as divine beings. Their connection to the Watchers tradition in 1 Enoch is well established in Second Temple studies.",
+      "preferred_for_hlt": "The sentence is by the decree of the Watchers (divine council members), the decision by the word of the holy ones (divine beings), so that the living may know that the Most High rules the kingdom of men.",
+      "hlt_rationale": "The HLT makes the Watchers' identity as divine council members explicit and notes that their decree equals the Most High's decree (confirmed in v.24).",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX (Theodotion)", "manuscript_date": "~150 CE", "reading_support": "supports_variant"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "variants": [
+    {
+      "reference": "Zec.3.1",
+      "mt_reading": "Then he showed me Joshua the high priest standing before the angel of Yahweh, and the Accuser standing at his right hand to accuse him",
+      "mt_hebrew": "יְהוֹשֻׁעַ הַכֹּהֵן הַגָּדוֹל עֹמֵד לִפְנֵי מַלְאַךְ יְהוָה וְהַשָּׂטָן עֹמֵד עַל יְמִינוֹ לְשִׂטְנוֹ",
+      "variant_source": "MT_preserved",
+      "variant_reading": "The hassatan (the Accuser) has the definite article — it is a TITLE ('the Adversary'), not a proper name. This is a divine council scene: Joshua stands before the Angel of Yahweh (the visible second Yahweh), and the Accuser (a member of the council whose role is to bring charges) stands to prosecute.",
+      "variant_original": "Same text",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Zechariah 3:1-2 is a key two-powers-in-heaven text. In v.2, 'Yahweh said to the Accuser: May Yahweh rebuke you' — one Yahweh figure (the Angel, present in the scene) invokes another Yahweh (the invisible Most High) to rebuke the Accuser. Two distinct Yahweh figures are clearly present: one speaking on earth, one invoked in heaven. This mirrors Genesis 19:24's two-Yahweh structure. The hassatan here is not Satan/the Devil of NT theology but a council member performing a prosecutorial function (cf. Job 1-2).",
+      "scholarly_consensus": "The two-Yahweh reading of Zechariah 3:2 is noted by all major commentaries. Segal's 'Two Powers in Heaven' identifies this as a key text for the pre-Christian Jewish binitarian theology.",
+      "preferred_for_hlt": "Then he showed me Joshua the high priest standing before the Angel of Yahweh (Jesus, the visible Yahweh), and the Accuser (hassatan — a divine council prosecutor) standing at his right hand to accuse him.",
+      "hlt_rationale": "The HLT identifies the Angel of Yahweh as the visible second Yahweh and clarifies that hassatan is a title (the Accuser) not a proper name. The study note for v.2 explains the two-Yahweh structure.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Zec.3.2",
+      "mt_reading": "And Yahweh said to the Accuser: 'May Yahweh rebuke you, O Accuser! May Yahweh who has chosen Jerusalem rebuke you!'",
+      "mt_hebrew": "וַיֹּאמֶר יְהוָה אֶל הַשָּׂטָן יִגְעַר יְהוָה בְּךָ הַשָּׂטָן וְיִגְעַר יְהוָה בְּךָ הַבֹּחֵר בִּירוּשָׁלִָם",
+      "variant_source": "MT_preserved",
+      "variant_reading": "YHWH said... May YHWH rebuke you — the visible Yahweh (the Angel of Yahweh from v.1) speaks and invokes the authority of the invisible Yahweh. Two distinct persons both identified as Yahweh. The MT preserves this remarkable two-Yahweh text without alteration.",
+      "variant_original": "Same text; two-Yahweh preserved",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser: 'Yahweh said to the Accuser: May Yahweh rebuke you' — one Yahweh speaks, invoking a different Yahweh. This is identical in structure to Genesis 19:24 ('Yahweh rained fire from Yahweh'). Both texts were central to the two-powers-in-heaven doctrine. The visible Yahweh is the second power — the one who appears on earth, who bears the Name/Presence of the invisible Most High. Early Christians identified this figure with Jesus; this identification caused rabbinic Judaism to suppress the two-powers tradition in the 2nd century CE.",
+      "scholarly_consensus": "The double use of YHWH in Zec 3:2 is universally noted. All textual traditions preserve it. It is a key text for Segal's two-powers analysis.",
+      "preferred_for_hlt": "And Yahweh (the visible Yahweh, Jesus) said to the Accuser, 'May Yahweh (the Most High) rebuke you, O Accuser! May Yahweh who has chosen Jerusalem rebuke you!'",
+      "hlt_rationale": "The HLT makes explicit which Yahweh figure is speaking and which is being invoked, based on the divine council scene in v.1 where the Angel of Yahweh is the one present.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    }
+  ]
+}

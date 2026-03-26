@@ -1,0 +1,21 @@
+{
+  "variants": [
+    {
+      "reference": "Job.38.7",
+      "mt_reading": "when the morning stars sang together and all the sons of God shouted for joy",
+      "mt_hebrew": "בְּרָן יַחַד כּוֹכְבֵי בֹקֶר וַיָּרִיעוּ כָּל בְּנֵי אֱלֹהִים (kol bene elohim)",
+      "variant_source": "MT_preserved",
+      "variant_reading": "The 'morning stars' (kokhvei voqer) are in synonymous parallelism with the 'sons of God' (bene elohim) — both phrases describe the same entities: divine beings of the heavenly host. This is consistent with the Ugaritic parallel phr kkbm ('congregation of the stars') used for divine council members, and with Isaiah 14:13 ('stars of God' = kokbei el). These divine beings were present at creation and celebrated. Job 38:7 proves that the sons of God existed before the physical creation — they are not humans.",
+      "variant_original": "Same text",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser uses Job 38:7 to establish several points: (1) The bene elohim ('sons of God') are divine beings, not humans — they existed before the earth was created; (2) 'Morning stars' is synonymous with divine council members, drawing on Ugaritic phr kkbm terminology; (3) The same bene elohim phrase appears in Job 1:6 and 2:1 (the divine council scene with the hassatan) and Genesis 6:2,4 (the sons of God who took human wives). The phrase ALWAYS refers to divine beings in the OT; (4) Psalm 148:1-5 and Nehemiah 9:6 confirm Yahweh created the host of heaven — the divine beings are created, not eternal.",
+      "scholarly_consensus": "Job 38:7 is universally understood as referring to divine/angelic beings present at creation. The parallelism of 'morning stars' with 'sons of God' is a standard example of Hebrew synonymous parallelism.",
+      "preferred_for_hlt": "when the morning stars (divine beings) sang together and all the sons of God (the heavenly host) shouted for joy",
+      "hlt_rationale": "The HLT makes explicit that 'morning stars' and 'sons of God' both refer to divine beings of the heavenly council who were present before and at creation.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    }
+  ]
+}

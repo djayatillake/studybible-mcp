@@ -1,0 +1,24 @@
+{
+  "source_key": "drmsh_articles",
+  "title": "Elohim as 'Gods' in the Old Testament (Faithlife Study Bible)",
+  "author": "heiser",
+  "type": "articles",
+  "url": "https://www.thedivinecouncil.com/ElohimAsGodsFSB.pdf",
+  "entries": [
+    {
+      "title": "The Five Uses of Elohim in the Hebrew Bible",
+      "chapter_or_episode": "Elohim FSB article",
+      "content_summary": "The Hebrew word elohim lies behind 'God' in the OT. Several instances are plural, which may seem to indicate polytheism. Modern English translations often obscure the Hebrew text's references to plural elohim — e.g., the NASB renders the second elohim in Psalm 82:1 as 'rulers.' The Hebrew text refers to five different entities as elohim: (1) Yahweh, God of Israel (over 1000 times); (2) members of Yahweh's heavenly council (Psalm 82); (3) gods of foreign nations (1 Kings 11:33); (4) demons (Deuteronomy 32:17); (5) spirits of the human dead (1 Samuel 28:13); and possibly (6) angels (Genesis 35:7). This variety demonstrates elohim is NOT a synonym for God — the biblical writers do not qualitatively equate Yahweh with demons, angels, the dead, or other gods. All beings called elohim share one characteristic: they inhabit the non-human realm. Elohim indicates residence, not a set of attributes. Yahweh is an elohim, but no other elohim is Yahweh.",
+      "content_detail": "Within the spiritual world, as in the human world, entities are differentiated by rank and power. The belief that Yahweh is utterly and eternally unique — that there is none like Him — is not contradicted by plural elohim in the OT.",
+      "page_range": "p. 1",
+      "references": [
+        {"reference": "Psa.82.1", "relevance": "primary"},
+        {"reference": "1Ki.11.33", "relevance": "primary"},
+        {"reference": "Deu.32.17", "relevance": "primary"},
+        {"reference": "1Sa.28.13", "relevance": "primary"},
+        {"reference": "Gen.35.7", "relevance": "supporting"}
+      ],
+      "themes": ["elohim_plural"]
+    }
+  ]
+}

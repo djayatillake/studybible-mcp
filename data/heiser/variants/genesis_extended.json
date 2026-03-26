@@ -1,0 +1,90 @@
+{
+  "variants": [
+    {
+      "reference": "Gen.3.1",
+      "mt_reading": "Now the serpent was more crafty than any beast of the field",
+      "mt_hebrew": "וְהַנָּחָשׁ הָיָה עָרוּם (w-ha-nachash hayah arum)",
+      "variant_source": "translation_choice",
+      "variant_reading": "The Hebrew nachash (H5175) has three semantic ranges: (1) noun: serpent/snake; (2) verb: to practice divination/enchantment; (3) adjective: shining/bronze (cognate with nechoshet, copper/bronze). The adjectival form connects to the 'shining one' of Isaiah 14:12 (helel ben-shachar) and the anointed guardian cherub of Ezekiel 28:14. The word arum ('crafty/shrewd') is not inherently negative — it is the same word used positively for prudence in Proverbs (12:16, 13:16, 14:8). The Eden figure is best understood as a luminous divine being (a 'shining one'), not a mere talking snake.",
+      "variant_original": "Same consonantal text; different understanding of nachash",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser argues the nachash of Eden was a divine being — a member of the divine council who rebelled. Ezekiel 28:12-17 describes this being as an 'anointed guardian cherub' who was in 'Eden, the garden of God,' on the 'holy mountain of God,' and was 'blameless from the day he was created until unrighteousness was found in him.' This is one of three supernatural rebellions in the primeval history: (1) the nachash in Eden, (2) the sons of God/Watchers in Genesis 6, (3) the Babel event. The three-fold meaning of nachash (serpent, divination, shining) deliberately carries all connotations.",
+      "scholarly_consensus": "The identification of the Eden nachash with a divine being (not merely a snake) is supported by the Ezekiel 28 parallel and the broader ANE context where serpent imagery was associated with divine beings.",
+      "preferred_for_hlt": "Now the nachash (the Shining One, a divine being) was more shrewd than any creature of the field that Yahweh God had made",
+      "hlt_rationale": "The HLT preserves the Hebrew nachash untranslated on first use, with the explanatory gloss 'the Shining One, a divine being' to convey all three semantic ranges and the Ezekiel 28 / Isaiah 14 connection.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX (ophis)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Gen.1.26",
+      "mt_reading": "Then God said, 'Let us make man in our image, after our likeness'",
+      "mt_hebrew": "וַיֹּאמֶר אֱלֹהִים נַעֲשֶׂה אָדָם בְּצַלְמֵנוּ כִּדְמוּתֵנוּ",
+      "variant_source": "translation_choice",
+      "variant_reading": "The plural cohortative 'let US make' (na'aseh) and plural possessives 'OUR image' (tsalmenu) and 'OUR likeness' (demutenu) are addressed to the divine council. This is NOT a 'plural of majesty' (which does not exist for verbs in Hebrew) nor a reference to the Trinity per se (the Trinity is Christian theology read back, not the original Israelite context). Yahweh announces His decision to His divine council — but the following verse (Gen 1:27) uses a SINGULAR verb: 'So God created (singular: bara) man in HIS image.' Only Yahweh actually does the creating. The council witnesses the announcement but does not participate in the act of creation.",
+      "variant_original": "Same text; different interpretive framework",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser argues that the plural cohortatives in Genesis 1:26 reflect the divine council setting. The pattern mirrors 1 Kings 22:19-23 and Isaiah 6:8 ('Who shall I send, and who will go for US?'), where Yahweh deliberates with His council. The shift from plural ('let us') to singular ('so God created') in the very next verse demonstrates that the council members are addressed but only Yahweh acts. This is consistent with the Ugaritic pattern where El announces decisions to the council but acts unilaterally. The 'image of God' concept means humans function as God's imagers — representatives who do on earth what the council does in heaven.",
+      "scholarly_consensus": "The divine council interpretation of the plural in Gen 1:26 is widely accepted in ANE studies. The 'plural of majesty' explanation has largely been abandoned by Hebrew grammarians.",
+      "preferred_for_hlt": "Then God (Elohim) said (to his divine council), 'Let us make humankind in our image, according to our likeness, and let them rule...'",
+      "hlt_rationale": "The HLT makes the divine council addressee explicit with a parenthetical note. The singular verb in v.27 ('so God created') shows only Yahweh acts — the council is the audience, not co-creators.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Gen.6.4",
+      "mt_reading": "The Nephilim were on the earth in those days, and also afterward, when the sons of God came in to the daughters of man and they bore children to them. These were the mighty men who were of old, the men of renown.",
+      "mt_hebrew": "הַנְּפִלִים הָיוּ בָאָרֶץ בַּיָּמִים הָהֵם וְגַם אַחֲרֵי כֵן אֲשֶׁר יָבֹאוּ בְּנֵי הָאֱלֹהִים אֶל בְּנוֹת הָאָדָם וְיָלְדוּ לָהֶם הֵמָּה הַגִּבֹּרִים אֲשֶׁר מֵעוֹלָם אַנְשֵׁי הַשֵּׁם",
+      "variant_source": "translation_choice",
+      "variant_reading": "Nephilim (H5303) is related to the Aramaic root nphl ('to fall') — they are 'the fallen ones.' The gibborim ('mighty warriors/men of valor') are their designation as warriors. The phrase 'men of renown' is literally 'men of the name' (anshei ha-shem). The text explicitly states the Nephilim resulted from the union of bene ha-elohim (sons of God = divine beings) with human women. The phrase 'and also afterward' indicates the Nephilim lineage continued after the flood — confirmed by Numbers 13:33 where the spies report seeing Nephilim (the sons of Anak from the Nephilim) in Canaan.",
+      "variant_original": "Same text; interpretive framework",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser argues the Nephilim were giants — the hybrid offspring of divine beings and human women. This is the consistent Second Temple understanding (1 Enoch 6-16, Jubilees, Book of Giants). The giant clans encountered during the conquest (Anakim, Rephaim, Emim, Zamzummim) were descendants of this lineage. The cherem (total devotion/destruction) warfare of the conquest specifically targeted these Nephilim-infested territories. The disembodied spirits of dead Nephilim became the shedim ('demons') of Deuteronomy 32:17 in Second Temple understanding.",
+      "scholarly_consensus": "The divine beings interpretation of bene ha-elohim in Gen 6:2,4 is the oldest extant interpretation (1 Enoch, LXX, Josephus, Philo). The Sethite interpretation arose in rabbinic Judaism and was adopted by Augustine.",
+      "preferred_for_hlt": "The Nephilim (giants, the fallen ones — offspring of the divine-human union) were on the earth in those days, and also afterward, when the sons of God (divine beings) came in to the daughters of Adam and they bore children to them. These were the mighty warriors (gibborim) of old, the men of renown.",
+      "hlt_rationale": "The HLT makes explicit that Nephilim means 'giants/fallen ones' and that they result from the divine-human union described in v.2. The phrase 'and also afterward' confirms post-flood Nephilim lineages.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX (gigantes)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"},
+        {"manuscript": "1 Enoch 6-16", "manuscript_date": "~300 BCE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Gen.18.1",
+      "mt_reading": "And the LORD appeared to him by the oaks of Mamre",
+      "mt_hebrew": "וַיֵּרָא אֵלָיו יְהוָה בְּאֵלֹנֵי מַמְרֵא (wayyera elaiw YHWH be-eloney mamre)",
+      "variant_source": "MT_preserved",
+      "variant_reading": "The text explicitly says YAHWEH appeared to Abraham — then v.2 describes three men standing before him. One of these is Yahweh in visible, human form (he eats food, walks, converses). The other two are angels who depart for Sodom (Gen 19:1). Abraham addresses Yahweh as 'my lord' (adonai) and converses with him about Sodom's fate. Then in Gen 19:24, 'Yahweh rained fire from Yahweh out of heaven' — the visible Yahweh on the ground acts in concert with the invisible Yahweh in heaven. This is the most extended christophany in the OT — Yahweh physically present in human form for an entire narrative sequence.",
+      "variant_original": "Same text; key two-powers passage",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser identifies Genesis 18-19 as the paradigmatic two-powers-in-heaven text. The visible Yahweh appears to Abraham in human form, eats with him (Gen 18:8), walks with him (18:16), and negotiates with him about Sodom (18:22-33). Then the visible Yahweh on earth rains fire 'from Yahweh out of heaven' (19:24). Two Yahweh figures are explicitly present — one on earth, one in heaven. This was mainstream Jewish theology until the 2nd century CE when it was declared heresy because Christians identified the visible Yahweh with Jesus.",
+      "scholarly_consensus": "The theophany in Gen 18-19 is universally recognized. The two-Yahweh reading of Gen 19:24 was central to Alan Segal's 'Two Powers in Heaven' analysis of pre-rabbinic Jewish theology.",
+      "preferred_for_hlt": "And Yahweh (Jesus, pre-incarnate — the visible Yahweh) appeared to him at the oaks of Mamre, as he sat at the opening of the tent in the heat of the day.",
+      "hlt_rationale": "The MT clearly states Yahweh appeared in human form. The HLT makes the christophany identification explicit. The narrative sequence through Gen 19:24 demonstrates two Yahweh figures acting simultaneously.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Gen.48.16",
+      "mt_reading": "the angel who has redeemed me from all evil, bless the boys",
+      "mt_hebrew": "הַמַּלְאָךְ הַגֹּאֵל אֹתִי מִכָּל רָע יְבָרֵךְ אֶת הַנְּעָרִים (ha-mal'akh ha-go'el oti mi-kol ra yevarekh et ha-ne'arim)",
+      "variant_source": "MT_preserved",
+      "variant_reading": "Jacob's blessing invokes THREE entities — 'The God (ha-elohim) before whom my fathers walked... The God (ha-elohim) who shepherded me... The Angel (ha-mal'akh) who redeemed me from all evil' — but the verb 'bless' (yevarekh) is grammatically SINGULAR. If Jacob was addressing two separate entities (God and a mere angel), the verb would be plural. The singular verb fuses God and the Angel into one entity — the Angel IS God. This is the clearest OT text equating the Angel of Yahweh with Yahweh himself.",
+      "variant_original": "Same text; critical singular verb",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser highlights that the singular verb yevarekh ('may he bless') in Gen 48:16 is the smoking gun for the Angel = Yahweh identification. Three referents (God... God... the Angel) but one singular verb. If two separate beings were in view, Hebrew grammar requires a plural verb. The deliberate singular denotes a tight fusion — what Heiser calls the binitarian godhead of Israelite religion. The Angel is not a created angel in the ordinary sense; he is the visible presence of Yahweh himself.",
+      "scholarly_consensus": "The singular verb with a compound subject (God + the Angel) is grammatically anomalous and universally noted by commentators. It intentionally fuses the two figures.",
+      "preferred_for_hlt": "The God (ha-Elohim) before whom my fathers Abraham and Isaac walked, the God (ha-Elohim) who has been my shepherd all my life to this day, the Angel (Jesus, the visible Yahweh) who has redeemed me from all evil — may HE bless (singular) the boys",
+      "hlt_rationale": "The HLT preserves the Hebrew structure showing three referents with a singular verb, and identifies the Angel as the visible Yahweh / pre-incarnate Christ. A study note explains the grammatical evidence for the God-Angel fusion.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    }
+  ]
+}

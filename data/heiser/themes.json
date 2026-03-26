@@ -1,0 +1,123 @@
+{
+  "themes": [
+    {
+      "theme_key": "divine_council",
+      "theme_label": "Divine Council",
+      "description": "The assembly of divine beings (elohim) over which Yahweh presides as Most High. The divine council appears in multiple OT passages as the governing body of the spiritual realm, with Yahweh as the supreme authority and other elohim as subordinate members.",
+      "parent_theme": null,
+      "heiser_key_works": ["unseen_realm", "supernatural", "dissertation"]
+    },
+    {
+      "theme_key": "two_powers",
+      "theme_label": "Two Powers in Heaven",
+      "description": "The ancient Jewish concept of two Yahweh figures — one invisible and transcendent, the other visible and embodied — appearing in the same passages. This was mainstream Jewish theology before the rabbinic period and is foundational to understanding early Christology.",
+      "parent_theme": "divine_council",
+      "heiser_key_works": ["unseen_realm", "two_powers_paper"]
+    },
+    {
+      "theme_key": "nephilim_giants",
+      "theme_label": "Nephilim / Giants",
+      "description": "The offspring of the union between the sons of God (divine beings) and human women in Genesis 6:1-4. The Nephilim are identified as giants (gibborim) and their descendants appear as the Anakim, Rephaim, and other giant clans encountered during the conquest.",
+      "parent_theme": "watchers_tradition",
+      "heiser_key_works": ["unseen_realm", "reversing_hermon", "supernatural"]
+    },
+    {
+      "theme_key": "watchers_tradition",
+      "theme_label": "Watchers Tradition",
+      "description": "The tradition preserved in 1 Enoch, Jubilees, and other Second Temple literature about the divine beings (Watchers) who transgressed their proper domain by taking human wives and teaching forbidden knowledge. This tradition is referenced in Genesis 6, Jude 6-7, 2 Peter 2:4-5, and underlies the Leviticus 16 scapegoat ritual (Azazel).",
+      "parent_theme": null,
+      "heiser_key_works": ["reversing_hermon", "unseen_realm", "demons"]
+    },
+    {
+      "theme_key": "deut32_worldview",
+      "theme_label": "Deuteronomy 32 Worldview",
+      "description": "The theological framework derived from Deuteronomy 32:8-9 (DSS/LXX reading) in which the Most High divided the nations among the sons of God at Babel, but kept Israel as his own portion. This allotment of nations to lesser divine beings explains the origin of pagan religion and structures the entire biblical narrative of cosmic conflict and reclamation.",
+      "parent_theme": null,
+      "heiser_key_works": ["unseen_realm", "supernatural", "deut32_paper"]
+    },
+    {
+      "theme_key": "cosmic_geography",
+      "theme_label": "Cosmic Geography",
+      "description": "The biblical worldview in which specific geographic locations have spiritual significance tied to divine rebellion and territorial claims. Places like Bashan (realm of the Rephaim/dead), Mount Hermon (where the Watchers descended), and the wilderness (domain of Azazel) carry theological weight that illuminates narrative meaning.",
+      "parent_theme": "deut32_worldview",
+      "heiser_key_works": ["unseen_realm", "reversing_hermon", "supernatural"]
+    },
+    {
+      "theme_key": "angel_of_yahweh",
+      "theme_label": "Angel of YHWH / Second Yahweh",
+      "description": "The figure identified as both distinct from Yahweh and yet bearing the divine name, worshipped as God, and exercising divine prerogatives. This figure — the visible Yahweh — appears throughout the OT as the angel of YHWH, the commander of YHWH's army, and the 'name theology' figure in whom God's name dwells. Identified in Christian theology as the pre-incarnate Christ.",
+      "parent_theme": "two_powers",
+      "heiser_key_works": ["unseen_realm", "two_powers_paper", "naked_bible_podcast"]
+    },
+    {
+      "theme_key": "nachash_serpent",
+      "theme_label": "The Nachash / Shining Serpent",
+      "description": "The Hebrew word nachash has three meanings: serpent (noun), to practice divination (verb), and shining/bronze (adjective). The Eden figure is best understood as a luminous divine being (a 'shining one'), an anointed guardian cherub (Ezekiel 28:14) who was a member of the divine council before his rebellion. Not a mere talking snake but a supernatural adversary.",
+      "parent_theme": "edenic_rebellion",
+      "heiser_key_works": ["unseen_realm", "supernatural", "demons"]
+    },
+    {
+      "theme_key": "edenic_rebellion",
+      "theme_label": "Eden Rebellion",
+      "description": "The first of three supernatural rebellions in the primeval history: (1) The nachash's rebellion in Eden (Genesis 3), (2) The sons of God/Watchers transgression (Genesis 6), (3) The Babel event and disinheritance of the nations (Genesis 11/Deuteronomy 32:8). Each rebellion escalates the cosmic conflict and provokes a divine response.",
+      "parent_theme": null,
+      "heiser_key_works": ["unseen_realm", "supernatural"]
+    },
+    {
+      "theme_key": "babel_allotment",
+      "theme_label": "Babel Allotment of Nations",
+      "description": "At Babel (Genesis 11), God divided the nations and allotted them to the sons of God (Deuteronomy 32:8-9, DSS reading). These divine beings were supposed to govern justly but became corrupt, becoming the gods of the nations. God then chose Abraham and Israel as his own portion to begin the project of reclaiming all nations — a project fulfilled in the Great Commission (Acts 2 reversing Babel).",
+      "parent_theme": "deut32_worldview",
+      "heiser_key_works": ["unseen_realm", "supernatural", "deut32_paper"]
+    },
+    {
+      "theme_key": "sons_of_god",
+      "theme_label": "Sons of God / Bene Elohim",
+      "description": "The Hebrew phrase bene elohim (sons of God) and bene elim (sons of the gods/mighty ones) refers to divine beings — members of the heavenly host and divine council. Despite the Sethite interpretation popularized in the rabbinic period, every OT use refers to supernatural beings (Job 1:6, 2:1, 38:7, Psalm 29:1, 82:6, 89:6, Genesis 6:2,4, Deuteronomy 32:8).",
+      "parent_theme": "divine_council",
+      "heiser_key_works": ["unseen_realm", "supernatural", "deut32_paper", "reversing_hermon"]
+    },
+    {
+      "theme_key": "elohim_plural",
+      "theme_label": "Elohim as Plural / Divine Beings",
+      "description": "The Hebrew word elohim is used of Yahweh (singular), the members of the divine council (plural), the gods of the nations (plural), the departed human dead (1 Samuel 28:13), and demons. The word describes a 'place of residence' (the spiritual realm) rather than a set of attributes. Yahweh is an elohim, but no other elohim is Yahweh — he is unique in attributes while sharing the category of 'divine being.'",
+      "parent_theme": "divine_council",
+      "heiser_key_works": ["unseen_realm", "supernatural"]
+    },
+    {
+      "theme_key": "psalm82_judgment",
+      "theme_label": "Psalm 82 Judgment",
+      "description": "Psalm 82 depicts Yahweh standing in the divine council to judge the corrupt elohim (gods) who have failed in their governance of the nations allotted to them at Babel. He sentences them to die 'like men' — divine beings receiving mortality as punishment. Jesus quotes this psalm in John 10:34 to defend his own divine claims.",
+      "parent_theme": "deut32_worldview",
+      "heiser_key_works": ["unseen_realm", "supernatural", "dissertation"]
+    },
+    {
+      "theme_key": "cherem_warfare",
+      "theme_label": "Cherem / Holy War",
+      "description": "The practice of total devotion/destruction (cherem) in the conquest of Canaan is understood in light of the Nephilim bloodlines. The giant clans (Anakim, Rephaim, Emim, Zamzummim) were descendants of the Nephilim, and their destruction was the elimination of the corrupt divine-human hybrid lineage — not genocide of ordinary peoples. The conquest targeted specific Nephilim-infested territories.",
+      "parent_theme": "nephilim_giants",
+      "heiser_key_works": ["unseen_realm", "supernatural"]
+    },
+    {
+      "theme_key": "messianic_expectation",
+      "theme_label": "Messianic Expectation / Christophany",
+      "description": "Passages where the pre-incarnate Christ appears in the OT as the visible Yahweh, the Angel of YHWH, the commander of YHWH's army, or the 'Word of the LORD.' These appearances establish the two-powers theology that made early Jewish acceptance of Jesus's divine claims coherent rather than novel.",
+      "parent_theme": "two_powers",
+      "heiser_key_works": ["unseen_realm", "two_powers_paper"]
+    },
+    {
+      "theme_key": "image_of_god",
+      "theme_label": "Image of God / Imager",
+      "description": "Humans are created as God's imagers — his representatives and vice-regents on earth, tasked with extending Eden's sacred space over all creation. This is a functional and vocational concept (imaging God's rule) not merely an ontological one. The divine council witnessed this creation (Genesis 1:26 'let us') and the human role was to do on earth what the council does in heaven.",
+      "parent_theme": null,
+      "heiser_key_works": ["unseen_realm", "supernatural"]
+    },
+    {
+      "theme_key": "reclaiming_nations",
+      "theme_label": "Reclaiming the Disinherited Nations",
+      "description": "The biblical meta-narrative from Abraham to Pentecost as God's plan to reclaim all nations that were allotted to lesser divine beings at Babel. The Great Commission (Matthew 28:19) and Pentecost (Acts 2, with representatives from all nations) directly reverse the Babel event. The nations are being brought back under Yahweh's direct authority.",
+      "parent_theme": "deut32_worldview",
+      "heiser_key_works": ["unseen_realm", "supernatural"]
+    }
+  ]
+}

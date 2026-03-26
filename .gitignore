@@ -50,6 +50,10 @@ db/*.db-journal
 !data/.gitkeep
 !db/.gitkeep
 
+# Environment / secrets
+.env
+.env.*
+
 # OS
 .DS_Store
 Thumbs.db

@@ -41,6 +41,8 @@ from .tools import (
     mermaid_place_network,
     format_study_notes, format_dictionary_article, format_key_terms,
     format_ane_context, format_ane_dimensions,
+    format_heiser_context, format_heiser_themes,
+    format_hlt_verse, format_hlt_study_notes,
 )
 from .hermeneutics import (
     get_genre_from_reference,
@@ -824,6 +826,46 @@ async def handle_graph_enriched_search(args: dict[str, Any]) -> list[TextContent
     return text(result)
 
 
+# =========================================================================
+# Heiser / HLT tool handlers
+# =========================================================================
+
+async def handle_get_heiser_context(args: dict[str, Any]) -> list[TextContent]:
+    """Handle get_heiser_context tool — Heiser scholarship by reference or theme."""
+    has_data = await db.has_heiser_data()
+    if not has_data:
+        return text("Heiser scholarship data not available. Run 'python scripts/import_heiser_content.py' first.")
+
+    reference = args.get("reference")
+    theme = args.get("theme")
+    limit = args.get("limit", 10)
+
+    # If neither provided, list themes
+    if not reference and not theme:
+        themes = await db.get_heiser_themes()
+        return text(format_heiser_themes(themes))
+
+    entries = []
+    if theme:
+        entries = await db.get_heiser_context_by_theme(theme, limit=limit)
+    elif reference:
+        entries = await db.get_heiser_context_by_reference(reference, limit=limit)
+
+    if not entries:
+        query_desc = f"theme='{theme}'" if theme else f"reference='{reference}'"
+        return text(f"No Heiser scholarship found for {query_desc}.")
+
+    header = "## Heiser Scholarship Context"
+    if reference:
+        header += f" for {reference}"
+    if theme:
+        header += f" — theme: {theme}"
+    header += "\n\n"
+
+    result = header + format_heiser_context(entries)
+    return text(result)
+
+
 _TOOL_HANDLERS = {
     "word_study": handle_word_study,
     "lookup_verse": handle_lookup_verse,
@@ -843,6 +885,7 @@ _TOOL_HANDLERS = {
     "get_bible_dictionary": handle_get_bible_dictionary,
     "get_key_terms": handle_get_key_terms,
     "get_ane_context": handle_get_ane_context,
+    "get_heiser_context": handle_get_heiser_context,
 }
 
 

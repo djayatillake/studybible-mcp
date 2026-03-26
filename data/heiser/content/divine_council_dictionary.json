@@ -1,0 +1,108 @@
+{
+  "source_key": "divine_council_dotwpw",
+  "title": "Divine Council (Dictionary of the Old Testament: Wisdom, Poetry & Writings)",
+  "author": "heiser",
+  "type": "article",
+  "publication": "Tremper Longman III and Peter Enns, eds., Dictionary of the Old Testament: Wisdom, Poetry & Writings (IVP Academic, 2008)",
+  "url": "https://drmsh.com/wp-content/uploads/2018/11/DIVINE-COUNCIL-DOTWPW.pdf",
+  "entries": [
+    {
+      "title": "The Council of the Gods — Textual Evidence for Israel's Divine Council",
+      "chapter_or_episode": "Section 1.1",
+      "content_summary": "The Ugaritic expression 'dt 'ilm ('assembly of El/the gods') corresponds exactly to Psalm 82:1's ba'adat 'el ('assembly of God/the divine council'). The second occurrence of elohim in Psalm 82:1 must be plural due to the preposition 'in the midst of.' The Trinity cannot explain this divine plurality since the psalm sentences these elohim to die 'like humankind.' Psalm 89:5-7 places God 'in the assembly of the holy ones' and asks 'who is like Yahweh among the sons of God (bene elim), a god greatly feared in the council of the holy ones (besod qedoshim)?' Psalm 29:1 commands the same sons of God to praise Yahweh. These heavenly sons of God (bene elohim or bene ha-elohim) appear in Genesis 6:2,4; Deuteronomy 32:8-9,43 (LXX, Qumran); Job 1:6; 2:1; 38:7.",
+      "content_detail": "The Ugaritic council parallels are extensive: phr 'ilm ('assembly of El/the gods'), phr bn 'ilm ('assembly of the sons of El/the gods'), mprt bn 'il ('assembly of the sons of El'), dr bn 'il ('assembly/circle of the sons of El'), 'dt 'ilm ('assembly of El/the gods'). Phoenician texts also describe: wkl dr bn 'lm ('all the circle/group of the sons of the gods').",
+      "page_range": "pp. 1-2",
+      "references": [
+        {"reference": "Psa.82.1", "relevance": "primary"},
+        {"reference": "Psa.89.5", "relevance": "primary"},
+        {"reference": "Psa.89.6", "relevance": "primary"},
+        {"reference": "Psa.89.7", "relevance": "primary"},
+        {"reference": "Psa.29.1", "relevance": "primary"},
+        {"reference": "Gen.6.2", "relevance": "supporting"},
+        {"reference": "Gen.6.4", "relevance": "supporting"},
+        {"reference": "Deu.32.8", "relevance": "supporting"},
+        {"reference": "Deu.32.43", "relevance": "supporting"},
+        {"reference": "Job.1.6", "relevance": "supporting"},
+        {"reference": "Job.2.1", "relevance": "supporting"},
+        {"reference": "Job.38.7", "relevance": "supporting"}
+      ],
+      "themes": ["divine_council", "sons_of_god", "elohim_plural"]
+    },
+    {
+      "title": "The Abode and Meeting Place of the Divine Council — Cosmic Mountain Theology",
+      "chapter_or_episode": "Section 1.2",
+      "content_summary": "At Ugarit the divine council met on a cosmic mountain where heaven and earth intersected, at the 'source of the two rivers' in the 'midst of the fountains of the double-deep.' El dwelt in 'tents' and a 'tent shrine.' Baal held meetings in the 'heights' of Mount Sapanu, where there were 'paved bricks' making Baal's house 'a house of the clearness of lapis lazuli.' The same imagery appears in the Hebrew Bible: Yahweh dwells on mountains (Sinai/Zion), the Jerusalem temple is in the 'heights of the north' (yarkete saphon, Ps 48:1-2), Zion is the 'mount of assembly' (har mo'ed, Isa 14:13). Ezekiel 28:13-16 equates the 'holy mountain of God' with Eden, the 'garden of God.' Eden appears as the 'seat of the gods' (moshab elohim, Ezek 28:2). At Sinai, under God's feet was 'sapphire stone' (libnat hassappir, Ex 24:10) — just as with Baal's dwelling.",
+      "content_detail": "The 'domed tent' imagery evokes the Tent of Meeting and the Tabernacle. Zion is Yahweh's tent ('ohel, Isa 33:20). Mount Zion is described as a watery habitation (Isa 33:20-22; Ezek 47:1-12; Joel 3:18; Zech 14:8). The description of Eden in Genesis 2:6-15 refers to the 'ground flow' that 'watered the entire face of the earth.' The cosmic mountain is where divine decrees are issued — the intersection of heaven and earth.",
+      "page_range": "pp. 2-3",
+      "references": [
+        {"reference": "Psa.48.1", "relevance": "primary"},
+        {"reference": "Psa.48.2", "relevance": "primary"},
+        {"reference": "Isa.14.13", "relevance": "primary"},
+        {"reference": "Eze.28.2", "relevance": "primary"},
+        {"reference": "Eze.28.13", "relevance": "primary"},
+        {"reference": "Eze.28.14", "relevance": "primary"},
+        {"reference": "Eze.28.15", "relevance": "primary"},
+        {"reference": "Eze.28.16", "relevance": "primary"},
+        {"reference": "Exo.24.10", "relevance": "primary"},
+        {"reference": "Gen.2.6", "relevance": "supporting"},
+        {"reference": "Gen.2.15", "relevance": "supporting"},
+        {"reference": "Isa.33.20", "relevance": "supporting"},
+        {"reference": "Eze.47.1", "relevance": "supporting"}
+      ],
+      "themes": ["cosmic_geography", "divine_council"]
+    },
+    {
+      "title": "The Structure and Bureaucracy of the Israelite Divine Council — Yahweh as Both Sovereign and Vicegerent",
+      "chapter_or_episode": "Section 1.3",
+      "content_summary": "The Ugaritic council had four tiers: (1) El and his wife Athirat at the top; (2) the royal family — 'sons of El,' 'princes' — with one member serving as vicegerent, given the title 'most high'; (3) craftsman deities; (4) messengers (ml'km). In the Israelite council, Yahweh was supreme authority over a bureaucracy with a second tier of lesser elohim (bene elim, bene elohim) and a third tier of mal'akim ('angels'). The CRITICAL DIFFERENCE: In Israelite religion, the vicegerent position was filled not by another god but by Yahweh himself in another form. This 'hypostasis' of Yahweh was the same essence as Yahweh but a distinct, second person. This is most plainly seen via the Name theology and the angel of Yahweh (for the angel's connection to the Name — the essence of Yahweh — see Exodus 23:20-33).",
+      "content_detail": "This religious structure is the backdrop to the ancient Jewish acceptance of two powers in heaven (Segal). Since both powers were believed to be good, the belief does not reflect Zoroastrian influence. The belief in two powers in heaven was a contributing factor in the advent of 'binitarian monotheism' in Second Temple Judaism (Hurtado), which contextualizes the description of Jesus as the monogenes ('unique') son of God in the NT. Since the Hebrew Bible is clear that there are other sons of God (bene [ha]elohim), NT writers clarify that Jesus, as the same essence as the Father, is unique among all heavenly sons of God.",
+      "page_range": "pp. 3-5",
+      "references": [
+        {"reference": "Exo.23.20", "relevance": "primary"},
+        {"reference": "Exo.23.21", "relevance": "primary"},
+        {"reference": "Exo.23.22", "relevance": "primary"},
+        {"reference": "Exo.23.23", "relevance": "primary"},
+        {"reference": "Job.1.6", "relevance": "supporting"},
+        {"reference": "Job.2.1", "relevance": "supporting"},
+        {"reference": "Job.5.1", "relevance": "supporting"},
+        {"reference": "Job.15.8", "relevance": "supporting"},
+        {"reference": "Job.16.19", "relevance": "supporting"}
+      ],
+      "themes": ["divine_council", "two_powers", "angel_of_yahweh", "messianic_expectation"]
+    },
+    {
+      "title": "Monotheism in the Hebrew Bible and the Divine Council — Yahweh's Qualitative Uniqueness",
+      "chapter_or_episode": "Sections 2.1-2.3",
+      "content_summary": "Biblical writers refer exclusively to Yahweh as 'the God' (ha-elohim) and 'true God' (elohim emet). Although Yahweh was an elohim, he was qualitatively unique — preexistent and Creator of all things including the 'host of heaven' (Ps 33:6; 148:1-5; Neh 9:6). This is monotheism on ancient Semitic terms. The plural elohim of Psalms 82 and 89 CANNOT be human rulers — if they are humans, why are they sentenced to die 'like humans'? Israel's elders never had jurisdiction over all nations. The corrupt decisions of humans would not 'shake the foundations of the earth' (Ps 82:5). The 'sons of God' meet 'in the clouds' (basshahaq, Ps 89:6-7). The lesser elohim are not merely idols — Deuteronomy 32:17 calls them shedim (demons), whose existence cannot be denied. One psalmist demands the lesser elohim worship Yahweh (Ps 97:7) — puzzling if no such entities exist.",
+      "content_detail": "Phrases like 'there is none beside Yahweh' (Deut 4:35,39; 32:12,39) appear IN PASSAGES that affirm the existence of other gods (Deut 4; 32). They express incomparability, not non-existence. Isaiah 47:8,10 proves this: Babylon claims 'I am, and there is none else beside me' — not claiming to be the only city, but that she has no rival. Isaiah 40:1-2 is a divine council text (via plural imperatives). Comparing Yahweh to imaginary beings cheapens the praise: David proclaims he will sing praise 'before the gods' (neged elohim, Ps 138:1). 185+ references to plural elohim/elim exist in the Qumran material alone.",
+      "page_range": "pp. 3-5",
+      "references": [
+        {"reference": "Psa.82.5", "relevance": "primary"},
+        {"reference": "Psa.89.6", "relevance": "primary"},
+        {"reference": "Psa.89.7", "relevance": "primary"},
+        {"reference": "Psa.97.7", "relevance": "primary"},
+        {"reference": "Psa.138.1", "relevance": "primary"},
+        {"reference": "Deu.32.17", "relevance": "primary"},
+        {"reference": "Deu.4.35", "relevance": "supporting"},
+        {"reference": "Deu.4.39", "relevance": "supporting"},
+        {"reference": "Deu.32.12", "relevance": "supporting"},
+        {"reference": "Deu.32.39", "relevance": "supporting"},
+        {"reference": "Isa.47.8", "relevance": "supporting"},
+        {"reference": "Isa.47.10", "relevance": "supporting"},
+        {"reference": "Isa.40.1", "relevance": "supporting"},
+        {"reference": "Isa.40.2", "relevance": "supporting"},
+        {"reference": "Psa.33.6", "relevance": "supporting"},
+        {"reference": "Psa.148.1", "relevance": "supporting"},
+        {"reference": "Neh.9.6", "relevance": "supporting"},
+        {"reference": "Exo.15.11", "relevance": "supporting"},
+        {"reference": "Deu.10.17", "relevance": "supporting"},
+        {"reference": "Psa.86.8", "relevance": "supporting"},
+        {"reference": "Psa.95.3", "relevance": "supporting"},
+        {"reference": "Psa.96.4", "relevance": "supporting"},
+        {"reference": "Psa.135.5", "relevance": "supporting"},
+        {"reference": "Psa.136.2", "relevance": "supporting"}
+      ],
+      "themes": ["divine_council", "elohim_plural", "deut32_worldview"]
+    }
+  ]
+}

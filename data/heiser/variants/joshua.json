@@ -1,0 +1,21 @@
+{
+  "variants": [
+    {
+      "reference": "Jos.5.13",
+      "mt_reading": "When Joshua was by Jericho, he lifted up his eyes and looked, and behold, a man was standing before him with his drawn sword in his hand",
+      "mt_hebrew": "אִישׁ עֹמֵד לְנֶגְדּוֹ וְחַרְבּוֹ שְׁלוּפָה בְּיָדוֹ (ish omed lenegdo w-charbo sheluphah beyado)",
+      "variant_source": "MT_preserved",
+      "variant_reading": "This 'man' identifies himself as 'commander of the army of Yahweh' (sar tseva YHWH). The precise phrase 'his drawn sword in his hand' (charbo sheluphah beyado) occurs in only TWO other places in the entire Hebrew Bible — both describing the Angel of Yahweh: Numbers 22:23 (Balaam's donkey sees the Angel) and 1 Chronicles 21:16 (David sees the Angel). This is the same Angel of Exodus 23:20-23 who bears Yahweh's Name and was tasked with leading Israel to the Promised Land. Joshua falls on his face and is told 'Take off your sandals, for the place where you stand is holy' — the identical command given to Moses at the burning bush (Exo 3:5), confirming this figure is Yahweh himself.",
+      "variant_original": "Same text; 'drawn sword' phrase identifies the Angel",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser identifies Joshua 5:13-15 as a christophany — the pre-incarnate Christ appearing as the commander of Yahweh's army. The unique phrase 'drawn sword in his hand' is a literary marker connecting this figure to the Angel of Yahweh in Num 22:23 and 1 Chr 21:16. The Angel fulfills the warrior-role that Baal held in the Ugaritic council — he is the co-regent who leads Yahweh's armies. The command to remove sandals on holy ground connects this figure directly to the burning bush theophany (Exo 3:5), where the Angel of Yahweh IS identified as Yahweh (Exo 3:2,4).",
+      "scholarly_consensus": "The commander of Yahweh's army is widely identified as a theophanic figure. The verbal parallels with Num 22:23, 1 Chr 21:16, and Exo 3:5 are noted by all major commentaries.",
+      "preferred_for_hlt": "When Joshua was at Jericho, he lifted up his eyes and saw — behold, a man (Jesus, the visible Yahweh — commander of Yahweh's army) was standing before him with his drawn sword in his hand.",
+      "hlt_rationale": "The HLT identifies this figure as the pre-incarnate Christ based on: (1) the unique 'drawn sword' phrase linking to the Angel of YHWH; (2) the holy ground command matching Exodus 3:5; (3) this being the fulfillment of Exodus 23:20-23's promise that the Angel would lead Israel to the land.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    }
+  ]
+}

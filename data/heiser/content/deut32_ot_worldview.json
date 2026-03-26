@@ -1,0 +1,59 @@
+{
+  "source_key": "deut32_ot_worldview",
+  "title": "Deuteronomy 32:8-9 and the Old Testament Worldview",
+  "author": "heiser",
+  "type": "article",
+  "publication": "Faithlife Study Bible (Bellingham, WA: Logos Bible Software, 2012)",
+  "url": "https://thedivinecouncil.com/Deuteronomy32OTWorldview.pdf",
+  "entries": [
+    {
+      "title": "Deuteronomy 32:8-9 — The Foundation of the OT Worldview",
+      "chapter_or_episode": "Main article",
+      "content_summary": "Deuteronomy 32:8 describes Yahweh's dispersal of the nations at Babel and his disinheriting of those nations, giving them over to other, lesser gods (elohim). Deuteronomy 32:9 states Israel belongs to Yahweh alone. The 'sons of God' reading comes from Dead Sea Scrolls manuscripts much older than the traditional 'received' text. The 'sons of Israel' reading was most likely changed sometime after the Jewish community — in response to the new Christian church and its use of the Septuagint — 'standardized' the Hebrew text in the second century AD.",
+      "content_detail": "The Table of Nations (Genesis 10) catalogs 70 nations but does not include Israel, because Israel did not exist at the time of Babel. This makes 'sons of Israel' illogical and unsustainable. Deuteronomy 32:8-9 is fundamental for understanding the worldview of Old Testament Israel — these two verses explain both the existence of foreign pantheons and their inferiority to Yahweh. The parallel passage Deuteronomy 4:19-20 represents the other side of the same coin: in 32:8-9 God apportions the nations to the sons of God; in 4:19-20, God allots the gods to the nations. God, like a father dismissing disinheriting his children, judges all nations for their disobedience at Babel (Gen 11:1-9), then in the very next chapter calls Abraham (Gen 12:1-3), starting over in creating an earthly human family for Himself.",
+      "page_range": "pp. 1-3",
+      "references": [
+        {"reference": "Deu.32.8", "relevance": "primary"},
+        {"reference": "Deu.32.9", "relevance": "primary"},
+        {"reference": "Deu.4.19", "relevance": "primary"},
+        {"reference": "Deu.4.20", "relevance": "primary"},
+        {"reference": "Gen.10.1", "relevance": "supporting"},
+        {"reference": "Gen.11.1", "relevance": "supporting"},
+        {"reference": "Gen.11.9", "relevance": "supporting"},
+        {"reference": "Gen.12.1", "relevance": "supporting"},
+        {"reference": "Gen.12.3", "relevance": "supporting"},
+        {"reference": "Psa.82.1", "relevance": "supporting"}
+      ],
+      "themes": ["deut32_worldview", "babel_allotment", "sons_of_god"]
+    },
+    {
+      "title": "Cosmic Geography — Land, Worship, and the Deuteronomy 32 Worldview",
+      "chapter_or_episode": "The Israelite View of the Nations and Their Gods",
+      "content_summary": "Israel, as Yahweh's inheritance, was holy ground. Other nations' territory belonged to other gods by Yahweh's decree. This explains why David (1 Samuel 26:19) was distressed about being driven from Israel — he linked being in Israel with the ability to worship Yahweh, because Israel was Yahweh's portion and all other territory was handed to other gods. Naaman (2 Kings 5:17) asked for two mules' loads of Israelite dirt to take back to Syria so he could worship Yahweh on holy ground. Circumcision reminded Israel they were Yahweh's portion. Israelite laws share features with other ANE cultures but the rationale — tied to an everlasting covenant with Yahweh as inheritance — is unique.",
+      "content_detail": "The conquest of Canaan was a reclamation of holy ground from nations that worshiped other gods. The concept of cosmic geography means specific geographic locations had spiritual significance tied to which divine being had authority over that territory. Paul used geographical terminology to describe the heavenly host: principalities, rulers, thrones, authorities, powers, dominions (Ephesians 6:12).",
+      "page_range": "pp. 1-3",
+      "references": [
+        {"reference": "1Sa.26.19", "relevance": "primary"},
+        {"reference": "2Ki.5.17", "relevance": "primary"},
+        {"reference": "Eph.6.12", "relevance": "supporting"}
+      ],
+      "themes": ["deut32_worldview", "cosmic_geography"]
+    },
+    {
+      "title": "Pentecost as Reversal of Babel — The Reclaiming of the Nations",
+      "chapter_or_episode": "The Israelite Worldview in the New Testament",
+      "content_summary": "The most dramatic example of the Deuteronomy 32 worldview in the NT is the Pentecost event in Acts 2, where God begins to reclaim all the nations for Himself. God has not forever abandoned the nations. Israel was to be a kingdom of priests — mediators between the disinherited nations and the true God. Christ became the ultimate mediator, reconciling every nation to God. The Great Commission (Matthew 28:19) and Pentecost (Acts 2, with representatives from all nations hearing the gospel in their own languages) directly reverse the Babel event.",
+      "content_detail": "Even in the Old Testament, Israel's laws, prophets, and Scriptures all convey knowledge of the true God to the nations. The idea that corrupt gods (sons of God) both populate and control certain geographical regions was still prevalent in the NT era.",
+      "page_range": "p. 3",
+      "references": [
+        {"reference": "Act.2.1", "relevance": "primary"},
+        {"reference": "Act.2.5", "relevance": "primary"},
+        {"reference": "Act.2.8", "relevance": "primary"},
+        {"reference": "Mat.28.19", "relevance": "supporting"},
+        {"reference": "Gen.11.1", "relevance": "supporting"},
+        {"reference": "Gen.11.9", "relevance": "supporting"}
+      ],
+      "themes": ["deut32_worldview", "reclaiming_nations", "babel_allotment"]
+    }
+  ]
+}

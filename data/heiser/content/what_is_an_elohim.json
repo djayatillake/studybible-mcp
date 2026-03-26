@@ -1,0 +1,60 @@
+{
+  "source_key": "unseen_realm",
+  "title": "So What Exactly is an Elohim? (draft chapter from The Unseen Realm)",
+  "author": "heiser",
+  "type": "book",
+  "url": "https://www.thedivinecouncil.com/What%20is%20an%20Elohim.pdf",
+  "entries": [
+    {
+      "title": "Elohim Describes a Plane of Existence, Not a Set of Attributes",
+      "chapter_or_episode": "What is an Elohim",
+      "content_summary": "The Hebrew word elohim does not refer to a set of divine attributes (omnipotence, omniscience, etc.) but to a being's proper plane of existence — the spiritual realm. An elohim is a being whose proper habitation is the spirit world. This definition accounts for ALL biblical uses of elohim: (1) Yahweh, the God of Israel (over 1000 times); (2) the members of Yahweh's heavenly council (Psalm 82); (3) the gods of foreign nations (1 Kings 11:33); (4) demons (Deuteronomy 32:17); (5) spirits of the human dead (1 Samuel 28:13); (6) angels (Genesis 35:7). Yahweh is an elohim, but no other elohim is Yahweh — He is 'species unique' in possessing incommunicable attributes (omnipotence, self-existence, omniscience).",
+      "content_detail": "The word elohim indicates residence, not a set of attributes; it identifies the proper domain of the entity it describes. All beings called elohim share one characteristic: they all inhabit the non-human realm. They may cross over into the human world, and certain humans may be transported to the non-human realm (prophets, Enoch), but the proper domains are separate. Within the spiritual world, entities are differentiated by rank and power. Yahweh shares 'communicable' attributes (love, mercy, intelligence) with lesser beings just as He does with humans, but His 'incommunicable' attributes (omnipotence, self-existence, omniscience) are His alone. By definition, only one being can be all-powerful.",
+      "page_range": "pp. 1-5",
+      "references": [
+        {"reference": "Psa.82.1", "relevance": "primary"},
+        {"reference": "1Ki.11.33", "relevance": "primary"},
+        {"reference": "Deu.32.17", "relevance": "primary"},
+        {"reference": "1Sa.28.13", "relevance": "primary"},
+        {"reference": "Gen.35.7", "relevance": "primary"},
+        {"reference": "Gen.18.1", "relevance": "supporting"},
+        {"reference": "Psa.104.4", "relevance": "supporting"},
+        {"reference": "Heb.1.14", "relevance": "supporting"},
+        {"reference": "Jhn.4.24", "relevance": "supporting"},
+        {"reference": "2Co.12.1", "relevance": "supporting"},
+        {"reference": "Isa.6.1", "relevance": "supporting"}
+      ],
+      "themes": ["elohim_plural", "divine_council"]
+    },
+    {
+      "title": "Demons as Elohim — Deuteronomy 32:17 and the Shedim",
+      "chapter_or_episode": "What is an Elohim",
+      "content_summary": "In Deuteronomy 32:17, the Israelites 'sacrificed to demons (shedim), not God (eloah — singular), to gods (elohim) they had never known.' The demons who received sacrifices are explicitly called elohim. The singular eloah distinguishes the one true God from the plural elohim/demons. Some translations inaccurately render this as 'demons that were no gods' — but the Hebrew says the opposite. The demons ARE elohim (divine beings); they are just not eloah (the singular God, Yahweh).",
+      "content_detail": "Heiser notes that the word 'God' in Deut 32:17 is the singular eloah — not the plural elohim. This is a critical distinction the text makes: the shedim are elohim (beings of the spiritual realm) but they are not eloah (Yahweh, the unique God). Translations that read 'demons that were no gods' are 'a misguided attempt at preserving monotheism by the translator.'",
+      "page_range": "pp. 2-3",
+      "references": [
+        {"reference": "Deu.32.17", "relevance": "primary"},
+        {"reference": "Deu.32.21", "relevance": "supporting"}
+      ],
+      "themes": ["elohim_plural", "deut32_worldview"]
+    },
+    {
+      "title": "The Spirits of the Human Dead as Elohim — 1 Samuel 28:13",
+      "chapter_or_episode": "What is an Elohim",
+      "content_summary": "In 1 Samuel 28:13, the medium at Endor sees Samuel's spirit and says 'I see an elohim coming up out of the earth.' The spirit of the dead Samuel is called an elohim — a divine being. This is not the medium lying or faking; the text presents a genuine encounter with Samuel's spirit who delivers a true prophecy. The death penalty for consulting spirits of the dead (Lev 20:27) was not issued because such consultations didn't work — but because they DID. To commune with the dead was trespassing into the forbidden realm of the spirit world. The word ob ('spirit') refers to a spirit of a departed human being who could cross back over into the realm of the living.",
+      "content_detail": "Everything in this narrative conforms to ancient Near Eastern parallels that refer to spirits of the human dead as divine beings (elohim), and that have such spirits crossing over to the realm of the living. In 1 Sam 28:7, the Hebrew literally reads 'Find me a woman, a mistress of the ob.' Saul specifically wanted a direct line to the spirit of Samuel — and the ob produced was also called an elohim. By nature, human beings are physical beings with an eternal spirit. When we die, our spirits go to the spirit world — and since that is the plane of the elohim, a disembodied human spirit is rightly called elohim.",
+      "page_range": "pp. 3-4",
+      "references": [
+        {"reference": "1Sa.28.13", "relevance": "primary"},
+        {"reference": "1Sa.28.3", "relevance": "supporting"},
+        {"reference": "1Sa.28.7", "relevance": "supporting"},
+        {"reference": "1Sa.28.8", "relevance": "supporting"},
+        {"reference": "1Sa.28.14", "relevance": "supporting"},
+        {"reference": "1Sa.28.15", "relevance": "supporting"},
+        {"reference": "Lev.20.27", "relevance": "supporting"},
+        {"reference": "Isa.29.4", "relevance": "supporting"}
+      ],
+      "themes": ["elohim_plural"]
+    }
+  ]
+}

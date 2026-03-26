@@ -1,0 +1,193 @@
+{
+  "translation_name": "Heiser Literal Translation",
+  "abbreviation": "HLT",
+  "principles": {
+    "base_approach": "Literal translation from Hebrew/Greek with explicit rendering of theological concepts that standard translations obscure or domesticate for modern readers.",
+    "annotation_style": "Inline bracket annotations (Jesus), (divine beings), (the Shining One) etc. with corresponding study notes explaining the reasoning.",
+    "text_critical_approach": "Where Dead Sea Scrolls, Septuagint, or Samaritan Pentateuch preserve an older reading supported by scholarly consensus, prefer that reading. Note the Masoretic reading in brackets or study notes.",
+    "divine_name": "Render YHWH as 'Yahweh' throughout (not 'the LORD'). Render Elyon as 'Most High'. Render El Shaddai as 'God Almighty'."
+  },
+  "rules": [
+    {
+      "rule_key": "literal_base",
+      "description": "Start from the existing word-by-word gloss in the tagged Hebrew/Greek text. Aim for formal equivalence while remaining readable in modern English.",
+      "applies_to": "all_verses",
+      "examples": []
+    },
+    {
+      "rule_key": "divine_name_yahweh",
+      "description": "Always render the Tetragrammaton (YHWH, H3068) as 'Yahweh' rather than 'the LORD' or 'GOD'. This preserves the personal name character and avoids confusion with Adonai.",
+      "applies_to": "strongs:H3068",
+      "examples": [
+        {
+          "reference": "Exo.3.15",
+          "standard": "The LORD, the God of your fathers",
+          "hlt": "Yahweh, the God of your fathers"
+        }
+      ]
+    },
+    {
+      "rule_key": "bene_elohim_rendering",
+      "description": "The phrase 'sons of God' (bene elohim, bene elim, bene ha-elohim) always refers to divine beings — members of the heavenly host. Never render as or explain as the 'line of Seth'. Add annotation '(divine beings)' on first occurrence in a passage.",
+      "applies_to": "strongs:H0430+H1121",
+      "examples": [
+        {
+          "reference": "Gen.6.2",
+          "standard": "the sons of God saw that the daughters of man were attractive",
+          "hlt": "the sons of God (divine beings) saw that the daughters of Adam were beautiful"
+        },
+        {
+          "reference": "Job.1.6",
+          "standard": "the sons of God came to present themselves before the LORD",
+          "hlt": "the sons of God (divine beings) came to present themselves before Yahweh"
+        }
+      ]
+    },
+    {
+      "rule_key": "elohim_plural",
+      "description": "When elohim (H0430) is used in a grammatically plural sense referring to beings other than Yahweh, render as 'gods' or 'divine beings'. When referring to Yahweh, render as 'God'. When referring to the departed dead (1 Sam 28:13), render as 'a divine being' or 'spirit'.",
+      "applies_to": "strongs:H0430",
+      "examples": [
+        {
+          "reference": "Psa.82.1",
+          "standard": "God has taken his place in the divine council; in the midst of the gods he holds judgment",
+          "hlt": "God (Elohim) has taken his stand in the divine council; in the midst of the gods (elohim) he renders judgment"
+        },
+        {
+          "reference": "Psa.82.6",
+          "standard": "I said, 'You are gods, sons of the Most High, all of you'",
+          "hlt": "I said, 'You are gods (elohim), sons of the Most High (Elyon), all of you'"
+        }
+      ]
+    },
+    {
+      "rule_key": "nephilim_explicit",
+      "description": "Render Nephilim (H5303) as 'Nephilim (giants)' on first occurrence. Related terms: Rephaim as 'Rephaim (giant dead/shades)', Anakim as 'Anakim (giant clan)', gibborim as 'mighty warriors'. Make the divine-human hybrid origin explicit in annotations.",
+      "applies_to": "strongs:H5303",
+      "examples": [
+        {
+          "reference": "Gen.6.4",
+          "standard": "The Nephilim were on the earth in those days",
+          "hlt": "The Nephilim (giants, offspring of the divine-human union) were on the earth in those days"
+        },
+        {
+          "reference": "Num.13.33",
+          "standard": "And there we saw the Nephilim (the sons of Anak, who come from the Nephilim)",
+          "hlt": "And there we saw the Nephilim (giants) — the sons of Anak descend from the Nephilim"
+        }
+      ]
+    },
+    {
+      "rule_key": "christophany_bracket",
+      "description": "In passages where the Angel of YHWH or a visible divine figure is identified with Yahweh yet distinct from him, add '(Jesus, pre-incarnate)' or '(the visible Yahweh)' in brackets. Always pair with a study note citing the two-powers tradition.",
+      "applies_to": "theme:angel_of_yahweh,two_powers,messianic_expectation",
+      "examples": [
+        {
+          "reference": "Gen.18.1",
+          "standard": "And the LORD appeared to him by the oaks of Mamre",
+          "hlt": "And Yahweh (Jesus, pre-incarnate — the visible Yahweh) appeared to him at the oaks of Mamre"
+        },
+        {
+          "reference": "Exo.3.2",
+          "standard": "And the angel of the LORD appeared to him in a flame of fire",
+          "hlt": "And the angel of Yahweh (Jesus, pre-incarnate) appeared to him in a flame of fire"
+        },
+        {
+          "reference": "Jos.5.14",
+          "standard": "the commander of the army of the LORD",
+          "hlt": "the commander of the army of Yahweh (Jesus, pre-incarnate)"
+        }
+      ]
+    },
+    {
+      "rule_key": "two_yahweh",
+      "description": "Where the text explicitly shows two Yahweh figures (one visible on earth, one invisible in heaven), make this explicit with annotation and study note.",
+      "applies_to": "theme:two_powers",
+      "examples": [
+        {
+          "reference": "Gen.19.24",
+          "standard": "Then the LORD rained on Sodom and Gomorrah sulfur and fire from the LORD out of heaven",
+          "hlt": "Then Yahweh (the visible Yahweh on earth, Jesus) rained on Sodom and Gomorrah sulfur and fire from Yahweh (the invisible Yahweh) out of heaven"
+        },
+        {
+          "reference": "Zec.3.2",
+          "standard": "The LORD said to Satan, 'The LORD rebuke you, O Satan!'",
+          "hlt": "Yahweh (the visible Yahweh, Jesus) said to the Adversary, 'May Yahweh (the Most High) rebuke you, O Adversary!'"
+        }
+      ]
+    },
+    {
+      "rule_key": "nachash_rendering",
+      "description": "In Genesis 3, render nachash (H5175) with annotation '(the Shining One)' reflecting the adjectival meaning of the Hebrew root. Cross-reference with Ezekiel 28:14 (anointed guardian cherub) and Isaiah 14:12 in study notes.",
+      "applies_to": "strongs:H5175",
+      "examples": [
+        {
+          "reference": "Gen.3.1",
+          "standard": "Now the serpent was more crafty than any other beast of the field",
+          "hlt": "Now the nachash (the Shining One, a divine being) was more shrewd than any creature of the field"
+        }
+      ]
+    },
+    {
+      "rule_key": "divine_council_explicit",
+      "description": "Render sod (H5475) as 'divine council' or 'council' when referring to the heavenly assembly. Render edah (H5712) and qahal (H6951) similarly when in divine context.",
+      "applies_to": "strongs:H5475",
+      "examples": [
+        {
+          "reference": "Jer.23.18",
+          "standard": "For who among them has stood in the council of the LORD",
+          "hlt": "For who among them has stood in the divine council of Yahweh"
+        },
+        {
+          "reference": "Psa.89.7",
+          "standard": "a God greatly to be feared in the council of the holy ones",
+          "hlt": "a God greatly to be feared in the divine council of the holy ones (divine beings)"
+        }
+      ]
+    },
+    {
+      "rule_key": "variant_preferred",
+      "description": "Where the Dead Sea Scrolls or Septuagint preserve an older reading that scholarship supports as original, use that reading in the HLT main text. Note the Masoretic reading in a study note with 'MT reads: ...'",
+      "applies_to": "textual_variants",
+      "examples": [
+        {
+          "reference": "Deu.32.8",
+          "standard": "according to the number of the sons of Israel (MT)",
+          "hlt": "according to the number of the sons of God (divine beings) [MT reads: 'sons of Israel'; DSS 4QDeutj and LXX preserve the original 'sons of God']"
+        },
+        {
+          "reference": "Deu.32.43",
+          "standard": "Rejoice with him, O heavens (MT, shorter)",
+          "hlt": "Rejoice, O heavens, with him, and bow down to him, all gods (divine beings) [MT has shorter text; 4QDeutq and LXX preserve the longer original]"
+        }
+      ]
+    },
+    {
+      "rule_key": "watchers_explicit",
+      "description": "Where canonical text references the Watchers tradition (1 Enoch parallel material), make the connection explicit in study notes. In the text itself, ensure the supernatural reading is clear.",
+      "applies_to": "theme:watchers_tradition",
+      "examples": [
+        {
+          "reference": "Gen.6.1-4",
+          "note": "Study note connects to 1 Enoch 6-16, Jude 6-7, 2 Peter 2:4-5"
+        },
+        {
+          "reference": "Lev.16.8",
+          "note": "Azazel (H5799) connected to the Watchers leader in 1 Enoch 10:4-8"
+        }
+      ]
+    },
+    {
+      "rule_key": "shedim_rendering",
+      "description": "Render shedim (H7700) as 'demons' with annotation noting these are the disembodied spirits of dead Nephilim in the Second Temple understanding, distinct from the rebellious divine council members (gods of the nations).",
+      "applies_to": "strongs:H7700",
+      "examples": [
+        {
+          "reference": "Deu.32.17",
+          "standard": "They sacrificed to demons that were no gods",
+          "hlt": "They sacrificed to demons (shedim — spirits of the dead Nephilim) that were not God, to gods (elohim) they had not known"
+        }
+      ]
+    }
+  ]
+}

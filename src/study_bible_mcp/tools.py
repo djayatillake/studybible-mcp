@@ -732,7 +732,102 @@ Call with dimension='ane_methodology' to retrieve the derivation hierarchy, conf
             }
         }
     ),
+    # =========================================================================
+    # Heiser / HLT tools
+    # =========================================================================
+    Tool(
+        name="get_heiser_context",
+        annotations=ToolAnnotations(title="Heiser Scholarship", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
+        description="""Get Michael Heiser's scholarship context for a Bible passage or theme.
+
+Returns Heiser/Van Dorn content entries with verse mappings and theme links.
+
+USE THIS when discussing:
+- The divine council (Psalm 82, Deuteronomy 32, Job 1-2)
+- Sons of God / bene elohim (Genesis 6, Job 38)
+- The Angel of Yahweh / two-powers theology (Genesis 18-19, Zechariah 3)
+- Nephilim, Rephaim, and the giant clans
+- The nachash / serpent in Eden (Genesis 3)
+- Cosmic geography and spiritual warfare
+- Deuteronomy 32 worldview
+
+Query by verse reference OR by theme key.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "type": "string",
+                    "description": "Bible reference (e.g., 'Psalm 82:1', 'Genesis 6:2', 'Deuteronomy 32:8')"
+                },
+                "theme": {
+                    "type": "string",
+                    "description": "Theme key (e.g., 'divine_council', 'bene_elohim', 'two_powers', 'nephilim', 'nachash', 'cosmic_geography')"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum entries to return. Default: 10"
+                }
+            }
+        }
+    ),
 ]
+
+
+# =========================================================================
+# Format functions — Heiser / HLT
+# =========================================================================
+
+def format_heiser_context(entries: list[dict], themes: list[dict] | None = None) -> str:
+    """Format Heiser scholarship entries for display."""
+    if not entries:
+        return "No Heiser scholarship found for this query."
+
+    lines = []
+    for entry in entries:
+        lines.append(f"### {entry.get('title') or entry.get('chapter_or_episode', 'Untitled')}")
+        lines.append(f"**Source**: {entry.get('source_author', '')} — *{entry.get('source_work', '')}*")
+        if entry.get("chapter_or_episode"):
+            lines.append(f"**Chapter/Episode**: {entry['chapter_or_episode']}")
+        if entry.get("matched_ref"):
+            lines.append(f"**Matched Reference**: {entry['matched_ref']}")
+        if entry.get("themes"):
+            lines.append(f"**Themes**: {entry['themes']}")
+        lines.append("")
+
+        if entry.get("content_summary"):
+            lines.append(entry["content_summary"])
+            lines.append("")
+
+        if entry.get("content_detail"):
+            lines.append("**Detail**:")
+            lines.append(_truncate(entry["content_detail"], 2000))
+            lines.append("")
+
+        lines.append("---")
+        lines.append("")
+
+    if themes:
+        lines.append("## Available Themes")
+        for t in themes:
+            count = t.get("entry_count", 0)
+            lines.append(f"- **{t['theme_key']}** ({t['theme_label']}): {t['description'][:100]} [{count} entries]")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+def format_heiser_themes(themes: list[dict]) -> str:
+    """Format list of all Heiser themes."""
+    lines = ["## Heiser Theological Themes\n"]
+    for t in themes:
+        count = t.get("entry_count", 0)
+        lines.append(f"### {t['theme_label']} (`{t['theme_key']}`)")
+        lines.append(f"{t['description']}")
+        if t.get("parent_theme"):
+            lines.append(f"**Parent theme**: {t['parent_theme']}")
+        lines.append(f"**Entries**: {count}")
+        lines.append("")
+    return "\n".join(lines)
 
 
 def format_lexicon_entry(entry: dict) -> str:

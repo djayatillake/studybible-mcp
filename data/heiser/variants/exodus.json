@@ -1,0 +1,21 @@
+{
+  "variants": [
+    {
+      "reference": "Exo.23.20",
+      "mt_reading": "Behold, I am about to send an angel before you to guard you on the way and to bring you to the place I have prepared",
+      "mt_hebrew": "הִנֵּה אָנֹכִי שֹׁלֵחַ מַלְאָךְ לְפָנֶיךָ לִשְׁמָרְךָ בַּדָּרֶךְ (mal'akh = angel/messenger)",
+      "variant_source": "MT_preserved",
+      "variant_reading": "In v.21 Yahweh says 'my Name is in him' (שְׁמִי בְּקִרְבּוֹ, shemi beqirbo). The Hebrew 'Name theology' (ha-shem) is a circumlocution for Yahweh himself — God's Name IS God's presence/essence. The Angel who carries God's Name IS Yahweh in visible form. This is confirmed by: (a) Judges 2:1-3 credits the Angel with bringing Israel out of Egypt; (b) Deuteronomy 4:37 credits the 'Presence' (panim) of Yahweh; (c) 1 Samuel 8:8 credits God himself. All three are the same event described as accomplished by the Angel = the Presence = Yahweh. The Angel is not a created being with delegated authority — he IS Yahweh's embodied presence.",
+      "variant_original": "Same text; Name theology passage",
+      "variant_significance": "major_theological",
+      "heiser_analysis": "Heiser identifies Exodus 23:20-23 as the foundational 'Name theology' text. The Angel carries Yahweh's Name/essence within him. This is the basis for the vice-regent slot in Israel's divine council — Yahweh himself in another form, a distinct personage who 'was but wasn't' Yahweh. The same Angel is the 'commander of Yahweh's army' in Joshua 5:13-15, where Joshua is told to 'take off your sandals, for the place where you stand is holy' — the same command given to Moses at the burning bush (Exo 3:5), confirming the Angel is the same divine figure.",
+      "scholarly_consensus": "The connection between the Angel of Yahweh, the Name theology, and the divine Presence is widely recognized in OT scholarship. The identity of the Angel with Yahweh himself is explicit in multiple passages.",
+      "preferred_for_hlt": "Behold, I am about to send my Angel (Jesus, the visible Yahweh — my Name/Presence is in him) before you, to guard you on the way and to bring you to the place I have prepared.",
+      "hlt_rationale": "The HLT identifies the Angel as the pre-incarnate Christ based on the Name theology (v.21) and the cross-references establishing this Angel as Yahweh's embodied presence.",
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    }
+  ]
+}
