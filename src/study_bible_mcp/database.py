@@ -980,6 +980,75 @@ class StudyBibleDB:
         return await self._fetchall(sql, params)
 
     # =========================================================================
+    # Torah Weave queries (Moshe Kline's Woven Torah hypothesis)
+    # =========================================================================
+
+    async def has_torah_weave_data(self) -> bool:
+        """Check if torah_weave tables exist and have data."""
+        return await self._table_has_rows("torah_weave_units")
+
+    async def get_torah_weave_cells_for_reference(
+        self, reference: str
+    ) -> list[dict]:
+        """Find all Torah Weave cells that contain the given reference.
+
+        Returns cells joined with their parent unit metadata. Multiple cells
+        may match if a verse sits within both a cell and a sibling subdivision
+        in the same unit, or if units overlap at their boundaries.
+        """
+        normalized = self._normalize_reference(reference)
+        parts = normalized.split(".")
+        if len(parts) < 3:
+            return []
+        book_abbr = parts[0]
+        try:
+            chapter = int(parts[1])
+            verse = int(parts[2])
+        except ValueError:
+            return []
+
+        # Only Torah books have weave data
+        if book_abbr not in ("Gen", "Exo", "Lev", "Num", "Deu"):
+            return []
+
+        target = chapter * 1000 + verse
+        return await self._fetchall(
+            """
+            SELECT c.*,
+                   u.id AS unit_serial,
+                   u.book_full AS unit_book_full,
+                   u.unit_number AS unit_number,
+                   u.title AS unit_title,
+                   u.verses AS unit_verses,
+                   u.verse_range AS unit_verse_range,
+                   u.format AS unit_format,
+                   u.irregular AS unit_irregular,
+                   u.is_unique AS unit_is_unique,
+                   u.cell_count AS unit_cell_count,
+                   u.type AS unit_type
+            FROM torah_weave_cells c
+            JOIN torah_weave_units u ON u.id = c.unit_id
+            WHERE c.book = ?
+              AND c.sort_start <= ?
+              AND c.sort_end >= ?
+            ORDER BY (c.sort_end - c.sort_start) ASC, c.row_num, c.column_letter
+            """,
+            (book_abbr, target, target),
+        )
+
+    async def get_torah_weave_unit_cells(self, unit_id: int) -> list[dict]:
+        """Get all cells for a given unit, ordered by row then column then subdivision."""
+        return await self._fetchall(
+            """
+            SELECT * FROM torah_weave_cells
+            WHERE unit_id = ?
+            ORDER BY row_num, column_letter,
+                     CASE WHEN subdivision IS NULL THEN '' ELSE subdivision END
+            """,
+            (unit_id,),
+        )
+
+    # =========================================================================
     # Theological scholarship queries (unified: Heiser, Bradley, etc.)
     # =========================================================================
 
@@ -1495,6 +1564,50 @@ def create_schema(conn: sqlite3.Connection):
         );
         CREATE INDEX IF NOT EXISTS idx_ane_bm_book ON ane_book_mappings(book);
         CREATE INDEX IF NOT EXISTS idx_ane_bm_entry ON ane_book_mappings(entry_id);
+
+        -- =====================================================================
+        -- Torah Weave (Moshe Kline) — 86 literary units of the Torah as
+        -- two-dimensional compositions. Each unit has cells arranged in rows
+        -- and columns; horizontal and vertical cell pairings encode parallel
+        -- correspondences and thematic progressions.
+        -- =====================================================================
+
+        CREATE TABLE IF NOT EXISTS torah_weave_units (
+            id INTEGER PRIMARY KEY,           -- serial_number (1-86)
+            book TEXT NOT NULL,               -- "Gen", "Exo", "Lev", "Num", "Deu"
+            book_full TEXT NOT NULL,          -- "Genesis", ...
+            unit_number INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            verses TEXT NOT NULL,             -- e.g. "Genesis 1:1-2:3"
+            verse_range TEXT NOT NULL,        -- e.g. "1:1-2:3"
+            format TEXT NOT NULL,             -- "3x2" (regular) or digit string (irregular)
+            irregular INTEGER NOT NULL,       -- 0/1
+            is_unique INTEGER NOT NULL,       -- 0/1
+            cell_count INTEGER NOT NULL,
+            type TEXT,                        -- "F" framework, "CL" closure, "U" unique, or NULL
+            cell_count_with_subdivisions INTEGER
+        );
+        CREATE INDEX IF NOT EXISTS idx_tw_units_book ON torah_weave_units(book);
+
+        CREATE TABLE IF NOT EXISTS torah_weave_cells (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            unit_id INTEGER NOT NULL REFERENCES torah_weave_units(id),
+            cell_label TEXT NOT NULL,         -- "1A", "2Ba", etc.
+            row_num INTEGER NOT NULL,
+            column_letter TEXT NOT NULL,      -- "A", "B", ...
+            subdivision TEXT,                 -- "a", "b", or NULL
+            book TEXT NOT NULL,               -- denormalized for lookup
+            verse_range TEXT NOT NULL,        -- original string, e.g. "6:1-6:4"
+            chapter_start INTEGER NOT NULL,
+            verse_start INTEGER NOT NULL,
+            chapter_end INTEGER NOT NULL,
+            verse_end INTEGER NOT NULL,
+            sort_start INTEGER NOT NULL,      -- chapter*1000 + verse (inclusive)
+            sort_end INTEGER NOT NULL,        -- chapter*1000 + verse (inclusive)
+            UNIQUE(unit_id, cell_label)
+        );
+        CREATE INDEX IF NOT EXISTS idx_tw_cells_unit ON torah_weave_cells(unit_id);
+        CREATE INDEX IF NOT EXISTS idx_tw_cells_lookup ON torah_weave_cells(book, sort_start, sort_end);
     """)
     conn.commit()
 

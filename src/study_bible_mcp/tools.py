@@ -782,6 +782,44 @@ Query by verse reference, theme key, and/or author.""",
             }
         }
     ),
+    Tool(
+        name="get_torah_weave",
+        annotations=ToolAnnotations(title="Torah Weave Structural Parallels", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
+        description="""Get the structurally-paired verses for a Torah passage under Moshe Kline's Woven Torah hypothesis.
+
+The Torah is organised as 86 two-dimensional literary units (Genesis–Deuteronomy). Each unit is a grid of cells arranged in rows and columns, and cells are deliberately paired with one another across rows (horizontal partners) and down columns (vertical partners). Knowing the weave partners of a verse gives you additional passages that the Torah's author(s) intended to be read alongside it.
+
+USE THIS when:
+- Studying any passage in Genesis, Exodus, Leviticus, Numbers, or Deuteronomy
+- You want to see which other verses are structurally paired with a passage
+- You suspect two passages in the Torah are deliberately interwoven (doublets, creation/flood, law parallels, etc.)
+- You're preparing a comparative reading and want the author-intended partners, not just thematic cross-references
+- You want additional context for a Torah verse beyond lexical or thematic similarity
+
+WHAT IT RETURNS:
+- The literary unit the verse sits in (title, format, type, verse span)
+- The cell the verse occupies (row/column label + verse range)
+- Horizontal partner cells (same row, same subdivision, different column)
+- Vertical partner cells (same column, same subdivision, different row)
+- Sibling cells (same row and column, adjacent subdivisions)
+- A short explanation of what each direction of pairing means under Kline's method
+- A directive block instructing the caller how to turn these pointers into an interpretation
+
+HOW TO USE THE OUTPUT:
+This tool returns STRUCTURAL POINTERS, not pre-written interpretation. After calling it, call `lookup_verse` on each partner cell's verse range to read the actual text, then synthesise the interpretation yourself using the directional semantics the tool provides. Horizontal partners are symmetric parallels (same register, different thematic tracks); vertical partners trace a progression through divine-name registers along a single thematic track. Reading the paired verses and applying those semantics is how the weave yields meaning.
+
+Only Torah books (Genesis through Deuteronomy) have weave data. Source: Moshe Kline, chaver.com, CC BY 4.0.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "type": "string",
+                    "description": "Bible reference in Genesis–Deuteronomy (e.g., 'Genesis 6:1', 'Exodus 14:21', 'Leviticus 19:18')"
+                }
+            },
+            "required": ["reference"]
+        }
+    ),
 ]
 
 
@@ -1657,4 +1695,218 @@ def mermaid_place_network(
         lines.append(f"    style {pid} fill:#d94a4a,color:#fff")
 
     lines.append("```")
+    return "\n".join(lines)
+
+
+# =========================================================================
+# Format functions — Torah Weave
+# =========================================================================
+
+# Template explaining the structural meaning of each direction.
+_TORAH_WEAVE_DIRECTIONAL_DOC = """\
+### How to read Torah Weave partners
+
+Under Moshe Kline's Woven Torah hypothesis, each Torah unit is a 2D grid whose \
+cells are deliberately paired in two directions:
+
+- **Horizontal partners** (same row, different column) are **parallel correspondences** \
+at the same compositional tier. Rows in Kline's method carry divine-name registers \
+(Row 1 tends to feature YHWH as active subject, Row 3 Elohim, Row 2 the interface \
+between them), so horizontal partners sit at the same register but on different \
+thematic tracks. Read them as a symmetry: the two cells are the same "note" played \
+in different thematic keys. Look for inversion, contrast, completion, or framework-\
+and-filling.
+
+- **Vertical partners** (same column, different row) are **progressions through \
+divine-name registers along a single thematic track**. Columns are thematic tracks, \
+so vertical partners follow one theme as it moves through the register hierarchy. \
+Read them as development, not symmetry. Look for escalation, register shift, or \
+narrative arc.
+
+- **Sibling cells** (same row + column, adjacent subdivisions) are an internal \
+progression inside a single cell position. Read them sequentially.
+
+**What to do next**: call `lookup_verse` on each partner cell's verse range to read \
+the actual text, then synthesise the interpretation yourself by applying the \
+directional semantics above to what you read. The thematic content of each unit's \
+columns is NOT pre-labelled in Kline's dataset — you infer it from the verses."""
+
+
+def _cell_sort_key(cell: dict) -> tuple:
+    """Sort key: row, then column, then subdivision ('' before 'a' before 'b')."""
+    return (
+        cell["row_num"],
+        cell["column_letter"],
+        cell.get("subdivision") or "",
+    )
+
+
+def _cells_match_subdivision(a: dict, b: dict) -> bool:
+    """Two cells match on subdivision if both are parent (None) or both same letter."""
+    return (a.get("subdivision") or None) == (b.get("subdivision") or None)
+
+
+def compute_torah_weave_partners(
+    target_cell: dict, all_cells: list[dict]
+) -> dict[str, list[dict]]:
+    """Given a cell and all cells in its unit, compute partners by direction."""
+    horizontal: list[dict] = []
+    vertical: list[dict] = []
+    siblings: list[dict] = []
+
+    for c in all_cells:
+        if c["id"] == target_cell["id"]:
+            continue
+
+        same_row = c["row_num"] == target_cell["row_num"]
+        same_col = c["column_letter"] == target_cell["column_letter"]
+        same_sub = _cells_match_subdivision(c, target_cell)
+
+        if same_row and same_sub and not same_col:
+            horizontal.append(c)
+        elif same_col and same_sub and not same_row:
+            vertical.append(c)
+        elif same_row and same_col and not same_sub:
+            siblings.append(c)
+
+    horizontal.sort(key=_cell_sort_key)
+    vertical.sort(key=_cell_sort_key)
+    siblings.sort(key=_cell_sort_key)
+    return {"horizontal": horizontal, "vertical": vertical, "siblings": siblings}
+
+
+def _format_cell_ref(cell: dict, book_full: str) -> str:
+    """Format a cell's verse range as a user-readable reference."""
+    c1, v1, c2, v2 = (
+        cell["chapter_start"],
+        cell["verse_start"],
+        cell["chapter_end"],
+        cell["verse_end"],
+    )
+    if c1 == c2 and v1 == v2:
+        return f"{book_full} {c1}:{v1}"
+    if c1 == c2:
+        return f"{book_full} {c1}:{v1}-{v2}"
+    return f"{book_full} {c1}:{v1}-{c2}:{v2}"
+
+
+def _format_partner_line(cell: dict, book_full: str) -> str:
+    sub = f" (subdivision {cell['subdivision']})" if cell.get("subdivision") else ""
+    return (
+        f"- **Cell {cell['cell_label']}**{sub} — "
+        f"{_format_cell_ref(cell, book_full)}"
+    )
+
+
+def format_torah_weave(
+    reference: str,
+    matches: list[dict],
+    unit_cells_by_unit: dict[int, list[dict]],
+) -> str:
+    """Format Torah Weave match(es) for a reference.
+
+    matches: list of cells (joined with unit metadata) returned by
+        get_torah_weave_cells_for_reference.
+    unit_cells_by_unit: map of unit_id → all cells in that unit.
+    """
+    if not matches:
+        return (
+            f"No Torah Weave unit contains {reference}. "
+            "Torah Weave data covers Genesis–Deuteronomy only."
+        )
+
+    lines: list[str] = []
+    lines.append(f"## Torah Weave for {reference}\n")
+    lines.append(
+        "*Source: Moshe Kline, Woven Torah hypothesis "
+        "(chaver.com, CC BY 4.0)*\n"
+    )
+
+    type_labels = {
+        "F": "Framework (marks structural boundaries)",
+        "CL": "Closure (provides envelope closure)",
+        "U": "Unique (stands outside triadic groupings)",
+    }
+
+    for i, cell in enumerate(matches):
+        if i > 0:
+            lines.append("\n---\n")
+
+        unit_id = cell["unit_id"]
+        unit_book_full = cell["unit_book_full"]
+        unit_title = cell["unit_title"]
+        unit_verses = cell["unit_verses"]
+        unit_format = cell["unit_format"]
+        unit_type = cell.get("unit_type")
+        unit_type_label = type_labels.get(unit_type) if unit_type else None
+        unit_irregular = bool(cell.get("unit_irregular"))
+        unit_is_unique = bool(cell.get("unit_is_unique"))
+
+        lines.append(
+            f"### Unit {unit_id} · \"{unit_title}\" ({unit_verses})"
+        )
+        lines.append("")
+        meta_bits = [f"**Format**: {unit_format}"]
+        if unit_irregular:
+            meta_bits.append("irregular")
+        if unit_is_unique:
+            meta_bits.append("unique (outside triadic pattern)")
+        if unit_type_label:
+            meta_bits.append(f"**Type**: {unit_type} — {unit_type_label}")
+        lines.append(" · ".join(meta_bits))
+        lines.append("")
+
+        sub_note = (
+            f" (subdivision {cell['subdivision']})"
+            if cell.get("subdivision")
+            else ""
+        )
+        lines.append(
+            f"**Cell position**: `{cell['cell_label']}` — "
+            f"row {cell['row_num']}, column {cell['column_letter']}{sub_note}"
+        )
+        lines.append(
+            f"**Cell verse range**: {_format_cell_ref(cell, unit_book_full)}"
+        )
+        lines.append("")
+
+        all_cells = unit_cells_by_unit.get(unit_id, [])
+        partners = compute_torah_weave_partners(cell, all_cells)
+
+        if partners["horizontal"]:
+            lines.append("#### ⇄ Horizontal weave partners (same row)")
+            lines.append(
+                "*Parallel correspondences at the same compositional tier / divine-name register.*"
+            )
+            for p in partners["horizontal"]:
+                lines.append(_format_partner_line(p, unit_book_full))
+            lines.append("")
+        else:
+            lines.append("#### ⇄ Horizontal weave partners")
+            lines.append("*(none — this cell has no row partner)*\n")
+
+        if partners["vertical"]:
+            lines.append("#### ↕ Vertical weave partners (same column)")
+            lines.append(
+                "*Progression through divine-name registers along a single thematic track.*"
+            )
+            for p in partners["vertical"]:
+                lines.append(_format_partner_line(p, unit_book_full))
+            lines.append("")
+        else:
+            lines.append("#### ↕ Vertical weave partners")
+            lines.append("*(none — this cell has no column partner)*\n")
+
+        if partners["siblings"]:
+            lines.append("#### ↔ Sibling cells (same row + column)")
+            lines.append(
+                "*Internal progression within this cell position; read sequentially.*"
+            )
+            for p in partners["siblings"]:
+                lines.append(_format_partner_line(p, unit_book_full))
+            lines.append("")
+
+    lines.append("\n---\n")
+    lines.append(_TORAH_WEAVE_DIRECTIONAL_DOC)
+    lines.append("")
     return "\n".join(lines)

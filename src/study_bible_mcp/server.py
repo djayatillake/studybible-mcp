@@ -42,6 +42,7 @@ from .tools import (
     format_study_notes, format_dictionary_article, format_key_terms,
     format_ane_context, format_ane_dimensions,
     format_theology_context, format_theology_themes,
+    format_torah_weave,
 )
 from .hermeneutics import (
     get_genre_from_reference,
@@ -871,6 +872,36 @@ async def handle_get_theology_context(args: dict[str, Any]) -> list[TextContent]
     return text(result)
 
 
+async def handle_get_torah_weave(args: dict[str, Any]) -> list[TextContent]:
+    """Handle get_torah_weave tool — Moshe Kline's Woven Torah structural partners."""
+    reference = args.get("reference", "")
+    if not reference:
+        return text("Please provide a Bible reference in Genesis–Deuteronomy.")
+
+    has_data = await db.has_torah_weave_data()
+    if not has_data:
+        return text(
+            "Torah Weave data not available. Run "
+            "'python scripts/import_torah_weave.py' to import it."
+        )
+
+    matches = await db.get_torah_weave_cells_for_reference(reference)
+    if not matches:
+        return text(
+            f"No Torah Weave unit contains {reference}. "
+            "Torah Weave data covers Genesis–Deuteronomy only."
+        )
+
+    # Fetch full cell sets for each unique unit (needed to compute partners)
+    unit_ids = {m["unit_id"] for m in matches}
+    unit_cells_by_unit: dict[int, list[dict]] = {}
+    for unit_id in unit_ids:
+        unit_cells_by_unit[unit_id] = await db.get_torah_weave_unit_cells(unit_id)
+
+    result = format_torah_weave(reference, matches, unit_cells_by_unit)
+    return text(result)
+
+
 _TOOL_HANDLERS = {
     "word_study": handle_word_study,
     "lookup_verse": handle_lookup_verse,
@@ -891,6 +922,7 @@ _TOOL_HANDLERS = {
     "get_key_terms": handle_get_key_terms,
     "get_ane_context": handle_get_ane_context,
     "get_theology_context": handle_get_theology_context,
+    "get_torah_weave": handle_get_torah_weave,
 }
 
 
