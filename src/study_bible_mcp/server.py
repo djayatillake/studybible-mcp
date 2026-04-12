@@ -192,6 +192,18 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
     if genre:
         result += f"\n\n---\n{format_genre_guidance(genre)}"
 
+    # Hint: Torah Weave structural partners are available for Gen–Deu verses.
+    # Kept as a one-line nudge so the agent can follow up with get_torah_weave
+    # only when the structural reading is relevant.
+    if verse.get("book") in ("Gen", "Exo", "Lev", "Num", "Deu"):
+        if await db.has_torah_weave_data():
+            result += (
+                f"\n\n---\n*Torah Weave structural partners available for this verse "
+                f"via `get_torah_weave` (reference='{reference}') — returns the cells "
+                f"this verse is deliberately paired with under Moshe Kline's Woven "
+                f"Torah hypothesis.*"
+            )
+
     return text(result)
 
 
