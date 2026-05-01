@@ -230,16 +230,39 @@ Revelation's subject is "apocalyptic". The CH dataset partly compensates
 allusion is being missed, retry with `source="ch"` or use `find_similar_passages`
 to catch verbal parallels the topical index would skip.
 
-**Strength scoring is meaningful — respect it.** TSK includes a long tail of
-weakly-voted pairs (200k+ refs with ≤4 votes) that are mostly noise. Default
-behaviour is tuned for **strict context-economy**: `limit=4` returns only the
-top few strongest refs (CH first, then highest-voted TSK). This is intentional —
-each verse can have 50+ TSK refs and dumping them all bloats the LLM
-context for no gain. Only raise `limit` when the user explicitly asks for
-exhaustive study, and even then pair it with `min_strength` (e.g.
-`min_strength=10`) to keep the long tail out. CH refs always pass
-`min_strength` because every CH pair is hand-curated — they all carry signal
-even at relevance=0.
+**Strength scoring is meaningful — respect it.** Default behaviour is tuned for
+**strict context-economy**: `limit=4` returns only the top few strongest refs
+(CH first, then highest-voted TSK). Each verse can have 50+ TSK refs; dumping
+them all bloats context for no gain. Only raise `limit` when the user explicitly
+asks for exhaustive study, and pair it with `min_strength` (e.g. `min_strength=10`).
+
+**How to interpret the scores you get back.** Strength is shown next to each
+ref — `(votes: N)` for TSK, `(canonical direction)` / `(circle)` tags for CH.
+You MUST read these before using a ref:
+
+  TSK vote scale (full corpus distribution):
+    ≥ 500 votes  — extraordinary; near-universal cross-reference (top 0.01%, only 35 pairs)
+    100-499      — very strong; the link tradition reflexively makes (top 0.4%)
+     50-99       — strong; well-established parallel (top 1.3%)
+     20-49       — solid; real connection acknowledged across commentaries (top 5%)
+     10-19       — moderate; one of many recognised links (top 12%)
+      5-9        — weak; thematic stretch, use with caution (top 33%)
+      2-4        — very weak; mostly noise floor (62% of TSK)
+      0-1        — noise
+
+  CH (curated — all CH refs carry signal, but the tag tells you weight):
+    "canonical direction" (rel=3 or 2) — Harrison's flag for the canonical
+        direction of the pair, often part of a thematic circle (top 78% of CH)
+    no tag (rel=0) — present in CH but unflagged (still hand-curated)
+
+**When the top results are weak, SAY SO.** If the strongest ref returned has
+only 5-15 votes, do not present it with the same confidence as a 200-vote
+parallel. Caveat the answer: "this verse isn't strongly cross-referenced in
+the topical index — the closest link is X with only N votes, suggesting
+tradition didn't treat this as a major thematic anchor." When TSK is thin,
+try `source="ch"` — Harrison's curated set leans toward NT-quotes-OT links
+and may catch what a topical index missed. Or fall back to
+`find_similar_passages` for verbal/semantic parallels Torrey wouldn't index.
 
 You may pass `source="ch"` or `source="tsk"` to restrict to one dataset —
 useful when CH alone gives too little (e.g. an obscure verse with no CH
