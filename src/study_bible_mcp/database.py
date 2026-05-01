@@ -271,13 +271,47 @@ class StudyBibleDB:
     # Cross-reference queries
     # =========================================================================
     
-    async def get_cross_references(self, reference: str) -> list[dict]:
-        """Get cross-references for a verse."""
+    async def get_cross_references(
+        self,
+        reference: str,
+        source_filter: str | None = None,
+        limit: int = 12,
+        min_strength: int | None = None,
+    ) -> list[dict]:
+        """Get cross-references for a verse, ordered by strength.
+
+        Ranks CH (Harrison/Romhild) above TSK (Treasury of Scripture Knowledge).
+        Within each provenance, sorts by `relevance` desc — for CH this is
+        Orig*2+Circ (range 0..3), for TSK it is the openbible.info vote count.
+
+        Args:
+            reference: verse reference, e.g. "John 3:16".
+            source_filter: 'ch' or 'tsk' to restrict to one dataset.
+            limit: max rows. Default 12 — keeps the strongest refs only;
+                the long tail of low-vote TSK pairs is dropped because it
+                is mostly noise that crowds out useful context.
+            min_strength: if set, TSK rows with relevance < min_strength are
+                excluded. CH rows are never dropped by this filter (all CH
+                pairs are hand-curated, so even relevance=0 means "vetted").
+        """
         normalized = self._normalize_reference(reference)
-        return await self._fetchall(
-            "SELECT * FROM cross_references WHERE source = ? OR source LIKE ?",
-            (normalized, f"%{normalized}%"),
+        params: list = [normalized]
+        sql = "SELECT * FROM cross_references WHERE source = ? "
+        if source_filter:
+            sql += "AND type = ? "
+            params.append(source_filter)
+        if min_strength is not None and min_strength > 0:
+            # CH refs always pass; TSK must clear the threshold.
+            sql += "AND (type = 'ch' OR relevance >= ?) "
+            params.append(min_strength)
+        sql += (
+            "ORDER BY CASE type WHEN 'ch' THEN 2 WHEN 'tsk' THEN 1 ELSE 0 END DESC, "
+            "         relevance DESC, "
+            "         target "
+            "LIMIT ?"
         )
+        params.append(limit)
+        return await self._fetchall(sql, tuple(params))
 
     async def get_thematic_references(self, theme: str) -> list[dict]:
         """Get references for a theological theme."""
@@ -1356,14 +1390,21 @@ def create_schema(conn: sqlite3.Connection):
         CREATE INDEX IF NOT EXISTS idx_names_type ON names(type);
 
         -- Cross references
+        -- type: 'ch' (Harrison/Romhild curated), 'tsk' (Treasury of Scripture
+        -- Knowledge via openbible.info), or NULL for legacy/manual entries.
+        -- relevance: per-source ranking signal — CH uses 0..3 (Orig*2+Circ),
+        -- TSK uses raw vote counts. Higher = stronger.
         CREATE TABLE IF NOT EXISTS cross_references (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source TEXT NOT NULL,
             target TEXT NOT NULL,
             type TEXT,
-            note TEXT
+            note TEXT,
+            relevance INTEGER NOT NULL DEFAULT 0
         );
         CREATE INDEX IF NOT EXISTS idx_xref_source ON cross_references(source);
+        CREATE INDEX IF NOT EXISTS idx_xref_source_rank
+            ON cross_references(source, type, relevance DESC);
 
         -- Thematic references
         CREATE TABLE IF NOT EXISTS thematic_references (

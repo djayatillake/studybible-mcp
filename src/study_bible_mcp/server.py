@@ -230,10 +230,28 @@ async def handle_search_lexicon(args: dict[str, Any]) -> list[TextContent]:
     return text(result)
 
 
+_XREF_SOURCE_LABEL = {
+    "ch": "Harrison/Romhild",
+    "tsk": "TSK",
+}
+
+
+def _format_xref_target(raw: str) -> str:
+    """Pretty-print 'Jhn.3.16' as 'Jhn 3:16' for human-friendly output."""
+    parts = raw.split(".")
+    if len(parts) == 3:
+        return f"{parts[0]} {parts[1]}:{parts[2]}"
+    return raw
+
+
 async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]:
     """Handle get_cross_references tool - find related passages."""
     reference = args.get("reference")
     theme = args.get("theme")
+    source_filter = args.get("source")
+    limit = int(args.get("limit") or 12)
+    min_strength_raw = args.get("min_strength")
+    min_strength = int(min_strength_raw) if min_strength_raw is not None else None
 
     if theme:
         refs = await db.get_thematic_references(theme)
@@ -246,13 +264,52 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
         return text(result)
 
     elif reference:
-        refs = await db.get_cross_references(reference)
+        refs = await db.get_cross_references(
+            reference,
+            source_filter=source_filter,
+            limit=limit,
+            min_strength=min_strength,
+        )
         if not refs:
-            return text(f"No cross-references found for {reference}.")
+            return text(
+                f"No cross-references found for {reference}."
+                + (f" (source filter: {source_filter})" if source_filter else "")
+            )
+
+        ch_refs = [r for r in refs if r.get("type") == "ch"]
+        tsk_refs = [r for r in refs if r.get("type") == "tsk"]
+        other = [r for r in refs if r.get("type") not in ("ch", "tsk")]
 
         result = f"## Cross-References for {reference}\n\n"
-        for ref in refs:
-            result += f"- {ref['target']}\n"
+        result += (
+            f"_{len(refs)} reference(s) returned (limit={limit}). "
+            f"CH = Harrison/Romhild curated; TSK = Treasury of Scripture Knowledge._\n\n"
+        )
+
+        if ch_refs:
+            result += f"### Curated (CH) — {len(ch_refs)}\n"
+            for ref in ch_refs:
+                tag = ""
+                if ref.get("relevance", 0) >= 2:
+                    tag = "  *(canonical direction)*"
+                elif ref.get("relevance", 0) == 1:
+                    tag = "  *(circle)*"
+                result += f"- {_format_xref_target(ref['target'])}{tag}\n"
+            result += "\n"
+
+        if tsk_refs:
+            result += f"### TSK — {len(tsk_refs)}\n"
+            for ref in tsk_refs:
+                votes = ref.get("relevance", 0)
+                vote_tag = f"  *(votes: {votes})*" if votes else ""
+                result += f"- {_format_xref_target(ref['target'])}{vote_tag}\n"
+            result += "\n"
+
+        if other:
+            result += f"### Other — {len(other)}\n"
+            for ref in other:
+                result += f"- {_format_xref_target(ref['target'])}\n"
+
         return text(result)
 
     else:

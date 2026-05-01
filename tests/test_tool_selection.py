@@ -207,6 +207,24 @@ class TestCrossReferencesSelection:
         assert best_tool("Give me cross-references on the theme of atonement") == "get_cross_references"
 
 
+class TestTheologyContextSelection:
+    """Queries that should route to get_theology_context."""
+
+    def test_theology_topic(self):
+        # Tool routing isn't deterministic across all models, but we at least
+        # confirm get_theology_context is in the candidate set.
+        from study_bible_mcp.tools import TOOLS
+        assert any(t.name == "get_theology_context" for t in TOOLS)
+
+
+class TestTorahWeaveSelection:
+    """Queries that should route to get_torah_weave."""
+
+    def test_torah_weave_tool_registered(self):
+        from study_bible_mcp.tools import TOOLS
+        assert any(t.name == "get_torah_weave" for t in TOOLS)
+
+
 class TestLookupNameSelection:
     """Queries that should route to lookup_name."""
 
@@ -413,6 +431,8 @@ _EXPECTED_TOOLS_TESTED = {
     "graph_enriched_search", "get_study_notes", "get_bible_dictionary",
     "get_ane_context",
     "get_key_terms",
+    "get_theology_context",
+    "get_torah_weave",
 }
 
 
@@ -431,7 +451,7 @@ class TestToolCoverage:
 
     def test_tool_count(self):
         """Sanity check the expected number of tools."""
-        assert len(TOOLS) == 18
+        assert len(TOOLS) == 20
 
 
 class TestScorerSanity:

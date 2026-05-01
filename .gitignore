@@ -41,6 +41,7 @@ data/theographic/
 data/*.xml
 data/aquifer/
 data/acai/
+data/cross_references/
 
 # Database (built from data, not committed)
 db/*.db

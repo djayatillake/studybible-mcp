@@ -32,8 +32,10 @@ When answering questions, connect passages and concepts using these approaches:
    Example: G26 (agapē) appears in John, Paul's epistles, and 1 John - showing unified
    theology of love across different authors.
 
-4. **Cross-reference linking**: Use get_cross_references with themes to find the
-   key passages that form biblical doctrines. Scripture interprets Scripture.
+4. **Cross-reference linking**: Use get_cross_references on ANY verse to find the
+   passages historically read alongside it (400k+ links from Harrison/Romhild's
+   curated dataset and the Treasury of Scripture Knowledge). Scripture interprets
+   Scripture — never argue a doctrine from one verse without checking these.
 
 DISPLAY GUIDANCE: When presenting results to users, ALWAYS include:
 - The original Greek/Hebrew text when available (this is what makes responses scholarly)
@@ -188,29 +190,81 @@ Also use when you want to identify the Greek/Hebrew behind an English term.""",
     Tool(
         name="get_cross_references",
         annotations=ToolAnnotations(title="Cross References", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""USE THIS for any theological or doctrinal question.
+        description="""USE THIS whenever you are explaining, exegeting, or arguing from
+a specific Bible verse — and for any theological or doctrinal question.
 
-When discussing themes like salvation, grace, atonement, resurrection, etc.,
-this tool provides the key passages that form the biblical basis.
+Two complementary modes:
 
-Available themes: salvation_by_grace, deity_of_christ, atonement, resurrection,
-holy_spirit, justification.
+**By verse reference** (most common). Pass `reference="John 3:16"` (or any
+canonical verse) to get the passages historically read alongside it. The
+database contains 400k+ cross-references drawn from two scholarly sources,
+returned in priority order:
 
-Also use when discussing a specific passage to find related texts
-(Scripture interprets Scripture).
+  1. **CH** — Harrison & Romhild's curated cross-reference dataset (~58k
+     links), the basis of the well-known "Bible cross-references" visualization.
+     These appear first because they are hand-vetted; the highest-relevance
+     ones are flagged as canonical-direction ("Orig") and circle members.
+  2. **TSK** — Treasury of Scripture Knowledge via openbible.info (~345k
+     links), with crowd-sourced relevance votes. Provides much wider
+     breadth, including the long-tail allusions and minor parallels CH
+     omits.
 
-This ensures your theological claims are grounded in multiple passages,
-not just one proof-text.""",
+Use this BEFORE drawing any theological conclusion from a single verse —
+results frequently surface the texts the original verse is quoting, the
+fulfilment passages, contested parallel readings, and the chain of NT
+authors who picked the verse up.
+
+**By theme**. Pass `theme="atonement"` (or `salvation_by_grace`, `deity_of_christ`,
+`resurrection`, `holy_spirit`, `justification`) to get a hand-curated chain
+of foundational passages for that doctrine. Use this when the user asks a
+broad theological question without anchoring to a specific verse.
+
+**Important caveat about coverage.** TSK is built on R.A. Torrey's 19th-century
+index, which catalogues **topical/thematic** connections — not necessarily
+direct quotations or verbal allusions. Consequence: a verse with few cross-refs
+here is NOT necessarily a verse with few biblical echoes. Famously,
+Revelation shows surprisingly few links to OT prophetic books even though
+it is saturated with OT symbolism, because Torrey indexed by subject and
+Revelation's subject is "apocalyptic". The CH dataset partly compensates
+(it leans toward NT-quotes-OT linking), so when you suspect a quotation/
+allusion is being missed, retry with `source="ch"` or use `find_similar_passages`
+to catch verbal parallels the topical index would skip.
+
+**Strength scoring is meaningful — respect it.** TSK includes a long tail of
+weakly-voted pairs (200k+ refs with ≤4 votes) that are mostly noise. Default
+behaviour is tuned for context-economy: `limit=12` returns only the strongest
+refs (CH first, then highest-voted TSK). Increase `limit` only when the user
+wants exhaustive study, and pair it with `min_strength` (e.g. `min_strength=10`)
+to keep the long tail out of context. CH refs always pass `min_strength`
+because every CH pair is hand-curated — they all carry signal even at
+relevance=0.
+
+You may pass `source="ch"` or `source="tsk"` to restrict to one dataset —
+useful when CH alone gives too little (e.g. an obscure verse with no CH
+coverage) or when you want the dense TSK long-tail.""",
         inputSchema={
             "type": "object",
             "properties": {
                 "reference": {
                     "type": "string",
-                    "description": "Bible reference to find cross-references for"
+                    "description": "Bible reference to find cross-references for (e.g. 'John 3:16', 'Rom 3:23')."
                 },
                 "theme": {
                     "type": "string",
-                    "description": "Theological theme (e.g., 'salvation', 'justification', 'resurrection')"
+                    "description": "Theological theme. One of: salvation_by_grace, deity_of_christ, atonement, resurrection, holy_spirit, justification."
+                },
+                "source": {
+                    "type": "string",
+                    "enum": ["ch", "tsk"],
+                    "description": "Optional dataset filter when using `reference`. 'ch' = Harrison/Romhild curated; 'tsk' = Treasury of Scripture Knowledge. Default: both, with CH ranked above TSK."
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max references to return when using `reference`. Default 12 — tuned to surface only strong refs. Raise (e.g. 30, 50) for exhaustive study, but pair with `min_strength` to suppress noise."
+                },
+                "min_strength": {
+                    "type": "integer",
+                    "description": "Strength floor for TSK refs (vote count). Pairs below this are excluded; CH refs always pass since they are hand-curated. Sensible thresholds: 5 (drops the bottom ~75%% of TSK noise), 20 (top-tier only). Default: no floor."
                 }
             }
         }

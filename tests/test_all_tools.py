@@ -44,8 +44,17 @@ TEST_CASES = [
     # 7. get_cross_references - by theme
     ("get_cross_references", {"theme": "salvation_by_grace"}, "Cross-refs: salvation by grace", "Ephesians"),
 
-    # 8. get_cross_references - by reference
-    ("get_cross_references", {"reference": "John 3:16"}, "Cross-refs for John 3:16", ""),
+    # 8. get_cross_references - by reference (TSK should provide rich results)
+    ("get_cross_references", {"reference": "John 3:16"}, "Cross-refs for John 3:16", "TSK"),
+
+    # 8b. get_cross_references - CH-heavy verse, default ordering
+    ("get_cross_references", {"reference": "Genesis 1:1"}, "Cross-refs for Gen 1:1", "Curated (CH)"),
+
+    # 8c. get_cross_references - strength filter
+    ("get_cross_references", {"reference": "Romans 3:23", "min_strength": 20, "limit": 30}, "Cross-refs Rom 3:23 min_strength=20", "votes"),
+
+    # 8d. get_cross_references - source filter
+    ("get_cross_references", {"reference": "Genesis 1:1", "source": "ch"}, "Cross-refs Gen 1:1 source=ch", "Curated (CH)"),
 
     # 9. lookup_name - person
     ("lookup_name", {"name": "David", "type": "person"}, "Lookup name: David", "David"),
@@ -122,8 +131,7 @@ async def run_tests():
             ])
             # Some "not found" responses are expected for certain queries
             is_expected_empty = (
-                (tool_name == "get_cross_references" and "reference" in args and not args.get("theme"))
-                or (tool_name == "find_similar_passages" and ("unavailable" in text.lower() or "not been generated" in text.lower()))
+                (tool_name == "find_similar_passages" and ("unavailable" in text.lower() or "not been generated" in text.lower()))
             )
 
             if is_error and not is_expected_empty:
