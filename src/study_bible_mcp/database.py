@@ -297,21 +297,60 @@ class StudyBibleDB:
                 pairs are hand-curated, so even relevance=0 means "vetted").
         """
         normalized = self._normalize_reference(reference)
+
+        # Merge CH and TSK rows on (source, target) so a pair that appears in
+        # both datasets is returned once — keep the CH row but expose its TSK
+        # votes too, so the LLM sees the full signal and we use TSK votes as
+        # the secondary sort inside CH relevance tiers (otherwise the tie-break
+        # is alphabetical and effectively random for CH-rich verses).
         params: list = [normalized]
-        sql = "SELECT * FROM cross_references WHERE source = ? "
-        if source_filter:
-            sql += "AND type = ? "
-            params.append(source_filter)
+        ch_filter = "1"
+        tsk_filter = "1"
+        if source_filter == "ch":
+            tsk_filter = "0"
+        elif source_filter == "tsk":
+            ch_filter = "0"
+
+        tsk_strength_clause = ""
         if min_strength is not None and min_strength > 0:
-            # CH refs always pass; TSK must clear the threshold.
-            sql += "AND (type = 'ch' OR relevance >= ?) "
-            params.append(min_strength)
-        sql += (
-            "ORDER BY CASE type WHEN 'ch' THEN 2 WHEN 'tsk' THEN 1 ELSE 0 END DESC, "
-            "         relevance DESC, "
-            "         target "
-            "LIMIT ?"
-        )
+            # CH refs always pass; for pairs that exist only in TSK, vote
+            # count must clear the threshold.
+            tsk_strength_clause = f"AND relevance >= {int(min_strength)}"
+
+        sql = f"""
+            WITH ch AS (
+                SELECT source, target, relevance, note
+                FROM cross_references
+                WHERE source = ? AND type = 'ch' AND {ch_filter}
+            ),
+            tsk AS (
+                SELECT source, target, relevance, note
+                FROM cross_references
+                WHERE source = ? AND type = 'tsk' AND {tsk_filter}
+                {tsk_strength_clause}
+            ),
+            merged AS (
+                SELECT
+                    COALESCE(ch.source, tsk.source) AS source,
+                    COALESCE(ch.target, tsk.target) AS target,
+                    CASE WHEN ch.target IS NOT NULL THEN 'ch' ELSE 'tsk' END AS type,
+                    COALESCE(ch.relevance, tsk.relevance) AS relevance,
+                    ch.relevance AS ch_relevance,
+                    tsk.relevance AS tsk_votes,
+                    COALESCE(ch.note, tsk.note) AS note
+                FROM ch
+                FULL OUTER JOIN tsk
+                  ON ch.source = tsk.source AND ch.target = tsk.target
+            )
+            SELECT * FROM merged
+            ORDER BY
+                CASE type WHEN 'ch' THEN 2 WHEN 'tsk' THEN 1 ELSE 0 END DESC,
+                relevance DESC,
+                COALESCE(tsk_votes, 0) DESC,
+                target
+            LIMIT ?
+        """
+        params.append(normalized)
         params.append(limit)
         return await self._fetchall(sql, tuple(params))
 
