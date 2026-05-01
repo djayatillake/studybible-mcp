@@ -249,7 +249,7 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
     reference = args.get("reference")
     theme = args.get("theme")
     source_filter = args.get("source")
-    limit = int(args.get("limit") or 12)
+    limit = int(args.get("limit") or 4)
     min_strength_raw = args.get("min_strength")
     min_strength = int(min_strength_raw) if min_strength_raw is not None else None
 

@@ -232,12 +232,14 @@ to catch verbal parallels the topical index would skip.
 
 **Strength scoring is meaningful — respect it.** TSK includes a long tail of
 weakly-voted pairs (200k+ refs with ≤4 votes) that are mostly noise. Default
-behaviour is tuned for context-economy: `limit=12` returns only the strongest
-refs (CH first, then highest-voted TSK). Increase `limit` only when the user
-wants exhaustive study, and pair it with `min_strength` (e.g. `min_strength=10`)
-to keep the long tail out of context. CH refs always pass `min_strength`
-because every CH pair is hand-curated — they all carry signal even at
-relevance=0.
+behaviour is tuned for **strict context-economy**: `limit=4` returns only the
+top few strongest refs (CH first, then highest-voted TSK). This is intentional —
+each verse can have 50+ TSK refs and dumping them all bloats the LLM
+context for no gain. Only raise `limit` when the user explicitly asks for
+exhaustive study, and even then pair it with `min_strength` (e.g.
+`min_strength=10`) to keep the long tail out. CH refs always pass
+`min_strength` because every CH pair is hand-curated — they all carry signal
+even at relevance=0.
 
 You may pass `source="ch"` or `source="tsk"` to restrict to one dataset —
 useful when CH alone gives too little (e.g. an obscure verse with no CH
@@ -260,7 +262,7 @@ coverage) or when you want the dense TSK long-tail.""",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Max references to return when using `reference`. Default 12 — tuned to surface only strong refs. Raise (e.g. 30, 50) for exhaustive study, but pair with `min_strength` to suppress noise."
+                    "description": "Max references to return when using `reference`. Default 4 — deliberately tight to protect context. Only raise (e.g. 12, 30) when the user explicitly asks for exhaustive study, and pair with `min_strength` to suppress noise."
                 },
                 "min_strength": {
                     "type": "integer",

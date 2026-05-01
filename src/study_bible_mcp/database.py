@@ -275,7 +275,7 @@ class StudyBibleDB:
         self,
         reference: str,
         source_filter: str | None = None,
-        limit: int = 12,
+        limit: int = 4,
         min_strength: int | None = None,
     ) -> list[dict]:
         """Get cross-references for a verse, ordered by strength.
@@ -287,9 +287,11 @@ class StudyBibleDB:
         Args:
             reference: verse reference, e.g. "John 3:16".
             source_filter: 'ch' or 'tsk' to restrict to one dataset.
-            limit: max rows. Default 12 — keeps the strongest refs only;
-                the long tail of low-vote TSK pairs is dropped because it
-                is mostly noise that crowds out useful context.
+            limit: max rows. Default 4 — kept deliberately small to protect
+                LLM context from bloat. Each verse can return hundreds of
+                refs so we surface only the strongest few. Raise it (with
+                min_strength to floor TSK noise) when the user explicitly
+                wants exhaustive study.
             min_strength: if set, TSK rows with relevance < min_strength are
                 excluded. CH rows are never dropped by this filter (all CH
                 pairs are hand-curated, so even relevance=0 means "vetted").
