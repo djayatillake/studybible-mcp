@@ -197,17 +197,27 @@ Two complementary modes:
 
 **By verse reference** (most common). Pass `reference="John 3:16"` (or any
 canonical verse) to get the passages historically read alongside it. The
-database contains 400k+ cross-references drawn from two scholarly sources,
-returned in priority order:
+database draws from four scholarly sources, returned in a three-tier ranking:
 
-  1. **CH** — Harrison & Romhild's curated cross-reference dataset (~58k
-     links), the basis of the well-known "Bible cross-references" visualization.
-     These appear first because they are hand-vetted; the highest-relevance
-     ones are flagged as canonical-direction ("Orig") and circle members.
-  2. **TSK** — Treasury of Scripture Knowledge via openbible.info (~345k
-     links), with crowd-sourced relevance votes. Provides much wider
-     breadth, including the long-tail allusions and minor parallels CH
-     omits.
+  **Tier 3 (top, "consensus and curated"):**
+    - **CH** — Harrison & Romhild's curated dataset (~58k links, OT-only as
+      source). Hand-vetted; high-relevance pairs flagged canonical-direction.
+    - **Gage parallel** — the tighter pairings from Warren Gage's John ↔
+      Revelation typological reading (Bradley/Gage, John/Rev only).
+    - **TSK ≥100 votes** — TSK pairs with crowd-source consensus that strong
+      are near-universal cross-references (top ~0.4% of TSK) and break
+      through to compete with curated.
+
+  **Tier 2 ("argued and acknowledged"):**
+    - **Burnett** — David A. Burnett's argued chain for the Gen 15:5 / Rom
+      4:18 "star-like seed" deification reading (JSPL 5.2, 2015). ~30 pairs.
+    - **Gage chiastic** — the looser-typology sheet of Bradley/Gage (the
+      source spreadsheet labels these "looser connections, just noting").
+    - **TSK 20–99 votes** — solid topical links acknowledged across
+      commentaries (top ~5%).
+
+  **Tier 1 (long-tail):** TSK <20 votes — surface only when explicitly raising
+  `limit` for exhaustive study.
 
 Use this BEFORE drawing any theological conclusion from a single verse —
 results frequently surface the texts the original verse is quoting, the
@@ -230,15 +240,25 @@ Revelation's subject is "apocalyptic". The CH dataset partly compensates
 allusion is being missed, retry with `source="ch"` or use `find_similar_passages`
 to catch verbal parallels the topical index would skip.
 
-**Strength scoring is meaningful — respect it.** Default behaviour is tuned for
-**strict context-economy**: `limit=4` returns only the top few strongest refs
-(CH first, then highest-voted TSK). Each verse can have 50+ TSK refs; dumping
-them all bloats context for no gain. Only raise `limit` when the user explicitly
-asks for exhaustive study, and pair it with `min_strength` (e.g. `min_strength=10`).
+**Adaptive default — `limit` is a CAP, not a target.** Default `limit=8`. The
+tool returns rows in tier-then-strength order and SUPPRESSES tier-1 noise
+(low-vote TSK) by default whenever the verse has at least 3 rows from tier 2+.
+So:
 
-**How to interpret the scores you get back.** Strength is shown next to each
-ref — `(votes: N)` for TSK, `(canonical direction)` / `(circle)` tags for CH.
-You MUST read these before using a ref:
+  - Signal-rich anchors return 6–8 strong refs spanning curated, scholarly,
+    and consensus-TSK sources.
+  - Signal-poor anchors return only what passes the bar — fewer rows is the
+    correct answer, not a bug. Don't pad your reasoning with weak refs.
+
+To pull the long tail (only when the user explicitly asks for exhaustive
+study): pass `source="tsk"` (returns all TSK including tier 1) or
+`min_strength=0` (treats as explicit "I want some long-tail too"). Either
+disables tier-1 suppression. Pair with a higher `limit` (20–30).
+
+**How to interpret the scores you get back.** Each row carries `type` (the
+dataset), `relevance` (its native strength signal), and where applicable a
+`tsk_votes` side-channel showing the TSK count for that pair. You MUST read
+these before using a ref:
 
   TSK vote scale (full corpus distribution):
     ≥ 500 votes  — extraordinary; near-universal cross-reference (top 0.01%, only 35 pairs)
@@ -254,6 +274,22 @@ You MUST read these before using a ref:
     "canonical direction" (rel=3 or 2) — Harrison's flag for the canonical
         direction of the pair, often part of a thematic circle (top 78% of CH)
     no tag (rel=0) — present in CH but unflagged (still hand-curated)
+
+  Gage (John ↔ Revelation typology):
+    relevance=3 ("parallel" tier) — tighter pairings from the parallel-reading
+        of John 1 ↔ Revelation 1
+    relevance=1 ("chiastic" tier) — looser thematic echoes across the full
+        John-Revelation chiasm; the source spreadsheet flags these as
+        "looser connections, just noting"
+    The `note` field carries the thematic tags + commentary + per-row
+    attribution (Bradley vs Gage). Treat as canonical-typology, not topical.
+
+  Burnett (single-paper argued chain):
+    All Burnett rows are at relevance=5 by convention — they're explicit
+    claims from one scholar's published argument, not graded by strength.
+    The `note` field carries the JSPL citation and which step of the argument
+    the pair belongs to. Cite Burnett by name when surfacing these to the
+    user; they're a scholarly proposal, not consensus.
 
 **When the top results are weak, SAY SO.** If the strongest ref returned has
 only 5-15 votes, do not present it with the same confidence as a 200-vote
@@ -280,16 +316,16 @@ coverage) or when you want the dense TSK long-tail.""",
                 },
                 "source": {
                     "type": "string",
-                    "enum": ["ch", "tsk"],
-                    "description": "Optional dataset filter when using `reference`. 'ch' = Harrison/Romhild curated; 'tsk' = Treasury of Scripture Knowledge. Default: both, with CH ranked above TSK."
+                    "enum": ["ch", "tsk", "gage", "burnett"],
+                    "description": "Optional dataset filter when using `reference`. 'ch' = Harrison/Romhild curated; 'tsk' = Treasury of Scripture Knowledge; 'gage' = Gage/Bradley John↔Revelation typology; 'burnett' = Burnett's Gen 15:5 / Rom 4:18 deification chain (JSPL 5.2). Default: all four, ranked CH/Gage > Burnett > TSK."
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Max references to return when using `reference`. Default 4 — deliberately tight to protect context. Only raise (e.g. 12, 30) when the user explicitly asks for exhaustive study, and pair with `min_strength` to suppress noise."
+                    "description": "CAP on rows returned (not a target). Default 8. Actual returned count may be smaller if the verse has fewer than `limit` rows above the noise floor — that is intentional, do not pad. Raise to 20–30 with `source='tsk'` or `min_strength=0` for exhaustive study."
                 },
                 "min_strength": {
                     "type": "integer",
-                    "description": "Strength floor for TSK refs (vote count). Pairs below this are excluded; CH refs always pass since they are hand-curated. Sensible thresholds: 5 (drops the bottom ~75%% of TSK noise), 20 (top-tier only). Default: no floor."
+                    "description": "Strength floor for TSK refs (vote count). TSK pairs below this are excluded; CH/Gage/Burnett refs always pass since they are hand-curated or scholarly-argued. Setting this also disables the default tier-1 suppression (you are explicitly choosing your own floor). Sensible thresholds: 0 (include long-tail), 5 (drops bottom ~75%% of TSK), 20 (top ~5%% only). Default: tier-1 suppressed when verse is signal-rich."
                 }
             }
         }

@@ -39,6 +39,8 @@ data/*.tsv
 data/*.json
 data/theographic/
 data/*.xml
+data/*.pdf
+data/*.xlsx
 data/aquifer/
 data/acai/
 data/cross_references/
@@ -46,6 +48,8 @@ data/cross_references/
 # Database (built from data, not committed)
 db/*.db
 db/*.db-journal
+db/*.db-shm
+db/*.db-wal
 
 # Keep the directories but not contents
 !data/.gitkeep

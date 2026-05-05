@@ -275,84 +275,155 @@ class StudyBibleDB:
         self,
         reference: str,
         source_filter: str | None = None,
-        limit: int = 4,
+        limit: int = 8,
         min_strength: int | None = None,
     ) -> list[dict]:
         """Get cross-references for a verse, ordered by strength.
 
-        Ranks CH (Harrison/Romhild) above TSK (Treasury of Scripture Knowledge).
-        Within each provenance, sorts by `relevance` desc — for CH this is
-        Orig*2+Circ (range 0..3), for TSK it is the openbible.info vote count.
+        Tiers (high to low):
+          tier 3 — CH (Harrison/Romhild, hand-curated), Gage parallel (the
+                   tighter Gage/Bradley John↔Rev pairings), and TSK pairs with
+                   ≥100 votes (the "breakthrough" rule: top ~0.4% of TSK is
+                   near-universal cross-reference and competes with curated).
+          tier 2 — Burnett (single-scholar argued chain, JSPL 5.2 (2015)),
+                   Gage chiastic (the "looser connections" sheet), and TSK
+                   pairs with 20–99 votes (top ~5%).
+          tier 1 — everything else (low-vote TSK long-tail).
+
+        Within a tier, ranks by a normalized strength score (CH rel*2+1, Gage
+        rel*2+1, Burnett=7, TSK by vote bucket: ≥500→9, 200–499→8, 100–199→7,
+        50–99→6, 20–49→5, 10–19→3, 5–9→2, else→1). Ties broken by TSK vote
+        count when the same pair also appears in TSK.
+
+        Adaptive return-volume policy: tier 1 rows are SUPPRESSED by default
+        when the verse has at least 3 tier-2-or-better rows — so signal-rich
+        verses return 6–8 strong refs and signal-poor verses return only what
+        passes the bar (rather than padding with noise). Override by passing
+        `source_filter='tsk'` (returns all TSK including tier 1) or by passing
+        `min_strength` (treated as explicit "I want some long-tail too").
 
         Args:
             reference: verse reference, e.g. "John 3:16".
-            source_filter: 'ch' or 'tsk' to restrict to one dataset.
-            limit: max rows. Default 4 — kept deliberately small to protect
-                LLM context from bloat. Each verse can return hundreds of
-                refs so we surface only the strongest few. Raise it (with
-                min_strength to floor TSK noise) when the user explicitly
-                wants exhaustive study.
+            source_filter: 'ch' | 'tsk' | 'gage' | 'burnett' to restrict to one
+                dataset. When 'tsk', the tier-1 suppression is disabled so the
+                full TSK long-tail is available.
+            limit: max rows (cap, not target). Default 8. The actual returned
+                count may be less if the verse has fewer than `limit` rows
+                above the noise floor — this is intentional. Raise to 20–30
+                with `source_filter='tsk'` or `min_strength=0` for exhaustive
+                study.
             min_strength: if set, TSK rows with relevance < min_strength are
-                excluded. CH rows are never dropped by this filter (all CH
-                pairs are hand-curated, so even relevance=0 means "vetted").
+                excluded. CH/Gage/Burnett rows always pass — they are
+                hand-curated or scholarly-argued, so even relevance=0 means
+                "vetted". Setting this disables the default tier-1 suppression
+                (the user is explicitly choosing their own floor).
         """
         normalized = self._normalize_reference(reference)
 
-        # Merge CH and TSK rows on (source, target) so a pair that appears in
-        # both datasets is returned once — keep the CH row but expose its TSK
-        # votes too, so the LLM sees the full signal and we use TSK votes as
-        # the secondary sort inside CH relevance tiers (otherwise the tie-break
-        # is alphabetical and effectively random for CH-rich verses).
-        params: list = [normalized]
-        ch_filter = "1"
-        tsk_filter = "1"
-        if source_filter == "ch":
-            tsk_filter = "0"
-        elif source_filter == "tsk":
-            ch_filter = "0"
+        # Build the source whitelist from source_filter.
+        all_types = ("ch", "gage", "burnett", "tsk")
+        if source_filter in all_types:
+            type_list = (source_filter,)
+        else:
+            type_list = all_types
+
+        type_in = ",".join(f"'{t}'" for t in type_list)
 
         tsk_strength_clause = ""
         if min_strength is not None and min_strength > 0:
-            # CH refs always pass; for pairs that exist only in TSK, vote
-            # count must clear the threshold.
-            tsk_strength_clause = f"AND relevance >= {int(min_strength)}"
-
-        sql = f"""
-            WITH ch AS (
-                SELECT source, target, relevance, note
-                FROM cross_references
-                WHERE source = ? AND type = 'ch' AND {ch_filter}
-            ),
-            tsk AS (
-                SELECT source, target, relevance, note
-                FROM cross_references
-                WHERE source = ? AND type = 'tsk' AND {tsk_filter}
-                {tsk_strength_clause}
-            ),
-            merged AS (
-                SELECT
-                    COALESCE(ch.source, tsk.source) AS source,
-                    COALESCE(ch.target, tsk.target) AS target,
-                    CASE WHEN ch.target IS NOT NULL THEN 'ch' ELSE 'tsk' END AS type,
-                    COALESCE(ch.relevance, tsk.relevance) AS relevance,
-                    ch.relevance AS ch_relevance,
-                    tsk.relevance AS tsk_votes,
-                    COALESCE(ch.note, tsk.note) AS note
-                FROM ch
-                FULL OUTER JOIN tsk
-                  ON ch.source = tsk.source AND ch.target = tsk.target
+            # Only TSK rows are filtered by min_strength; the others always pass.
+            tsk_strength_clause = (
+                f"AND (type != 'tsk' OR relevance >= {int(min_strength)})"
             )
-            SELECT * FROM merged
+
+        # Tier mapping (Option B — split Gage + TSK breakthrough):
+        #   tier 3: ch (any), gage rel=3 (parallel), tsk votes>=100
+        #   tier 2: burnett, gage rel=1 (chiastic), tsk votes 20..99
+        #   tier 1: everything else (low-vote tsk noise)
+        # Within-tier strength score normalises curated and TSK signals onto
+        # a comparable 1..9 scale so a 500-vote TSK link surfaces above a
+        # CH rel=2 within tier 3, but a 100-vote TSK ties with CH rel=3.
+        sql = f"""
+            WITH base AS (
+                SELECT source, target, type, relevance, note,
+                       CASE
+                           WHEN type = 'ch' THEN 3
+                           WHEN type = 'gage' AND relevance >= 3 THEN 3
+                           WHEN type = 'gage' THEN 2
+                           WHEN type = 'burnett' THEN 2
+                           WHEN type = 'tsk' AND relevance >= 100 THEN 3
+                           WHEN type = 'tsk' AND relevance >= 20  THEN 2
+                           WHEN type = 'tsk' THEN 1
+                           ELSE 0
+                       END AS tier,
+                       CASE
+                           WHEN type IN ('ch','gage') THEN relevance * 2 + 1
+                           WHEN type = 'burnett' THEN 7
+                           WHEN type = 'tsk' THEN
+                               CASE
+                                   WHEN relevance >= 500 THEN 9
+                                   WHEN relevance >= 200 THEN 8
+                                   WHEN relevance >= 100 THEN 7
+                                   WHEN relevance >= 50  THEN 6
+                                   WHEN relevance >= 20  THEN 5
+                                   WHEN relevance >= 10  THEN 3
+                                   WHEN relevance >= 5   THEN 2
+                                   ELSE 1
+                               END
+                           ELSE 0
+                       END AS strength_score
+                FROM cross_references
+                WHERE source = ?
+                  AND type IN ({type_in})
+                  {tsk_strength_clause}
+            ),
+            ranked AS (
+                SELECT *,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY source, target
+                           ORDER BY tier DESC, strength_score DESC
+                       ) AS rn
+                FROM base
+            ),
+            tsk_side AS (
+                SELECT source, target, relevance AS tsk_votes
+                FROM cross_references
+                WHERE source = ? AND type = 'tsk'
+            )
+            SELECT
+                r.source, r.target, r.type, r.relevance, r.tier,
+                r.strength_score,
+                CASE WHEN r.type = 'ch' THEN r.relevance ELSE NULL END AS ch_relevance,
+                COALESCE(t.tsk_votes, CASE WHEN r.type = 'tsk' THEN r.relevance END) AS tsk_votes,
+                r.note
+            FROM ranked r
+            LEFT JOIN tsk_side t ON r.source = t.source AND r.target = t.target
+            WHERE r.rn = 1
             ORDER BY
-                CASE type WHEN 'ch' THEN 2 WHEN 'tsk' THEN 1 ELSE 0 END DESC,
-                relevance DESC,
-                COALESCE(tsk_votes, 0) DESC,
-                target
+                r.tier DESC,
+                r.strength_score DESC,
+                COALESCE(t.tsk_votes, 0) DESC,
+                CASE r.type WHEN 'ch' THEN 4 WHEN 'gage' THEN 3 WHEN 'burnett' THEN 2 ELSE 1 END DESC,
+                r.target
             LIMIT ?
         """
-        params.append(normalized)
-        params.append(limit)
-        return await self._fetchall(sql, tuple(params))
+        rows = await self._fetchall(sql, (normalized, normalized, limit))
+
+        # Tier-1 suppression: when the user hasn't asked for raw TSK
+        # (via source_filter='tsk') and hasn't set their own floor (via
+        # min_strength), drop tier-1 rows IF the verse already has at least
+        # 3 rows from tier 2+ (signal-rich). For signal-poor verses we keep
+        # the tier-1 rows so the response isn't empty.
+        suppression_active = (
+            source_filter != "tsk"
+            and min_strength is None
+        )
+        if suppression_active:
+            high = [r for r in rows if r["tier"] >= 2]
+            if len(high) >= 3:
+                return high
+
+        return rows
 
     async def get_thematic_references(self, theme: str) -> list[dict]:
         """Get references for a theological theme."""
