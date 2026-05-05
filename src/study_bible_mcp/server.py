@@ -249,7 +249,8 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
     reference = args.get("reference")
     theme = args.get("theme")
     source_filter = args.get("source")
-    limit = int(args.get("limit") or 4)
+    limit_raw = args.get("limit")
+    limit = int(limit_raw) if limit_raw is not None else 8
     min_strength_raw = args.get("min_strength")
     min_strength = int(min_strength_raw) if min_strength_raw is not None else None
 
@@ -277,14 +278,23 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
             )
 
         ch_refs = [r for r in refs if r.get("type") == "ch"]
+        gage_refs = [r for r in refs if r.get("type") == "gage"]
+        burnett_refs = [r for r in refs if r.get("type") == "burnett"]
         tsk_refs = [r for r in refs if r.get("type") == "tsk"]
-        other = [r for r in refs if r.get("type") not in ("ch", "tsk")]
 
         result = f"## Cross-References for {reference}\n\n"
         result += (
-            f"_{len(refs)} reference(s) returned (limit={limit}). "
-            f"CH = Harrison/Romhild curated; TSK = Treasury of Scripture Knowledge._\n\n"
+            f"_{len(refs)} reference(s) returned (cap limit={limit}; "
+            f"actual count may be smaller when verse is signal-poor — by design). "
+            f"Sources: CH = Harrison/Romhild curated; Gage = Bradley/Gage John↔Rev typology; "
+            f"Burnett = JSPL 5.2 (2015) deification chain; TSK = Treasury of Scripture Knowledge._\n\n"
         )
+
+        def fmt_target_with_meta(ref, *, show_tier=True):
+            tier = ref.get("tier")
+            ss = ref.get("strength_score")
+            tier_tag = f" *t{tier}/ss{ss}*" if (show_tier and tier is not None) else ""
+            return f"{_format_xref_target(ref['target'])}{tier_tag}"
 
         if ch_refs:
             result += f"### Curated (CH) — {len(ch_refs)}\n"
@@ -294,7 +304,31 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
                     tag = "  *(canonical direction)*"
                 elif ref.get("relevance", 0) == 1:
                     tag = "  *(circle)*"
-                result += f"- {_format_xref_target(ref['target'])}{tag}\n"
+                tsk_v = ref.get("tsk_votes")
+                v_tag = f"  *(also TSK: {tsk_v} votes)*" if tsk_v else ""
+                result += f"- {_format_xref_target(ref['target'])}{tag}{v_tag}\n"
+            result += "\n"
+
+        if gage_refs:
+            result += f"### Gage / Bradley (John↔Rev typology) — {len(gage_refs)}\n"
+            for ref in gage_refs:
+                rel = ref.get("relevance", 0)
+                tier_tag = "parallel" if rel >= 3 else "chiastic (looser)"
+                note = ref.get("note") or ""
+                result += f"- {_format_xref_target(ref['target'])}  *({tier_tag})*"
+                if note:
+                    result += f" — {note}"
+                result += "\n"
+            result += "\n"
+
+        if burnett_refs:
+            result += f"### Burnett (JSPL 5.2 (2015) — argued chain) — {len(burnett_refs)}\n"
+            for ref in burnett_refs:
+                note = ref.get("note") or ""
+                result += f"- {_format_xref_target(ref['target'])}"
+                if note:
+                    result += f" — {note}"
+                result += "\n"
             result += "\n"
 
         if tsk_refs:
@@ -304,11 +338,6 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
                 vote_tag = f"  *(votes: {votes})*" if votes else ""
                 result += f"- {_format_xref_target(ref['target'])}{vote_tag}\n"
             result += "\n"
-
-        if other:
-            result += f"### Other — {len(other)}\n"
-            for ref in other:
-                result += f"- {_format_xref_target(ref['target'])}\n"
 
         return text(result)
 
