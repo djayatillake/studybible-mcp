@@ -204,6 +204,24 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
                 f"Torah hypothesis.*"
             )
 
+    # Hint: cross-references are nearly always relevant when handling a verse.
+    # One-line nudge so the agent reaches for get_cross_references after a
+    # bare lookup_verse, and a specialised aside for John/Rev (where Gage's
+    # typological pairings are particularly rich).
+    xref_hint = (
+        f"\n\n---\n*Cross-references for this verse are available via "
+        f"`get_cross_references` (reference='{reference}') — returns the "
+        f"strongest verses traditionally read alongside this one across the "
+        f"CH curated set, Burnett's deification chain, and the TSK topical "
+        f"index"
+    )
+    if verse.get("book") in ("Jhn", "Rev"):
+        xref_hint += (
+            ", including Gage/Bradley John↔Revelation typological parallels"
+        )
+    xref_hint += ".*"
+    result += xref_hint
+
     return text(result)
 
 
