@@ -935,6 +935,39 @@ Only Torah books (Genesis through Deuteronomy) have weave data. Source: Moshe Kl
             "required": ["reference"]
         }
     ),
+    Tool(
+        name="get_textual_variant",
+        annotations=ToolAnnotations(title="Textual Variant (MT vs LXX/DSS)", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
+        description="""USE THIS whenever a New Testament writer quotes an OT verse and the wording does not match the Masoretic Hebrew Text — or whenever lookup_verse emits the LXX-quotation hint.
+
+WHAT IT RETURNS for a given verse reference:
+- The Masoretic Hebrew (MT) reading + original Hebrew
+- The variant reading (typically the LXX form quoted in the NT, or a DSS reading that differs from MT)
+- The variant's original-language form (Greek or Hebrew)
+- Manuscript witnesses for each reading (LXX, DSS scrolls — e.g. 1QIsa^a, 4QDeut^q, Mur88 — Masoretic Text, NT quotation citation)
+- Scholarly consensus on which reading is older / how the divergence arose
+- The HLT preferred reading (which form the Heiser Literal Translation follows) + the rationale
+
+The HLT's principle: when the NT directly quotes the LXX form of an OT verse, the LXX form is the authoritative reading for Christian Scripture — apostolic endorsement overrides text-critical priority. So for verses like Psalm 40:6 / Hebrews 10:5, Isaiah 61:1 / Luke 4:18, Amos 9:12 / Acts 15:17, the HLT follows the LXX form in the body and footnotes the MT.
+
+USE THIS when:
+- Explaining why a NT OT quotation does not match the modern English OT
+- Discussing Hebrews 10:5-7, Hebrews 1:6, Matthew 12:20-21, Acts 15:17, Luke 4:18-19, Luke 3:6, Matthew 21:16, Romans 9:27-29, Romans 10:20, Romans 15:12, Romans 2:24, Acts 7:43, Acts 8:32-33, Acts 13:41, 1 Peter 4:18, Ephesians 4:26, Luke 3:36, or the OT verses they quote
+- The user asks "did the Masoretes edit Christ out?" — point them at the actual textual data instead of speculation
+- Working on HLT translation for any verse where the NT follows a different form than the Hebrew
+
+PAIRS WITH: lookup_verse (which emits a hint pointing here when a verse has a quote-hint or variant row).""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "type": "string",
+                    "description": "Bible reference — either the OT verse (e.g., 'Psalm 40:6', 'Deuteronomy 32:43', 'Isaiah 61:1') or the NT verse that quotes it (e.g., 'Hebrews 10:5', 'Hebrews 1:6', 'Luke 4:18'). Both sides return the same variant row."
+                }
+            },
+            "required": ["reference"]
+        }
+    ),
 ]
 
 

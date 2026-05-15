@@ -1334,6 +1334,22 @@ class StudyBibleDB:
             v["witnesses"] = witnesses
         return variants
 
+    async def get_nt_ot_lxx_quote_hints(self, reference: str) -> list[dict]:
+        """Return NT↔OT LXX-form quotation hints for either the NT or OT side.
+
+        Matches a verse looked up on either side of the quotation: an OT lookup
+        of Psalm 40:6 returns the Heb 10:5-7 hint, and a NT lookup of Heb 10:5
+        returns the same row. Used by lookup_verse to emit a one-line nudge so
+        the agent can follow up with get_textual_variant when relevant.
+        """
+        normalized = self._normalize_reference(reference)
+        return await self._fetchall(
+            """SELECT * FROM nt_ot_lxx_quote_hints
+                WHERE nt_reference = ? OR ot_reference = ?
+                ORDER BY id""",
+            (normalized, normalized),
+        )
+
     async def get_hlt_verse(self, reference: str) -> dict | None:
         """Get the HLT translation for a single verse."""
         normalized = self._normalize_reference(reference)
@@ -1854,6 +1870,28 @@ def create_schema(conn: sqlite3.Connection):
             manuscript_date TEXT,
             reading_support TEXT
         );
+
+        -- NT→OT quotations where the NT follows the LXX form rather than MT.
+        -- Used by lookup_verse to emit a one-line hint surfacing the divergence,
+        -- and joinable to textual_variants for the full reading comparison.
+        CREATE TABLE IF NOT EXISTS nt_ot_lxx_quote_hints (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nt_reference TEXT NOT NULL,
+            nt_display TEXT NOT NULL,
+            nt_book TEXT NOT NULL,
+            ot_reference TEXT NOT NULL,
+            ot_display TEXT NOT NULL,
+            ot_book TEXT NOT NULL,
+            follows_lxx INTEGER NOT NULL DEFAULT 1,
+            divergence_type TEXT,
+            divergence_note TEXT,
+            textual_variant_id INTEGER REFERENCES textual_variants(id),
+            UNIQUE(nt_reference, ot_reference)
+        );
+        CREATE INDEX IF NOT EXISTS idx_ntoq_nt ON nt_ot_lxx_quote_hints(nt_reference);
+        CREATE INDEX IF NOT EXISTS idx_ntoq_ot ON nt_ot_lxx_quote_hints(ot_reference);
+        CREATE INDEX IF NOT EXISTS idx_ntoq_nt_book ON nt_ot_lxx_quote_hints(nt_book);
+        CREATE INDEX IF NOT EXISTS idx_ntoq_ot_book ON nt_ot_lxx_quote_hints(ot_book);
 
         -- The HLT translation
         CREATE TABLE IF NOT EXISTS hlt_verses (

@@ -204,6 +204,27 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
                 f"Torah hypothesis.*"
             )
 
+    # Hint: NT↔OT LXX-form quotation. Surfaces in both directions — looking up
+    # the OT verse mentions the NT quotation, looking up the NT verse mentions
+    # the OT source. Apostolic endorsement of the LXX form is the HLT's
+    # preferred-reading criterion (feedback_lxx_nt_quotation).
+    lxx_hints = await db.get_nt_ot_lxx_quote_hints(reference)
+    if lxx_hints:
+        # Show at most 2 hints inline — keep the cue terse.
+        normalized = db._normalize_reference(reference)
+        primary_side = "ot" if any(h["ot_reference"] == normalized for h in lxx_hints) else "nt"
+        cues = []
+        for h in lxx_hints[:2]:
+            if primary_side == "ot":
+                cues.append(f"quoted in **{h['nt_display']}** ({h['divergence_type']})")
+            else:
+                cues.append(f"quotes **{h['ot_display']}** in its LXX form ({h['divergence_type']})")
+        result += (
+            f"\n\n---\n*NT↔OT LXX-form quotation: " + "; ".join(cues) + ". "
+            f"Full reading comparison + manuscript witnesses via "
+            f"`get_textual_variant` (reference='{reference}').*"
+        )
+
     # Hint: cross-references are nearly always relevant when handling a verse.
     # One-line nudge so the agent reaches for get_cross_references after a
     # bare lookup_verse, and a specialised aside for John/Rev (where Gage's
@@ -1018,6 +1039,85 @@ async def handle_get_torah_weave(args: dict[str, Any]) -> list[TextContent]:
     return text(result)
 
 
+async def handle_get_textual_variant(args: dict[str, Any]) -> list[TextContent]:
+    """Surface MT/LXX/DSS textual-variant data + NT-quote alignment for a verse.
+
+    Resolves both directions: an OT reference returns its variant row plus any
+    NT verses that quote the LXX form; a NT reference returns the OT verse it
+    quotes plus the variant row. Apostolic endorsement (NT quoting LXX) is the
+    HLT's preferred-reading criterion — see preferred_for_hlt + hlt_rationale.
+    """
+    reference = args.get("reference", "")
+    if not reference:
+        return text("Please provide a verse reference (OT or NT).")
+
+    hints = await db.get_nt_ot_lxx_quote_hints(reference)
+    variants = await db.get_textual_variants(reference)
+
+    # If the input was a NT verse, also pull the variant row for the OT side it quotes.
+    if hints and not variants:
+        for h in hints:
+            ot_variants = await db.get_textual_variants(h["ot_reference"])
+            for v in ot_variants:
+                if v not in variants:
+                    variants.append(v)
+
+    if not hints and not variants:
+        return text(
+            f"No textual-variant or LXX-quotation data on file for {reference}.\n\n"
+            "This means either: (a) the verse has no significant MT/LXX/DSS "
+            "divergence we have catalogued, or (b) the NT does not quote it in "
+            "a form that differs from the MT. For OT verses with NT quotations "
+            "that follow the LXX, try the NT reference instead (e.g. 'Hebrews "
+            "10:5', 'Luke 4:18', 'Acts 15:17')."
+        )
+
+    lines: list[str] = [f"# Textual variant + NT-quotation data for {reference}\n"]
+
+    if variants:
+        for v in variants:
+            lines.append(f"## Variant at {v['reference']} ({v.get('variant_source','')})\n")
+            if v.get("variant_significance"):
+                lines.append(f"**Significance**: {v['variant_significance']}\n")
+            lines.append(f"### Masoretic Text (MT)\n{v.get('mt_reading','')}\n")
+            if v.get("mt_hebrew"):
+                lines.append(f"\n*Hebrew*: `{v['mt_hebrew']}`\n")
+            lines.append(f"\n### Variant reading\n{v.get('variant_reading','')}\n")
+            if v.get("variant_original"):
+                lines.append(f"\n*Original*: `{v['variant_original']}`\n")
+            if v.get("scholarly_consensus"):
+                lines.append(f"\n### Scholarly consensus\n{v['scholarly_consensus']}\n")
+            if v.get("preferred_for_hlt"):
+                lines.append(f"\n### HLT preferred reading\n{v['preferred_for_hlt']}\n")
+            if v.get("hlt_rationale"):
+                lines.append(f"\n*Rationale*: {v['hlt_rationale']}\n")
+            if v.get("heiser_analysis"):
+                lines.append(f"\n### Heiser's analysis\n{v['heiser_analysis']}\n")
+            witnesses = v.get("witnesses") or []
+            if witnesses:
+                lines.append("\n### Manuscript witnesses\n")
+                for w in witnesses:
+                    date = f" ({w['manuscript_date']})" if w.get("manuscript_date") else ""
+                    support = f" — {w['reading_support']}" if w.get("reading_support") else ""
+                    lines.append(f"- **{w['manuscript']}**{date}{support}")
+            lines.append("")
+
+    if hints:
+        lines.append("\n## NT quotations that follow the LXX form\n")
+        for h in hints:
+            lines.append(
+                f"- **{h['nt_display']}** quotes **{h['ot_display']}** — "
+                f"*{h.get('divergence_type','')}*: {h.get('divergence_note','')}"
+            )
+        lines.append(
+            "\n*HLT principle: where the NT quotes an LXX form, that form is "
+            "the authoritative reading for Christian Scripture — apostolic "
+            "endorsement overrides text-critical priority.*"
+        )
+
+    return text("\n".join(lines))
+
+
 _TOOL_HANDLERS = {
     "word_study": handle_word_study,
     "lookup_verse": handle_lookup_verse,
@@ -1039,6 +1139,7 @@ _TOOL_HANDLERS = {
     "get_ane_context": handle_get_ane_context,
     "get_theology_context": handle_get_theology_context,
     "get_torah_weave": handle_get_torah_weave,
+    "get_textual_variant": handle_get_textual_variant,
 }
 
 

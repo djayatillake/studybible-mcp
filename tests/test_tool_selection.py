@@ -225,6 +225,20 @@ class TestTorahWeaveSelection:
         assert any(t.name == "get_torah_weave" for t in TOOLS)
 
 
+class TestTextualVariantSelection:
+    """Queries that should route to get_textual_variant."""
+
+    def test_textual_variant_tool_registered(self):
+        from study_bible_mcp.tools import TOOLS
+        assert any(t.name == "get_textual_variant" for t in TOOLS)
+
+    def test_nt_quotes_lxx_form(self):
+        assert best_tool("Why does Hebrews 10:5 say 'body prepared' when Psalm 40:6 says 'ears'?") == "get_textual_variant"
+
+    def test_mt_vs_lxx_divergence(self):
+        assert best_tool("Show me the MT vs LXX textual variant for Isaiah 61:1") == "get_textual_variant"
+
+
 class TestLookupNameSelection:
     """Queries that should route to lookup_name."""
 
@@ -433,6 +447,7 @@ _EXPECTED_TOOLS_TESTED = {
     "get_key_terms",
     "get_theology_context",
     "get_torah_weave",
+    "get_textual_variant",
 }
 
 
@@ -451,7 +466,7 @@ class TestToolCoverage:
 
     def test_tool_count(self):
         """Sanity check the expected number of tools."""
-        assert len(TOOLS) == 20
+        assert len(TOOLS) == 21
 
 
 class TestScorerSanity:
