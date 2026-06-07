@@ -37,8 +37,8 @@ echo "== clean =="
 
 echo "== validate =="
 T=$(ls "$WORK"/text/*.txt | head -1)
-G=$(grep -oE '[֐-׿Ͱ-Ͽἀ-῿]' "$T" | wc -l | tr -d ' ')
-S=$(grep -oE '\b[HG][0-9]{2,5}\b' "$T" | wc -l | tr -d ' ')
+G=$(grep -oE '[֐-׿Ͱ-Ͽἀ-῿]' "$T" | wc -l | tr -d ' ' || true)
+S=$(grep -oE '\b[HG][0-9]{2,5}\b' "$T" | wc -l | tr -d ' ' || true)
 echo "glyphs=$G strongs=$S  (both must be 0)"
 [ "$G" = 0 ] && [ "$S" = 0 ] || { echo "VALIDATION FAILED — fix the HTML before building." >&2; exit 1; }
 
