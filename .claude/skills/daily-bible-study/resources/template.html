@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- TITLE tag: "<passages> — A Bible-in-a-Year Study" -->
+<title>{{PASSAGES}} — A Bible-in-a-Year Study</title>
+<style>
+  :root{ --ink:#1d1a17; --soft:#6a625a; --rule:#d8d0c6; --bg:#fbf9f5; --accent:#7a5c3e; --quote:#f3eee6; }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:Georgia,"Iowan Old Style","Times New Roman",serif;
+       line-height:1.62;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:46rem;margin:0 auto;padding:3.2rem 1.4rem 5rem}
+  .kicker{letter-spacing:.18em;text-transform:uppercase;font-size:.72rem;color:var(--soft);
+          text-align:center;margin:0 0 .9rem}
+  h1{font-size:1.5rem;line-height:1.35;font-weight:600;text-align:center;margin:0 0 .2rem}
+  .orn{text-align:center;color:var(--accent);font-size:1.2rem;margin:1.4rem 0}
+  .banner{text-align:center;font-weight:600;font-size:1.05rem;margin:.4rem 0 1.2rem}
+  .intro{font-size:1.06rem;color:#322c26}
+  h2{font-size:1.28rem;margin:2.6rem 0 .3rem;font-weight:600;border-bottom:1px solid var(--rule);padding-bottom:.3rem}
+  h3{font-size:1.1rem;margin:2rem 0 .2rem;font-weight:600;color:var(--accent)}
+  h3 .ref{color:var(--ink)}
+  p{margin:.7rem 0}
+  blockquote{margin:1rem 0;padding:.7rem 1.1rem;background:var(--quote);
+             border-left:3px solid var(--accent);border-radius:2px}
+  blockquote.verses{font-size:.99rem}
+  blockquote.verses sup{color:var(--accent);font-weight:700;font-size:.7em;padding-right:.15em}
+  blockquote.callout{background:#f5efe3;border-left:3px solid #b08a55}
+  blockquote.callout p{margin:.35rem 0}
+  .q{font-style:italic;color:#4a443d}
+  .thread{background:#eef2ec;border-left:3px solid #6f8a63;padding:.6rem 1.1rem;border-radius:2px;margin:1rem 0}
+  ol,ul{padding-left:1.3rem}
+  li{margin:.4rem 0}
+  .sdg{text-align:center;font-style:italic;color:var(--soft);margin-top:2.4rem}
+  .small{font-size:.9rem;color:var(--soft)}
+  em{font-style:italic}
+</style>
+</head>
+<body>
+<!-- ============================================================================
+  STRUCTURAL RULES (keep the audio pipeline working):
+  * Everything below is a DIRECT child of div.wrap (flat). No nested sections.
+  * Verse blockquotes: <blockquote class="verses"><sup>N</sup> text<br> …>.
+  * Callouts are <blockquote class="callout"> (NEVER a <div>).
+  * Original-language word in <strong>, transliteration in <em>, Strong's like H8549.
+  * Keep the literal "<h2>Part One — The Readings</h2>" heading (audio intro-strip).
+  Order: kicker -> h1(passages) -> orn -> banner -> intro -> Part One -> threads(ol)
+         -> Part Two -> Part Three appendix -> orn -> On Sources -> sdg.
+============================================================================= -->
+<div class="wrap">
+
+<p class="kicker">A Bible-in-a-Year Study</p>
+<h1>{{PASSAGES}}</h1>
+<p class="orn">❦</p>
+<p class="banner">Day {{N}} · {{Weekday}}, {{D Month YYYY}} · {{Theme}}</p>
+<p class="intro">{{Orienting paragraph: name the day's one unifying thread.}}</p>
+
+<h2>Part One — The Readings</h2>
+<p class="orn">❦</p>
+
+<!-- ---- one block per reading (repeat) ---------------------------------- -->
+<h3>{{Passage}} <span class="ref">— {{one-line description}}</span></h3>
+<blockquote class="verses">
+<sup>1</sup> {{verse text}}<br>
+<sup>2</sup> {{verse text}}<br>
+<!-- … every verse, inline … -->
+</blockquote>
+<p>{{commentary}}</p>
+<blockquote class="callout">
+<p><strong>Hebrew — {{hook}}.</strong> <strong>{{עברית}}</strong> (<em>{{translit}}</em>, H0000) — {{sense}}. {{why it matters / cross-link}}.</p>
+</blockquote>
+<p class="thread"><strong>A thread worth marking.</strong> {{connection within the day and to adjacent days}}.</p>
+<!-- ---- end reading block ---------------------------------------------- -->
+
+<h2>{{N}} threads tying Day {{N}} together</h2>
+<ol>
+<li><strong>{{thread title}}.</strong> {{one sentence}}.</li>
+<!-- … one <li> per thread … -->
+</ol>
+
+<h2>Part Two — Questions We Followed</h2>
+<p class="orn">❦</p>
+<!-- one block per question the user actually asked -->
+<h3>{{question title}}</h3>
+<p class="q">{{the question, italic}}</p>
+<p>{{answer}}</p>
+
+<h2>Part Three — Appendix — Retrieved Study Data</h2>
+<p class="orn">❦</p>
+<p>The Study Bible resources drawn on through the session.</p>
+<h3>Word Studies</h3>
+<ul><li><strong>{{word}}</strong> (<em>{{translit}}</em>, H0000) — {{gloss}}. ({{ref}})</li></ul>
+<h3>Cross-Reference Sets</h3>
+<ul><li>{{verse}} → {{refs}}.</li></ul>
+<h3>Textual Note</h3>
+<ul><li>{{note, if any}}.</li></ul>
+<h3>Ancient Near East Context</h3>
+<ul><li><strong>{{topic}}</strong>: {{summary}}.</li></ul>
+<h3>Torah Weave (Moshe Kline)</h3>
+<ul><li><strong>{{unit}}</strong>. {{paired cells}}.</li></ul>
+<h3>Dictionary &amp; Place Data</h3>
+<ul><li><strong>{{topic}}</strong> (Tyndale) — {{summary}}.</li></ul>
+<h3>Study Notes Consulted</h3>
+<ul><li>Tyndale &amp; translation notes for {{passages}}.</li></ul>
+
+<p class="orn">❦</p>
+<h2>On Sources</h2>
+<p>Scripture is the Berean Standard Bible (BSB), dedicated to the public domain. Hebrew and Greek text, lexical data (BDB / LSJ / Strong's), study notes and the Bible dictionary (Tyndale), cross-references (Treasury of Scripture Knowledge and curated sets), Ancient-Near-East context, divine-council / two-powers readings (Michael Heiser), and the Moshe Kline "Woven Torah" pairings were drawn from the Study Bible tools. Two-powers and divine-council notes reflect one school of reading; alternatives are noted in place.</p>
+<p class="sdg">Soli Deo gloria.</p>
+
+</div>
+</body>
+</html>
