@@ -69,6 +69,7 @@ Thumbs.db
 htmlcov/
 .tox/
 .nox/
+test.db
 
 # Type checking
 .mypy_cache/
