@@ -96,7 +96,21 @@ reads well — Day 7 had seven, Day 8 had eight). Then hand back for questions.
 
 Answer each follow-up using the tools (re-pull cross-refs / word studies / ANE /
 theology as needed). Keep each answer self-contained — it becomes one entry under
-**Part Two — "Questions We Followed"** (italic question + answer).
+**Part Two — "Questions We Followed."** Format each entry **quote-first** (per reader
+feedback — see "Reader-friendly structure" below):
+
+1. `h3` question title.
+2. **When the question turns on a specific verse**, quote it *once* up front in a
+   `blockquote.verses` — just the operative verse/clause, not a whole long passage —
+   **before** the italic question. (Skip the quote for purely conceptual questions not
+   anchored to one verse.)
+3. `p.q` the italic question.
+4. `p` the answer — which **must not re-quote that same text**. It may quote *other*
+   verses it brings in as evidence; it refers back to the lead quote by reference.
+
+Never ask the question and then re-quote the same verse to answer it. If a long answer
+makes several moves, **signpost** them (a short "first… / then… / here's the turn" or a
+one-line recap) so the reader never loses the thread.
 
 ---
 
@@ -206,6 +220,18 @@ humbly (divine-council / two-powers is "one school of reading; alternatives note
 Close with the threads list, then Part Two/Three when ready. Scripture = BSB (public
 domain); credit BDB/LSJ/Strong's, Tyndale, TSK, Weinfeld/Nuzi (ANE), Heiser
 (two-powers), Moshe Kline (Torah Weave).
+
+**Reader-friendly structure (from reader feedback, 10 Jun 2026):**
+- **Quote-first questions.** Lead a Part Two question with the verse it turns on, then
+  ask; never ask and then re-quote the same text to answer (see Step 2). Front-load the
+  text so the reader meets it once.
+- **Signpost long sections.** Keep each thread to one idea, point-first — the bolded
+  title names the anchor (the numbered `<ol>` does this; avoid Day-1-style long prose
+  threads). In any long prose stretch — extended commentary, a multi-move Part Two
+  answer, a "thread worth marking" — add brief transitions or a one-line recap when you
+  move to a new point or a new book ("the second thread turns to Romans…"), so a reader
+  coming off a dense paragraph is never left asking "where are we now." Prefer several
+  short signposted steps over one sprawling block.
 
 ## Title / subtitle conventions
 - **Substack title:** `Day N · <Theme>` (middot `·`, "and" not "&", no date).
