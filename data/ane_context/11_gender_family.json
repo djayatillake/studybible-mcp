@@ -134,6 +134,28 @@
       "chapter_end": null,
       "key_references": ["Gen 2:24", "Gen 16:1-6", "Gen 29:15-30:24", "Deut 21:15-17", "Judg 8:30-31", "1 Sam 1:1-6", "2 Sam 3:2-5", "2 Sam 5:13", "1 Kgs 11:1-8", "Matt 19:4-6"],
       "scholarly_sources": ["Meyers, Discovering Eve: Ancient Israelite Women in Context", "Trible, Texts of Terror: Literary-Feminist Readings of Biblical Narratives", "Hugenberger, Marriage as a Covenant (VTSup 52)", "de Vaux, Ancient Israel: Its Life and Institutions"]
+    },
+    {
+      "id": "gender_008",
+      "title": "Marriage as Covenant in Household Law, Not Indissoluble Sacrament",
+      "summary": "In the composition-era world marriage is a covenant (berit) within household law (bet av) -- bride-price, betrothal, the joining of two households -- meant for lifelong permanence yet legally dissolvable (Deut 24). It is not the metaphysically indissoluble sacrament systematized in twelfth-century canon law. The category is covenant-within-household-law, not a sacramental ontology that cannot be undone.",
+      "detail": "Marriage is named a covenant: 'the wife of your youth... your companion and the wife of your covenant' (Mal 2:14; cf. Prov 2:17 'the covenant of her God'; Ezek 16:8, God spreading his garment and entering covenant). It is embedded in the patriarchal household (bet av): mohar (bride-price), betrothal, and the joining of households. Crucially, the Torah assumes and REGULATES its dissolution -- the certificate of divorce (Deut 24:1-4) and the release provisions for a neglected wife (Exod 21:10-11). Jesus conducts the entire Matthew 19 / Mark 10 debate inside Torah household law: he engages Deut 24, tightens the grounds, and presses back to the creational intent of Genesis 2 ('the two shall become one flesh,' 'what God has joined together, let no one separate') -- he does not assert a sacramental metaphysics. The overlay being dated is marriage as one of seven sacraments conferring an ontologically indissoluble bond, systematized in twelfth-century canon law (Lombard, Gratian) and dogmatized later at Trent.",
+      "ane_parallels": [
+        "ANE marriage contracts (Nuzi, Old Babylonian, and the Jewish Elephantine papyri) document marriage as a household-legal covenant with bride-price, dowry, and explicit divorce clauses",
+        "The patriarchal household (bet av) as the legal and economic frame within which marriage joins two estates (see gender_001, gender_002)",
+        "ANE covenant grammar generally: a berit is a binding relationship with stipulations and sanctions, meant to endure but operating within law, not metaphysics"
+      ],
+      "interpretive_significance": "Reading marriage as covenant-within-household-law (not sacrament) keeps the biblical texts coherent: permanence is covenantal fidelity ('I hate divorce,' Mal 2:16; 'let no one separate,' Matt 19:6) within a household-legal institution -- not an ontological indissolubility the texts never assert and whose regulated exceptions they plainly provide. This is a dating note, not an attack: the sacramental-indissoluble reading is a twelfth-century development, located in its century and weighed against the composition-era context (see method_006). See gender_001 (marriage as covenant and economic transaction) and gender_002 (the bet av).",
+      "period": "patriarchal",
+      "books": [
+        {"book": "Gen", "chapter_start": 2, "chapter_end": 2},
+        {"book": "Deu", "chapter_start": 24, "chapter_end": 24},
+        {"book": "Mal", "chapter_start": 2, "chapter_end": 2},
+        {"book": "Mat", "chapter_start": 19, "chapter_end": 19},
+        {"book": "Mrk", "chapter_start": 10, "chapter_end": 10}
+      ],
+      "key_references": ["Gen 2:24", "Mal 2:14-16", "Prov 2:17", "Ezek 16:8", "Deut 24:1-4", "Exod 21:10-11", "Matt 19:3-9", "Mark 10:2-12", "1 Cor 7:10-15"],
+      "scholarly_sources": ["Hugenberger, Marriage as a Covenant (Brill)", "Instone-Brewer, Divorce and Remarriage in the Bible (Eerdmans)", "Schloen, The House of the Father as Fact and Symbol"]
     }
   ]
 }

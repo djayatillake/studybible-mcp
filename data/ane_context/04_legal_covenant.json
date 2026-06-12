@@ -149,6 +149,28 @@
       ],
       "key_references": ["Gen 15:7-21", "Gen 17:1-8", "2Sa 7:8-16", "Psa 89:1-37", "Psa 132:11-12", "Deu 28:1-68", "Rom 9:4-5"],
       "scholarly_sources": ["Weinfeld, 'The Covenant of Grant in the Old Testament and in the Ancient Near East' (JAOS, 1970)", "Kitchen, On the Reliability of the Old Testament", "Knoppers, 'Ancient Near Eastern Royal Grants and the Davidic Covenant: A Parallel?' (JAOS, 1996) — challenges the strength of the grant parallel", "Hahn, Kinship by Covenant"]
+    },
+    {
+      "id": "legal_009",
+      "title": "Covenant-Inauguration Blood Is Oath and Kinship Blood, Not Atonement Blood",
+      "summary": "Exodus 24:3-8 is the backdrop of 'this is my blood of the covenant.' At Sinai the offerings are burnt and well-being offerings (explicitly non-purification); the blood is divided between altar and people to bind them into one covenantal body, and the rite culminates in a meal in God's presence. Covenant ratification by blood, oath, and shared meal is a distinct ANE institution from the purification offering.",
+      "detail": "At Sinai the offerings are 'olot and shelamim (Exod 24:5), explicitly NOT hatta't; the blood is dashed on the altar and then on the people, binding the two parties into one covenantal body; the elders then 'beheld God, and ate and drank' (Exod 24:9-11). ANE covenant and treaty ratification by blood, shared meal, and oath is a demonstrably distinct institution from the purification offering. So the Last Supper words -- 'this is my blood of the covenant' (Mark 14:24; Matt 26:28; cf. 1 Cor 11:25; Luke 22:20 'new covenant,' invoking Jer 31:31-34) -- cite a covenant-making rite, and the meal context (bread eaten, cup shared) matches the shelamim/covenant-meal pattern. Matthew's wording 'for the forgiveness of sins' (Matt 26:28) invokes Jeremiah 31:34's new-covenant promise ('I will forgive their iniquity'), where forgiveness is a covenant benefit, not a sacrificial mechanism performed on Jesus.",
+      "ane_parallels": [
+        "ANE treaty and covenant ratification by blood rite, shared meal, and oath -- a recognized institution distinct from purification offering (cf. the karat berit, 'cut a covenant,' idiom; see legal_003)",
+        "Mari and Amorite covenant practice (e.g., 'killing a donkey foal' to ratify a pact) as the household/treaty register of covenant blood",
+        "ANE commensality establishing kinship and treaty bonds, so that eating in the deity's presence ratifies membership in his household (see relig_009)"
+      ],
+      "interpretive_significance": "The single most frequent NT image of Jesus's blood -- 'blood of the covenant,' the cup as koinonia -- is oath-and-kinship blood, not purgation blood; it binds a people into a covenantal body and is consummated in a meal, exactly the Exodus 24 pattern. Reading the Supper through Yom Kippur purgation misidentifies the institution being cited. Demonstrable. See legal_003 (covenant-cutting), relig_009 (meals as allegiance), and relig_020 (Passover).",
+      "period": "exodus_conquest",
+      "books": [
+        {"book": "Exo", "chapter_start": 24, "chapter_end": 24},
+        {"book": "Mrk", "chapter_start": 14, "chapter_end": 14},
+        {"book": "Mat", "chapter_start": 26, "chapter_end": 26},
+        {"book": "Luk", "chapter_start": 22, "chapter_end": 22},
+        {"book": "1Co", "chapter_start": 11, "chapter_end": 11}
+      ],
+      "key_references": ["Exod 24:3-11", "Mark 14:24", "Matt 26:28", "Luke 22:20", "1 Cor 11:25", "Jer 31:31-34"],
+      "scholarly_sources": ["Milgrom, Leviticus (Anchor Bible)", "Rillera, Lamb of the Free (Cascade, 2024)", "Hahn, Kinship by Covenant (Yale)", "Weinfeld, 'Covenant' studies"]
     }
   ]
 }

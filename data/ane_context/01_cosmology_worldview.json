@@ -230,12 +230,12 @@
         "Egyptian anthropology: Multiple aspects of personhood (ka, ba, akh) rather than a simple body/soul division; no single term maps to the Greek psyche",
         "Ugaritic npsh: 'throat,' 'appetite,' 'life' — confirming the concrete semantic range shared across Semitic languages"
       ],
-      "interpretive_significance": "When modern readers encounter 'soul' in English Bible translations, they typically import post-Platonic assumptions: an immortal, immaterial substance temporarily housed in a body that longs to escape. This framework is Greek, not Hebrew. Recovering the Hebrew semantic range transforms readings of key passages: Mark 8:36 ('what does it profit to gain the whole world and forfeit your nephesh?') is about one's whole life and self, not an immaterial soul. Phil 1:23 and 2 Cor 5:1-8 must be read within Paul's resurrection framework, not Platonic escape-from-the-body categories.",
+      "interpretive_significance": "When modern readers encounter 'soul' in English Bible translations, they typically import post-Platonic assumptions: an immortal, immaterial substance temporarily housed in a body that longs to escape. This framework is Greek, not Hebrew. Recovering the Hebrew semantic range transforms readings of key passages: Mark 8:36 ('what does it profit to gain the whole world and forfeit your nephesh?') is about one's whole life and self, not an immaterial soul. Phil 1:23 and 2 Cor 5:1-8 must be read within Paul's resurrection framework, not Platonic escape-from-the-body categories.\n\nDating note (see method_006): the immortal-soul anthropology that makes a disembodied soul the true self and its survival the hope of the faithful is a Platonic import, progressive from the second century onward (LXX nephesh->psyche, Philo, the Alexandrians, Augustine). The composition-era hope is BODILY resurrection (Dan 12:2; Isa 26:19; 1 Cor 15), and immortality is something 'put on' at the resurrection (1 Cor 15:53-54), not an innate property -- 'God alone has immortality' (1 Tim 6:16). Confidence flag: the governing hope is resurrection, but the texts do imply some intermediate-state consciousness (Luke 23:43; Phil 1:23; Rev 6:9) and Second-Temple Judaism developed beliefs about the soul's survival (Wisdom of Solomon); so the careful claim is that Platonic soul-as-true-self DISPLACING resurrection is the late overlay, not that no intermediate consciousness exists.",
       "period": "patriarchal",
       "books": ["Gen", "Num", "Deu", "Psa", "Ecc", "Isa", "1Co", "Php"],
       "chapter_start": null,
       "chapter_end": null,
-      "key_references": ["Gen 1:20", "Gen 1:24", "Gen 2:7", "Gen 2:19", "Num 6:6", "Eccl 3:19-21", "Eccl 12:7", "1 Cor 15:35-49", "Mark 8:36"],
+      "key_references": ["Gen 1:20", "Gen 1:24", "Gen 2:7", "Gen 2:19", "Num 6:6", "Eccl 3:19-21", "Eccl 12:7", "1 Cor 15:35-49", "Mark 8:36", "1 Cor 15:53-54", "1 Tim 6:16", "Dan 12:2"],
       "scholarly_sources": ["Wolff, Anthropology of the Old Testament", "Green, Body, Soul, and Human Life", "Cooper, Body, Soul, and Life Everlasting", "Wright, The Resurrection of the Son of God"]
     },
     {
@@ -259,6 +259,27 @@
       ],
       "key_references": ["Isa 13:19-22", "Isa 34:11-15", "Lev 17:7", "2 Chr 11:15", "Rev 18:2", "Luke 11:24", "Mark 5:1-5"],
       "scholarly_sources": ["Blair, De-Demonising the Old Testament", "Fauth, 'Lilits und Astarten in aramäischen, mandäischen und syrischen Zaubertexten'", "Heiser, The Unseen Realm", "Aune, Revelation (WBC), on Rev 18:2"]
+    },
+    {
+      "id": "cosmo_015",
+      "title": "Original Sin: Inherited Mortality (Ancestral Sin) vs. Augustinian Inherited Guilt",
+      "summary": "The composition-era reading inherits from Adam mortality and the reign of death -- the Eastern 'ancestral sin' -- not transmitted guilt. Augustinian inherited guilt rests partly on the Latin in quo misrendering of Romans 5:12's Greek eph' ho ('because'), and the federal 'covenant of works' reading of Eden is later still. Ezekiel individualizes culpability: 'the son shall not bear the iniquity of the father.'",
+      "detail": "Romans 5:12 in Greek ends 'death spread to all because (eph' ho) all sinned.' The Old Latin and Vulgate rendered eph' ho as in quo, 'in whom,' making all humanity sin IN Adam and so share his guilt; Augustine, with limited Greek, built the doctrine of transmitted GUILT on this reading. The Greek-reading East developed instead 'ancestral sin' (propatorikon hamartema): from Adam we inherit mortality, corruption, and a weakened nature subject to death -- but not his guilt. The biblical witness individualizes culpability directly: 'the soul that sins shall die... the son shall not bear the iniquity of the father' (Ezek 18:4, 20). What Romans 5 actually emphasizes is the REIGN of death: 'death reigned from Adam to Moses' (5:14), 'in Adam all die' (1 Cor 15:21-22) -- the universal inheritance is the captor death, defeated by the kinsman who enters it (see death_008), rather than a birth-guilt requiring penal satisfaction. The further overlay -- Eden read as a 'covenant of works' with Adam as imputed federal head -- is sixteenth-to-seventeenth-century federal theology (crystallized at Westminster); the word berit does not appear in Genesis 2-3, and Hosea 6:7 ('like Adam they transgressed the covenant') is textually and exegetically debated.",
+      "ane_parallels": [
+        "ANE corporate-personality and household solidarity: the house shares the head's status and fate, the substrate for 'in Adam' read as corporate participation rather than forensic guilt-imputation (see social_007)",
+        "Hebrew corporate ontology, in which a people is a body with a head, displaced in later Western reading by Greco-Roman individualism (so the 'body of sin' becomes one's own limbs rather than a household under a head)",
+        "The ANE pattern of inherited condition (mortality, bondage) rather than inherited legal guilt as the natural frame for Adamic solidarity"
+      ],
+      "interpretive_significance": "This pairs with the ransom frame: humanity's universal inheritance is death-the-captor (Rom 5:14; 1 Cor 15:21-22), which Christ defeats by entering it -- not a forensic birth-guilt that must be penally satisfied. Dating note, not attack: inherited mortality / ancestral sin is composition-era; inherited forensic guilt is the Latin-driven Western overlay (Augustine, 4th-5th c.), and the covenant-of-works reading is later still (see method_006). Confidence: the eph' ho / in quo philology and Ezekiel's individualizing of culpability are demonstrable; the precise content of 'ancestral sin' across the fathers admits variation. See cosmo_013 (Hebrew anthropology), social_007 (corporate personality), and death_008.",
+      "period": "patriarchal",
+      "books": [
+        {"book": "Gen", "chapter_start": 2, "chapter_end": 3},
+        {"book": "Ezk", "chapter_start": 18, "chapter_end": 18},
+        {"book": "Rom", "chapter_start": 5, "chapter_end": 6},
+        {"book": "1Co", "chapter_start": 15, "chapter_end": 15}
+      ],
+      "key_references": ["Gen 2:17", "Gen 3:17-19", "Ezek 18:4", "Ezek 18:20", "Rom 5:12-21", "Rom 6:6", "1 Cor 15:21-22"],
+      "scholarly_sources": ["Heiser, The Unseen Realm", "Rillera, Lamb of the Free (Cascade, 2024)", "N. T. Wright, The Resurrection of the Son of God", "Meyendorff, Byzantine Theology (ancestral sin)", "Wolff, Anthropology of the Old Testament"]
     }
   ]
 }

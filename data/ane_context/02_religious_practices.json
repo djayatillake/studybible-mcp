@@ -136,15 +136,18 @@
       "ane_parallels": [
         "1 Enoch 8-10: Azazel as leader of the Watchers, bound in darkness as punishment, closely paralleling the scapegoat sent to the wilderness",
         "Hittite scapegoat rituals: Animals or humans sent into enemy territory carrying the impurity of the community, addressing both human and divine sources of contamination",
-        "Mesopotamian elimination rites (namburbu): Rituals sending impurity away from the community into the steppe or river, associated with hostile supernatural forces"
+        "Mesopotamian elimination rites (namburbu): Rituals sending impurity away from the community into the steppe or river, associated with hostile supernatural forces",
+        "Hittite Ritual of Ashella: during a plague in the army camp, adorned rams are driven toward enemy territory carrying the plague away",
+        "Hittite Rituals of Ambazzi (a mouse carries off the evil to the steppe) and Uhhamuwa (a crowned ram driven away to remove plague)",
+        "Ebla and later Syrian goat-dispatch rites for purging a city, attested as early as the third millennium -- transfer-and-banishment as a recognized ANE genre distinct from altar sacrifice"
       ],
-      "interpretive_significance": "Reading Azazel as a personal referent in the Watchers tradition context transforms the Day of Atonement from a purely vertical ritual (God forgiving Israel) into a cosmic one: God simultaneously purifies his sanctuary (YHWH's goat) and addresses the demonic contamination introduced by rebellious divine beings (Azazel's goat). This dual operation illuminates Hebrews' argument about Christ's atonement: not merely forgiveness but cosmic purification and the binding of hostile powers (Heb 2:14-15; Col 2:15).",
+      "interpretive_significance": "Reading Azazel as a personal referent in the Watchers tradition context transforms the Day of Atonement from a purely vertical ritual (God forgiving Israel) into a cosmic one: God simultaneously purifies his sanctuary (YHWH's goat) and addresses the demonic contamination introduced by rebellious divine beings (Azazel's goat). This dual operation illuminates Hebrews' argument about Christ's atonement: not merely forgiveness but cosmic purification and the binding of hostile powers (Heb 2:14-15; Col 2:15).\n\nIn ANE terms the scapegoat belongs to the elimination/disposal genre (transfer-and-banishment), which is formally distinct from altar sacrifice: the one unambiguous sin-transfer rite in the Torah is non-sacrificial, and the sacrificial rites involve no transfer (see relig_015, relig_016).",
       "period": "exodus_conquest",
       "books": ["Lev"],
       "chapter_start": 16,
       "chapter_end": 17,
       "key_references": ["Lev 16:1-34", "Lev 16:8-10", "Lev 16:20-22", "Lev 17:7", "Heb 2:14-15", "Col 2:15"],
-      "scholarly_sources": ["Stökl Ben Ezra, The Impact of Yom Kippur on Early Christianity (WUNT)", "Tawil, 'Azazel, the Prince of the Steppe' (ZAW 1980)", "Milgrom, Leviticus (Anchor Bible)", "Heiser, The Unseen Realm, ch. 32"]
+      "scholarly_sources": ["Stökl Ben Ezra, The Impact of Yom Kippur on Early Christianity (WUNT)", "Tawil, 'Azazel, the Prince of the Steppe' (ZAW 1980)", "Milgrom, Leviticus (Anchor Bible)", "Heiser, The Unseen Realm, ch. 32", "Wright, The Disposal of Impurity (Hittite and Mesopotamian elimination rites)"]
     },
     {
       "id": "relig_009",
@@ -201,6 +204,212 @@
       ],
       "key_references": ["Gen 6:1-4", "Deut 32:8-9", "Deut 32:43", "Ps 82:1", "Ps 110:3", "Heb 1:6", "John 10:34"],
       "scholarly_sources": ["Tov, Textual Criticism of the Hebrew Bible", "Heiser, 'Deuteronomy 32:8 and the Sons of God' (BSac 2001)", "Joosten, 'The LXX as a Source of Information on the Hebrew Bible' in Hebrew Bible/Old Testament", "Skehan, 'A Fragment of the Song of Moses (Deut 32) from Qumran' (BASOR 136, 1954)"]
+    },
+    {
+      "id": "relig_012",
+      "title": "The Levitical Sacrificial Taxonomy: Five Offerings, Atoning and Non-Atoning",
+      "summary": "Leviticus 1-7 presents five distinct offerings with distinct procedures, materials, and stated functions. Only two of them (the purification and reparation offerings) are kipper-effecting; the rest establish presence, homage, and communion. This atoning/non-atoning distinction is load-bearing: which offering a NT text evokes determines what theological work the image can do.",
+      "detail": "The cult is differentiated, not monolithic. (1) The 'olah (burnt offering, Lev 1) is wholly consumed and ascends as a 'pleasing aroma' that attracts and entreats the divine presence; kipper language appears (Lev 1:4) but in the gift/entreaty register, not the purgation of specific sin. (2) The minhah (grain offering, Lev 2) is bloodless tribute with no death at all -- its very existence falsifies any definition of sacrifice that requires a victim's death. (3) The shelamim (well-being offering, Lev 3; 7:11-36) culminates in a shared meal (subtypes: todah/thanksgiving, neder/vow, nedabah/freewill); it is explicitly non-atoning and the offerer eats most of the animal. (4) The hatta't (Lev 4:1-5:13) is misnamed 'sin offering': Milgrom showed on grammatical grounds that piel hitte' means 'to decontaminate,' so it is a PURIFICATION offering, required for ritual impurities involving no sin at all -- childbirth (Lev 12), scale disease (Lev 14), genital discharge (Lev 15), corpse contact (Num 19), Nazirite completion (Num 6). A new mother has not sinned; her hatta't purges impurity. A destitute offerer may even bring a bloodless grain hatta't (Lev 5:11-13) and still be forgiven. (5) The 'asham (reparation offering, Lev 5:14-6:7) addresses sacrilege and false oaths through restitution plus a twenty-percent surcharge -- the logic is repayment, not punishment of the animal. Only the hatta't and 'asham are kipper-effecting in the technical purgation sense.",
+      "ane_parallels": [
+        "Ugaritic ritual texts attest the pair srp (burnt offering, cognate function to 'olah) and slmm (cognate to shelamim) as standard temple/royal liturgy, but lack a developed equivalent of the graded hatta't -- the differentiated purgation system of Leviticus is, in its developed form, distinctive",
+        "Mesopotamian and Egyptian daily cult is fundamentally provisioning (the god's meals); Israel keeps the institutional form but not a victim's-death definition of sacrifice (the bloodless minhah and flour hatta't)",
+        "The graded blood manipulations of the hatta't, indexed to how far impurity has penetrated the sanctuary, have no close ANE analogue at that level of development"
+      ],
+      "interpretive_significance": "Reading any NT 'sacrifice' language requires first asking WHICH offering is in view, because the classes do different work. Passover and covenant blood (the most frequent NT images) belong to non-atoning, liberation-and-meal institutions; the Yom Kippur / hatta't image (Hebrews, Rom 3:25) is purgative; the 'olah/gift register fits Eph 5:2 and Rom 12:1. Collapsing all five into one undifferentiated 'sacrifice = a death that pays for sin' is exactly the move the text does not license.\n\nConfidence: the five-fold taxonomy and the atoning/non-atoning distinction are demonstrable from Lev 1-7 and are the mainstream account. The internal 'plumbing' is contested only at the edges (Roy Gane argues the ordinary hatta't carries the offerer's evil into the sanctuary rather than purging it out -- a reversed direction of flow, but still non-penal). See relig_013 (kipper as purgation) and method_007 (atonement test case).",
+      "period": "exodus_conquest",
+      "books": [
+        {"book": "Lev", "chapter_start": 1, "chapter_end": 7},
+        {"book": "Heb", "chapter_start": 9, "chapter_end": 10}
+      ],
+      "key_references": ["Lev 1:1-9", "Lev 2:1-3", "Lev 3:1-5", "Lev 4:1-12", "Lev 5:11-13", "Lev 5:14-16", "Lev 7:11-21", "Heb 10:1-14"],
+      "scholarly_sources": ["Milgrom, Leviticus 1-16 (Anchor Bible)", "Rillera, Lamb of the Free (Cascade, 2024)", "Eberhart, The Sacrifice of Jesus", "Klawans, Purity, Sacrifice, and the Temple"]
+    },
+    {
+      "id": "relig_013",
+      "title": "Kipper as Purgation: Blood on the Sancta and the Akkadian kuppuru Cognate",
+      "summary": "In cultic contexts kipper means 'purge, wipe off' (cognate to Akkadian kuppuru), and its blood is applied to the sancta -- altar horns, veil, kapporet -- never to the person whose impurity occasioned the offering. The Babylonian Akitu rite of wiping the Ezida shrine with a ram's carcass is the clearest ANE comparandum: the object purified is the building, not a person.",
+      "detail": "Akkadian kuppuru, 'to wipe, rub off, purify,' is a standard term in Mesopotamian ritual texts. In the Akitu (New Year) festival, on 5 Nisan the Ezida shrine of Nabu in Esagila was purged (kuppuru) by wiping the sanctuary with the carcass of a decapitated ram; the ram's body and the slaughterer were then expelled from the city, and the exorcist and slaughterer stayed outside because they had absorbed impurity -- both features running parallel to Leviticus 16, where the sanctuary is purged and the handlers of the goat and burned hatta't carcasses must wash before re-entering the camp (Lev 16:26-28). Within the Hebrew Bible the direct objects of cultic kipper are sancta: the altar (Lev 8:15; 16:18-19; Ezek 43:20, 26), the sanctuary (Lev 16:16-20), the house (Lev 14:53). When a person benefits, the idiom is kipper 'al, 'effect purgation on behalf of,' never kipper with the person as direct object. Milgrom's formula: the hatta't blood is a 'ritual detergent.' The two apparent exceptions confirm the rule -- priestly ordination blood on ear/thumb/toe (Exod 29:20-21; Lev 8:23-24) consecrates the priests as quasi-sancta, and the healed metsora' rite (Lev 14:14) re-aggregates a restored person -- in neither case does blood carry sin or absorb punishment. The non-cultic sense of kpr as 'ransom' (kofer, Exod 21:30; Num 35:31-32) is real but a distinct register that the priestly texts do not conflate with cultic purgation.",
+      "ane_parallels": [
+        "Babylonian Akitu festival: the Ezida shrine purged (kuppuru) by wiping it with a decapitated ram's carcass, after which carcass, slaughterer, and exorcist are expelled as impurity-bearers -- structurally parallel to Lev 16:16-28",
+        "Hittite zurki (blood) rites (Feder): blood applied to purify and consecrate cult objects, buildings, and divine images -- the closest known functional analogue to the hatta't, running in the purgation direction",
+        "Akkadian kuppuru as a standard wiping/cleansing verb in Mesopotamian ritual texts, sharing the semantic field of Hebrew cultic kipper"
+      ],
+      "interpretive_significance": "Romans 3:25's hilasterion is the LXX term for the kapporet (Exod 25:17-22 LXX; cf. Heb 9:5), the place of purgation -- so its demonstrable register is the Yom Kippur purgation site, with God as the SUBJECT who provides it, not an object placated by it. Hebrews maps blood to the purification of defiled things and consciences (Heb 9:13-14, 22-23), not to punishment. Atonement in this corpus is therefore a function (purgation that preserves divine residence and restores access), not a mechanism of appeasement or penalty-transfer.\n\nConfidence: the kuppuru cognate, the Akitu parallel, blood-on-sancta, and hilasterion=kapporet are demonstrable. Contested edge: Gane reverses Milgrom's direction of flow (evil carried in, not purged out); both agree the system is non-penal. See relig_012, relig_014, relig_021.",
+      "period": "exodus_conquest",
+      "books": [
+        {"book": "Lev", "chapter_start": 4, "chapter_end": 4},
+        {"book": "Lev", "chapter_start": 16, "chapter_end": 16},
+        {"book": "Lev", "chapter_start": 8, "chapter_end": 8},
+        {"book": "Ezk", "chapter_start": 43, "chapter_end": 45},
+        {"book": "Rom", "chapter_start": 3, "chapter_end": 3}
+      ],
+      "key_references": ["Lev 4:6-7", "Lev 4:25", "Lev 16:14-19", "Lev 8:15", "Ezek 43:20", "Exod 25:17-22", "Rom 3:25", "Heb 9:11-14"],
+      "scholarly_sources": ["Milgrom, Leviticus 1-16 (Anchor Bible)", "Feder, Blood Expiation in Hittite and Biblical Ritual (SBL)", "Wright, The Disposal of Impurity", "Moffitt, Rethinking the Atonement"]
+    },
+    {
+      "id": "relig_014",
+      "title": "Lifeblood, Not Death: Blood as Life Applied Against Death",
+      "summary": "Leviticus 17:11 grounds the rite in life (nefesh), not death: 'it is the blood that effects purgation by means of the life.' Impurity's common denominator is death; the blood-gesture vocabulary (natan, hizzah, yatsaq, hyssop) daubs life-substance over the breach-points where death has registered. Slaughter is preparatory, never the freighted moment.",
+      "detail": "The stated mechanism is life, not death, with three demonstrable corollaries: (1) lay slaughter -- the offerer, a layperson, kills the animal (Lev 1:5; 3:2; 4:24), while the priestly acts are blood manipulation and altar service; if death were the freighted moment it would not be delegated to laity; (2) the slaughter verb shahat is butchery, not execution vocabulary, and no text describes the animal as punished, condemned, or suffering; (3) a destitute offerer may bring a bloodless flour hatta't (Lev 5:11-13) and be forgiven -- kipper without death, fatal to any 'death-as-penalty' reading of the system's logic. Milgrom's aerial view: every major ritual impurity is death or its simulacrum -- the corpse is the paradigm (Num 19), tsara'at renders one 'like the dead' (Num 12:12, Miriam 'as one dead'), genital discharge is the loss of life-fluids (Lev 15). The one purgative is blood because 'the life is in the blood,' and the metsora' rite makes the polarity explicit: living water (mayim hayyim), blood, and red materials (cedar, scarlet, the red cow of Num 19) array life-substances against death. The gesture vocabulary is application vocabulary -- natan ('put' on the horns), hizzah ('sprinkle' before the veil), yatsaq ('pour out' at the base), and kipper itself ('wipe'); hyssop is the recurring brush (Exod 12:22; Lev 14:4-7; Num 19:18; Ps 51:7). Blood is life painted over the wound death has made.",
+      "ane_parallels": [
+        "The red-cow rite (Num 19): ashes of a red cow in living water against corpse-impurity -- red life-substances marshalled against the strongest contaminant, death",
+        "Hyssop as a ritual applicator (a brush by function) across apotropaic and purificatory rites, from the Passover doorposts to the metsora' rite to corpse-impurity water",
+        "The metsora' rite (Lev 14): blood and oil on ear, thumb, and toe re-aggregating a person returning from the realm of the dead, mirroring the priestly consecration gesture (Lev 8:23-24)"
+      ],
+      "interpretive_significance": "The NT keeps the application grammar intact rather than swapping it for a penal vocabulary the cult never used: 'the blood of sprinkling' (Heb 12:24; 1 Pet 1:2), 'hearts sprinkled clean' (Heb 10:22). The rites repeat because mortal life can only cover the wound and must be reapplied (Heb 10:1-4); the 'indestructible life' (Heb 7:16) closes it -- same grammar, not a switch to punishment. 'The life is in the blood,' never 'the death.'\n\nConfidence: Lev 17:11's life-mechanism, lay slaughter, the bloodless flour hatta't, and the application-gesture vocabulary are demonstrable. That impurity's unifying denominator is death is Milgrom's strong inference -- widely but not universally followed. See relig_013, relig_018.",
+      "period": "exodus_conquest",
+      "books": [
+        {"book": "Lev", "chapter_start": 17, "chapter_end": 17},
+        {"book": "Lev", "chapter_start": 14, "chapter_end": 15},
+        {"book": "Num", "chapter_start": 19, "chapter_end": 19},
+        {"book": "Heb", "chapter_start": 9, "chapter_end": 10}
+      ],
+      "key_references": ["Lev 17:11", "Lev 5:11-13", "Num 19:11-19", "Num 12:12", "Lev 14:4-7", "Exod 12:22", "Ps 51:7", "Heb 9:22", "Heb 10:1-4"],
+      "scholarly_sources": ["Milgrom, Leviticus 1-16 (Anchor Bible)", "Feder, Blood Expiation in Hittite and Biblical Ritual", "Moffitt, Atonement and the Logic of Resurrection (Brill)", "Rillera, Lamb of the Free (Cascade, 2024)"]
+    },
+    {
+      "id": "relig_015",
+      "title": "Hand-Leaning (samakh): Ownership and Identification, Not Sin-Transfer",
+      "summary": "The one-handed samakh gesture (Lev 1:4; 3:2; 4:4) designates the animal as the offerer's own and the offering as on his behalf. It cannot be sin-transfer, because a sin-laden animal would be impure, and impurity is categorically barred from the altar. The single transfer rite in the Torah -- the two-handed scapegoat with confession -- is deliberately withheld from sacrificial status.",
+      "detail": "Samakh marks identification and ownership: this animal is mine, offered for me. Sin-transfer is systemically impossible at the altar for a demonstrable reason -- an animal loaded with sin would be impure, and impure things are barred (Lev 22:17-25); in fact the hatta't is 'most holy' and whatever touches its flesh becomes holy, not defiled (Lev 6:25-29). The one unambiguous transfer rite proves the point by contrast: the scapegoat of Leviticus 16:21-22 receives TWO hands plus verbal confession explicitly transferring 'all the iniquities of the Israelites' -- and exactly there the system withholds sacrifice: the goat for Azazel is not slaughtered, its blood is not manipulated, it is not offered on the altar; it is driven out. Sin-transfer and sacrifice are mutually exclusive operations in Leviticus 16, performed on two different goats. The conclusion is precise: the one clear case of sin-transfer in the Torah is non-sacrificial, and the rites that are sacrificial involve no transfer.",
+      "ane_parallels": [
+        "ANE elimination/disposal rites (Hittite and Syrian) form a recognized ritual genre, transfer-and-banishment, distinct from altar sacrifice -- the genre the scapegoat belongs to (see relig_008)",
+        "Mesopotamian substitution rituals (substitute king, namburbi figurine-transfer) likewise transfer fate/penalty onto a carrier that is destroyed or expelled, never offered on an altar (see relig_016)",
+        "The two-handed, confession-accompanied gesture of Lev 16:21 is formally distinct from the one-handed samakh of the altar offerings -- the texts mark the difference deliberately"
+      ],
+      "interpretive_significance": "The laying-on of hands at the altar cannot be read as the offerer's sin passing into the victim to be punished in his place; it is identification, not penal imputation. The NT's one possible scapegoat allusion is at most faint (perhaps Matt 27:15-26; Barnabas 7 makes it explicit only later), and it belongs to the elimination register (removal of sin), not the altar register (purgation by blood). Demonstrable. See relig_008 (Azazel) and relig_016 (ANE substitution was non-sacrificial).",
+      "period": "exodus_conquest",
+      "books": [
+        {"book": "Lev", "chapter_start": 1, "chapter_end": 4},
+        {"book": "Lev", "chapter_start": 16, "chapter_end": 16}
+      ],
+      "key_references": ["Lev 1:4", "Lev 3:2", "Lev 4:4", "Lev 16:21-22", "Lev 6:25-29", "Lev 22:17-25"],
+      "scholarly_sources": ["Milgrom, Leviticus 1-16 (Anchor Bible)", "Wright, The Disposal of Impurity", "Rillera, Lamb of the Free (Cascade, 2024)"]
+    },
+    {
+      "id": "relig_016",
+      "title": "ANE Substitution Existed but Was Not Sacrifice: the Substitute King, Namburbi, and zurki Blood Rites",
+      "summary": "Mesopotamia possessed genuine penalty- and fate-transfer rituals -- the substitute king (sar puhi) and namburbi figurine-transfer -- with clear vocabulary and procedure. The Levitical altar cult conspicuously contains none of this machinery. Where Israel keeps transfer-and-disposal it is the non-sacrificial scapegoat, and the nearest blood-rite analogue (Hittite zurki) runs in the purgation, not the penal, direction.",
+      "detail": "This is the decisive contrastive datum. The sar puhi (substitute king) ritual, attested from the Old Babylonian period through the Neo-Assyrian archives, enthroned a surrogate when omens portended the king's death; the substitute absorbed the fate, was put to death, and the true king resumed the throne. Namburbi rituals routinely transferred portended evil onto figurines, animals, or objects that were then destroyed or sent down the river. These are real penalty-transfer and fate-transfer mechanisms, named and practiced in the very environment Israel inhabited. The altar cult of Leviticus contains exactly none of it. The nearest blood-rite parallel runs the other way: Feder's study of the Hittite zurki rites shows second-millennium Anatolian and north-Syrian rituals applying blood to purify and consecrate cult objects, buildings, and images -- the closest functional analogue to the hatta't, operating in the purgation register. The Hittite Instructions for Temple Officials supply a further parallel: offenses against the god's household are answered by the deity's own direct judgment on the offender and his line -- Milgrom's comparandum for kareth as divine (not court-administered) extirpation.",
+      "ane_parallels": [
+        "Sar puhi (substitute king): a surrogate enthroned, made to absorb the king's portended death, then killed so the true king survives -- attested from Old Babylonian through Neo-Assyrian times (ANET; SAA X correspondence)",
+        "Namburbi rituals: portended evil transferred onto figurines, animals, or objects, then destroyed or floated downriver -- genuine fate-transfer machinery distinct from altar offerings",
+        "Hittite zurki blood rites (Feder): blood applied to purify and consecrate objects, buildings, and divine images -- the nearest analogue to the hatta't, in the purgation direction"
+      ],
+      "interpretive_significance": "The Levitical system stands in an environment where substitutionary ritual was available, named, and practiced -- and conspicuously declines to build its sacrifices on it. Reading Levitical sacrifice as penal substitution therefore imports the one mechanism the cult pointedly excludes, while the genuine ANE substitution rites are precisely the non-sacrificial ones. This is the historical pivot of the whole non-penal case. Demonstrable. See relig_015, relig_019, and method_007.",
+      "period": "exodus_conquest",
+      "books": [
+        {"book": "Lev", "chapter_start": 1, "chapter_end": 17},
+        {"book": "Num", "chapter_start": 15, "chapter_end": 15}
+      ],
+      "key_references": ["Lev 16:8-10", "Lev 16:20-22", "Lev 4:1-12", "Num 15:30-31"],
+      "scholarly_sources": ["ANET (Pritchard, 3rd ed.): substitute-king and namburbi materials", "State Archives of Assyria X (Neo-Assyrian correspondence on sar puhi)", "Feder, Blood Expiation in Hittite and Biblical Ritual", "Wright, The Disposal of Impurity"]
+    },
+    {
+      "id": "relig_017",
+      "title": "Child Sacrifice (molk): the Boundary Israel's Cult Polices",
+      "summary": "The molk environment -- Punic and Phoenician child offerings, and Mesha's sacrifice of his firstborn on the wall (2 Kgs 3:27) -- shows that escalating sacrifice to the offerer's own child was live practice in Israel's world. The Torah prohibits it absolutely, requires the firstborn to be redeemed rather than offered, and the prophets call the very idea unthinkable.",
+      "detail": "Punic and Phoenician molk offerings and the Moabite evidence (Mesha, 2 Kgs 3:27) attest a cultic environment in which the surrender of one's own child could be offered to purchase divine favor or deliverance. Against this the Torah legislates: child sacrifice is prohibited absolutely (Lev 18:21; 20:2-5; Deut 12:31); the firstborn, who belongs to YHWH, is REDEEMED, not offered (Exod 13:13-15; 34:20); and the prophets treat the practice as something that never even entered YHWH's mind (Jer 7:31; 19:5). Micah's rejected escalation runs the logic to its end and refuses it: 'Shall I give my firstborn for my transgression...? He has shown you, O mortal, what is good' (Mic 6:6-8). The contrast is load-bearing: the logic that the deity's favor is purchased by the surrender of a life -- the nearest ANE analogue to a penal-satisfaction economy -- is exactly the logic Israel's cult is written against.",
+      "ane_parallels": [
+        "Punic tophet evidence (Carthage and the western Phoenician colonies): urns of cremated infants associated with molk dedications (the scale and interpretation are debated, but the practice is attested)",
+        "Phoenician/Canaanite molk offerings of children to a deity for deliverance or favor",
+        "The Moabite king Mesha sacrificing his firstborn son on the wall during a siege (2 Kgs 3:27), with the besieging Israelite coalition withdrawing"
+      ],
+      "interpretive_significance": "When penal-substitution language frames the Father as purchasing favor or satisfying wrath through the death of his Son-as-victim, it reproduces precisely the molk logic the Torah outlaws and the prophets call unthinkable -- the surrender of a child's life to buy divine favor. The biblical cult is built in the opposite direction: firstborns are redeemed, not offered. Confidence: the biblical prohibition and the firstborn-redemption datum are demonstrable; the scale and exact ritual mechanics of the Punic tophet remain debated. See relig_016 and method_007.",
+      "period": "divided_monarchy",
+      "books": [
+        {"book": "Lev", "chapter_start": 18, "chapter_end": 20},
+        {"book": "Deu", "chapter_start": 12, "chapter_end": 12},
+        {"book": "2Ki", "chapter_start": 3, "chapter_end": 3},
+        {"book": "Jer", "chapter_start": 7, "chapter_end": 7},
+        {"book": "Mic", "chapter_start": 6, "chapter_end": 6}
+      ],
+      "key_references": ["Lev 18:21", "Lev 20:2-5", "Deut 12:31", "Exod 13:13-15", "Exod 34:20", "2 Kgs 3:27", "Jer 7:31", "Mic 6:6-8"],
+      "scholarly_sources": ["Levenson, The Death and Resurrection of the Beloved Son (Yale)", "Day, Molech: A God of Human Sacrifice in the Old Testament", "Milgrom, Leviticus (Anchor Bible)", "Rillera, Lamb of the Free (Cascade, 2024)"]
+    },
+    {
+      "id": "relig_018",
+      "title": "Ritual Impurity and Moral Impurity Are Distinct Systems",
+      "summary": "Klawans, building on Milgrom, distinguishes two impurity systems in the priestly and holiness texts. Ritual impurity (corpse, childbirth, discharge, scale disease) is contagious, temporary, non-sinful, and remedied by washing, time, and the purification offering. Moral impurity (idolatry, sexual sin, bloodshed) is not contact-contagious; it pollutes sinner, land, and sanctuary from afar and is addressed by punishment, justice, exile, and the annual purgation.",
+      "detail": "Ritual impurity arises from corpses, childbirth, genital discharges, and scale disease; its sources are largely unavoidable and sometimes obligatory (burying the dead, procreation); it is contagious by contact, temporary, NOT sinful, and remedied by washing, the passage of time, and the hatta't. Moral impurity arises from idolatry, sexual immorality, and bloodshed (Lev 18:24-30; 19:31; 20:1-3; Num 35:33-34); it is not contact-contagious, but it pollutes the sinner, the land, and the sanctuary from a distance; it is not remedied by the ordinary hatta't but by punishment, atonement of the land through justice (Num 35:33), exile (Lev 18:28), and at the systemic level by the annual Yom Kippur purgation of the sanctuary's accumulated defilement (Lev 16:16). The grids must not be merged: a corpse-contaminated Israelite has not sinned, and an idolater is not merely 'ritually unclean.'",
+      "ane_parallels": [
+        "ANE purity codes (Mesopotamian, Hittite, Egyptian) likewise govern access to sacred space and distinguish contagious ritual states from offenses against the deity (see relig_004 for the shared boundary-maintenance logic)",
+        "Mesopotamian namburbu purification ceremonies address ritual contamination, while offenses against the god's household are answered by the deity directly (Hittite Instructions for Temple Officials) -- the two-track structure parallels Israel's ritual/moral split",
+        "The cross-culturally attested association of corpse, disease, and discharge with impurity, treated by washing and time"
+      ],
+      "interpretive_significance": "The NT's purity language about Jesus's work spans both registers: cleansing of conscience (Heb 9:14), purification of a people (Titus 2:14), and -- on the ritual side -- Thiessen's demonstration that the Gospels portray Jesus as a contagious source of HOLINESS who reverses ritual impurity at its sources (corpse, discharge, lepra) without himself sinning or being defiled. Keeping the two systems distinct prevents misreading either Levitical law or the Gospel healings. Demonstrable. Extends relig_004; see relig_019 for the moral-impurity tier the cult cannot reach by ordinary offering.",
+      "period": "exodus_conquest",
+      "books": [
+        {"book": "Lev", "chapter_start": 11, "chapter_end": 20},
+        {"book": "Num", "chapter_start": 35, "chapter_end": 35},
+        {"book": "Mrk", "chapter_start": 5, "chapter_end": 5}
+      ],
+      "key_references": ["Lev 11:1-47", "Lev 15:1-33", "Lev 18:24-30", "Num 35:33-34", "Lev 16:16", "Heb 9:14", "Titus 2:14", "Mark 5:25-34"],
+      "scholarly_sources": ["Klawans, Impurity and Sin in Ancient Judaism (Oxford)", "Milgrom, Leviticus 1-16 (Anchor Bible)", "Thiessen, Jesus and the Forces of Death (Baker Academic)"]
+    },
+    {
+      "id": "relig_019",
+      "title": "The Cult's Ceiling: Intentional Sin Lies Wholly Beyond Sacrificial Remedy",
+      "summary": "The system states its own limit. No Levitical offering addresses intentional, defiant sin (Num 15:27-31): the defiant sinner (beyad ramah, 'with a high hand') is cut off (kareth), his iniquity upon him. Deliberate wrongs reach the altar only after confession and restitution, so it is the repentance, not the offering, that converts them. Forgiveness of defiance is the divine householder's prerogative, never a cultic product.",
+      "detail": "Numbers 15:27-31 covers the inadvertent sinner (bishgagah) and then states the limit: the one who acts defiantly 'blasphemes the LORD... shall be cut off... his iniquity is upon him.' Its outcome is kareth -- the divine householder's own severance, distinguished from court-administered penalties because the offense lies in YHWH's direct jurisdiction. The one place deliberate wrongs reach the altar confirms the rule: the 'asham cases of knowing fraud and false oath (Lev 6:1-7; Num 5:6-8) become expiable only after voluntary confession and restitution plus the surcharge -- the repentance converts the offense to expiable status, and the offering ratifies a restoration already begun. Yom Kippur does not breach this ceiling; it legislates it: the day's benefit is conditioned on self-affliction, and 'whoever does not afflict himself... shall be cut off' (Lev 16:29-31; 23:29-30). The purge maintains the house; it does not restore the defector. At the systemic level the prophets locate the remedy for covenant treachery beyond the cult: a new covenant in which 'I will forgive their iniquity and remember their sin no more' (Jer 31:31-34), a new heart God himself gives (Ezek 36:25-27), the broken spirit no offering covers (Ps 51:16-17). Two data confirm that forgiveness is the householder's to grant: forgiveness by fiat with no sacrifice named (2 Sam 12:13; Ps 32:1-5) and Jesus forgiving on his own authority before any cross-event (Mark 2:5-10; Luke 7:47-48).",
+      "ane_parallels": [
+        "Hittite Instructions for Temple Officials (ANET 207-210): offenses against the god's household provoke the deity's own judgment on the offender and his entire line -- Milgrom's comparandum for kareth as divine, not court-administered, extirpation reaching the offender's lineage",
+        "ANE temple law generally distinguishes ritual maintenance of the deity's house from the householder's direct prerogative over defiance within his jurisdiction",
+        "The widely attested ANE principle that grave offense against a divine patron is answered by the patron himself rather than processed through routine cult"
+      ],
+      "interpretive_significance": "That the cult never operated at the tier of defiant sin is common ground across Milgrom, Rillera, and their credible critics -- it is one of the most secure points in the whole field. The cult does not fail here; it was never designed to operate here, and it points past itself to a forgiveness only the householder grants. This is precisely the gap the NT's 'forgiveness of sins' language fills (Jer 31:34 cited in Heb 8:12; 10:16-18; Acts 26:18), which is covenant-renewal language, not a sacrificial mechanism. Demonstrable. See relig_012 and method_007.",
+      "period": "exodus_conquest",
+      "books": [
+        {"book": "Num", "chapter_start": 15, "chapter_end": 15},
+        {"book": "Lev", "chapter_start": 16, "chapter_end": 16},
+        {"book": "Lev", "chapter_start": 23, "chapter_end": 23},
+        {"book": "Jer", "chapter_start": 31, "chapter_end": 31},
+        {"book": "Ezk", "chapter_start": 36, "chapter_end": 36}
+      ],
+      "key_references": ["Num 15:27-31", "Lev 6:1-7", "Num 5:6-8", "Lev 16:29-31", "Lev 23:29-30", "Jer 31:31-34", "Ezek 36:25-27", "2 Sam 12:13", "Mark 2:5-10"],
+      "scholarly_sources": ["Milgrom, Leviticus 1-16 (Anchor Bible)", "Rillera, Lamb of the Free (Cascade, 2024)", "Klawans, Purity, Sacrifice, and the Temple (Oxford)"]
+    },
+    {
+      "id": "relig_020",
+      "title": "Passover Is Apotropaic and Communal, Not Atoning",
+      "summary": "The original Passover (Exodus 12) has no altar, no priest, no sanctuary blood rite, and no kipper vocabulary. The doorpost blood wards off the Destroyer and the lamb is eaten in a household meal -- an apotropaic and liberation rite, classed in later practice with the well-being (shelamim) family, never applied to persons for forgiveness.",
+      "detail": "Demonstrable from Exodus 12: the blood on the doorposts wards off the Destroyer (Exod 12:13, 23); the verb pasah means God protectively passes over or stands guard; the lamb is then eaten in a household meal. Form-critically the pesah aligns with apotropaic blood rites known across the ANE (threshold and doorway blood applications against destructive agents), not with purgation offerings -- it has no altar, no priest, no sanctuary, and no kipper language. In the later cult the pesah is classified in practice with the shelamim family: slaughtered by laity or Levites, eaten by the offerers, never applied to persons for forgiveness.",
+      "ane_parallels": [
+        "Mesopotamian Namburbi-type apotropaic rites and Arslan Tash-type protective texts: blood and incantations applied at thresholds and doorways to bar destructive agents from a house",
+        "The household-meal form of the pesah aligns with domestic ritual rather than temple purgation (Bokser, The Origins of the Seder)",
+        "ANE threshold/doorway protective applications generally, a genre distinct from sanctuary blood manipulation"
+      ],
+      "interpretive_significance": "The NT's Passover images therefore evoke liberation, protection, and a covenant-constituting meal, not penal exchange. '​Christ our Passover has been sacrificed' (1 Cor 5:7) grounds an exhortation to communal purity ('cleanse out the old leaven') -- the Passover logic of a household made ready; 'the Lamb of God who takes away (airon) the sin of the world' (John 1:29) is removal/liberation language; Revelation's slain-yet-standing Lamb evokes liberation and enthronement. Tellingly, all four gospels time the crucifixion to Passover (the liberation festival), and no NT text associates the death with Yom Kippur's calendar -- if the native register were penal purgation, the Day of Purgations is the date the typology would demand. Demonstrable. See relig_021 (the atoning image, in Hebrews) and legal_009 (covenant blood).",
+      "period": "exodus_conquest",
+      "books": [
+        {"book": "Exo", "chapter_start": 12, "chapter_end": 12},
+        {"book": "1Co", "chapter_start": 5, "chapter_end": 5},
+        {"book": "Jhn", "chapter_start": 1, "chapter_end": 1},
+        {"book": "Jhn", "chapter_start": 19, "chapter_end": 19},
+        {"book": "Rev", "chapter_start": 5, "chapter_end": 5}
+      ],
+      "key_references": ["Exod 12:1-13", "Exod 12:21-27", "1 Cor 5:7", "John 1:29", "John 19:36", "Rev 5:6-10"],
+      "scholarly_sources": ["Bokser, The Origins of the Seder (UC Press)", "Rillera, Lamb of the Free (Cascade, 2024)", "Milgrom, Leviticus (Anchor Bible)"]
+    },
+    {
+      "id": "relig_021",
+      "title": "Yom Kippur in Hebrews: Purgation and Entrance, Not Penalty",
+      "summary": "Hebrews is the New Testament's one sustained Yom Kippur / purification-offering argument, and it follows the Levitical grammar exactly: what matters is the presentation of blood in the sanctuary, the purification of defiled things and consciences, and the priest's entrance into God's presence -- mapped onto resurrection and ascension, not onto the moment of death.",
+      "detail": "Hebrews' mechanics are purgation and entrance: blood presentation in the sanctuary (Heb 9:7, 11-12, 23-26), the purification of defiled things and consciences (9:13-14, 22-23), and the high priest's entrance into God's presence. Moffitt's point, which Rillera adopts: in the Levitical sequence the slaughter is preliminary; the atoning moment is the presentation of LIFE before God -- which Hebrews maps onto resurrection and ascension ('he entered once for all by his own blood,' 9:12; 'now to appear in the presence of God for us,' 9:24). Hebrews 9:22's 'almost everything is purified with blood' carefully preserves the bloodless exceptions (Lev 5:11-13; Num 31:22-24) and names purification, not punishment, as blood's function. Romans 3:25's hilasterion is the LXX term for the kapporet -- the purgation site -- with God as the one who provides it. The 'once for all' is the indestructible life (Heb 7:16) closing the wound that mortal life could only cover and reapply (Heb 10:1-4): the same application grammar, not a switch to penal exchange.",
+      "ane_parallels": [
+        "Leviticus 16 sanctuary purgation underlies the whole argument; the kuppuru/Akitu purgation logic (see relig_013) is the ANE backdrop to blood presented to decontaminate the sancta",
+        "The high-priestly entrance into the inner sanctum parallels ANE restricted access to the deity's innermost dwelling, here re-read as Christ's entrance into the heavenly presence",
+        "Hittite zurki blood rites (Feder) as the purgation-direction analogue that frames blood as cleansing of holy things, not punishment of a victim"
+      ],
+      "interpretive_significance": "Even the explicitly atoning NT image operates by purification and presentation-of-life, not penal substitution -- 'God is the subject who provides, not the object placated.' Confidence: that Hebrews argues in the Yom Kippur/hatta't register and that hilasterion = kapporet is demonstrable. Moffitt's specific resurrection-as-presentation reading (the atoning moment is the ascension, not Calvary) is a strong inference, widely but not universally followed. See relig_013, relig_014, and method_007.",
+      "period": "roman",
+      "books": [
+        {"book": "Heb", "chapter_start": 7, "chapter_end": 10},
+        {"book": "Rom", "chapter_start": 3, "chapter_end": 3},
+        {"book": "Lev", "chapter_start": 16, "chapter_end": 16}
+      ],
+      "key_references": ["Heb 7:16", "Heb 9:11-14", "Heb 9:22-26", "Heb 10:1-14", "Rom 3:25", "Lev 16:14-19"],
+      "scholarly_sources": ["Moffitt, Atonement and the Logic of Resurrection (Brill)", "Moffitt, Rethinking the Atonement (Baker Academic)", "Rillera, Lamb of the Free (Cascade, 2024)", "Milgrom, Leviticus (Anchor Bible)"]
     }
   ]
 }

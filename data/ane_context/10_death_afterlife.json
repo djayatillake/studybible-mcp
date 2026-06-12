@@ -130,6 +130,30 @@
       ],
       "key_references": ["Gen 50:2-3", "Gen 50:26", "Exo 1:11-14", "Exo 12:29-30", "Deu 30:15-20", "Deu 28:1-68"],
       "scholarly_sources": ["Segal, Life After Death: A History of the Afterlife in the Religions of the West", "Johnston, Shades of Sheol: Death and Afterlife in the Old Testament", "Hornung, The Ancient Egyptian Books of the Afterlife", "Assmann, Death and Salvation in Ancient Egypt"]
+    },
+    {
+      "id": "death_008",
+      "title": "Redemption as Extraction from the Household of Death: the go'el, Through Death, No Payment to the Captor",
+      "summary": "Biblical ransom (ga'al, padah; Greek lytron) is a household office: the kinsman-redeemer (go'el) buys back persons and land fallen into bondage, at his own cost, and only kin may do it. Redemption is always FROM a captor or house (Egypt, Sheol, the domain of darkness) and no text ever depicts a payment made TO the captor. The captor holds power, not rights; his hold is broken, not bought out.",
+      "detail": "The go'el is the kinsman with the right and duty to buy back persons and land (Lev 25:47-49; Ruth), at his own cost, and only kin may exercise it. The exodus formula names what one is redeemed from as a house: 'redeemed from the house of slavery (beit avadim), from the hand of Pharaoh' (Deut 7:8; Exod 13:3, 14) -- and no text depicts any payment to Pharaoh. The Sheol texts extend the grammar to the final captor: 'I will ransom them from the hand of Sheol; I will redeem them from Death' (Hos 13:14); 'no man can give God a kofer for his brother... but God will ransom my soul from the hand of Sheol' (Ps 49:7-9, 15) -- again nothing paid to Sheol. Biblical ransom therefore requires a captivity, a real cost to the redeemer, and a redeemer with kinship standing; it does not require a recipient. The NT names the captor and states the kinship requirement: 'since the children share in flesh and blood, he himself likewise partook of the same things, that THROUGH DEATH he might destroy the one who has the power of death, that is, the devil, and deliver those who through fear of death were subject to lifelong slavery' (Heb 2:14-15); the completed movement is household transfer, 'delivered from the domain of darkness and transferred into the kingdom of his beloved Son, in whom we have redemption' (Col 1:13-14). 'The soul that sins shall die' (Ezek 18:4; Gen 2:17) is honored, not waived: the ransom is not exemption from death but release on the far side of it, the captives freed through death because the kinsman went first and broke the holding power from inside (2 Cor 5:14; Rom 6:3-9; 1 Cor 15:20-26; Rev 20:14).",
+      "ane_parallels": [
+        "ANE kinsman-redemption and debt-slavery release: the go'el buying back enslaved kin and forfeited land, with the redeemer bearing the cost",
+        "Mesopotamian royal debt-release edicts (anduraru / misharum): bondage cancelled by a sovereign act that frees captives without compensating the holder",
+        "The exodus paradigm of liberation from a 'house of slavery' with no ransom paid to the oppressor -- redemption as rescue from a power, not a transaction with it"
+      ],
+      "interpretive_significance": "Biblical ransom excludes exactly one thing: penalty-payment to a creditor -- whether Satan (who holds power but no rights) or the Father (who is the redeemer, not the claimant). Gregory of Nazianzus (Oration 45.22) already poses the 'to whom was the blood offered?' question, rejects payment to the Evil One and to the Father alike, and concludes the Father receives the economy without being its creditor: recipient-less ransom is the grammar of the texts and an answer from inside the tradition's first centuries.\n\nConfidence (flag when retrieved): the household ransom grammar -- redemption from a power, real cost to the kinsman, no payment to any captor in any text -- is demonstrable. The recipient question itself has been contested since the patristic period (payment to Satan, to the Father, or no recipient); the corpus adopts the recipient-less, through-death reading as the best available account, since no biblical ransom text names a recipient and the go'el grammar requires none -- held as best available, not beyond revision. See cosmo_015 (death as the universal inheritance) and method_007.",
+      "period": "exodus_conquest",
+      "books": [
+        {"book": "Lev", "chapter_start": 25, "chapter_end": 25},
+        {"book": "Deu", "chapter_start": 7, "chapter_end": 7},
+        {"book": "Hos", "chapter_start": 13, "chapter_end": 13},
+        {"book": "Psa", "chapter_start": 49, "chapter_end": 49},
+        {"book": "Mrk", "chapter_start": 10, "chapter_end": 10},
+        {"book": "Heb", "chapter_start": 2, "chapter_end": 2},
+        {"book": "Col", "chapter_start": 1, "chapter_end": 1}
+      ],
+      "key_references": ["Lev 25:47-49", "Deut 7:8", "Hos 13:14", "Ps 49:7-9", "Ps 49:15", "Mark 10:45", "1 Tim 2:6", "Heb 2:14-15", "Col 1:13-14", "1 Cor 15:20-26"],
+      "scholarly_sources": ["Rillera, Lamb of the Free (Cascade, 2024)", "Aulen, Christus Victor", "Gregory of Nazianzus, Oration 45.22", "Levine, In the Presence of the Lord (go'el/kofer)"]
     }
   ]
 }
