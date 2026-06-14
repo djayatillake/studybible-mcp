@@ -38,8 +38,19 @@ You can compress stages if the user asks, but the default is staged.
 
 ## Step 0 — Establish Day N, date, theme, passages
 
-- **Day N + date**: yesterday's anchor — **Day 8 = Saturday 6 June 2026**. So Day 9 =
-  Sun 7 June 2026, etc. Confirm the date from the environment's "Today's date".
+- **Day N — derive from the filesystem, NOT from "today."** David schedules posts in
+  advance (he often produces several days ahead while away), so the environment's
+  "Today's date" does **not** tell you which day you're making. The next study is
+  **`(highest existing podcast/dayN) + 1`**:
+  ```bash
+  ls -d podcast/day* 2>/dev/null | sed 's:.*/day::' | sort -n | tail -1   # highest N so far
+  ```
+  Confirm N with the user before assembling ("this is Day 17 — yes?"). If the user names
+  a Day N, trust the user over the count. **A `podcast/dayN` that already exists is a
+  finished study — never overwrite or `rm -rf` it (see the Step 3 guard).**
+- **Date — derive from the day-number anchor, NOT from "today."** Anchor:
+  **Day 8 = Saturday 6 June 2026**, so Day N falls on `6 June 2026 + (N − 8)` days
+  (Day 9 = Sun 7 Jun, Day 16 = Sun 14 Jun, Day 17 = Mon 15 Jun, …).
 - **Passages**: the user supplies them (e.g. "Proverbs 1:8-19, Matthew 7:1-23, Genesis 17").
 - **Theme**: you compose a 3-part descriptive phrase for the title once you've read
   the passages (e.g. "The Two Ways, the Sign of the Covenant and the Judge of All
@@ -116,9 +127,22 @@ one-line recap) so the reader never loses the thread.
 
 ## Step 3 — Assemble the post HTML
 
-Copy `resources/template.html` to `podcast/dayN/Bible_in_a_Year_Study_DayN.html` and
-fill it in. **`mkdir -p podcast/dayN` first.** The template encodes the exact CSS,
-section order, and the structural rules below.
+**First, guard against clobbering an existing study.** `podcast/dayN/` directories are
+finished deliverables that **persist across sessions**, are **git-ignored** (so not in
+version control), and are **not Trash-recoverable** — a stray `rm -rf` is unrecoverable
+(the content survives only if it was already pushed to a Substack draft). So before
+writing anything, create the dir *only if it's free*:
+```bash
+[ -e "podcast/dayN/Bible_in_a_Year_Study_DayN.html" ] && echo "STOP: day N already exists" || mkdir -p podcast/dayN
+```
+If that prints `STOP`, the day number is wrong (or this day is already done) — **stop and
+reconfirm N with the user. Never `rm -rf` a `podcast/dayN` directory to "start clean."**
+(A Write-tool rejection like *"file already exists / not read yet"* means the same thing:
+something real is already there — inspect it, don't clear it.)
+
+Then copy `resources/template.html` to `podcast/dayN/Bible_in_a_Year_Study_DayN.html` and
+fill it in. The template encodes the exact CSS, section order, and the structural rules
+below.
 
 **Structural rules that keep the audio pipeline working — do not break these:**
 - Everything is a **direct child of the single `<div class="wrap">`** (flat). No
@@ -248,6 +272,16 @@ domain); credit BDB/LSJ/Strong's, Tyndale, TSK, Weinfeld/Nuzi (ANE), Heiser
 - Substack: no API; needs a logged-in Chrome (**user signs in — you can't**); each
   `publish/post` navigation makes a new draft; body via clipboard-`text/html` + Cmd+V;
   50 MB audio > 10 MB upload cap → audio stays manual.
+- **Getting ahead (common):** derive **Day N from `(highest existing podcast/dayN) + 1`**
+  and the date from the **Day 8 = Sat 6 Jun 2026** anchor — never from the environment's
+  "today." Confirm N with the user.
+- **Never clobber a `podcast/dayN` dir:** they're finished studies, git-ignored and
+  Trash-bypassed, so deletion is unrecoverable. Guard with
+  `[ -e podcast/dayN/Bible_in_a_Year_Study_DayN.html ] && STOP`; never `rm -rf` one. A
+  Write "already exists" rejection = something's there → inspect, don't clear. (See
+  `feedback_no_rm_podcast_dirs.md`.)
+- A very long study trips Substack's *"Near email length limit"* banner — informational
+  only (affects the emailed copy, not the web post); leave as draft regardless.
 
 ## Files in this skill
 - `scripts/pull_bsb.py` — smooth BSB for passages from `bsb_verses`.
