@@ -90,6 +90,15 @@ then call them (batch independent calls in parallel):
 - **`get_ane_context` gotcha:** a chapter reference often returns nothing — fall back
   to `dimension=` + `period=` (e.g. `legal_covenant`/`patriarchal`, `gender_family`,
   `social_structure`; periods: patriarchal, exodus_conquest, …, roman).
+- **Atonement/ransom/sacrifice trigger:** whenever a reading touches the cross,
+  sacrifice, ransom, blood, Leviticus, or Hebrews, pull **all three** before writing:
+  `get_theology_context(theme="atonement_models")` (the substitution-vs-representation
+  synthesis + the ransom saying), `get_ane_context(dimension="ane_methodology")` for
+  `method_008` (the representation-frame read-order), and
+  `get_ane_context(dimension="religious_practices", period="exodus_conquest")` for the
+  Rillera/Milgrom non-penal cult cells. **Default frame = representation** (inclusive,
+  last Adam / union); penal substitution is a true juridical facet *inside* it, never
+  bare exclusive place-taking. (Avoids the PSA-default error — see those cells.)
 - **Context economy** (see memory): list tools default to a few high-signal results —
   trust the strength ordering, don't pad or crank limits without reason.
 

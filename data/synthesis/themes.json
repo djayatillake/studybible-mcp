@@ -1,0 +1,11 @@
+{
+  "themes": [
+    {
+      "theme_key": "atonement_models",
+      "theme_label": "Atonement: Substitution, Representation, and Mechanism",
+      "description": "How Christ's death works 'in our place'. Two pictures hide under that phrase: substitution (exclusive place-taking -- he acts instead of us, the act falls on him rather than on us, at the decisive moment we are absent and merely spared) and representation (inclusive incorporation -- Christ as last Adam, kinsman, and head, with whom we are united, so that what happens to him happens to us and his death and resurrection become ours). This theme treats the distinction directly and locates penal substitution: representation is the controlling frame, with penal substitution affirmed as one true juridical facet inside it, not the primary logic. Cross-links the corporate-headship theology (Bradley, two_fathers_only) and the Levitical/ANE non-penal corpus (Rillera/Milgrom: relig_012-021, death_008, method_006-008).",
+      "parent_theme": null,
+      "key_works": ["atonement_models", "two_fathers_only", "Rillera, Lamb of the Free"]
+    }
+  ]
+}

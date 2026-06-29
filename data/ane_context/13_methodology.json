@@ -127,6 +127,35 @@
       "chapter_end": null,
       "key_references": ["Isa 53:4-12", "Rom 3:25", "Rom 8:3", "2 Cor 5:21", "Gal 3:13", "Heb 9:11-14", "1 Pet 2:21-25"],
       "scholarly_sources": ["Rillera, Lamb of the Free (Cascade, 2024)", "Aulen, Christus Victor", "Anselm, Cur Deus Homo (1098)", "Eusebius, Demonstratio Evangelica 10.1", "Moffitt, Rethinking the Atonement (Baker Academic)"]
+    },
+    {
+      "id": "method_008",
+      "title": "Reading Atonement: the Representation-Frame Read-Order",
+      "summary": "A prescriptive read-order to apply WHENEVER a passage touches sacrifice, atonement, ransom, blood, Leviticus, or Hebrews -- so the default frame is representation (inclusive incorporation), not bare substitution (exclusive place-taking). The most common Western reflex is to flatten the cross into a bare penal substitution: Christ punished instead of us, the believer absent and merely spared. This protocol blocks that reflex while still affirming penal substitution as one true juridical facet INSIDE the representational frame. It operationalises method_006-007 and relig_012-021 for the study-writer: a checklist, not a conclusion to stumble on.",
+      "detail": "Apply in order:\n\n(1) DEFAULT TO REPRESENTATION, not exclusion. The canon's grammar is 'in Adam / in Christ' -- a representative head carrying a people (Rom 5:18-19; 1 Cor 15:22; 2 Cor 5:14; Heb 2:14-15). Christ stands AS us (last Adam, kinsman, head with whom we are united), so his death and resurrection become ours by inclusion, not by a swap performed while we look on. Never make exclusive place-taking the PRIMARY logic.\n\n(2) IDENTIFY WHICH OFFERING / REGISTER is in view before assigning meaning. The cult is differentiated (relig_012): Passover and covenant blood are liberation-and-meal, non-atoning (relig_020, legal_009); the hatta't / Yom Kippur image is purgation of the sancta, not punishment of a victim (relig_013-014, relig_021); the 'olah/gift register fits devotion (Eph 5:2; Rom 12:1). Do not collapse all of it into 'a death that pays for sin.'\n\n(3) RANSOM = LIBERATION AT A PRICE. lytron / kofer is the price of release (marketplace, slave-yard, go'el), redemption FROM a captor with no payment made TO the captor (death_008). It is substitutionary (anti) and liberative, but not by itself penal.\n\n(4) PENAL WEIGHT COMES ONLY FROM THE JURIDICAL TEXTS -- Isaiah 53, Rom 3:25, 2 Cor 5:21, Gal 3:13 -- never from the word 'ransom' and never from the cult's own machinery. Where penal substitution stands, it is carried there.\n\n(5) NEVER DEFAULT TO EXCLUSIVE PLACE-TAKING. It severs the believer from the event meant to include them, AND it imports the one mechanism the cult pointedly refused: the genuine ANE penalty-transfer rites (substitute king sar puhi, namburbi) were non-sacrificial; altar samakh is identification/ownership, not sin-transfer (relig_015, relig_016).\n\n(6) NET POSTURE: representation is the controlling frame; penal substitution is one TRUE juridical facet inside it -- 'God in our place, bearing what God's own justice required,' not the Son placating a reluctant Father -- held without flattening the liberation, Christus Victor, participation, and covenant-meal strands the same death also carries.",
+      "ane_parallels": [
+        "ANE penalty/fate-transfer rituals (substitute king, namburbi) were non-sacrificial and the altar cult declines to use them (relig_016) -- so bare penal substitution imports the one mechanism the cult excludes",
+        "Hand-leaning (samakh) at the altar designates ownership and identification, not sin-transfer (relig_015); the one true transfer rite (the scapegoat) is withheld from sacrificial status",
+        "Biblical ransom is the go'el's extraction of kin from a captor's house with no payment to the captor (death_008) -- liberation, not penalty paid to a creditor"
+      ],
+      "interpretive_significance": "This is the corpus's constructive read-order for atonement, complementing method_007's historical finding. method_007 establishes the negative and historical case (the cult is non-penal; penal substitution as a formulated mechanism is 16th-17th c.); method_008 supplies the positive frame the study should actually build in: representation (inclusive incorporation / last Adam / union) as the controlling logic, with penal substitution affirmed as a real juridical facet located inside it. The error it exists to prevent -- defaulting to bare, exclusive penal substitution the moment a text mentions sacrifice or ransom -- is precisely the Western reflex method_006 dates and explains. Pair with theology theme atonement_models (the 'Substitution and Representation' synthesis) and theme corporate_headship (Bradley, two_fathers_only). Confidence: the read-order's components are well-grounded (relig_012-021, death_008, cosmo_015); ranking representation above substitution is a stated, defensible model-choice, not a neutral datum -- flag it as the corpus's considered position when retrieved.",
+      "period": "patriarchal",
+      "books": [
+        {"book": "Lev", "chapter_start": 16, "chapter_end": 16},
+        {"book": "Heb", "chapter_start": 9, "chapter_end": 10},
+        {"book": "Heb", "chapter_start": 2, "chapter_end": 2},
+        {"book": "Rom", "chapter_start": 3, "chapter_end": 5},
+        {"book": "2Co", "chapter_start": 5, "chapter_end": 5},
+        {"book": "Gal", "chapter_start": 3, "chapter_end": 3},
+        {"book": "Isa", "chapter_start": 53, "chapter_end": 53},
+        {"book": "Mat", "chapter_start": 20, "chapter_end": 20},
+        {"book": "Mrk", "chapter_start": 10, "chapter_end": 10},
+        {"book": "1Co", "chapter_start": 15, "chapter_end": 15}
+      ],
+      "chapter_start": null,
+      "chapter_end": null,
+      "key_references": ["Mat 20:28", "Mark 10:45", "Rom 5:18-19", "1 Cor 15:22", "2 Cor 5:14", "2 Cor 5:21", "Gal 3:13", "Isa 53:5", "Rom 3:25", "Heb 2:14-15"],
+      "scholarly_sources": ["Rillera, Lamb of the Free (Cascade, 2024)", "Moffitt, Atonement and the Logic of Resurrection (Brill)", "N. T. Wright, The Climax of the Covenant", "Bradley, Two Fathers (corporate headship / last Adam)", "Gathercole, Defending Substitution (Baker Academic)"]
     }
   ]
 }

@@ -1,0 +1,48 @@
+{
+  "source_key": "atonement_models",
+  "title": "Atonement Models: Substitution and Representation",
+  "author": "synthesis",
+  "type": "synthesis_note",
+  "url": null,
+  "entries": [
+    {
+      "title": "Substitution and Representation: Two Readings of 'In Our Place'",
+      "chapter_or_episode": "Synthesis note",
+      "content_summary": "Two very different pictures hide under the phrase 'in our place,' and which one is primary decides what the cross is. In SUBSTITUTION Christ stands instead of us: he acts so we do not have to, the act falls on him rather than on us, and at the decisive moment we are absent -- merely spared by it. The logic is exclusive: he replaces us. In REPRESENTATION Christ stands as us: our head, our kinsman, the last Adam, with whom we are joined, so that what happens to him happens to us; his death counts as ours not because we were swapped out of the way but because we were taken up into it. The logic is inclusive: he incorporates us. The question is not whether Christ died 'for us' (both affirm it) but whether the primary mechanism is exclusion or inclusion. The canon's 'in Adam / in Christ' grammar and the ANE sacrificial evidence both favour representation as the controlling frame, with penal substitution affirmed as one true juridical facet inside it -- never as the whole, and never read back into the cult.",
+      "content_detail": "The grammar of salvation is 'in Adam / in Christ' -- a representative head carrying a people, not one individual changing places with another: 'as in Adam all die, so in Christ shall all be made alive' (1 Cor 15:22; Rom 5:18-19); 'one has died for all, therefore all have died' (2 Cor 5:14); the kinsman who 'partook of the same things, that through death he might destroy the one who has the power of death' (Heb 2:14-15). This inclusive, participatory logic (union with Christ, Rom 6:3-9) is the spine of the canon's soteriology.\n\nThe error to avoid is making EXCLUSIVE place-taking primary. Bare substitution, taken as the controlling mechanism, does two things at once: (1) it severs the believer from the very event meant to include them -- a ledger settled at a distance while we look on, rather than a death and resurrection that become ours because we are united to the one who bore them; and (2) it imports the one transfer mechanism the Levitical cult pointedly refused. In the ANE the genuine penalty- and fate-transfer rites (the substitute king, sar puhi; namburbi) were deliberately NON-sacrificial, and the altar cult declines to use them; hand-leaning (samakh) at the altar marks ownership and identification, not sin-transfer; kipper is purgation of the sancta, not punishment of a victim (see ANE relig_015, relig_016, relig_012-013, and the ransom grammar in death_008).\n\nWhere penal substitution rightly stands, its weight is carried by the juridical texts -- Isaiah 53's 'asham and 'punishment that brought us peace' (Isa 53:5, 10-12), the law-court of Romans 3:25, the curse of Galatians 3:13, the great exchange of 2 Corinthians 5:21 -- not by the word 'ransom' and not by the cult's own machinery. So the careful synthesis: representation is the better-supported frame, and penal substitution is one true facet inside it -- 'not the Son placating a reluctant Father, but God in our place, bearing what God's own justice required' -- held without flattening the liberation (ransom/Christus Victor), participation, and covenant-meal strands the same death also carries.\n\nConfidence: the 'in Adam / in Christ' representative grammar and the non-penal character of the cult are well-grounded (see method_006-007). Whether to rank representation ABOVE substitution, and exactly how much penal weight the juridical texts carry, is a genuine interpretive model-choice on which schools differ; this entry states the considered synthesis (representation as frame, penal substitution as a facet inside it) and flags it as such rather than presenting it as the only reading. See theme corporate_headship (Bradley) and ANE method_008 (the read-order protocol).",
+      "page_range": null,
+      "references": [
+        {"reference": "Rom.5.18", "relevance": "primary"},
+        {"reference": "Rom.5.19", "relevance": "primary"},
+        {"reference": "1Co.15.22", "relevance": "primary"},
+        {"reference": "2Co.5.14", "relevance": "primary"},
+        {"reference": "Heb.2.14", "relevance": "primary"},
+        {"reference": "Mat.20.28", "relevance": "secondary"},
+        {"reference": "Mrk.10.45", "relevance": "secondary"},
+        {"reference": "2Co.5.21", "relevance": "secondary"},
+        {"reference": "Gal.3.13", "relevance": "secondary"},
+        {"reference": "Rom.3.25", "relevance": "secondary"},
+        {"reference": "Isa.53.5", "relevance": "secondary"},
+        {"reference": "1Ti.2.6", "relevance": "secondary"},
+        {"reference": "Tit.2.14", "relevance": "secondary"}
+      ],
+      "themes": ["atonement_models", "corporate_headship"]
+    },
+    {
+      "title": "The Ransom Saying (Matthew 20:28; Mark 10:45): Liberation at a Price, Not Penalty Borne",
+      "chapter_or_episode": "Synthesis note",
+      "content_summary": "When Jesus gives his life 'a ransom for many' (lytron anti pollon; Mt 20:28; Mk 10:45 -- the twin sayings, the only two NT uses of lytron), the image is the slave-yard and the marketplace, not the courtroom. RANSOM (lytron / Hebrew kofer) is the concrete price of release; FOR (anti) is the preposition of exchange and substitution; MANY (pollon, glossed 'for all' at 1 Tim 2:6). So the saying clearly carries substitution and costly liberation -- but on its own it does NOT specify that the price is the bearing of a sentence. By itself the ransom saying is not penal-substitution language; it is redemption-from-bondage. The penal weight, where it stands, comes from the saying's canonical neighbours (Isaiah 53; Rom 3:25; 2 Cor 5:21; Gal 3:13), read as Jesus' own Suffering-Servant allusion invites -- not from the word 'ransom' itself.",
+      "content_detail": "The Old Testament soil: biblical ransom (ga'al, padah; kofer) is a kinsman's office -- the go'el buys back persons and land out of bondage, at his own cost, and one is always redeemed FROM a captor (Egypt, Sheol, the domain of darkness), with no text ever depicting a payment made TO the captor (Deut 7:8; Hos 13:14; Ps 49:7-9, 15). The captor holds power, not rights; his hold is broken, not bought out (developed in ANE death_008). So the ransom saying is substitutionary (anti, 'in place of') and liberative, and it is enacted through the kinsman going first into death to break death's hold from inside (Heb 2:14-15; 2 Cor 5:14; 1 Cor 15:20-26) -- the representational pattern, not exclusive place-taking.\n\nThe penal note enters by canonical fusion, not by the word: in one sentence Jesus joins the Son of Man of Daniel 7 (who receives a kingdom) to the Suffering Servant of Isaiah 53 (who 'bore the sin of many,' la-rabbim / rabbim, Isa 53:11-12). It is Isaiah 53, Romans 3:25, 2 Corinthians 5:21, and Galatians 3:13 -- the juridical texts -- that supply the penalty; Matthew 20:28 supplies the substitution and the liberation. To say 'the ransom saying IS penal substitution' is true only when read canonically the way Jesus' Isaiah-quotation invites; the careful statement is that it is substitutionary and liberating, and BECOMES penal when read through the Servant.\n\nConfidence: the lexical and OT-background points (lytron = price of release; kofer/go'el grammar; no payment to the captor) are demonstrable; the recipient question and how much penal weight to assign are contested and flagged (see death_008, method_007). Net: affirm the ransom as liberation-at-a-price within the representational frame, with penal substitution as a juridical facet carried by the neighbouring texts. See atonement_models entry 'Substitution and Representation' and ANE method_008.",
+      "page_range": null,
+      "references": [
+        {"reference": "Mat.20.28", "relevance": "primary"},
+        {"reference": "Mrk.10.45", "relevance": "primary"},
+        {"reference": "1Ti.2.6", "relevance": "secondary"},
+        {"reference": "Tit.2.14", "relevance": "secondary"},
+        {"reference": "Isa.53.5", "relevance": "secondary"},
+        {"reference": "Heb.2.14", "relevance": "secondary"}
+      ],
+      "themes": ["atonement_models"]
+    }
+  ]
+}
