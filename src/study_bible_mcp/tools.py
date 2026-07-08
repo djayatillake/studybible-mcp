@@ -873,6 +873,14 @@ USE THIS when discussing:
 - Corporate solidarity, "in Adam" / "in Christ", federal headship — Bradley (theme: corporate_headship)
 - Satan's imitation of God's kingdom, counterfeit worship — Bradley (theme: rival_counterfeits)
 - Acts 26:17-18 and Paul's commission — Bradley (theme: domain_transfer)
+- Penal substitution, propitiation, definite/particular atonement, imputed righteousness, justification — Owen, Stott (themes: penal_substitution, propitiation, definite_atonement, justification_imputation)
+- Mortification of indwelling sin, sanctification, communion with God, the glory of Christ — Owen (themes: mortification_of_sin, sanctification, communion_with_god, glory_of_christ)
+- Christ's high priesthood, the new covenant, Hebrews — Owen (themes: high_priesthood, new_covenant)
+- The cross of Christ, the four images of salvation, the self-substitution of God — Stott (theme: atonement_models, reconciliation)
+- The Sermon on the Mount, kingdom ethics, the Holy Spirit's fullness (baptism vs filling) — Stott (themes: kingdom_ethics, holy_spirit_work)
+- Genesis 1 and science, creation, the days debate — Lennox (theme: creation_genesis)
+- Providence, God's sovereignty and human freedom, the problem of evil (Joseph, Daniel) — Lennox (themes: providence, divine_sovereignty_freedom)
+- Faithful witness in a hostile culture, Daniel — Lennox (theme: faithful_witness)
 
 Query by verse reference, theme key, and/or author.""",
         inputSchema={
@@ -888,7 +896,7 @@ Query by verse reference, theme key, and/or author.""",
                 },
                 "author": {
                     "type": "string",
-                    "description": "Filter by author: 'heiser', 'bradley'. Omit to get all scholars' content."
+                    "description": "Filter by author: 'heiser', 'bradley', 'owen', 'stott', 'lennox'. Omit to get all scholars' content."
                 },
                 "limit": {
                     "type": "integer",
