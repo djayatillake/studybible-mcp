@@ -854,6 +854,18 @@ Graph data for genealogy, events, and places from [Theographic](https://github.c
 
 87 structured entries covering 12 dimensions of ANE cultural and historical context across 9 time periods, with 314 book-chapter mappings. Data is stored in [`data/ane_context/`](data/ane_context/) as JSON files (one per dimension). Sources include Walton, Hallo, Matthews & Benjamin, Pritchard (ANET), and other standard ANE reference works.
 
+### Theological Scholarship
+
+193 verse-anchored entries covering Heiser, Bradley, Burnett, Owen, Stott, and Lennox, served by `get_theology_context`.
+
+These entries are **original summary prose written for this database**, describing each author's argument on a passage or theme with attribution. They are not reproduced text from the authors' works. The material was derived from publicly available research and teaching — papers, articles, lectures, and podcasts — rather than from in-copyright books; where a specific public source is known, the entry carries its URL and the tool output shows it. Every result from `get_theology_context` states this provenance inline.
+
+John Owen (d. 1683) is in the public domain, so those entries are cited directly by work.
+
+### Ancient Near East Context
+
+The 87 ANE entries are likewise original summary prose describing scholarly consensus on ANE background, with the standard reference works named as sources rather than quoted.
+
 ### Vector Embeddings
 
 Semantic search uses OpenAI's `text-embedding-3-small` model via [sqlite-vec](https://github.com/asg017/sqlite-vec) for the `find_similar_passages` tool.
@@ -878,6 +890,9 @@ MIT License. See [LICENSE](LICENSE).
 
 Data from STEPBible is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 Data from BibleAquifer and ACAI is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+Torah Weave data from Moshe Kline ([chaver.com](https://www.chaver.com/)) is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+BDB, Abbott-Smith, the Treasury of Scripture Knowledge, and the works of John Owen are public domain.
+The theology and ANE entries are original summary prose written for this project — see [Data Sources](#data-sources).
 
 ---
 

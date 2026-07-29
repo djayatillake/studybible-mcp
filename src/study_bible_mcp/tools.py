@@ -3,53 +3,26 @@ Tool definitions for the Study Bible MCP server.
 
 Each tool is defined as an MCP Tool object with name, description, and input schema.
 
-IMPORTANT: These tools should be used PROACTIVELY for ANY question about:
-- The Bible, Scripture, or biblical texts
-- Christianity, theology, or doctrine
-- Biblical characters, places, or events
-- Greek or Hebrew words and their meanings
-- Interpreting or understanding passages
+The server exposes read-only research data about the Bible: verse text in English
+and the original Greek/Hebrew, Strong's lexicon entries, morphological parsing,
+cross-reference datasets, a biblical people/places/events graph, published study
+notes and dictionary articles, Ancient Near East background, theological
+scholarship extracts, Torah literary-structure data, and MT/LXX/DSS textual
+variants.
 
-Even if you know the answer from training data, USE THESE TOOLS to:
-1. Verify and ground your response in the actual text
-2. Add depth with original language insights
-3. Find additional relevant passages
-4. Provide proper scholarly support
+The datasets relate to one another through several shared keys, which is what
+makes multi-tool research possible:
 
-THEMATIC LINKING STRATEGIES:
-When answering questions, connect passages and concepts using these approaches:
+- **People and places** — entries carry family relationships (parents, siblings,
+  spouse, children) and event/location links, so narratives can be traced across
+  books.
+- **Strong's numbers** — lexicon entries, verse word data, and concordance search
+  share the same identifiers, so a term can be followed through its occurrences.
+- **Verse references** — cross-references, study notes, ANE context, scholarship,
+  Torah weave cells, and textual variants are all keyed by canonical reference.
 
-1. **Person-based linking**: Use lookup_name to find family relationships (parents,
-   siblings, spouse, children) that connect narratives across books. Example:
-   Moses → parents Amram & Jochebed → brother Aaron → Levitical priesthood lineage
-
-2. **Place-based linking**: Use lookup_name with type="place" to trace locations
-   through salvation history. Example: Bethlehem → Ruth's story → David's birthplace
-   → Jesus' birth → Micah's prophecy fulfilled
-
-3. **Word-based linking**: Use search_by_strongs to find all passages using the same
-   Greek/Hebrew word. This reveals thematic threads across different books and authors.
-   Example: G26 (agapē) appears in John, Paul's epistles, and 1 John - showing unified
-   theology of love across different authors.
-
-4. **Cross-reference linking**: Use get_cross_references on ANY verse to find the
-   passages historically read alongside it (400k+ links from Harrison/Romhild's
-   curated dataset and the Treasury of Scripture Knowledge). Scripture interprets
-   Scripture — never argue a doctrine from one verse without checking these.
-
-DISPLAY GUIDANCE: When presenting results to users, ALWAYS include:
-- The original Greek/Hebrew text when available (this is what makes responses scholarly)
-- Key words with their Strong's numbers for reference
-- The transliteration for readers unfamiliar with Greek/Hebrew script
-- Word-by-word analysis for key theological terms
-
-Example format for verses:
-  "For God so loved the world..." (John 3:16)
-  Greek: οὕτως γὰρ ἠγάπησεν ὁ θεὸς τὸν κόσμον...
-  Key: ἠγάπησεν (ēgapēsen, G25) - "loved" (aorist active indicative)
-
-The combination of your knowledge + these research tools + showing original languages
-produces responses that are both accessible AND scholarly.
+Results are returned as Markdown text. Where a tool produces a diagram it is
+emitted as a Mermaid code block within that text.
 """
 
 import json
@@ -79,24 +52,22 @@ TOOLS = [
     Tool(
         name="word_study",
         annotations=ToolAnnotations(title="Word Study", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""ALWAYS USE THIS when discussing any Greek or Hebrew word, theological term, or concept.
+        description="""Look up the lexicon entry for a Strong's number, or for a Greek, Hebrew, or English word.
 
-Even if you know the word from training, this tool provides verified lexical data.
+Given a Strong's number (G26, H430) the entry is returned directly; given an
+English word, the most relevant Greek or Hebrew term is resolved first.
 
-IMPORTANT: When presenting word studies, ALWAYS SHOW:
-- The word in original script: ἀγάπη or אֱלֹהִים
-- Transliteration: agapē, elohim
-- Strong's number: G26, H430
-- Full definition and semantic range
-- Key passages showing usage
+Returns:
+- The word in its original script (e.g. ἀγάπη, אֱלֹהִים)
+- Transliteration and pronunciation
+- Strong's number
+- Brief and full definitions (LSJ for Greek, BDB for Hebrew, plus Abbott-Smith
+  for NT Greek where available)
+- Etymology, semantic range, and related words
+- Occurrence counts and representative passages
 
-Format example in your response:
-  **ἀγάπη** (agapē, G26)
-  Definition: "Love, goodwill, benevolence; the love of God for humanity"
-  Usage: Occurs 116 times in the NT
-  Key passages: John 3:16, 1 Corinthians 13, 1 John 4:8
-
-This makes responses scholarly and shows the depth available through original languages.""",
+Relevant for questions about a specific original-language term, a theological
+term's underlying vocabulary, or the semantic range behind an English rendering.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -119,23 +90,21 @@ This makes responses scholarly and shows the depth available through original la
     Tool(
         name="lookup_verse",
         annotations=ToolAnnotations(title="Lookup Verse", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""ALWAYS USE THIS when any Bible verse is mentioned or relevant.
+        description="""Look up the text of a Bible verse or verse range, in English and in the original language.
 
-Even if you can quote a verse from memory, this tool provides:
-- The actual verse text (not paraphrased from training)
-- Original Greek/Hebrew text (ALWAYS DISPLAY THIS in your response)
-- Word-by-word breakdown with Strong's numbers
-- Genre-specific interpretation guidance
+Returns:
+- The English verse text
+- The original Greek/Hebrew text (optional, on by default)
+- A word-by-word breakdown with Strong's numbers and glosses
+- Optional grammatical parsing for each word
+- Genre-specific interpretive background for the passage's literary type
+- Availability notes for related data (cross-references, Torah weave partners,
+  and NT/OT LXX-quotation variants) where the verse has such records
 
-IMPORTANT: When you use this tool, SHOW the original language text in your response.
-This is what makes the Study Bible valuable - users see the actual Greek/Hebrew.
+Accepts references such as 'John 3:16', 'Gen 1:1', or 'Romans 3:21-26'.
 
-Format example in your response:
-  **Romans 13:1**: "Let every soul be subject to the governing authorities..."
-  Greek: Πᾶσα ψυχὴ ἐξουσίαις ὑπερεχούσαις ὑποτασσέσθω...
-  Key term: ἐξουσία (exousia, G1849) - "authority, power"
-
-Supports: 'John 3:16', 'Gen 1:1', 'Romans 3:21-26', etc.""",
+Relevant whenever the verified wording of a passage, or its original-language
+form, is needed.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -158,15 +127,15 @@ Supports: 'John 3:16', 'Gen 1:1', 'Romans 3:21-26', etc.""",
     Tool(
         name="search_lexicon",
         annotations=ToolAnnotations(title="Search Lexicon", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""USE THIS to find Greek/Hebrew words for English concepts.
+        description="""Search the Greek and Hebrew lexicons by English word, transliteration, or concept.
 
-When a user asks about a biblical concept (love, faith, salvation, sin, grace, etc.),
-search for the original language words to provide accurate, grounded information.
+Returns the matching lexicon entries ranked by relevance — typically several
+distinct original-language words that an English term covers (e.g. "love" →
+agapē, phileō, erōs), each with its Strong's number, definition, and semantic
+range.
 
-This finds multiple words that translate a concept (e.g., "love" → agape, phileo, eros)
-so you can explain the distinctions and nuances.
-
-Also use when you want to identify the Greek/Hebrew behind an English term.""",
+Relevant for identifying which original-language terms lie behind an English
+word or a biblical concept, and for distinguishing between near-synonyms.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -190,10 +159,9 @@ Also use when you want to identify the Greek/Hebrew behind an English term.""",
     Tool(
         name="get_cross_references",
         annotations=ToolAnnotations(title="Cross References", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""USE THIS whenever you are explaining, exegeting, or arguing from
-a specific Bible verse — and for any theological or doctrinal question.
+        description="""Retrieve the cross-references for a Bible reference — the passages traditionally read alongside it — or a curated chain of passages for a doctrinal theme.
 
-Two complementary modes:
+Two modes:
 
 **By verse reference** (most common). Pass `reference="John 3:16"` (or any
 canonical verse) to get the passages historically read alongside it. The
@@ -219,46 +187,42 @@ database draws from four scholarly sources, returned in a three-tier ranking:
   **Tier 1 (long-tail):** TSK <20 votes — surface only when explicitly raising
   `limit` for exhaustive study.
 
-Use this BEFORE drawing any theological conclusion from a single verse —
-results frequently surface the texts the original verse is quoting, the
-fulfilment passages, contested parallel readings, and the chain of NT
-authors who picked the verse up.
+Results typically include the texts the verse quotes, its fulfilment passages,
+contested parallel readings, and the later authors who picked the verse up.
 
 **By theme**. Pass `theme="atonement"` (or `salvation_by_grace`, `deity_of_christ`,
 `resurrection`, `holy_spirit`, `justification`) to get a hand-curated chain
-of foundational passages for that doctrine. Use this when the user asks a
-broad theological question without anchoring to a specific verse.
+of foundational passages for that doctrine — relevant for broad theological
+questions not anchored to a specific verse.
 
-**Important caveat about coverage.** TSK is built on R.A. Torrey's 19th-century
+**Coverage caveat.** TSK is built on R.A. Torrey's 19th-century
 index, which catalogues **topical/thematic** connections — not necessarily
 direct quotations or verbal allusions. Consequence: a verse with few cross-refs
 here is NOT necessarily a verse with few biblical echoes. Famously,
 Revelation shows surprisingly few links to OT prophetic books even though
 it is saturated with OT symbolism, because Torrey indexed by subject and
 Revelation's subject is "apocalyptic". The CH dataset partly compensates
-(it leans toward NT-quotes-OT linking), so when you suspect a quotation/
-allusion is being missed, retry with `source="ch"` or use `find_similar_passages`
-to catch verbal parallels the topical index would skip.
+(it leans toward NT-quotes-OT linking), so `source="ch"` may surface a
+quotation or allusion the topical index misses, as may `find_similar_passages`
+for verbal parallels.
 
-**Adaptive default — `limit` is a CAP, not a target.** Default `limit=8`. The
-tool returns rows in tier-then-strength order and SUPPRESSES tier-1 noise
-(low-vote TSK) by default whenever the verse has at least 3 rows from tier 2+.
-So:
+**Adaptive default — `limit` is a cap, not a target.** Default `limit=8`. Rows
+are returned in tier-then-strength order, and tier-1 noise (low-vote TSK) is
+suppressed by default whenever the verse has at least 3 rows from tier 2+. So:
 
   - Signal-rich anchors return 6–8 strong refs spanning curated, scholarly,
     and consensus-TSK sources.
-  - Signal-poor anchors return only what passes the bar — fewer rows is the
-    correct answer, not a bug. Don't pad your reasoning with weak refs.
+  - Signal-poor anchors return only what passes the bar; a short result set
+    means the verse has few well-attested links, not that the query failed.
 
-To pull the long tail (only when the user explicitly asks for exhaustive
-study): pass `source="tsk"` (returns all TSK including tier 1) or
-`min_strength=0` (treats as explicit "I want some long-tail too"). Either
-disables tier-1 suppression. Pair with a higher `limit` (20–30).
+For the long tail, `source="tsk"` returns all TSK rows including tier 1, and
+`min_strength=0` sets an explicit floor of zero. Either disables tier-1
+suppression; both pair with a higher `limit` (20–30).
 
-**How to interpret the scores you get back.** Each row carries `type` (the
-dataset), `relevance` (its native strength signal), and where applicable a
-`tsk_votes` side-channel showing the TSK count for that pair. You MUST read
-these before using a ref:
+**Interpreting the scores.** Each row carries `type` (the dataset),
+`relevance` (its native strength signal), and where applicable a `tsk_votes`
+side-channel showing the TSK count for that pair. The scales differ by
+dataset:
 
   TSK vote scale (full corpus distribution):
     ≥ 500 votes  — extraordinary; near-universal cross-reference (top 0.01%, only 35 pairs)
@@ -270,7 +234,7 @@ these before using a ref:
       2-4        — very weak; mostly noise floor (62% of TSK)
       0-1        — noise
 
-  CH (curated — all CH refs carry signal, but the tag tells you weight):
+  CH (curated — all CH refs carry signal; the tag indicates weight):
     "canonical direction" (rel=3 or 2) — Harrison's flag for the canonical
         direction of the pair, often part of a thematic circle (top 78% of CH)
     no tag (rel=0) — present in CH but unflagged (still hand-curated)
@@ -288,21 +252,18 @@ these before using a ref:
     All Burnett rows are at relevance=5 by convention — they're explicit
     claims from one scholar's published argument, not graded by strength.
     The `note` field carries the JSPL citation and which step of the argument
-    the pair belongs to. Cite Burnett by name when surfacing these to the
-    user; they're a scholarly proposal, not consensus.
+    the pair belongs to. They represent a single scholarly proposal rather
+    than consensus.
 
-**When the top results are weak, SAY SO.** If the strongest ref returned has
-only 5-15 votes, do not present it with the same confidence as a 200-vote
-parallel. Caveat the answer: "this verse isn't strongly cross-referenced in
-the topical index — the closest link is X with only N votes, suggesting
-tradition didn't treat this as a major thematic anchor." When TSK is thin,
-try `source="ch"` — Harrison's curated set leans toward NT-quotes-OT links
-and may catch what a topical index missed. Or fall back to
-`find_similar_passages` for verbal/semantic parallels Torrey wouldn't index.
+A result whose strongest row has only 5–15 votes indicates a verse the topical
+index does not treat as a major thematic anchor — a materially weaker signal
+than a 200-vote parallel. For such verses `source="ch"` (Harrison's curated
+set, which leans toward NT-quotes-OT links) and `find_similar_passages`
+(verbal/semantic parallels Torrey did not index) cover different ground.
 
-You may pass `source="ch"` or `source="tsk"` to restrict to one dataset —
-useful when CH alone gives too little (e.g. an obscure verse with no CH
-coverage) or when you want the dense TSK long-tail.""",
+The `source` parameter restricts results to a single dataset — useful when CH
+alone gives too little coverage for an obscure verse, or when the dense TSK
+long-tail is wanted.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -321,11 +282,11 @@ coverage) or when you want the dense TSK long-tail.""",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "CAP on rows returned (not a target). Default 8. Actual returned count may be smaller if the verse has fewer than `limit` rows above the noise floor — that is intentional, do not pad. Raise to 20–30 with `source='tsk'` or `min_strength=0` for exhaustive study."
+                    "description": "Cap on rows returned (not a target). Default 8. The returned count may be smaller when the verse has fewer rows above the noise floor. Values of 20–30 combined with `source='tsk'` or `min_strength=0` return the long tail."
                 },
                 "min_strength": {
                     "type": "integer",
-                    "description": "Strength floor for TSK refs (vote count). TSK pairs below this are excluded; CH/Gage/Burnett refs always pass since they are hand-curated or scholarly-argued. Setting this also disables the default tier-1 suppression (you are explicitly choosing your own floor). Sensible thresholds: 0 (include long-tail), 5 (drops bottom ~75%% of TSK), 20 (top ~5%% only). Default: tier-1 suppressed when verse is signal-rich."
+                    "description": "Strength floor for TSK refs (vote count). TSK pairs below this are excluded; CH/Gage/Burnett refs are exempt from this floor, being hand-curated or scholarly-argued. Setting this also disables the default tier-1 suppression, since it specifies an explicit floor. Sensible thresholds: 0 (include long-tail), 5 (drops bottom ~75%% of TSK), 20 (top ~5%% only). Default: tier-1 suppressed when verse is signal-rich."
                 }
             }
         }
@@ -333,28 +294,21 @@ coverage) or when you want the dense TSK long-tail.""",
     Tool(
         name="lookup_name",
         annotations=ToolAnnotations(title="Lookup Name", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""USE THIS when any biblical person, place, or thing is mentioned.
+        description="""Look up general information about a biblical person, place, or thing by name — Abraham, David, Bethlehem, and so on.
 
-This is your PRIMARY TOOL for thematic linking across the Bible. The database contains
-4,000+ biblical persons and 1,000+ places with rich relationship data.
+Covers 4,000+ biblical persons and 1,000+ places. Returns the entry's original-language
+name, description, key verse references, ACAI annotations where available (variant
+names, roles, reference and speech counts), and its immediate relationships:
 
-RELATIONSHIP DATA ENABLES THEMATIC CONNECTIONS:
-- **Parents**: Trace lineages backward (e.g., David → Jesse → Obed → Boaz → Salmon)
-- **Children**: Trace lineages forward (e.g., Abraham → Isaac → Jacob → 12 tribes)
-- **Siblings**: Connect related narratives (e.g., Moses ↔ Aaron ↔ Miriam)
-- **Spouse**: Connect family narratives (e.g., Ruth → Boaz → David's lineage)
+- **Parents** — one generation back (e.g. David → Jesse)
+- **Children** — one generation forward (e.g. Abraham → Isaac)
+- **Siblings** (e.g. Moses ↔ Aaron ↔ Miriam)
+- **Spouse** (e.g. Ruth ↔ Boaz)
 
-THEMATIC LINKING EXAMPLES:
-1. Messianic lineage: lookup Abraham → David → Solomon → ... → Joseph/Mary
-2. Priesthood lineage: lookup Aaron → Eleazar → Phinehas → ... → Zadok
-3. Geographic connections: lookup Bethlehem for its role in Ruth, David, and Jesus narratives
-4. Prophecy fulfillment: trace how places mentioned in OT prophecy appear in NT
-
-When answering questions about biblical characters or places, ALWAYS check their
-relationships to find connections that enrich your answer with biblical context.
-
-This grounds character discussions in the actual biblical data
-rather than just training recall.""",
+Relevant for identifying a named figure or location and for the immediate
+family and reference context around it. Multi-generation lineages are covered by
+`explore_genealogy`, a person's life events by `explore_person_events`, and a
+location's full history by `explore_place`.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -400,15 +354,12 @@ person, number, tense, voice, mood, case, and gender where applicable.""",
     Tool(
         name="search_by_strongs",
         annotations=ToolAnnotations(title="Search by Strong's Number", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""USE THIS after word_study to show how a word is actually used.
+        description="""Search by Strong's number for every verse where that word appears.
 
-After identifying a key Greek/Hebrew word (via word_study or search_lexicon),
-use this to find actual verses where it appears. This shows:
-- How biblical authors used the word in context
-- Range of meanings through actual examples
-- Key passages for that term
-
-This transforms word study from definition into demonstration.""",
+Takes a Strong's number (typically obtained from `word_study` or
+`search_lexicon`) and returns the passages containing that Greek or Hebrew word,
+showing how biblical authors used it in context and the range of senses it
+carries across occurrences.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -429,49 +380,31 @@ This transforms word study from definition into demonstration.""",
         annotations=ToolAnnotations(title="Find Similar Passages", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
         description="""Find passages with similar semantic content to a given Bible verse.
 
-USE THIS to discover thematic connections across the Bible that may not be captured
-by explicit cross-references or shared vocabulary. This tool uses vector embeddings
-to find passages with similar meaning, not just similar words.
+Takes a verse reference (one with a pre-computed embedding) and returns
+semantically similar passages ranked by similarity score. Matching is by vector
+embedding rather than shared vocabulary, so it surfaces connections that explicit
+cross-reference indexes and word searches miss.
 
-EXAMPLES OF DISCOVERIES:
+Typical results:
 - Daniel 7:13-14 (Son of Man vision) → Revelation 1:7, 14:14 (similar imagery)
 - Exodus 12:1-13 (Passover) → John 1:29, 1 Corinthians 5:7 (Lamb imagery)
 - Isaiah 53:4-6 (Suffering Servant) → 1 Peter 2:24-25 (echoes of Isaiah)
 - Proverbs wisdom themes → James practical wisdom
 
-⚠️ CRITICAL HERMENEUTICAL WARNING:
-Semantic similarity does NOT equal theological connection or relevance.
-Two passages may use similar language but have completely different meanings
-based on their literary context, historical setting, and authorial intent.
+**What the similarity score does and does not mean.** The score measures
+proximity in embedding space, which is not evidence of a theological or
+authorial connection. Two passages can share vocabulary and imagery while
+differing in genre, historical setting, referent, and authorial intent. The
+returned set mixes several distinct phenomena that the score cannot tell apart:
+direct quotation (an explicit OT citation in the NT), deliberate allusion,
+shared tradition (common Jewish or Christian concepts), and coincidental
+verbal overlap between unrelated texts.
 
-BEFORE USING SIMILAR PASSAGES IN YOUR RESPONSE, YOU MUST:
-
-1. **Check Genre Compatibility**: A prophetic vision and a historical narrative
-   may share imagery but require different interpretive approaches. Use lookup_verse
-   to understand each passage's genre.
-
-2. **Verify Historical Context**: What did this passage mean to its original audience?
-   Similar language across centuries may have different referents.
-
-3. **Examine Literary Context**: Is the similar passage using the language literally,
-   metaphorically, or as an allusion? A quote vs. independent usage matters greatly.
-
-4. **Apply Fee & Stuart's Questions**:
-   - What did this text mean to the original readers?
-   - What is the author's stated purpose?
-   - How does this fit the book's overall argument/narrative?
-
-5. **Distinguish Types of Similarity**:
-   - Direct quotation (explicit OT in NT)
-   - Deliberate allusion (author intentionally echoing)
-   - Shared tradition (common Jewish/Christian concepts)
-   - Coincidental similarity (similar words, unrelated meaning)
-
-Only present a similar passage as theologically relevant if you can establish
-an actual interpretive connection, not mere semantic overlap.
-
-Takes a verse reference (with pre-computed embedding) and returns
-semantically similar passages ranked by similarity score.""",
+Establishing which of these applies to a given pair requires the passages'
+genre, historical setting, and literary context — `lookup_verse` returns genre
+background, `get_study_notes` and `get_ane_context` cover context and original
+audience, and `get_cross_references` indicates whether the link is attested in
+the cross-reference tradition.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -493,20 +426,16 @@ semantically similar passages ranked by similarity score.""",
     Tool(
         name="explore_genealogy",
         annotations=ToolAnnotations(title="Explore Genealogy", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""ALWAYS USE THIS when a question involves family lineage, ancestry, descendants, or tribal identity.
+        description="""Trace a genealogy: a biblical person's ancestors and/or descendants across multiple generations of lineage.
 
-This tool traverses multi-generational family trees using genealogical data for 1,100+ biblical persons.
-Unlike lookup_name (which shows immediate family), this traces lineage across many generations.
+Traverses genealogical data covering 1,100+ biblical persons. Returns a family
+tree with generation numbers and relationship types, plus a Mermaid diagram of
+the tree.
 
-WHEN TO USE (instead of lookup_name):
-- "Who was David's father?" → lookup_name is enough for one generation
-- "Trace the line from Abraham to David" → USE THIS — traverses multiple generations
-- "What tribe was Paul from?" → USE THIS — traces tribal ancestry
-- "Show me Jesus' genealogy" → USE THIS — traces the full Messianic lineage
-- "How does Ruth connect to the line of David?" → USE THIS
-
-Returns a family tree with generation numbers, relationship types, and a Mermaid diagram.
-ALWAYS include the Mermaid diagram in your response so the user can visualize the family tree.""",
+Covers questions such as tracing the line from Abraham to David, a person's
+tribal ancestry, the Messianic lineage, or how a figure connects into a known
+line. For a single generation (e.g. one person's father), `lookup_name` returns
+immediate family without the traversal.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -530,19 +459,15 @@ ALWAYS include the Mermaid diagram in your response so the user can visualize th
     Tool(
         name="people_in_passage",
         annotations=ToolAnnotations(title="People in Passage", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""ALWAYS USE THIS when studying or explaining a Bible passage to identify WHO is present and WHERE it takes place.
+        description="""List the people, places, and events mentioned in a Bible passage.
 
-Returns all people, places, and events mentioned in a passage according to the Theographic Bible Metadata.
-This is essential context for passage study — you cannot properly explain a passage without knowing its cast.
+Returns the entities recorded for a chapter or verse in the Theographic Bible
+Metadata — for example, Genesis 22 returns Abraham, Isaac, the angel of the LORD,
+and Moriah; Acts 15 returns Paul, Barnabas, James, Jerusalem, and Antioch.
 
-USE THIS WHEN:
-- Studying any narrative passage (e.g., "Who is in Genesis 22?" → Abraham, Isaac, angel of the LORD, Moriah)
-- Explaining a chapter (e.g., "What's happening in Acts 15?" → shows Paul, Barnabas, James, Jerusalem, Antioch)
-- A user asks "Tell me about [passage]" → use this alongside lookup_verse for complete context
-
-DIFFERENCE FROM graph_enriched_search:
-- people_in_passage: works on chapters AND verses, returns entity lists
-- graph_enriched_search: verse-level only, but adds family relationships for each person found""",
+Relevant for establishing the cast and setting of a narrative passage. Related
+tools: `graph_enriched_search` is verse-level only but adds the verse text and
+family relationships for each person found.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -557,19 +482,15 @@ DIFFERENCE FROM graph_enriched_search:
     Tool(
         name="explore_person_events",
         annotations=ToolAnnotations(title="Explore Person Events", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""ALWAYS USE THIS when a user asks about a biblical person's life, biography, or timeline.
+        description="""Retrieve the recorded events of a biblical person's life in chronological order.
 
-Returns every recorded event in a person's life in chronological order, with locations and dates.
-This is the ONLY tool that shows what happened in someone's life and in what order.
+Returns each event with its location and date where known, plus a Mermaid
+timeline diagram. Moses returns birth, burning bush, exodus, Sinai, and death on
+Nebo; Paul returns conversion, missionary journeys, imprisonment, and Rome.
 
-USE THIS WHEN:
-- "Tell me about Moses" → shows his entire life: birth, burning bush, exodus, Sinai, death on Nebo
-- "What did Paul do?" → shows conversion, missionary journeys, imprisonment, Rome
-- "What happened to David?" → anointing, Goliath, fleeing Saul, kingship, Bathsheba, death
-- Any biographical question about a biblical figure
-
-COMBINE WITH lookup_name (for identity/relationships) and explore_genealogy (for lineage).
-Returns a Mermaid timeline diagram — ALWAYS include this in your response.""",
+This is the only tool covering event sequence and dating for a person. Related
+tools: `lookup_name` for identity and relationships, `explore_genealogy` for
+lineage.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -584,23 +505,17 @@ Returns a Mermaid timeline diagram — ALWAYS include this in your response.""",
     Tool(
         name="explore_place",
         annotations=ToolAnnotations(title="Explore Place", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""ALWAYS USE THIS when a user asks about a biblical location or its significance.
+        description="""Retrieve the full biblical history of a place.
 
-Returns the complete biblical history of a place: events that occurred there, people born/died there,
-and geographic data. Shows how a location threads through salvation history across multiple eras.
+Returns the events recorded there, the people born or who died there, and
+geographic data, spanning all biblical periods — plus a Mermaid network diagram.
+Jerusalem returns events from Salem/Melchizedek through David, Solomon, the
+exile, and Jesus; Mount Sinai returns the burning bush, the giving of the law,
+the golden calf, and Elijah.
 
-USE THIS WHEN:
-- "Tell me about Jerusalem" → shows events from Salem/Melchizedek through David, Solomon, exile, Jesus
-- "What happened at Bethlehem?" → Ruth & Boaz, David's birthplace, Jesus' birth, Micah's prophecy
-- "Why is Mount Sinai important?" → shows all events: burning bush, law given, golden calf, Elijah
-- "What is the significance of [any place]?" → always use this
-- Any question about biblical geography or a specific location
-
-DIFFERENCE FROM lookup_name with type="place":
-- lookup_name: returns basic place info and immediate connections
-- explore_place: returns FULL history — every event, every person, across all biblical periods
-
-Returns a Mermaid network diagram — ALWAYS include this in your response.""",
+Relevant for questions about biblical geography or a location's significance
+across salvation history. Related tool: `lookup_name` with type="place" returns
+basic place info and immediate connections only.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -615,22 +530,16 @@ Returns a Mermaid network diagram — ALWAYS include this in your response.""",
     Tool(
         name="find_connection",
         annotations=ToolAnnotations(title="Find Connection", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""ALWAYS USE THIS when a user asks how two biblical people are related or connected.
+        description="""Trace the shortest family relationship path between two biblical people.
 
-Traces the shortest family relationship path between any two people in the biblical genealogies.
-Uses parent, child, sibling, and spouse relationships to find the connection.
+Walks parent, child, sibling, and spouse relationships in the biblical
+genealogies to find a connecting path, and returns it as a Mermaid flowchart.
+Ruth and David return Ruth → Obed → Jesse → David; Abraham and Moses trace
+through Levi. Where no family connection exists, that is reported.
 
-USE THIS WHEN:
-- "How are Ruth and David related?" → shows Ruth → Obed → Jesse → David
-- "What's the connection between Abraham and Moses?" → traces through Levi
-- "Are Paul and Barnabas related?" → checks for any family connection
-- Any question comparing two biblical figures or asking about their relationship
-
-DIFFERENCE FROM explore_genealogy:
-- explore_genealogy: shows one person's family tree (ancestors/descendants)
-- find_connection: finds the PATH between two specific people
-
-Returns a Mermaid flowchart — ALWAYS include this in your response.""",
+Relevant for questions about how two named figures relate. Related tool:
+`explore_genealogy` returns one person's ancestors or descendants rather than a
+path between two people.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -649,25 +558,16 @@ Returns a Mermaid flowchart — ALWAYS include this in your response.""",
     Tool(
         name="graph_enriched_search",
         annotations=ToolAnnotations(title="Graph Enriched Search", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""USE THIS for deep study of a specific verse — combines the verse text with all relational context.
+        description="""Retrieve a comprehensive enriched view of a single verse: its text plus all people, places, events, and family relationships.
 
-Returns the verse text PLUS all people, places, and events mentioned in it, PLUS family
-relationships for each person found. This is the most comprehensive single-query tool
-for studying a specific verse.
+Returns the verse text, the people, places, and events mentioned in it, and the
+family relationships of each person found. For 'Matthew 1:1' that is the verse
+text, Jesus, David, and Abraham with their relationships, and the associated
+places and events.
 
-USE THIS WHEN:
-- Deep-diving into a single verse (e.g., "Explain Genesis 22:1 in detail")
-- Preparing a sermon or Bible study on a specific text
-- You need verse text + entity context in one call (saves calling lookup_verse + people_in_passage separately)
-
-Example: graph_enriched_search("Matthew 1:1") returns:
-- Verse text: "The book of the genealogy of Jesus Christ, the son of David, the son of Abraham"
-- People found: Jesus, David, Abraham — with their family relationships
-- Places and events associated with the verse
-
-DIFFERENCE FROM people_in_passage:
-- people_in_passage: works on chapters AND verses, returns entity lists only
-- graph_enriched_search: verse-level only, but includes verse text AND family relationships""",
+Combines what `lookup_verse` and `people_in_passage` return separately. Verse
+level only; `people_in_passage` also accepts chapters but returns entity lists
+without verse text or relationships.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -692,13 +592,10 @@ Returns combined commentary from:
 - **UW Translation Notes**: Translator-focused commentary with linguistic insights
 - **SIL Translator Notes**: Additional translation and cultural context
 
-USE THIS when you need:
-- Scholarly commentary on a specific verse
-- Help explaining difficult passages
-- Translation and cultural background notes
-- Chapter-level overview of themes and context
-
-This provides published, peer-reviewed scholarship rather than AI-generated commentary.""",
+Relevant for published commentary on a specific verse, difficult passages,
+translation and cultural background, and chapter-level overviews of themes and
+context. The content is published scholarship, quoted as-is with source
+attribution.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -726,11 +623,9 @@ Contains 500+ topical articles covering:
 - Historical background
 - Archaeological findings
 
-USE THIS when you need:
-- Background information on a biblical topic
-- Historical or cultural context for a passage
-- Detailed article about a person, place, or concept
-- Scholarly definition of a theological term
+Relevant for background on a biblical topic, historical or cultural context, a
+detailed article on a person, place, or concept, or a published definition of a
+theological term.
 
 Returns the full dictionary article with cross-references.""",
         inputSchema={
@@ -755,11 +650,9 @@ Contains 200+ carefully defined theological and biblical terms with:
 - Cross-references to related terms
 - Translation guidance
 
-USE THIS when you need:
-- A precise definition of a theological term (agape, atonement, justification, etc.)
-- To understand how a concept is used across Scripture
-- Translation-oriented explanation of a term
-- Cross-references to related theological concepts""",
+Relevant for a precise definition of a theological term (agape, atonement,
+justification, and similar), how a concept is used across Scripture, a
+translation-oriented explanation, or cross-references to related concepts.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -778,11 +671,11 @@ USE THIS when you need:
 
 The biblical authors and their audiences lived in the Ancient Near East with fundamentally
 different assumptions about cosmology, social structure, religion, law, and daily life.
-This tool retrieves structured ANE contextual data to illuminate what the text meant
+This tool retrieves structured ANE contextual data on what the text meant
 to its original audience.
 
-USE THIS when:
-- Studying creation, flood, or cosmological texts (three-tier universe, cosmic waters)
+Relevant to passages involving:
+- Creation, flood, or cosmological texts (three-tier universe, cosmic waters)
 - Encountering divine council, heavenly assembly, or "sons of God" language
 - Reading about the serpent, Eden, the fall, or spiritual warfare passages
 - Encountering references to temples, sacrifices, or religious practices
@@ -807,10 +700,11 @@ ane_methodology
 9 periods: patriarchal, exodus_conquest, judges_early_monarchy, united_monarchy,
 divided_monarchy, assyrian_babylonian, persian, hellenistic, roman
 
-Call with NO arguments to see available dimensions and periods.
-Call with just a reference to get ALL relevant ANE context for a passage.
-Filter by dimension and/or period for focused results.
-Call with dimension='ane_methodology' to retrieve the derivation hierarchy, confidence calibration, and methodological guardrails for working with ANE parallels.""",
+With no arguments, returns the available dimensions and periods. With a
+reference alone, returns all ANE context matching that passage. The dimension
+and period parameters narrow the result set. The dimension 'ane_methodology'
+returns the derivation hierarchy, confidence calibration, and methodological
+limits that apply to ANE parallels generally.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -857,7 +751,7 @@ Call with dimension='ane_methodology' to retrieve the derivation hierarchy, conf
 
 Returns scholarly content from multiple authors (Heiser, Bradley, etc.) with verse mappings and theme links. When no author is specified, returns all scholars' content for the query — allowing side-by-side comparison.
 
-USE THIS when discussing:
+Coverage by topic, with the author and theme keys that hold it:
 - The divine council (Psalm 82, Deuteronomy 32, Job 1-2) — Heiser
 - Sons of God / bene elohim (Genesis 6, Job 38) — Heiser
 - The Angel of Yahweh / two-powers theology — Heiser
@@ -910,14 +804,13 @@ Query by verse reference, theme key, and/or author.""",
         annotations=ToolAnnotations(title="Torah Weave Structural Parallels", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
         description="""Get the structurally-paired verses for a Torah passage under Moshe Kline's Woven Torah hypothesis.
 
-The Torah is organised as 86 two-dimensional literary units (Genesis–Deuteronomy). Each unit is a grid of cells arranged in rows and columns, and cells are deliberately paired with one another across rows (horizontal partners) and down columns (vertical partners). Knowing the weave partners of a verse gives you additional passages that the Torah's author(s) intended to be read alongside it.
+The Torah is organised as 86 two-dimensional literary units (Genesis–Deuteronomy). Each unit is a grid of cells arranged in rows and columns, and cells are deliberately paired with one another across rows (horizontal partners) and down columns (vertical partners). A verse's weave partners are therefore the passages the hypothesis holds the Torah's author(s) intended to be read alongside it.
 
-USE THIS when:
-- Studying any passage in Genesis, Exodus, Leviticus, Numbers, or Deuteronomy
-- You want to see which other verses are structurally paired with a passage
-- You suspect two passages in the Torah are deliberately interwoven (doublets, creation/flood, law parallels, etc.)
-- You're preparing a comparative reading and want the author-intended partners, not just thematic cross-references
-- You want additional context for a Torah verse beyond lexical or thematic similarity
+Relevant to any passage in Genesis, Exodus, Leviticus, Numbers, or Deuteronomy —
+particularly for identifying which verses are structurally paired with a
+passage, for suspected deliberate interweaving (doublets, creation/flood, law
+parallels), and for comparative readings where the pairing claimed is
+compositional rather than thematic.
 
 WHAT IT RETURNS:
 - The literary unit the verse sits in (title, format, type, verse span)
@@ -926,10 +819,14 @@ WHAT IT RETURNS:
 - Vertical partner cells (same column, same subdivision, different row)
 - Sibling cells (same row and column, adjacent subdivisions)
 - A short explanation of what each direction of pairing means under Kline's method
-- A directive block instructing the caller how to turn these pointers into an interpretation
 
-HOW TO USE THE OUTPUT:
-This tool returns STRUCTURAL POINTERS, not pre-written interpretation. After calling it, call `lookup_verse` on each partner cell's verse range to read the actual text, then synthesise the interpretation yourself using the directional semantics the tool provides. Horizontal partners are symmetric parallels (same register, different thematic tracks); vertical partners trace a progression through divine-name registers along a single thematic track. Reading the paired verses and applying those semantics is how the weave yields meaning.
+The output is a set of structural pointers — verse ranges and their pairing
+direction — not pre-written interpretation. The text of the partner cells is
+not included; `lookup_verse` returns it. Under Kline's method horizontal
+partners are symmetric parallels (same divine-name register, different thematic
+tracks) and vertical partners are a progression through registers along a single
+thematic track; the thematic content of each column is not labelled in Kline's
+dataset.
 
 Only Torah books (Genesis through Deuteronomy) have weave data. Source: Moshe Kline, chaver.com, CC BY 4.0.""",
         inputSchema={
@@ -946,7 +843,7 @@ Only Torah books (Genesis through Deuteronomy) have weave data. Source: Moshe Kl
     Tool(
         name="get_textual_variant",
         annotations=ToolAnnotations(title="Textual Variant (MT vs LXX/DSS)", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""USE THIS whenever a New Testament writer quotes an OT verse and the wording does not match the Masoretic Hebrew Text — or whenever lookup_verse emits the LXX-quotation hint.
+        description="""Retrieve the textual variant record for a verse where the Masoretic Hebrew, the Septuagint, and/or the Dead Sea Scrolls diverge.
 
 WHAT IT RETURNS for a given verse reference:
 - The Masoretic Hebrew (MT) reading + original Hebrew
@@ -958,13 +855,17 @@ WHAT IT RETURNS for a given verse reference:
 
 The HLT's principle: when the NT directly quotes the LXX form of an OT verse, the LXX form is the authoritative reading for Christian Scripture — apostolic endorsement overrides text-critical priority. So for verses like Psalm 40:6 / Hebrews 10:5, Isaiah 61:1 / Luke 4:18, Amos 9:12 / Acts 15:17, the HLT follows the LXX form in the body and footnotes the MT.
 
-USE THIS when:
-- Explaining why a NT OT quotation does not match the modern English OT
-- Discussing Hebrews 10:5-7, Hebrews 1:6, Matthew 12:20-21, Acts 15:17, Luke 4:18-19, Luke 3:6, Matthew 21:16, Romans 9:27-29, Romans 10:20, Romans 15:12, Romans 2:24, Acts 7:43, Acts 8:32-33, Acts 13:41, 1 Peter 4:18, Ephesians 4:26, Luke 3:36, or the OT verses they quote
-- The user asks "did the Masoretes edit Christ out?" — point them at the actual textual data instead of speculation
-- Working on HLT translation for any verse where the NT follows a different form than the Hebrew
+Relevant where a New Testament quotation does not match the modern English Old
+Testament, and to questions about how the Hebrew, Greek, and Qumran textual
+traditions differ at a specific verse.
 
-PAIRS WITH: lookup_verse (which emits a hint pointing here when a verse has a quote-hint or variant row).""",
+Covered verses include Hebrews 10:5-7, Hebrews 1:6, Matthew 12:20-21, Acts 15:17,
+Luke 4:18-19, Luke 3:6, Matthew 21:16, Romans 9:27-29, Romans 10:20, Romans 15:12,
+Romans 2:24, Acts 7:43, Acts 8:32-33, Acts 13:41, 1 Peter 4:18, Ephesians 4:26,
+Luke 3:36, and the Old Testament verses they quote. Either side of a pair
+returns the same variant row.
+
+`lookup_verse` reports when a verse has a quotation hint or variant row.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -983,6 +884,16 @@ PAIRS WITH: lookup_verse (which emits a hint pointing here when a verse has a qu
 # Format functions — Theological scholarship
 # =========================================================================
 
+# Stated on every theology result so the nature of the content is explicit in the
+# output itself: these cells are original summary prose, not reproduced text.
+_THEOLOGY_PROVENANCE = (
+    "*Provenance: these entries are original summaries of the named author's "
+    "publicly available research and teaching, written for this database. They "
+    "are not reproduced text from the authors' works. Owen (d. 1683) is in the "
+    "public domain and is cited by work.*"
+)
+
+
 def format_theology_context(entries: list[dict], themes: list[dict] | None = None) -> str:
     """Format theological scholarship entries for display."""
     if not entries:
@@ -991,7 +902,17 @@ def format_theology_context(entries: list[dict], themes: list[dict] | None = Non
     lines = []
     for entry in entries:
         lines.append(f"### {entry.get('title') or entry.get('chapter_or_episode', 'Untitled')}")
-        lines.append(f"**Source**: {entry.get('source_author', '')} — *{entry.get('source_work', '')}*")
+
+        # source_work labels already lead with the author's name ("Stott on
+        # Romans", "Owen — Communion with God"), so don't repeat it.
+        author = entry.get("source_author", "") or ""
+        work = entry.get("source_work", "") or ""
+        label = f"*{work}*" if work.lower().startswith(author.lower()) and author else f"{author} — *{work}*"
+        if entry.get("source_type"):
+            label += f" ({entry['source_type']})"
+        lines.append(f"**Source**: {label}")
+        if entry.get("url"):
+            lines.append(f"**Source URL**: {entry['url']}")
         if entry.get("chapter_or_episode"):
             lines.append(f"**Chapter/Episode**: {entry['chapter_or_episode']}")
         if entry.get("matched_ref"):
@@ -1018,6 +939,9 @@ def format_theology_context(entries: list[dict], themes: list[dict] | None = Non
             count = t.get("entry_count", 0)
             lines.append(f"- **{t['theme_key']}** ({t['theme_label']}): {t['description'][:100]} [{count} entries]")
         lines.append("")
+
+    lines.append(_THEOLOGY_PROVENANCE)
+    lines.append("")
 
     return "\n".join(lines)
 
@@ -1882,10 +1806,9 @@ narrative arc.
 - **Sibling cells** (same row + column, adjacent subdivisions) are an internal \
 progression inside a single cell position. Read them sequentially.
 
-**What to do next**: call `lookup_verse` on each partner cell's verse range to read \
-the actual text, then synthesise the interpretation yourself by applying the \
-directional semantics above to what you read. The thematic content of each unit's \
-columns is NOT pre-labelled in Kline's dataset — you infer it from the verses."""
+The text of the partner cells is not included above; `lookup_verse` returns it for \
+each verse range. The thematic content of each unit's columns is not labelled in \
+Kline's dataset; under his method it is inferred from the verses themselves."""
 
 
 def _cell_sort_key(cell: dict) -> tuple:
