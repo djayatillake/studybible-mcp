@@ -25,7 +25,8 @@ classifiers = [
 ]
 
 dependencies = [
-    "mcp>=1.0.0",
+    # Pinned: mcp 2.x removed Server.list_tools(). See requirements.txt.
+    "mcp==1.26.0",
     "httpx>=0.25.0",
     "aiosqlite>=0.19.0",
     "pydantic>=2.0.0",
