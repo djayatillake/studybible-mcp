@@ -169,8 +169,17 @@ below.
   Part Three appendix → `p.orn` → "On Sources" → `p.sdg` "Soli Deo gloria."
 
 **Appendix (Part Three) sections** to include as `<h3>` + `<ul>`: Word Studies,
-Cross-Reference Sets, Textual Note, Ancient Near East Context, Torah Weave,
-Dictionary & Place Data, Study Notes Consulted — then "On Sources."
+Cross-Reference Sets, Textual Note, Ancient Near East Context, **Theology Context**,
+Torah Weave, Dictionary & Place Data, Study Notes Consulted — then "On Sources."
+
+**Theology Context section**: one `<li>` per scholar/corpus actually drawn on that
+day (`get_theology_context` and the atonement/ANE-methodology stack) — e.g. Rillera
+(*Lamb of the Free*, non-penal cult grammar), Stott (*The Cross of Christ*,
+self-substitution), Owen (definite atonement, mortification), Heiser (divine
+council / two-powers), Bradley (corporate headship, domain transfer), Lennox,
+Milgrom (kipper as purgation), Moffitt — naming **which claim or frame of theirs
+the study used and where**. Skip scholars merely retrieved but unused; this section
+is provenance, not a bibliography.
 
 ---
 
