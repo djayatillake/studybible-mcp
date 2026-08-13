@@ -1165,18 +1165,39 @@ class RateLimitMiddleware:
         self.max_requests = max_requests
         self.window_seconds = window_seconds
         self._requests: dict[str, list[float]] = defaultdict(list)
+        # per-IP static-asset counters: [count since last log, last log time]
+        self._static_hits: dict[str, list[float]] = defaultdict(lambda: [0, 0.0])
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
-        # Extract client IP
+        # Extract client IP — behind Fly's proxy scope["client"] is the edge
+        # proxy, so prefer the real-client headers it sets
+        headers = {k.decode("latin-1").lower(): v.decode("latin-1")
+                   for k, v in scope.get("headers", [])}
         client = scope.get("client")
-        ip = client[0] if client else "unknown"
+        ip = (headers.get("fly-client-ip")
+              or (headers.get("x-forwarded-for") or "").split(",")[0].strip()
+              or (client[0] if client else "unknown"))
 
-        # Skip rate limiting for health checks
+        # Skip rate limiting for health checks and static assets
         path = scope.get("path", "")
+        if path.startswith("/static/"):
+            # Log real client IPs hitting static assets (throttled to one
+            # line per IP per minute) to identify icon-flooding clients
+            hits = self._static_hits[ip]
+            hits[0] += 1
+            now = time.monotonic()
+            if now - hits[1] >= 60:
+                logger.info(
+                    f"static: {int(hits[0])} request(s) for {path} from {ip} "
+                    f"(ua={headers.get('user-agent', '?')[:80]})"
+                )
+                self._static_hits[ip] = [0, now]
+            await self.app(scope, receive, send)
+            return
         if path in ("/health", "/"):
             await self.app(scope, receive, send)
             return

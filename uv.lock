@@ -1271,7 +1271,7 @@ requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
     { name = "click", specifier = ">=8.0.0" },
     { name = "httpx", specifier = ">=0.25.0" },
-    { name = "mcp", specifier = ">=1.0.0" },
+    { name = "mcp", specifier = "==1.26.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "openai", marker = "extra == 'embeddings'", specifier = ">=1.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
