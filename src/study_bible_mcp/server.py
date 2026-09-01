@@ -1372,8 +1372,10 @@ async def run_http_server(host: str, port: int):
         )
         sys.exit(1)
 
-    # Streamable HTTP session manager
-    session_manager = StreamableHTTPSessionManager(app=server)
+    # Streamable HTTP session manager. Stateless: no server-side session table,
+    # so a machine suspend/restart can never invalidate a client's session id
+    # (this server is pure request/response — no server-initiated messages).
+    session_manager = StreamableHTTPSessionManager(app=server, stateless=True)
 
     # SSE transport for backwards compatibility
     sse = SseServerTransport("/messages")
