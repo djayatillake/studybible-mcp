@@ -30,6 +30,35 @@ def main():
     first_decompose(wrap, "p", "banner")
     first_decompose(wrap, "h1")
     first_decompose(wrap, "p", "orn")     # the ornament that sat right after the h1
+    # Substack's editor flattens a pasted <table> into one run-on paragraph, so
+    # convert each table into an <ol>: one <li> per body row, the first cell
+    # bolded as the row label and the rest as "Header: cell" sentences.
+    for table in wrap.find_all("table"):
+        rows = table.find_all("tr")
+        heads = [th.get_text(" ", strip=True) for th in rows[0].find_all(["th", "td"])] if rows else []
+        ol = soup.new_tag("ol")
+        for tr in rows[1:]:
+            cells = tr.find_all(["td", "th"])
+            if not cells:
+                continue
+            li = soup.new_tag("li")
+            # row label = first non-index cell (skip a leading "#"-style number)
+            start = 1 if heads and heads[0].strip() in ("#", "") and len(cells) > 1 else 0
+            label = cells[start]
+            b = soup.new_tag("strong"); b.string = label.get_text(" ", strip=True) + "."
+            li.append(b)
+            for i in range(start + 1, len(cells)):
+                c = cells[i].get_text(" ", strip=True)
+                if not c or c in ("—", "-"):
+                    continue
+                h = heads[i] if i < len(heads) else ""
+                sent = f" {h}: {c}" if h else f" {c}"
+                if not sent.rstrip().endswith((".", "!", "?", ")")):
+                    sent += "."
+                li.append(soup.new_string(sent))
+            ol.append(li)
+        table.replace_with(ol)
+
     for t in wrap.find_all(True):
         t.attrs.pop("class", None)
 

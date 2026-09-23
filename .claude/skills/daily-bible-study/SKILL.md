@@ -51,7 +51,21 @@ You can compress stages if the user asks, but the default is staged.
 - **Date — derive from the day-number anchor, NOT from "today."** Anchor:
   **Day 8 = Saturday 6 June 2026**, so Day N falls on `6 June 2026 + (N − 8)` days
   (Day 9 = Sun 7 Jun, Day 16 = Sun 14 Jun, Day 17 = Mon 15 Jun, …).
-- **Passages**: the user supplies them (e.g. "Proverbs 1:8-19, Matthew 7:1-23, Genesis 17").
+- **Passages — fetch from the YouVersion plan (added 7 Aug 2026).** The series follows
+  *The Bible with Nicky and Pippa Gumbel (Classic)*, plan id **65489**, and the plan's
+  day number **matches podcast Day N** (verified at Day 88). Once N is established,
+  WebFetch the **public** plan page and read the day's passages off it:
+  ```
+  https://www.bible.com/reading-plans/65489-the-bible-with-nicky-and-pippa-gumbel-classic/day/N
+  ```
+  (The `/users/dave665/…/subscription/…/day/N` form the user sometimes pastes
+  307-redirects to a YouVersion login WebFetch can't pass — strip it down to the
+  public URL above.) **Sanity-check continuity**: each continuing book should resume
+  exactly where the previous day stopped (see the `<h1>` in
+  `podcast/day(N-1)/Bible_in_a_Year_Study_Day(N-1).html`). If the user pastes passages
+  explicitly, those win. **Never infer the readings from continuation alone** — at
+  Day 88 the wisdom slot switched books mid-stream (Psalm 38 → Proverbs 8) and the
+  guessed Luke range was wrong; the plan page is the source of truth.
 - **Theme**: you compose a 3-part descriptive phrase for the title once you've read
   the passages (e.g. "The Two Ways, the Sign of the Covenant and the Judge of All
   the Earth"). Use the word "and", not "&".
@@ -259,6 +273,12 @@ heading; the full BSB inline; commentary that does real exegesis; 1-3 **callouts
 and "A thread worth marking" notes that connect within the day and to adjacent days
 (e.g. Day 8's *tamim* ↔ Day 7's *teleios*; Mt 7:23 ↔ Ps 6:8). Flag contested readings
 humbly (divine-council / two-powers is "one school of reading; alternatives noted").
+**Pseudepigrapha must be labelled** (user rule, 4 Aug 2026): any citation of 1 Enoch,
+Jubilees, or other non-canonical Second Temple works must say in the same breath that
+the work is pseudepigraphal / not Scripture, AND be paired with the canonical passages
+carrying the same tradition (e.g. 1 Enoch's Watchers → Gen 6:1–4; 2 Pet 2:4; Jude 6 —
+noting Jude 14–15 quotes 1 Enoch without according it canonical status). Never let a
+non-canonical citation stand as though it were a biblical proof.
 Close with the threads list, then Part Two/Three when ready. Scripture = BSB (public
 domain); credit BDB/LSJ/Strong's, Tyndale, TSK, Weinfeld/Nuzi (ANE), Heiser
 (two-powers), Moshe Kline (Torah Weave).

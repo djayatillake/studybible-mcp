@@ -29,6 +29,27 @@ def main():
 
     soup = BeautifulSoup(open(a.html, encoding="utf-8").read(), "lxml")
     wrap = soup.find("div", class_="wrap") or soup.body or soup
+
+    # Tables are dropped by clean.py (not in its element list). Convert each
+    # <table> into an <ol> for the audio: one <li> per body row, "Header: cell;
+    # Header: cell; …", so the spoken version keeps the table's content.
+    for table in wrap.find_all("table"):
+        rows = table.find_all("tr")
+        heads = [th.get_text(" ", strip=True) for th in rows[0].find_all(["th", "td"])] if rows else []
+        ol = soup.new_tag("ol")
+        for tr in rows[1:]:
+            cells = [td.get_text(" ", strip=True) for td in tr.find_all(["td", "th"])]
+            parts = []
+            for i, c in enumerate(cells):
+                if not c or c in ("—", "-"):
+                    continue
+                h = heads[i] if i < len(heads) else ""
+                parts.append(f"{h}: {c}" if h and i > 0 else c)
+            if parts:
+                li = soup.new_tag("li"); li.string = ". ".join(parts)
+                ol.append(li)
+        table.replace_with(ol)
+
     body_html = wrap.decode_contents()
 
     out = {
