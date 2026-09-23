@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["mcp>=1.2", "ollama>=0.4"]
+# dependencies = ["mcp>=1.2,<2", "ollama>=0.4"]
 # ///
 """
 A/B harness: drive the study-bible MCP from two local Ollama models and
@@ -27,7 +27,7 @@ DEFAULT_QUERY = (
     "Use the study-bible tools for every fact — do not answer from memory. "
     "End with a short synthesis citing what the tools returned."
 )
-DEFAULT_MODELS = ["qwen3.5:9b", "hf.co/empero-ai/Qwythos-9B-Claude-Mythos-5-1M-GGUF:Q4_K_M"]
+DEFAULT_MODELS = ["ornith-1.5:35b", "qwen3.5:9b"]
 
 SYSTEM = (
     "You are a Bible-study assistant with access to study-bible tools. "
