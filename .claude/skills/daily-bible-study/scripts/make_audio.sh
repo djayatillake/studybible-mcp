@@ -7,6 +7,9 @@
 #   make_audio.sh --html podcast/dayN/Bible_in_a_Year_Study_DayN.html --work podcast/dayN \
 #       --title "Day N · …" --subtitle "Passage · Passage" --date YYYY-MM-DD [--voice bm_george]
 set -euo pipefail
+# The glyph check's grep ranges need a UTF-8 locale; with LANG unset, BSD grep matches
+# bytes of any multi-byte char (em dashes, ❦) and reports false-positive glyphs.
+export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 
 HTML="" WORK="" TITLE="" SUBTITLE="" DATE="" VOICE="bm_george"
 while [ $# -gt 0 ]; do

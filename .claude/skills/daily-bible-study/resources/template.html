@@ -44,8 +44,9 @@
   * Callouts are <blockquote class="callout"> (NEVER a <div>).
   * Original-language word in <strong>, transliteration in <em>, Strong's like H8549.
   * Keep the literal "<h2>Part One — The Readings</h2>" heading (audio intro-strip).
-  Order: kicker -> h1(passages) -> orn -> banner -> intro -> Part One -> threads(ol)
-         -> Part Two -> Part Three appendix -> orn -> On Sources -> sdg.
+  Order: kicker -> h1(passages) -> orn -> banner -> intro -> Part One
+         -> [optional connections list: h2 + ol] -> Part Two -> Part Three appendix
+         -> orn -> On Sources -> sdg.
 ============================================================================= -->
 <div class="wrap">
 
@@ -53,12 +54,13 @@
 <h1>{{PASSAGES}}</h1>
 <p class="orn">❦</p>
 <p class="banner">Day {{N}} · {{Weekday}}, {{D Month YYYY}} · {{Theme}}</p>
-<p class="intro">{{Orienting paragraph: name the day's one unifying thread.}}</p>
+<p class="intro">{{Orienting paragraph: what the day's readings are about, including a unifying idea only if there genuinely is one.}}</p>
 
 <h2>Part One — The Readings</h2>
 <p class="orn">❦</p>
 
-<!-- ---- one block per reading (repeat) ---------------------------------- -->
+<!-- ---- one block per reading (repeat); split a long reading into movements,
+     each with its own h3 + verses + commentary ------------------------------- -->
 <h3>{{Passage}} <span class="ref">— {{one-line description}}</span></h3>
 <blockquote class="verses">
 <sup>1</sup> {{verse text}}<br>
@@ -66,16 +68,19 @@
 <!-- … every verse, inline … -->
 </blockquote>
 <p>{{commentary}}</p>
+<!-- callouts: as many as the words repay (zero is fine) -->
 <blockquote class="callout">
 <p><strong>Hebrew — {{hook}}.</strong> <strong>{{עברית}}</strong> (<em>{{translit}}</em>, H0000) — {{sense}}. {{why it matters / cross-link}}.</p>
 </blockquote>
-<p class="thread"><strong>A thread worth marking.</strong> {{connection within the day and to adjacent days}}.</p>
+<!-- Connections to other readings or adjacent days are OPTIONAL: make them in the
+     commentary where they arise, only when real. No per-reading "thread" note. -->
 <!-- ---- end reading block ---------------------------------------------- -->
 
-<h2>{{N}} threads tying Day {{N}} together</h2>
+<!-- OPTIONAL: include only if the day has several genuine cross-passage links;
+     omit the h2 and ol entirely otherwise. Heading in your own words. -->
+<h2>{{e.g. What holds the day together}}</h2>
 <ol>
-<li><strong>{{thread title}}.</strong> {{one sentence}}.</li>
-<!-- … one <li> per thread … -->
+<li><strong>{{title}}.</strong> {{one idea, point-first}}.</li>
 </ol>
 
 <h2>Part Two — Questions We Followed</h2>
@@ -104,6 +109,7 @@
 <!-- one li per scholar/corpus actually used (not merely retrieved): which claim/frame
      of theirs the study drew on, and where in the study it was applied. -->
 <ul><li><strong>{{scholar}}</strong> ({{work/corpus}}) — {{claim or frame used, and where it was applied}}.</li></ul>
+<!-- omit any appendix section with nothing in it, e.g. Torah Weave on a day with no Torah reading -->
 <h3>Torah Weave (Moshe Kline)</h3>
 <ul><li><strong>{{unit}}</strong>. {{paired cells}}.</li></ul>
 <h3>Dictionary &amp; Place Data</h3>

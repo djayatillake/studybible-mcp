@@ -12,7 +12,7 @@ description: >-
 
 David publishes one study per day at **studybible.substack.com** (author: David
 Jayatillake). Each post is "Day N · <theme>", subtitle = the passage list, with a
-~40-min voiceover. This skill turns *a list of passages* into a finished Substack
+voiceover (typically 50–60 min; the length follows the readings). This skill turns *a list of passages* into a finished Substack
 draft + audio. **Always run from the repo root** (`/Users/david/studybible-mcp`).
 `SKILL_DIR` = the directory containing this file.
 
@@ -25,8 +25,8 @@ Related memory: see `project_substack_workflow.md` and `feedback_context_economy
 This is normally done in **three messages**, not one. Don't skip ahead.
 
 1. **Readings** — user gives the day's passages. You pull BSB + run the tools and
-   present **Part One** (the readings + the "N threads" list) inline in chat, with
-   the **full BSB verses shown inline**. Then stop.
+   present **Part One** (the readings, plus a closing connections list only if the day
+   has real ones) inline in chat, with the **full BSB verses shown inline**. Then stop.
 2. **Questions** — user asks follow-up questions; you answer them in chat. These
    become **Part Two — "Questions We Followed."**
 3. **Publish** — user says they're ready. You assemble the HTML, render the audio,
@@ -86,6 +86,12 @@ range. The smooth BSB lives in `db/study_bible.db`, table `bsb_verses`. Use the 
 (Book codes are non-obvious — Mark=`Mrk`, John=`Jhn`, Ezekiel=`Ezk`, Joel=`Jol`,
 Nahum=`Nam`, Song=`Sng`; the script resolves full names for you.)
 
+Save the output to a file in the scratchpad (e.g. `bsbN.txt`) — the HTML is later
+generated from it (Step 3). **Quote-check every other verse you quote** (cross-references,
+Part Two evidence) by running it through `pull_bsb.py` as well, before it goes in the
+post. Don't quote from memory: at Day 130, Ps 2:4, John 12:32 and Num 22:23 had all
+been quoted in other translations' wording in chat and had to be corrected to the BSB.
+
 ### 1b. Study-bible MCP tools — these are DEFERRED; load before use
 Run `ToolSearch` with `select:mcp__study-bible__lookup_verse,mcp__study-bible__word_study,mcp__study-bible__get_cross_references,mcp__study-bible__get_study_notes,mcp__study-bible__get_textual_variant,mcp__study-bible__get_ane_context,mcp__study-bible__get_torah_weave,mcp__study-bible__get_bible_dictionary,mcp__study-bible__get_key_terms,mcp__study-bible__people_in_passage,mcp__study-bible__lookup_name,mcp__study-bible__get_theology_context,mcp__study-bible__explore_person_events,mcp__study-bible__explore_place`
 then call them (batch independent calls in parallel):
@@ -117,12 +123,21 @@ then call them (batch independent calls in parallel):
   trust the strength ordering, don't pad or crank limits without reason.
 
 ### 1c. Present Part One in chat
-Write the readings in the house voice (see "Voice & structure" below): for each
+Write the readings in your own voice (see "Voice & structure" below): for each
 passage — a description heading, the **full BSB verses inline**, exegetical
-commentary, **Hebrew/Greek callouts** (script + transliteration + Strong's), and a
-"A thread worth marking" note that links across the day and to adjacent days. End
-with "**N threads tying Day N together**" (match the number to the day where it
-reads well — Day 7 had seven, Day 8 had eight). Then hand back for questions.
+commentary, and **Hebrew/Greek callouts** (script + transliteration + Strong's) where
+a word repays it. **Split a long reading into movements** — one heading per movement,
+each with its verses then its commentary (Day 130: John 6:25–40 / 41–51 / 52–59;
+Judges 10:1–5 / 6–18) — rather than one long block of verses followed by all the comment.
+
+**Connecting threads are optional** (user feedback, 23 Sep 2026: forced threads read
+as filler). When a connection to another reading or an adjacent day is real and
+matters — a shared Hebrew word, a deliberate echo, a quotation — make it in the
+commentary where it comes up. Don't add a per-reading "thread" note, don't pad to a
+count, and don't go looking for adjacent-day links to fill space. If the day has
+several genuine cross-passage links, you may close Part One with a short numbered list
+under a heading of your own (Day 130: "What holds the day together"); a day without
+them skips the list. Then hand back for questions.
 
 ---
 
@@ -163,9 +178,19 @@ reconfirm N with the user. Never `rm -rf` a `podcast/dayN` directory to "start c
 (A Write-tool rejection like *"file already exists / not read yet"* means the same thing:
 something real is already there — inspect it, don't clear it.)
 
-Then copy `resources/template.html` to `podcast/dayN/Bible_in_a_Year_Study_DayN.html` and
-fill it in. The template encodes the exact CSS, section order, and the structural rules
-below.
+Then build `podcast/dayN/Bible_in_a_Year_Study_DayN.html` from `resources/template.html`,
+which encodes the exact CSS, section order, and the structural rules below. **Generate the
+file rather than hand-typing verses:** write a short Python script in the scratchpad that
+parses the saved `pull_bsb.py` output (`===== <Passage> =====` headers, `N  text` lines),
+emits each `blockquote.verses` from it, holds the prose as HTML strings, takes the
+`<head>` from the template, and refuses to overwrite an existing file. That way no verse
+is retyped, and full passages are guaranteed. After writing, sanity-check it:
+```bash
+F=podcast/dayN/Bible_in_a_Year_Study_DayN.html
+grep -o '<sup>' $F | wc -l          # = total reading verses + Part Two lead quotes
+grep -c 'Part One — The Readings' $F   # = 1
+```
+and confirm there's no Hebrew/Greek script outside `<strong>` and only one `<div>`.
 
 **Structural rules that keep the audio pipeline working — do not break these:**
 - Everything is a **direct child of the single `<div class="wrap">`** (flat). No
@@ -179,12 +204,15 @@ below.
 - Keep the `<h2>Part One — The Readings</h2>` heading verbatim — `clean.py`'s
   intro-strip starts the audio at "Part One".
 - Order: `p.kicker` → `h1` (passages) → `p.orn` ❦ → `p.banner` ("Day N · Weekday,
-  D Month YYYY · Theme") → `p.intro` → Part One → threads (`<ol>`) → Part Two →
-  Part Three appendix → `p.orn` → "On Sources" → `p.sdg` "Soli Deo gloria."
+  D Month YYYY · Theme") → `p.intro` → Part One → *(optional)* connections list
+  (`h2` + `<ol>`) → Part Two → Part Three appendix → `p.orn` → "On Sources" →
+  `p.sdg` "Soli Deo gloria."
 
 **Appendix (Part Three) sections** to include as `<h3>` + `<ul>`: Word Studies,
 Cross-Reference Sets, Textual Note, Ancient Near East Context, **Theology Context**,
 Torah Weave, Dictionary & Place Data, Study Notes Consulted — then "On Sources."
+Omit a section that has nothing in it (e.g. Torah Weave on a day with no Torah reading)
+rather than leaving it empty.
 
 **Theology Context section**: one `<li>` per scholar/corpus actually drawn on that
 day (`get_theology_context` and the atonement/ANE-methodology stack) — e.g. Rillera
@@ -211,9 +239,15 @@ bash "$SKILL_DIR/scripts/make_audio.sh" \
 
 This script: builds the raw JSON **directly** (preserving `<sup>`/glyph tags — it does
 **not** use the lossy `html_to_raw.py`, which would read verse numbers aloud) →
-`clean.py` → **validates 0 glyphs / 0 Strong's** → `build.py`. Render ~8-9 min for a
-~43-min episode; **run it in the background** and keep working on the draft. Output:
-`podcast/dayN/audio/01_*.mp3` (~50 MB) plus a large `.wav` you can delete.
+`clean.py` → **validates 0 glyphs / 0 Strong's** → `build.py`. Render takes ~7–9 min
+(Day 130: a 58-min episode in ~7 min); **run it in the background** and keep working
+on the draft. Output: `podcast/dayN/audio/01_*.mp3` (~50–70 MB) plus a large `.wav`
+you can delete.
+
+The script exports `LC_ALL=en_US.UTF-8` itself (added 23 Sep 2026). With `LANG` unset,
+as in the desktop app's shell, BSD `grep` matched the glyph ranges byte by byte and
+reported false glyphs for em dashes and ❦ (Day 130 showed `glyphs=110` on clean text).
+If validation ever fails, re-run the check under a UTF-8 locale before editing the HTML.
 
 Dependencies (already set up on this machine): repo venv **`.venv-tts`** (NOT the skill
 venv); Kokoro/torch/soundfile/bs4 in it; `ffmpeg` on PATH; the
@@ -243,6 +277,12 @@ that is **logged into Substack**. Load the browser tools first:
      --html podcast/dayN/Bible_in_a_Year_Study_DayN.html --work podcast/dayN
    bash "$SKILL_DIR/scripts/clip_html.sh" podcast/dayN/body_substack.html
    ```
+   **Right before pasting, confirm the clipboard holds this day's body.** Parallel
+   sessions share the clipboard (see `feedback_clipboard_race_substack.md`):
+   ```bash
+   osascript -e 'the clipboard as «class HTML»' | sed -E 's/^«data HTML//; s/»$//' | xxd -r -p | head -c 120
+   ```
+   It should print the start of this day's `p.intro`.
    Then in the browser: click the body ("Start writing…", ≈ 700,255) → `computer key cmd+v`.
    Substack preserves headings, blockquotes, `<sup>`, bold, lists, dividers, and
    Greek/Hebrew glyphs. Screenshot top + middle + bottom to verify.
@@ -265,13 +305,21 @@ ffmpeg -y -i podcast/dayN/audio/01_*.mp3 -ac 1 -b:a 24k podcast/dayN/audio/voice
 
 ---
 
-## Voice & structure (match the series)
+## Voice & structure
 
-Elegant, scholarly-but-readable. Per reading: a "<Passage> — <one-line description>"
-heading; the full BSB inline; commentary that does real exegesis; 1-3 **callouts**
-("Hebrew/Greek — <hook>") giving the key word (script + translit + Strong's + sense);
-and "A thread worth marking" notes that connect within the day and to adjacent days
-(e.g. Day 8's *tamim* ↔ Day 7's *teleios*; Mt 7:23 ↔ Ps 6:8). Flag contested readings
+Write in your own voice (user, 23 Sep 2026): clear, direct, scholarly but readable. Don't
+imitate earlier posts or open them for style. The only earlier-day file to open is the
+previous day's `<h1>`, to check the passages continue. Let the length follow the
+readings, not a word target. Per reading: a "<Passage> — <one-line description>" heading
+(one per movement for long readings); the full BSB inline; commentary that does real
+exegesis; **callouts** ("Hebrew/Greek — <hook>") giving a key word (script + translit +
+Strong's + sense) where the word repays it. There's no set number of callouts.
+
+**Connections are optional, never quotas.** Link across the day or to an adjacent day
+only when the link is really in the text and helps the reader (e.g. Day 8's *tamim* ↔
+Day 7's *teleios*; Mt 7:23 ↔ Ps 6:8; Day 130's *yechidah* → LXX *monogenēs* → John 3:16),
+and make it in the commentary where it comes up. If a day's readings don't connect,
+treat them separately; that's fine. Flag contested readings
 humbly (divine-council / two-powers is "one school of reading; alternatives noted").
 **Pseudepigrapha must be labelled** (user rule, 4 Aug 2026): any citation of 1 Enoch,
 Jubilees, or other non-canonical Second Temple works must say in the same breath that
@@ -279,7 +327,8 @@ the work is pseudepigraphal / not Scripture, AND be paired with the canonical pa
 carrying the same tradition (e.g. 1 Enoch's Watchers → Gen 6:1–4; 2 Pet 2:4; Jude 6 —
 noting Jude 14–15 quotes 1 Enoch without according it canonical status). Never let a
 non-canonical citation stand as though it were a biblical proof.
-Close with the threads list, then Part Two/Three when ready. Scripture = BSB (public
+Close Part One with the connections list only if the day earns one, then Part Two/Three
+when ready. Scripture = BSB (public
 domain); credit BDB/LSJ/Strong's, Tyndale, TSK, Weinfeld/Nuzi (ANE), Heiser
 (two-powers), Moshe Kline (Torah Weave).
 
@@ -287,13 +336,13 @@ domain); credit BDB/LSJ/Strong's, Tyndale, TSK, Weinfeld/Nuzi (ANE), Heiser
 - **Quote-first questions.** Lead a Part Two question with the verse it turns on, then
   ask; never ask and then re-quote the same text to answer (see Step 2). Front-load the
   text so the reader meets it once.
-- **Signpost long sections.** Keep each thread to one idea, point-first — the bolded
-  title names the anchor (the numbered `<ol>` does this; avoid Day-1-style long prose
-  threads). In any long prose stretch — extended commentary, a multi-move Part Two
-  answer, a "thread worth marking" — add brief transitions or a one-line recap when you
-  move to a new point or a new book ("the second thread turns to Romans…"), so a reader
-  coming off a dense paragraph is never left asking "where are we now." Prefer several
-  short signposted steps over one sprawling block.
+- **Signpost long sections.** If there's a closing connections list, keep each item to
+  one idea, point-first, with a bolded title naming it (avoid Day-1-style long prose
+  items). In any long prose stretch, whether extended commentary or a multi-move Part Two
+  answer, add brief transitions or a one-line recap when you move to a new point or a
+  new book ("first… / second… / here's the turn"), so a reader coming off a dense
+  paragraph is never left asking "where are we now." Prefer several short signposted
+  steps (bulleted or numbered where the points are parallel) over one sprawling block.
 
 ## Title / subtitle conventions
 - **Substack title:** `Day N · <Theme>` (middot `·`, "and" not "&", no date).
@@ -307,6 +356,10 @@ domain); credit BDB/LSJ/Strong's, Tyndale, TSK, Weinfeld/Nuzi (ANE), Heiser
 - `get_ane_context` by chapter is often empty → use `dimension` + `period`.
 - Audio: build raw JSON **directly** (not `html_to_raw`) so `<sup>` verse numbers are
   stripped; venv is **`.venv-tts`**; validate 0 glyphs / 0 Strong's before building.
+  The glyph check needs a UTF-8 locale (`make_audio.sh` now sets it); a `glyphs=N` failure
+  on text that should be clean is the locale, not the HTML.
+- Quote every cross-reference from `pull_bsb.py`, not memory (Day 130 caught three
+  quotations in other translations' wording).
 - Substack: no API; needs a logged-in Chrome (**user signs in — you can't**); each
   `publish/post` navigation makes a new draft; body via clipboard-`text/html` + Cmd+V;
   50 MB audio > 10 MB upload cap → audio stays manual.
