@@ -44,12 +44,15 @@ data/*.xlsx
 data/aquifer/
 data/acai/
 data/cross_references/
+data/dss/
+data/lxx/
 
 # Database (built from data, not committed)
 db/*.db
 db/*.db-journal
 db/*.db-shm
 db/*.db-wal
+db/*.db.bak*
 
 # Keep the directories but not contents
 !data/.gitkeep
@@ -76,6 +79,9 @@ test.db
 
 # Logs
 *.log
+
+# Ollama A/B harness transcript (scripts/ab_ollama_mcp.py rewrites it each run)
+scripts/ab_last_run.json
 
 # Docker
 .docker/
