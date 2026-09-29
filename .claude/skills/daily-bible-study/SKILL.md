@@ -240,13 +240,14 @@ file rather than hand-typing verses:** write a short Python script in the scratc
 parses the saved `pull_bsb.py` output (`===== <Passage> =====` headers, `N  text` lines),
 emits each `blockquote.verses` from it, holds the prose as HTML strings, takes the
 `<head>` from the template, and refuses to overwrite an existing file. That way no verse
-is retyped, and full passages are guaranteed. After writing, sanity-check it:
+is retyped, and full passages are guaranteed. After writing, run the checker:
 ```bash
-F=podcast/dayN/Bible_in_a_Year_Study_DayN.html
-grep -o '<sup>' $F | wc -l          # = total reading verses + Part Two lead quotes
-grep -c 'Part One — The Readings' $F   # = 1
+.venv-tts/bin/python "$SKILL_DIR/scripts/check_html.py" podcast/dayN/Bible_in_a_Year_Study_DayN.html
 ```
-and confirm there's no Hebrew/Greek script outside `<strong>` and only one `<div>`.
+It must print `OK`. It fails on more than one `<div>`, a non-flat wrap, a missing or repeated
+"Part One — The Readings", script outside `<strong>`, and any block that starts with Hebrew
+(see the RTL rule below). It also prints the `<sup>` count (= reading verses plus Part Two
+lead quotes) and the word count per part with an estimate of spoken minutes.
 
 **Structural rules that keep the audio pipeline working — do not break these:**
 - Everything is a **direct child of the single `<div class="wrap">`** (flat). No
@@ -263,6 +264,16 @@ and confirm there's no Hebrew/Greek script outside `<strong>` and only one `<div
   Put the script in its own `<strong>` inside the sentence, e.g. `<strong>Word.</strong>
   John glosses it <strong>ἀπεσταλμένος</strong> (<em>apestalmenos</em>, G649)…`. A word
   study is a "Word." bullet by default; `blockquote.callout` remains available.
+- **Never start a block with Hebrew.** No `<li>`, `<p>`, `<blockquote>` or heading may begin
+  with a Hebrew (or Arabic) character: Substack, like any browser using `dir="auto"`, decides
+  a block's direction from its first strong character, so a Hebrew-first block renders
+  right-to-left and the whole line scrambles (gloss wrapped backwards, full stops at the
+  wrong end). Lead with English. In the appendix that means the transliteration first and
+  the script inside the parentheses: `<em>chesed</em> (<strong>חֶסֶד</strong>, H2617) —
+  goodness…`; for two words, `<em>ḥesed</em> / <em>ʾemet</em> (<strong>חֶסֶד / אֱמֶת</strong>,
+  H2617 / H571) — …`. Greek is left-to-right, so a Greek-first line renders correctly, but
+  keep the same order for consistency. (This hit all 13 posts of Days 124–136; 113 lines had
+  to be reordered on 30 Sep 2026.)
 - **Original-language words in `<strong>`**, transliteration in `<em>`, Strong's like
   `H8549` / `G3309`. `clean.py` drops the script + Strong's, keeps the transliteration.
 - Keep the `<h2>Part One — The Readings</h2>` heading verbatim — `clean.py`'s
@@ -278,6 +289,11 @@ Torah Weave, Dictionary & Place Data, **Further Notes** (true but peripheral poi
 from Part One, as short bullets), Study Notes Consulted — then "On Sources."
 Omit a section that has nothing in it (e.g. Torah Weave on a day with no Torah reading)
 rather than leaving it empty.
+
+**Word Studies items**: `<li><em>{translit}</em> (<strong>{script}</strong>, H0000) — {gloss}.
+({refs})</li>`. Always transliteration first, script inside the parentheses (see "Never start a
+block with Hebrew"); the audio then reads "chesed — goodness, kindness…" with the script and the
+Strong's number dropped.
 
 **Theology Context section**: one `<li>` per scholar/corpus actually drawn on that
 day (`get_theology_context` and the atonement/ANE-methodology stack) — e.g. Rillera
@@ -418,6 +434,8 @@ domain); credit BDB/LSJ/Strong's, Tyndale, TSK, Weinfeld/Nuzi (ANE), Heiser
 - `lookup_verse` ≠ smooth BSB → use `pull_bsb.py` / `bsb_verses`.
 - whole-chapter `get_study_notes` can spill to a file → `awk` out the Tyndale layer.
 - `get_ane_context` by chapter is often empty → use `dimension` + `period`.
+- **Hebrew-first blocks render right-to-left in Substack** (scrambled gloss, stray full stops).
+  Lead every `<li>`/`<p>` with English; `check_html.py` fails on it.
 - Audio: build raw JSON **directly** (not `html_to_raw`) so `<sup>` verse numbers are
   stripped; venv is **`.venv-tts`**; validate 0 glyphs / 0 Strong's before building.
   The glyph check needs a UTF-8 locale (`make_audio.sh` now sets it); a `glyphs=N` failure
@@ -444,4 +462,6 @@ domain); credit BDB/LSJ/Strong's, Tyndale, TSK, Weinfeld/Nuzi (ANE), Heiser
 - `scripts/make_audio_input.py` — direct raw-JSON adapter (preserves `<sup>`/glyphs).
 - `scripts/make_substack_body.py` — paste-ready body (drops title/subtitle dupes).
 - `scripts/clip_html.sh` — load an HTML file onto the macOS clipboard as `text/html`.
+- `scripts/check_html.py` — post-assembly gate: flat wrap, one div, Part One heading, no stray script,
+  no Hebrew-first (right-to-left) blocks; prints verse count and spoken-time estimate.
 - `resources/template.html` — the post skeleton + exact CSS + structural rules.

@@ -43,6 +43,8 @@
   * Verse blockquotes: <blockquote class="verses"><sup>N</sup> text<br> …>.
   * Callouts are <blockquote class="callout"> (NEVER a <div>).
   * Original-language word in <strong>, transliteration in <em>, Strong's like H8549.
+  * NEVER start an <li>/<p>/<blockquote>/heading with Hebrew (renders right-to-left in Substack):
+    write <em>chesed</em> (<strong>חֶסֶד</strong>, H2617) — …  Run scripts/check_html.py when done.
   * Keep the literal "<h2>Part One — The Readings</h2>" heading (audio intro-strip).
   Order: kicker -> h1(passages) -> orn -> banner -> intro -> Part One
          -> [optional connections list: h2 + ol] -> Part Two -> Part Three appendix
@@ -98,7 +100,8 @@
 <p class="orn">❦</p>
 <p>The Study Bible resources drawn on through the session.</p>
 <h3>Word Studies</h3>
-<ul><li><strong>{{word}}</strong> (<em>{{translit}}</em>, H0000) — {{gloss}}. ({{ref}})</li></ul>
+<!-- ALWAYS lead with the English transliteration: a Hebrew-first <li> renders right-to-left in Substack. -->
+<ul><li><em>{{translit}}</em> (<strong>{{word}}</strong>, H0000) — {{gloss}}. ({{ref}})</li></ul>
 <h3>Cross-Reference Sets</h3>
 <ul><li>{{verse}} → {{refs}}.</li></ul>
 <h3>Textual Note</h3>
