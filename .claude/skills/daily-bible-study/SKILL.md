@@ -123,17 +123,69 @@ then call them (batch independent calls in parallel):
   trust the strength ordering, don't pad or crank limits without reason.
 
 ### 1c. Present Part One in chat
-Write the readings in your own voice (see "Voice & structure" below): for each
-passage — a description heading, the **full BSB verses inline**, exegetical
-commentary, and **Hebrew/Greek callouts** (script + transliteration + Strong's) where
-a word repays it. **Split a long reading into movements** — one heading per movement,
-each with its verses then its commentary (Day 130: John 6:25–40 / 41–51 / 52–59;
-Judges 10:1–5 / 6–18) — rather than one long block of verses followed by all the comment.
+Write the readings in your own voice (see "Voice & structure" below). **Split each
+reading into sections** — one heading per section, each with its verses then its notes
+(Day 130: John 6:25–40 / 41–51 / 52–59; Judges 10:1–5 / 6–18) — cutting at natural
+breaks (a scene, a speech, an argument), never to hit a count. Each section is: a
+"<Passage> — <one-line description>" heading, the **full BSB verses inline**, then the
+notes: **one to three short prose paragraphs** that carry the reading, then an optional
+**bulleted list of lookups** (word studies, textual notes, background, cross-reference
+chains).
+
+**Notes are prose for the reading and bullets for the lookups, admitted by a test, not
+by a word count** (user feedback, 29 Sep 2026, superseding the 26 Sep budgets of "~150
+words per movement, max 250, one callout, two verses"; he first asked for all bullets,
+then for prose with bullets because all-bullets read choppily). Those budgets cut real
+detail as well as padding: Days 133–135 ran 33–39 min of audio against the 50–60 min
+norm, and what was dropped never reached Part Three.
+Days 126–132 kept the detail but as long paragraphs (~600–770 words a section). Short
+paragraphs plus bullets keep the detail and drop the padding.
+
+*The form of the notes.*
+- **Prose** (one to three paragraphs per section, one idea each): ordinary connected
+  sentences that carry the argument. The first paragraph opens with the observation that
+  changes how the passage reads; verbal links to other passages go inline where they
+  arise. Don't retell the verses. About 100 words is a **ceiling, not a target**: a longer
+  paragraph is usually two ideas, so split it.
+- **Bullets** (only for what a reader may want to scan or skip): a bold label, then one
+  fact in a sentence or two, citing its verse. Labels: *Word* (Hebrew/Greek study),
+  *Text* (variants, punctuation, translation issues), *Background*, *Link* (a
+  cross-reference chain or parallel too long for the prose). About 40 words is a ceiling.
+- Which goes where: if it is part of the reading's flow, it is prose; if it is a lookup,
+  it is a bullet. A section that is all lookup is a one-sentence lead plus bullets; a
+  section with nothing to look up is prose alone.
+- The voiceover reads paragraphs as written and reads each bullet as its own item with
+  its label spoken, so write sentences, not fragments.
+
+*The test.* **A sentence or bullet stays only if it does at least one of these:**
+1. it changes how the verse reads;
+2. it supplies a fact the verse can't (a word's sense, a textual issue, background that
+   explains an action);
+3. it makes a real verbal link to another passage.
+
+**It goes if it is:** a claim from memory that you can't source (verify it with a
+study-bible tool or a fetch, hedge it as "some interpreters…", or drop it; never leave an
+unverified claim standing as fact); a speculative echo the text doesn't claim and that
+pays off nowhere in the passage; a list of background where one verse carries the point;
+a restatement of the verses; or a payoff that lies chapters away.
+
+**No quotas.** No minimum or maximum number of paragraphs, bullets, sections or word
+studies. A section with one real point gets one sentence or bullet. Don't pad to a
+pattern, and don't cut a good point to hit a fraction.
+
+*Length is an outcome, checked at the end.* The voiceover runs ~160 spoken words a
+minute (series norm 50–60 min). If the day is far off what the readings warrant, **raise
+the bar** and drop the weakest points; don't trim by fraction. True but peripheral
+material you cut goes into a **"Further notes"** list in Part Three, not the bin.
+
+Other quoting rules stand: every verse quoted is pulled through `pull_bsb.py`; supporting
+verses are quoted only when the reader needs the words in front of them, otherwise cited
+by reference.
 
 **Connecting threads are optional** (user feedback, 23 Sep 2026: forced threads read
 as filler). When a connection to another reading or an adjacent day is real and
 matters — a shared Hebrew word, a deliberate echo, a quotation — make it in the
-commentary where it comes up. Don't add a per-reading "thread" note, don't pad to a
+notes where it comes up. Don't add a per-reading "thread" note, don't pad to a
 count, and don't go looking for adjacent-day links to fill space. If the day has
 several genuine cross-passage links, you may close Part One with a short numbered list
 under a heading of your own (Day 130: "What holds the day together"); a day without
@@ -157,9 +209,13 @@ feedback — see "Reader-friendly structure" below):
 4. `p` the answer — which **must not re-quote that same text**. It may quote *other*
    verses it brings in as evidence; it refers back to the lead quote by reference.
 
-Never ask the question and then re-quote the same verse to answer it. If a long answer
-makes several moves, **signpost** them (a short "first… / then… / here's the turn" or a
-one-line recap) so the reader never loses the thread.
+**Answers are short** (user feedback, 26 Sep 2026). Lead with the answer in the first
+sentence, support it with at most two or three verses or one word study, and stop:
+**about 100–150 words, never more than 200**, in one or two paragraphs. Don't survey
+every view; give the reading you'd defend, name one live alternative in a clause if it
+matters, and leave the rest of the tool output for Part Three. Never ask the question
+and then re-quote the same verse to answer it. If an answer genuinely needs several
+moves, number them in a few short lines rather than writing a long prose run.
 
 ---
 
@@ -199,6 +255,14 @@ and confirm there's no Hebrew/Greek script outside `<strong>` and only one `<div
   `<sup>` renders as superscript on Substack **and** is stripped from the audio.
 - **Callouts are `<blockquote class="callout">`** (never a `<div>` — a div would be
   dropped from the audio). Lead with `<strong>Hebrew/Greek — …</strong>`.
+- **Part One notes are one to three `<p>` then an optional `<ul>`**, all direct children
+  of the wrap. Each `<li>` is `<strong>Label.</strong> full sentence(s)`. `clean.py` voices
+  each `<p>` as written and each `<li>` as its own item with a short pause, speaks the
+  label, and adds a full stop if one is missing. **Keep Hebrew/Greek script out of the
+  label**: a `<strong>` containing script is stripped whole, so the label would vanish.
+  Put the script in its own `<strong>` inside the sentence, e.g. `<strong>Word.</strong>
+  John glosses it <strong>ἀπεσταλμένος</strong> (<em>apestalmenos</em>, G649)…`. A word
+  study is a "Word." bullet by default; `blockquote.callout` remains available.
 - **Original-language words in `<strong>`**, transliteration in `<em>`, Strong's like
   `H8549` / `G3309`. `clean.py` drops the script + Strong's, keeps the transliteration.
 - Keep the `<h2>Part One — The Readings</h2>` heading verbatim — `clean.py`'s
@@ -210,7 +274,8 @@ and confirm there's no Hebrew/Greek script outside `<strong>` and only one `<div
 
 **Appendix (Part Three) sections** to include as `<h3>` + `<ul>`: Word Studies,
 Cross-Reference Sets, Textual Note, Ancient Near East Context, **Theology Context**,
-Torah Weave, Dictionary & Place Data, Study Notes Consulted — then "On Sources."
+Torah Weave, Dictionary & Place Data, **Further Notes** (true but peripheral points cut
+from Part One, as short bullets), Study Notes Consulted — then "On Sources."
 Omit a section that has nothing in it (e.g. Torah Weave on a day with no Torah reading)
 rather than leaving it empty.
 
@@ -309,11 +374,12 @@ ffmpeg -y -i podcast/dayN/audio/01_*.mp3 -ac 1 -b:a 24k podcast/dayN/audio/voice
 
 Write in your own voice (user, 23 Sep 2026): clear, direct, scholarly but readable. Don't
 imitate earlier posts or open them for style. The only earlier-day file to open is the
-previous day's `<h1>`, to check the passages continue. Let the length follow the
-readings, not a word target. Per reading: a "<Passage> — <one-line description>" heading
-(one per movement for long readings); the full BSB inline; commentary that does real
-exegesis; **callouts** ("Hebrew/Greek — <hook>") giving a key word (script + translit +
-Strong's + sense) where the word repays it. There's no set number of callouts.
+previous day's `<h1>`, to check the passages continue. **The verses set the post's
+length; the notes add detail without padding** (prose and bullets admitted by the test
+in Step 1c; Part Two answers keep their budget in Step 2). Per reading: a "<Passage> —
+<one-line description>" heading (one per section for long readings); the full BSB inline;
+short prose paragraphs that do real exegesis, then bulleted lookups; **Word bullets**
+giving a key word (script + translit + Strong's + sense) only where the word repays it.
 
 **Connections are optional, never quotas.** Link across the day or to an adjacent day
 only when the link is really in the text and helps the reader (e.g. Day 8's *tamim* ↔
@@ -336,13 +402,11 @@ domain); credit BDB/LSJ/Strong's, Tyndale, TSK, Weinfeld/Nuzi (ANE), Heiser
 - **Quote-first questions.** Lead a Part Two question with the verse it turns on, then
   ask; never ask and then re-quote the same text to answer (see Step 2). Front-load the
   text so the reader meets it once.
-- **Signpost long sections.** If there's a closing connections list, keep each item to
-  one idea, point-first, with a bolded title naming it (avoid Day-1-style long prose
-  items). In any long prose stretch, whether extended commentary or a multi-move Part Two
-  answer, add brief transitions or a one-line recap when you move to a new point or a
-  new book ("first… / second… / here's the turn"), so a reader coming off a dense
-  paragraph is never left asking "where are we now." Prefer several short signposted
-  steps (bulleted or numbered where the points are parallel) over one sprawling block.
+- **Short beats signposted.** Part One notes are short one-idea paragraphs plus one-fact
+  bullets; Part Two answers are held to the budget in Step 2. Where something has several moves
+  (a multi-step Part Two answer, a closing connections list), keep each item to one
+  idea in one or two sentences, point-first, with a bolded title, and add a brief
+  "first… / then…" transition; a few short numbered steps beat one block.
 
 ## Title / subtitle conventions
 - **Substack title:** `Day N · <Theme>` (middot `·`, "and" not "&", no date).
