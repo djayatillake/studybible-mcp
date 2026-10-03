@@ -320,10 +320,11 @@ bash "$SKILL_DIR/scripts/make_audio.sh" \
 
 This script: builds the raw JSON **directly** (preserving `<sup>`/glyph tags — it does
 **not** use the lossy `html_to_raw.py`, which would read verse numbers aloud) →
-`clean.py` → **validates 0 glyphs / 0 Strong's** → `build.py`. Render takes ~7–9 min
-(Day 130: a 58-min episode in ~7 min); **run it in the background** and keep working
-on the draft. Output: `podcast/dayN/audio/01_*.mp3` (~50–70 MB) plus a large `.wav`
-you can delete.
+`clean.py` → **validates 0 glyphs / 0 Strong's** → `build.py` → deletes the intermediate
+`.wav`. Render takes ~7–9 min (Day 130: a 58-min episode in ~7 min); **run it in the
+background** and keep working on the draft. Output: `podcast/dayN/audio/01_*.mp3`
+(~50–70 MB) only. The ~120 MB `.wav` is never kept (user, 2 Oct 2026); the script removes
+it once a non-empty mp3 sits beside it, and keeps it only if the mp3 is missing.
 
 The script exports `LC_ALL=en_US.UTF-8` itself (added 23 Sep 2026). With `LANG` unset,
 as in the desktop app's shell, BSD `grep` matched the glyph ranges byte by byte and

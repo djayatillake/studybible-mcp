@@ -48,6 +48,15 @@ echo "glyphs=$G strongs=$S  (both must be 0)"
 echo "== build audio (Kokoro, voice=$VOICE) =="
 PYTHONPATH="$SUB" "$PY" "$SUB/build.py" --work "$WORK" --voice "$VOICE"
 
+echo "== remove intermediate wav =="
+# The .wav is only build.py's intermediate (~120 MB); the mp3 is the deliverable.
+# Delete each wav only once its mp3 exists and is non-empty.
+for w in "$WORK"/audio/*.wav; do
+  [ -e "$w" ] || continue
+  m="${w%.wav}.mp3"
+  if [ -s "$m" ]; then rm -- "$w" && echo "removed $w"; else echo "kept $w (no mp3 alongside)"; fi
+done
+
 echo "== artifacts =="
 ls -la "$WORK"/audio/
 for f in "$WORK"/audio/*.mp3; do
