@@ -603,9 +603,9 @@ class StudyBibleDB:
         # Handle common variations: "John 3:16" -> "Jhn.3.16"
         # This is a simplified version - expand as needed
         
-        # Parse reference like "John 3:16" or "1 Corinthians 13:4-7"
+        # Parse reference like "John 3:16", "Gen. 15:6" or "1 Corinthians 13:4-7"
         match = re.match(
-            r'^(\d?\s*[a-zA-Z]+(?:\s+[a-zA-Z]+)*)\s*(\d+):(\d+[a-z]?)(?:-(\d+[a-z]?))?$',
+            r'^(\d?\s*[a-zA-Z]+(?:\s+[a-zA-Z]+)*)\.?\s*(\d+):(\d+[a-z]?)(?:-(\d+[a-z]?))?$',
             reference.strip(),
             re.IGNORECASE,
         )
@@ -618,12 +618,24 @@ class StudyBibleDB:
         return reference
     
     async def get_verse(self, reference: str) -> dict | None:
-        """Get a verse by reference."""
+        """Get a verse by reference.
+
+        Matches the reference exactly, then by book, chapter and (English)
+        verse number, so a row stored with split numbering such as
+        ``Gen.32.1(32.2)`` is found. There is no substring match: a verse
+        missing from the table returns None, not a neighbour ('Jhn.3.1' must
+        not return 'Jhn.3.16').
+        """
         normalized = self._normalize_reference(reference)
-        # Try exact match first, then pattern match
-        return (
-            await self._fetchone("SELECT * FROM verses WHERE reference = ?", (normalized,))
-            or await self._fetchone("SELECT * FROM verses WHERE reference LIKE ?", (f"%{normalized}%",))
+        verse = await self._fetchone("SELECT * FROM verses WHERE reference = ?", (normalized,))
+        if verse:
+            return verse
+        parts = normalized.split(".")
+        if len(parts) != 3 or not (parts[1].isdecimal() and parts[2].isdecimal()):
+            return None
+        return await self._fetchone(
+            "SELECT * FROM verses WHERE book = ? AND chapter = ? AND verse = ? ORDER BY id LIMIT 1",
+            (parts[0], int(parts[1]), int(parts[2])),
         )
     
     async def get_verses_with_strongs(self, strongs: str, limit: int = 20) -> list[dict]:
@@ -1075,27 +1087,48 @@ class StudyBibleDB:
         )
 
     async def graph_find_place(self, name: str) -> list[dict]:
-        """Find a place by name (fuzzy match)."""
+        """Find a place by name (fuzzy match).
+
+        Orders by: exact name match first, then names starting with the
+        query, then other substring matches; ties go to the place mentioned
+        in the most verses (e.g. the Ai of Joshua 7-8 over the Ai of Jer 49:3).
+        """
         return await self._fetchall(
-            "SELECT * FROM graph_places WHERE LOWER(name) LIKE LOWER(?) LIMIT 10",
-            (f"%{name}%",),
+            """SELECT p.* FROM graph_places p
+               WHERE LOWER(p.name) LIKE LOWER(?)
+               ORDER BY
+                   CASE
+                       WHEN LOWER(p.name) = LOWER(?) THEN 0
+                       WHEN LOWER(p.name) LIKE LOWER(?) THEN 1
+                       ELSE 2
+                   END,
+                   (SELECT COUNT(*) FROM graph_verse_mentions vm
+                    WHERE vm.entity_type = 'place' AND vm.entity_id = p.id) DESC
+               LIMIT 10""",
+            (f"%{name}%", name, f"{name}%"),
         )
 
     async def graph_get_ancestors(
         self, person_id: str, max_generations: int = 10
     ) -> list[dict]:
-        """Get ancestors using recursive CTE."""
+        """Get ancestors using recursive CTE.
+
+        Each row's ``child_id`` is the person one generation down whose parent
+        it is (None for the starting person).
+        """
         return await self._fetchall("""
             WITH RECURSIVE ancestors AS (
                 SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
-                       0 as generation, 'self' as relationship
+                       0 as generation, 'self' as relationship,
+                       NULL as child_id
                 FROM graph_people p WHERE p.id = ?
 
                 UNION ALL
 
                 SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
                        a.generation + 1,
-                       e.relationship_type
+                       e.relationship_type,
+                       e.to_person_id
                 FROM ancestors a
                 JOIN graph_family_edges e ON e.to_person_id = a.id
                 JOIN graph_people p ON p.id = e.from_person_id
@@ -1512,17 +1545,23 @@ class StudyBibleDB:
         """Check if acai_entities table exists and has data."""
         return await self._table_has_rows("acai_entities")
 
-    async def get_acai_entity(self, name: str) -> dict | None:
-        """Get an ACAI entity by name (case-insensitive, fuzzy)."""
-        exact = await self._fetchone(
-            "SELECT * FROM acai_entities WHERE LOWER(name) = LOWER(?)", (name,)
-        )
-        if exact:
-            return exact
+    async def get_acai_entity(self, name: str, entity_type: str | None = None) -> dict | None:
+        """Get the ACAI entity for exactly this name (case-insensitive).
 
+        Matches the entity name, or with ``entity_type`` an ACAI-style key such
+        as 'person:David' or 'place:CityOfDavid', preferring an entity of that
+        type. No substring matching, so 'Ai' never returns 'Sinai'.
+        """
+        keys = [name.lower()]
+        if entity_type:
+            keys.append(f"{entity_type}:{name.replace(' ', '')}".lower())
+        placeholders = ", ".join("?" for _ in keys)
         return await self._fetchone(
-            "SELECT * FROM acai_entities WHERE LOWER(name) LIKE LOWER(?) ORDER BY reference_count DESC LIMIT 1",
-            (f"%{name}%",),
+            f"""SELECT * FROM acai_entities
+                WHERE LOWER(name) IN ({placeholders}) OR LOWER(id) IN ({placeholders})
+                ORDER BY entity_type = ? DESC, reference_count DESC
+                LIMIT 1""",
+            (*keys, *keys, entity_type),
         )
 
     # =========================================================================
@@ -1565,10 +1604,13 @@ class StudyBibleDB:
         order_clause = "ORDER BY e.dimension, e.period"
 
         if reference:
-            normalized = self._normalize_reference(reference)
-            parts = normalized.split(".")
-            book_abbr = parts[0] if parts else ""
-            chapter = int(parts[1]) if len(parts) > 1 else None
+            # Book and chapter of a verse, range, or chapter ("Gen. 15:6",
+            # "Genesis 15"); an unparseable reference matches nothing.
+            parsed = self.parse_passage_reference(reference)
+            if not parsed:
+                return []
+            book_abbr = parsed["book"]
+            chapter = parsed["start_chapter"]
 
             join_clause = " JOIN ane_book_mappings bm ON e.id = bm.entry_id"
             conditions.append("bm.book = ?")

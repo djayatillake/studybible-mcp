@@ -2189,7 +2189,8 @@ def format_name_entry(entry: dict, acai_data: dict | None = None) -> str:
                 lines.append(f"- {key.title()}: {value}")
         lines.append("")
 
-    refs = _parse_json_field(entry.get('references'))
+    # The names table stores these in the 'refs' column.
+    refs = _parse_json_field(entry.get('refs') or entry.get('references'))
     if refs:
         lines.append("**Key References**: " + ", ".join(refs[:10]))
         if len(refs) > 10:
@@ -2651,8 +2652,9 @@ def mermaid_genealogy(
 ) -> str:
     """Generate a Mermaid flowchart for a family tree.
 
-    Uses family edges (parents/children/partners) for accurate connections.
-    Falls back to generation-based layout if family data not provided.
+    Ancestor edges follow each row's ``child_id`` (from graph_get_ancestors),
+    so only recorded parent-child links are drawn; an ancestor row without
+    one is shown in the text list but not linked in the diagram.
     """
     lines = ["```mermaid", "graph TD"]
     seen_edges = set()
@@ -2664,38 +2666,31 @@ def mermaid_genealogy(
     lines.append(f"    style {person_mid} fill:#4a90d9,color:#fff,stroke:#2a5a8a")
     seen_nodes.add(person_mid)
 
-    # Ancestors: show direct lineage chain only (gen 1 = parents, gen 2 = grandparents, etc.)
-    # Build a map of unique people per generation to avoid cartesian products
+    # Ancestors: link each ancestor to its own child (gen 1 = parents of the
+    # focal person, gen 2 = grandparents, etc.), oldest generation first
     if ancestors and len(ancestors) > 1:
-        by_gen: dict[int, list[dict]] = {}
-        for a in ancestors:
-            by_gen.setdefault(a["generation"], []).append(a)
-
-        max_gen = max(by_gen.keys())
-        # Connect each generation to the one below, but limit edges
-        for gen in range(max_gen, 0, -1):
-            people_at_gen = by_gen.get(gen, [])
-            people_below = by_gen.get(gen - 1, [])
-            for person in people_at_gen:
-                pid = _mermaid_id(person["name"])
-                rel = person["relationship"].replace("_of", "")
-                if not seen_nodes.__contains__(pid):
-                    seen_nodes.add(pid)
-                # Connect to the person one generation below
-                # For gen 1, connect to the focal person
-                if gen == 1:
-                    edge_key = (pid, person_mid)
-                    if edge_key not in seen_edges:
-                        seen_edges.add(edge_key)
-                        lines.append(f'    {pid}["{person["name"]}"] -->|{rel}| {person_mid}')
-                else:
-                    # Connect to people at gen-1 (limit to 2 to avoid explosion)
-                    for child in people_below[:2]:
-                        child_id = _mermaid_id(child["name"])
-                        edge_key = (pid, child_id)
-                        if edge_key not in seen_edges:
-                            seen_edges.add(edge_key)
-                            lines.append(f'    {pid}["{person["name"]}"] -->|{rel}| {child_id}["{child["name"]}"]')
+        names_by_id = {a["id"]: a["name"] for a in ancestors if a.get("id")}
+        for person in sorted(ancestors, key=lambda a: -a["generation"]):
+            gen = person["generation"]
+            if gen == 0:
+                continue
+            pid = _mermaid_id(person["name"])
+            rel = person["relationship"].replace("_of", "")
+            seen_nodes.add(pid)
+            if gen == 1:
+                edge_key = (pid, person_mid)
+                if edge_key not in seen_edges:
+                    seen_edges.add(edge_key)
+                    lines.append(f'    {pid}["{person["name"]}"] -->|{rel}| {person_mid}')
+            else:
+                child_name = names_by_id.get(person.get("child_id"))
+                if child_name is None:
+                    continue
+                child_id = _mermaid_id(child_name)
+                edge_key = (pid, child_id)
+                if edge_key not in seen_edges:
+                    seen_edges.add(edge_key)
+                    lines.append(f'    {pid}["{person["name"]}"] -->|{rel}| {child_id}["{child_name}"]')
 
     # Descendants: only show generation 1 (direct children) to keep diagram clean
     if descendants and len(descendants) > 1:

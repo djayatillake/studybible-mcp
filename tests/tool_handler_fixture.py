@@ -64,6 +64,9 @@ VERSES = [
      _words("H0430", "הָאֱלֹהִים", "God", "HNcmpa")),
     ("Gen.22.2", "Gen", 22, 2, "Take your son to the land of Moriah (test text).", "וַיֹּאמֶר קַח־נָא",
      _words("H1121", "בִּנְךָ", "your son", "HNcmsc")),
+    # Stored with English(Hebrew) split numbering, as in the built database.
+    ("Gen.32.1(32.2)", "Gen", 32, 1, "Jacob went on his way (test text).", "וְיַעֲקֹב הָלַךְ",
+     _words("H3290", "וְיַעֲקֹב", "Jacob", "HNpm")),
 ] + [
     (f"1Jn.4.{v}", "1Jn", 4, v, f"Beloved, love is from God (test text 1 John 4:{v}).", "ἀγάπη",
      _words("G0026", "ἀγάπη", "love", "N-NSF"))
@@ -224,6 +227,8 @@ AQUIFER = [
      "Nicodemus came to Jesus by night (test note).", 1),
     (4, "study_notes", "Song of Solomon 2:1", "Sng", "22002001", "22002001", 2,
      "The rose of Sharon (test note).", 0),
+    (5, "study_notes", "1 John 4:8", "1Jn", "62004008", "62004008", 4,
+     "God is love (test note).", 0),
     (10, "dictionary", "Covenant", None, None, None, None,
      "A covenant is a binding agreement; God made one with Abraham (test article).", 0),
     (11, "dictionary", "Abraham", None, None, None, None,
