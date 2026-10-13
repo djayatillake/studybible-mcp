@@ -9,9 +9,10 @@ where a full ``build_database.py --rebuild`` is impractical. The upgrade:
    against its pinned source),
 2. migrates legacy mixed textual-variant tables to the evidence-separated schema
    and adds new columns to existing tables,
-3. imports MT/LXX edition rows, every downloaded ancient-source corpus (a
-   corpus directory that is present but incomplete fails the upgrade), and the
-   bundled manuscript-variant records,
+3. imports MT/LXX edition rows, every registered ancient-source corpus with
+   its curated editorial notes and links (a corpus whose source files are
+   missing or incomplete fails the upgrade), and the bundled manuscript-variant
+   records,
 4. verifies SQLite integrity and foreign keys.
 
 All work happens on a temporary copy next to the target; the target file is
@@ -37,7 +38,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
 from study_bible_mcp.database import create_schema
 from study_bible_mcp.corpora import CORPORA
-from study_bible_mcp.parsers.ancient_sources import import_available_corpora
+from study_bible_mcp.parsers.ancient_sources import import_available_corpora, missing_corpora
 from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
 from import_heiser_content import import_nt_ot_lxx_quote_hints, import_textual_variants
 from migrate_textual_variants import migrate
@@ -54,6 +55,17 @@ def _download_sources(data_dir: Path) -> None:
         )
 
 
+def require_ancient_sources(ancient_dir: Path) -> None:
+    """Fail unless every registered ancient-source corpus is downloaded and complete."""
+    missing = missing_corpora(ancient_dir)
+    if missing:
+        raise click.ClickException(
+            "Missing ancient-source corpora (run without --offline, or "
+            "scripts/download_ancient_sources.py): "
+            + "; ".join(f"{key}: {reason}" for key, reason in missing.items())
+        )
+
+
 def _require_sources(data_dir: Path) -> None:
     required = (
         data_dir / "lxx" / "verse_pairs.jsonl",
@@ -66,6 +78,7 @@ def _require_sources(data_dir: Path) -> None:
         raise click.ClickException(
             "Missing source data (run without --offline to download): " + ", ".join(missing)
         )
+    require_ancient_sources(data_dir / "ancient_sources")
 
 
 def upgrade(database: Path, data_dir: Path) -> dict[str, int]:
@@ -78,6 +91,7 @@ def upgrade(database: Path, data_dir: Path) -> dict[str, int]:
             raise click.ClickException(
                 f"{database} has no verses table; build it with build_database.py first."
             )
+        require_ancient_sources(data_dir / "ancient_sources")
         cases, interpretive, hints = migrate(conn)
         create_schema(conn)
         mt_rows, lxx_rows = import_biblical_versions(conn, data_dir)
@@ -96,9 +110,8 @@ def upgrade(database: Path, data_dir: Path) -> dict[str, int]:
             )
         skipped = [key for key, count in corpora.items() if count is None]
         if skipped:
-            click.echo(
-                "Skipped ancient-source corpora not downloaded under "
-                f"{data_dir / 'ancient_sources'}: "
+            raise click.ClickException(
+                "Ancient-source corpora not imported: "
                 + ", ".join(f"{key} ({CORPORA[key].data_dir})" for key in skipped)
             )
         variant_cases = conn.execute(

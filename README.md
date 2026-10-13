@@ -1084,9 +1084,10 @@ English or Greek book, or a manifest-listed file is missing or truncated).
 
 Each corpus is a module in `src/study_bible_mcp/corpora/` registered in
 `CORPORA`; its pinned files live in `data/ancient_sources/<corpus>/` and
-`source_manifest.json` records every verified file. `build_database.py` and
-`upgrade_database.py` import every corpus whose directory exists and fail if a
-present directory is incomplete. All corpora share `ancient_source_passages`,
+`source_manifest.json` records every verified file. `build_database.py`
+imports every corpus whose directory exists and fails if a present directory is
+incomplete; `upgrade_database.py` fails unless every registered corpus is
+downloaded and complete. All corpora share `ancient_source_passages`,
 whose `sort_start`/`sort_end` keys (in each work's citation grammar) back
 `lookup_ancient_source`, and whose `original_license`, `translation_license`,
 and combined `license` record provenance per passage. Each import replaces only
