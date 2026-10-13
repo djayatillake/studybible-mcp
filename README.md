@@ -240,14 +240,15 @@ currently holds `josephus`: 2,304 Whiston sections from *Jewish Antiquities*,
 every Niese Greek section it spans and referenced as a Niese span plus
 Whiston's numbering, e.g. `Antiquities 15.317–322 (Whiston 15.9.3)`. `targum`
 holds Targum Onkelos on the five books of the Torah: 5,846 Aramaic verse
-passages with the CC BY-NC Metsudah English (see [Targums](#targums)), each
+passages with the CC BY-NC Metsudah English, an English of the Hebrew in which
+Onkelos's own renderings are marked `⟨…⟩` (see [Targums](#targums)), each
 linked to the verse it translates. `qumran`
-holds 44 Hebrew manuscript columns with numbered lines and no English (none is
-openly licensed): the Damascus Document (`CD 1:1–21`, Genizah MS A columns 1–16
-and MS B columns 19–20), the Community Rule (`1QS`), and the Rule of the
-Congregation (`1QSa`) from the ETCBC/dss transcription, and Pesher Habakkuk
-(`1QpHab`) from Hebrew Wikisource, whose 32 curated links name the Habakkuk
-verses each lemma quotes. `philo` holds the 31 Greek treatises of Philo of Alexandria
+holds 44 Hebrew manuscript columns with numbered lines, no English translation
+included: the Damascus Document (`CD 1:1–21`, Genizah MS A columns 1–16
+and MS B columns 19–20), the Community Rule (`1QS`), the Rule of the
+Congregation (`1QSa`) and Pesher Habakkuk (`1QpHab`), all from the ETCBC/dss
+transcription; 32 curated links name the Habakkuk verses each 1QpHab lemma
+quotes. `philo` holds the 31 Greek treatises of Philo of Alexandria
 (Cohn–Wendland, via First1KGreek), one passage per Cohn–Wendland section with
 the same section of Yonge's English (7,901 passages; 58 sections of *Spec.* 1–2
 that Yonge's text lacks are Greek only). `pseudepigrapha` holds 1 Enoch in
@@ -283,7 +284,8 @@ title (`Jewish`, `War`, `Life`) does not match every passage of that work.
 English search is stemmed (`build` matches `building`); Greek, Hebrew, and
 Aramaic search ignores accents, breathings, vowel points, cantillation, and case
 (`βαπτισμω` matches `βαπτισμῷ`), and editorial signs printed inside a word
-(`אלמנות` matches `אלמנ֯[ו]ת`). Passages containing every query word come
+(`יעבורו` matches the corrected `י{{א}}<<ע>>בורו`); Qumran text in `[ ]` is a
+modern reconstruction and is never matched. Passages containing every query word come
 first; when none do, passages matching any word are returned with an explicit
 note. Only when the exact search finds nothing is a Hebrew or Aramaic word
 retried with one or two attached prefix letters (ו ב ה ל מ כ ש) stripped from
@@ -314,7 +316,12 @@ section.
 For Targum Onkelos, `Targum Onkelos`/`Onkelos`/`Tg. Onq.` precedes a Torah
 book (`Genesis`/`Gen`, `Exodus`/`Exod`, `Leviticus`/`Lev`, `Numbers`/`Num`,
 `Deuteronomy`/`Deut`) and `chapter:verse`; the prefix is optional, so a bare
-`Genesis 1:1` also finds Onkelos. For Qumran: `CD`/`Damascus Document`/`Zadokite Fragments`, `1QS`/
+`Genesis 1:1` also finds Onkelos. Onkelos is cited by English verse numbers,
+like the rest of the server; where Sefaria's Hebrew (MT) numbering differs,
+the heading and link show it: `Targum Onkelos Exodus 8:5 (MT 8:1)`, and the
+Peniel verse is `Onkelos Genesis 32:30 (MT 32:31)`. Sefaria joins the four
+short commandments into one verse, served as `Exodus 20:13–16` and
+`Deuteronomy 5:17–20`. For Qumran: `CD`/`Damascus Document`/`Zadokite Fragments`, `1QS`/
 `Community Rule`, `1QSa`/`1Q28a`/`Rule of the Congregation`, and
 `1QpHab`/`Pesher Habakkuk` take `column:line`, with Arabic or Roman column
 numbers (`CD 6:11`, `CD VI 11`, `1QpHab VII 1-5`); a line citation shows the
@@ -323,13 +330,16 @@ cited lines ±2 from the column that contains them, and a column citation
 For Philo, SBL short titles, Latin titles, and English titles
 (`Opif.`/`De Opificio Mundi`/`On the Creation of the World`, `Legat.`/`Leg.
 Gai.`, `Her.`/`Heres`, ...) take a Cohn–Wendland section; the multi-book works
-`Leg.` 1–3, `Somn.` 1–2, `Mos.` 1–2, and `Spec.` 1–4 take `book.section`.
+`Leg.` 1–3, `Somn.` 1–2, `Mos.` 1–2, and `Spec.` 1–4 take `book.section`; a
+book number the work lacks (`Leg. 31`, likewise `Ant. 21.1`) is rejected
+rather than read as a book.
 `1 Enoch`/`1 En.` and `4 Ezra`/`2 Esdras`/`4 Esdras` take `chapter:verse`.
 4 Ezra 3–14 is 2 Esdras 3–14 with the same chapter numbers, so `2 Esdras 11:1`
 and `4 Ezra 11:1` are the same passage; 2 Esdras 1–2 and 15–16 (5 and 6 Ezra)
 are not included. 4 Ezra is cited in modern (Bensly) numbering: the KJV and
 Clementine Latin lack the "missing fragment" 7:36–105, so their 7:36–70 is
-4 Ezra 7:106–140, shown as e.g. `4 Ezra 7:106 (KJV 2 Esdras 7:36)`.
+4 Ezra 7:106–140, shown as e.g. `4 Ezra 7:106 (KJV 2 Esdras 7:36)`. A 4 Ezra
+citation outside the served text says what is missing and why.
 For the Mishnah, a tractate takes `chapter:mishnah`, with an optional
 `Mishnah`/`m.` prefix (`Mishnah Shekalim 1:1`, `m. Shek. 1:1`). Tractate names
 follow Sefaria (`Menachot`, `Pesachim`) with SBL abbreviations and common
@@ -1088,6 +1098,13 @@ English or Greek book, or a manifest-listed file is missing or truncated).
 
 ### Ancient sources
 
+The ancient sources are texts written by about AD 200 that witness the Second
+Temple world: Josephus, Targum Onkelos, four Qumran texts (CD, 1QS, 1QSa,
+1QpHab), Philo, 1 Enoch, 4 Ezra and the Mishnah. Sources later than c. AD 200
+(Targum Pseudo-Jonathan with Etheridge's English, the Tosefta, the Babylonian
+Talmud and Leviticus Rabbah) were removed: they are too far from the New
+Testament to witness its world without an earlier source.
+
 Each corpus is a module in `src/study_bible_mcp/corpora/` registered in
 `CORPORA`; its pinned files live in `data/ancient_sources/<corpus>/` and
 `source_manifest.json` records every verified file. `build_database.py`
@@ -1105,7 +1122,10 @@ Editorial signs inside words (`[ ] ⟨ ⟩ < > { } ( ) ^ ¦`) and invisible form
 characters are deleted rather than treated as word breaks, in the index and the
 query; a corpus can also declare `search_index_removals`, patterns for printed
 text that is not part of the reading (Qumran's scribal erasures and `vacat`),
-which are deleted from the index. Every Hebrew-script word is also indexed,
+which are deleted from the index, and `search_index_gaps`, printed text that
+is not evidence (Qumran's `[ ]` reconstruction), which becomes a word break, so
+it is never matched and the surviving letters either side are not joined into
+a false word. Every Hebrew-script word is also indexed,
 in a separate column searched only as a fallback, without one or two leading
 prefix letters, keeping at least three letters. The displayed text keeps
 every sign.
@@ -1128,11 +1148,18 @@ Every passage is labelled so that the agent never mistakes it for Scripture:
   fails if a citation covers no passage or a biblical reference does not
   parse. A file link to the same passage and range as a module link replaces
   it. Notes print as `⚠ <note> (Contrast: Mark 14:62)`, once per response.
+  The file holds 46 notes and 29 links, e.g. Charles's emendation at 1 Enoch
+  71:14, the Christian "Jesus" of 4 Ezra 7:28–29, the restored lemma at 1QpHab
+  7:17, Philo's Logos at Conf. 146, and Yom Kippur atonement at m. Yoma 8:8–9.
 - **Typed links.** `ancient_source_biblical_links.relation` is `aligned`,
-  `echo`, `shared_tradition`, `contrast`, or `translation`. Module links take
-  `echo` when their note says the text cites, quotes or expounds the Bible and
-  `shared_tradition` otherwise; `create_schema` adds the column to older
-  databases with the same rule, and rebuilds an older search index.
+  `echo`, `shared_tradition`, `contrast`, or `translation`, printed as
+  `Aligned: Jude 14–15 — …`, `Contrast: …` and so on. A pseudepigraphon is
+  paired with the Scripture that takes it up (1 Enoch with Gen 6:1–4, Jude
+  6 and 14–15, 2 Pet 2:4, 1 Pet 3:19–20). Module links take `echo` when their
+  note says the text cites, quotes or expounds the Bible and
+  `shared_tradition` otherwise, unless they set a relation; `create_schema`
+  adds the column to older databases with the same rule, and rebuilds an
+  older search index.
 
 ### Josephus
 
@@ -1171,63 +1198,73 @@ the JSON texts), each checked against its pinned Git blob hash and against the
 `license` and `versionTitle` it declares; `merged.json` files are never used.
 
 - **Aramaic:** the Torat Emet text of Onkelos (Sefaria versions `Onkelos
-  {Book}`), declared Public Domain by Sefaria. One passage per Masoretic verse
+  {Book}`), declared Public Domain by Sefaria. One passage per Sefaria verse
   (5,846). A `???` digitization mark before Genesis 49:12 is removed.
 - **English:** the Metsudah Chumash (Metsudah Publications, 2009, Sefaria
   version `Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos
-  translation]`, CC BY-NC 4.0). It translates the Hebrew text and gives
-  Onkelos's renderings in brackets, so it is **not a direct translation of the
-  Aramaic** beside it; each passage's translation field says so, and its
-  licence line reads `Aramaic text: Public domain; English translation: CC
-  BY-NC 4.0`. A verse without Metsudah English is an Aramaic-only passage.
+  translation]`, CC BY-NC 4.0). It translates the Hebrew text, so it is **not
+  a direct translation of the Aramaic** beside it. Metsudah sets Onkelos's own
+  renderings in bold (in Genesis 12–17, italic) brackets; these print as
+  `⟨…⟩` (3,599 of them), while plain `[ ]` are Metsudah's own supplements,
+  e.g. Genesis 49:10 "until Shiloh Comes ⟨the Moshiach will come, for his is
+  the kingship⟩". The tag says "Metsudah: English of the Hebrew Torah;
+  ⟨marked⟩ words are Onkelos's renderings", and the licence line reads
+  `Aramaic text: Public domain; English translation: CC BY-NC 4.0`. A verse
+  without Metsudah English is an Aramaic-only passage.
 
-Each passage has one editorial "Translation of" link to the verse its sort key
-covers, so `biblical_reference` finds Onkelos on a verse. The period tag gives
-the redaction era (editorial): `amoraic`.
+**Versification.** Sefaria numbers Onkelos by the Hebrew verses; passages,
+citations and links use the server's English numbering, with the Hebrew
+number in the heading where it differs (`Targum Onkelos Exodus 8:5 (MT 8:1)`).
+A static table in `targum.py` covers the Torah's 18 differing runs, as in
+TAHOT's verses table (`Exo.8.5(8.1)`): Gen 31:55–32:32, Exod 8:1–32 and
+22:1–31, Lev 6:1–30, Num 16:36–17:13 and 29:40–30:16, Deut 12:32–13:18,
+22:30–23:25 and 29:1–29. Sefaria's Decalogue follows the upper accents, so
+`Exodus 20:13–16` and `Deuteronomy 5:17–20` are one passage each and later
+verses shift by three; `Numbers 26:1` also holds MT 25:19. The import fails if
+the English keys stop rising.
+
+Each passage has one editorial "Translation of" link to the English verse(s)
+it covers, printed with the Hebrew number where it differs (`Translation of:
+Exod 8:5 (MT 8:1)`), so `biblical_reference` finds Onkelos on a verse. The
+period tag gives the redaction era (editorial): `amoraic`.
 
 ### Qumran
 
 The `qumran` corpus has one passage per manuscript column, its Hebrew lines
-prefixed with their line numbers and cited `column:line`. No openly licensed
-English translation of these texts exists, so every passage is original-only
-and the tools say so.
+prefixed with their line numbers and cited `column:line`. No English
+translation is included, so every passage is original-only and the tools say
+so.
 
-- **Damascus Document, Community Rule, Rule of the Congregation** (`CD`, `1QS`,
-  `1QSa`): the Text-Fabric transcription by Martin G. Abegg Jr., James E.
+- **Damascus Document, Community Rule, Rule of the Congregation, Pesher
+  Habakkuk** (`CD`, `1QS`, `1QSa`, `1QpHab`): the Text-Fabric transcription by Martin G. Abegg Jr., James E.
   Bowley and Edward M. Cook in [ETCBC/dss](https://github.com/ETCBC/dss),
   release 2.0.1, pinned to commit `47ecc1738fad6e67df7d40a3e84d73e4a125e265`
   and licensed [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
   (checked in every feature file's header at download and import). CD keeps
   the conventional page numbers: Genizah MS A columns 1–16 and MS B columns
-  19–20, shown as `CD-A`/`CD-B` alongside. Lines are rendered from the
+  19–20, shown as `CD-A`/`CD-B` alongside, and its tag names the medieval copy
+  served (`copy: Cairo Genizah MS A, 10th c. AD`). Lines are rendered from the
   sign-level features with the transcription's brackets: `[ ]` modern
   reconstruction, `{ }` and `{{ }}` removal by a modern editor or the scribe,
   `< >` and `<< >>` correction by a modern editor or the scribe, `^ ^`
-  supralinear, `( )` alternative reading, and `vacat` for an unwritten space.
+  supralinear, `( )` alternative reading, and `vacat` (spaced off from the
+  text) for an unwritten space.
   A circlet above a letter (U+05AF) marks any of its four uncertainty
   degrees, `◦` an unidentified sign, and `…` a missing sign; the morpheme
   breaks Abegg inserts before suffixes are dropped, and the transcription's
-  `׃` marks are kept. Search ignores the circlets and the brackets inside a
-  word (`סרך` finds `[ספר ס]ר֯ך`), and indexes the corrected reading: letters
-  in `{ }` and `{{ }}` and the word `vacat` are left out of the search index
-  (`י{{א}}<<ע>>בורו` is found as `יעבורו`), though the displayed text keeps
-  them. Other ETCBC scrolls are not imported (1QSb, for example, mixes
+  `׃` marks are kept. Search ignores the circlets and indexes the corrected,
+  surviving reading: modern reconstruction in `[ ]` is never matched (the
+  letters either side of `יג[די]לו` are not joined into `יגלו`), and letters
+  in `{ }` and `{{ }}` and the word `vacat` are left out of the index
+  (`י{{א}}<<ע>>בורו` is found as `יעבורו`); the displayed text keeps every
+  sign. Other ETCBC scrolls are not imported (1QSb, for example, mixes
   fragment labels and line gaps).
-- **Pesher Habakkuk** (`1QpHab`): Hebrew Wikisource, `מגילות מדבר יהודה/1QpHab
-  פשר חבקוק`, revision 2949117 (SHA-256 `2ee32f91…6b24`), licensed
-  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); only its
-  column-and-line section is imported, with the page's own restorations and
-  marks (the page does not name the source of its restorations). Wikisource
-  numbers column 1 from 1 to 14 but folds scroll line 7 into its line 6;
-  its lines 7–14 are renumbered 8–15, as verified against the ETCBC/dss
-  transcription of 1QpHab, which agrees with columns 2–13 as numbered.
-  Wikimedia requires a contact User-Agent, which the download sends.
 
 The 32 biblical links connect a 1QpHab column to each Habakkuk 1–2 verse
-(range) whose lemma it quotes, at the line where the quotation begins. Each
-was checked against the Masoretic verse, and the import verifies that the
-quoted words survive, outside the editor's brackets, on that line of the
-pinned text; two whose lemmas are mostly restored say so.
+(range) whose lemma it quotes. Each was checked against the Masoretic verse,
+and the import fails unless the anchor words survive outside the editor's
+`[ ]` on their line. Three say how much of the lemma is restored; 7:14 links
+Hab 2:4a only, "(end of 2:4a restored; 2:4b wholly reconstructed)".
 
 R. H. Charles's public-domain English of the Damascus Document ("Fragments of
 a Zadokite Work", *APOT* II, 1913) is not used. It is available only as OCR,
@@ -1249,8 +1286,9 @@ calls. The First1KGreek editors divided the English at the same Cohn–Wendland
 sections as the Greek, so each passage is exactly one section: its Greek and
 the English section of the same number, never a neighbouring one. The 58
 Greek sections of *Spec.* 1.177–193 and 2.124–213 that Yonge's shorter text
-lacks are imported as Greek-only passages; an English section without a Greek
-counterpart fails the import. Apparatus, marginal notes, page and line markers,
+lacks are imported as Greek-only passages, marked "Yonge has no English for
+this section"; an English section without a Greek counterpart fails the
+import. Apparatus, marginal notes, page and line markers,
 and Yonge's footnotes and source references are kept out of the text; Yonge's
 treatise headings (e.g. "A TREATISE ON CIRCUMCISION." within *Spec.*) are
 editorial headings. Each file declares CC BY-SA 4.0, checked at download and
@@ -1283,7 +1321,8 @@ an EOTC printed-edition text whose own rights are not stated.
 public domain; the extracted `58-2ESeng-kjv.usfm` is pinned by SHA-256 because
 eBible regenerates its zip) paired with the Clementine Vulgate's *Liber Quartus
 Esdrae* (Rome 1598) from Latin Wikisource revision 148869 (transcribed from
-public-domain page images; Wikisource transcription CC BY-SA 4.0). Passages are
+public-domain page images; Wikisource transcription CC BY-SA 4.0, credited by
+URL in every Sources block). Passages are
 one KJV verse with the Latin verse of the same number, except 27 spans where
 the two divide verses differently (usually a speech introduction such as "Et
 dixit ad me," / "And he said unto me" placed on the other side of a verse
@@ -1292,14 +1331,17 @@ all of its Latin, and the import fails if any verse of either text is left
 unpaired. 4 Ezra 3–14 keeps the 2 Esdras chapter numbers; KJV 7:36–70 is
 cited as 7:106–140 (both texts lack the "missing fragment" 7:36–105, which is
 not available from an openly licensed source). 2 Esdras 1–2 and 15–16 are later
-Christian additions (5 and 6 Ezra) and are not included.
+Christian additions (5 and 6 Ezra) and are not included. A citation outside
+the served text (`4 Ezra 7:50`, `2 Esdras 15:1`) says both.
 
 Period tags give conventional composition dates (1 Enoch: Watchers,
 Astronomical Book, Dream Visions, and Epistle `hellenistic`, Parables `roman`;
 4 Ezra `roman`, after 70 CE). Twenty-two curated links mark allegorical
 retellings and shared imagery, e.g. the Animal Apocalypse (1 Enoch 89) with the
-Genesis–Kings narrative and Malachi 1:7, 1 Enoch 1:9 with Jude 14–15, and the
-eagle vision (4 Ezra 11–12) with Daniel 7, which 4 Ezra 12:11 names.
+Genesis–Kings narrative and Malachi 1:7, and the eagle vision (4 Ezra 11–12)
+with Daniel 7, which 4 Ezra 12:11 names; 1 Enoch 1:9 → Jude 14–15 and 6:1 →
+Gen 6:1–2 are `aligned`. The editorial-notes file adds the aligned links to
+Jude 6, 2 Pet 2:4 and 1 Pet 3:19–20.
 
 ### Rabbinic texts
 
@@ -1318,7 +1360,10 @@ the licence Sefaria's reader links it to.
   Vilna version, is English only.
 
 Footnotes, footnote markers and HTML are removed from the English. Curated
-links: Mishnah Shekalim 1:1 and 1:3 to Matthew 17:24–27 (the half-shekel).
+links: Mishnah Shekalim 1:1 and 1:3 to Matthew 17:24–27 (the half-shekel); the
+editorial-notes file adds Gospel echoes (e.g. Shekalim 1:3 → Mark 11:15) and
+contrast notes. The corpus caveat warns that Kulp's bracketed Bible references
+sometimes use Hebrew numbering or contain errors.
 
 ### BDB Hebrew Lexicon
 
@@ -1435,7 +1480,7 @@ Data from STEPBible is licensed under [CC BY 4.0](https://creativecommons.org/li
 OpenScriptorium LXX morphology and MT/LXX verse mappings (derived in part from STEPBible's TVTMS) are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); the Rahlfs Greek text and Brenton's English translation and Greek text are public domain.
 The Perseus Josephus Greek and English TEI editions are licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 The Onkelos Aramaic (Torat Emet) is public domain as declared by [Sefaria](https://www.sefaria.org/); the Metsudah Chumash English of Onkelos is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) (non-commercial use only), and its licence is shown on every passage.
-The ETCBC/dss Dead Sea Scrolls transcription (Abegg, Bowley and Cook) is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/); the Hebrew Wikisource Pesher Habakkuk text is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+The ETCBC/dss Dead Sea Scrolls transcription (Abegg, Bowley and Cook), the source of all four Qumran texts, is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) (non-commercial use only).
 The First1KGreek Philo Greek and English TEI editions are licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); Cohn–Wendland's Greek and Yonge's English are public domain.
 Charles's 1 Enoch (via English Wikisource) and the KJV 2 Esdras (via eBible.org) are public domain; the Latin Wikisource transcription of the Clementine 4 Esdras is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 Mishnah passages carry each version's licence: Kulp's Mishnah Yomit English is CC BY, and the Vilna Mishnah is public domain.
@@ -1454,7 +1499,7 @@ The theology and ANE entries are original summary prose written for this project
 - [eBible.org](https://ebible.org/details.php?id=eng-Brenton) for the public-domain Brenton Septuagint, English and [Greek](https://ebible.org/details.php?id=grcbrent)
 - [Perseus Digital Library](https://github.com/PerseusDL/canonical-greekLit) for the licensed Josephus Greek and English editions
 - [Sefaria](https://www.sefaria.org/) for the Torat Emet text of Onkelos and the Metsudah Chumash English, via [Sefaria-Export-Archive](https://github.com/Sefaria/Sefaria-Export-Archive)
-- [ETCBC/dss](https://github.com/ETCBC/dss) and Martin G. Abegg Jr., James E. Bowley and Edward M. Cook for the Dead Sea Scrolls transcription, and [Hebrew Wikisource](https://he.wikisource.org/) for Pesher Habakkuk
+- [ETCBC/dss](https://github.com/ETCBC/dss) and Martin G. Abegg Jr., James E. Bowley and Edward M. Cook for the Dead Sea Scrolls transcription
 - [Open Greek and Latin / First1KGreek](https://github.com/OpenGreekAndLatin/First1KGreek) for the licensed Philo Greek and English editions
 - [Wikisource](https://en.wikisource.org/wiki/The_Book_of_Enoch_(Charles)) contributors for R. H. Charles's 1 Enoch and the [Latin Clementine Vulgate](https://la.wikisource.org/wiki/Vulgata_Clementina) 4 Esdras
 - [eBible.org](https://ebible.org/find/show.php?id=eng-kjv) for the public-domain KJV with Apocrypha

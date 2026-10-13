@@ -2,6 +2,53 @@
 
 ---
 
+## Ancient sources: Second Temple witnesses, labelled at the point of use
+
+- **Kept corpora.** The ancient sources are texts written by about AD 200 that
+  witness the Second Temple world: Josephus, Targum Onkelos, Qumran (CD, 1QS,
+  1QSa, 1QpHab), Philo, 1 Enoch, 4 Ezra and the Mishnah. Sources later than
+  c. AD 200 (Targum Pseudo-Jonathan and Etheridge's English, the Tosefta, the
+  Babylonian Talmud, Leviticus Rabbah) were removed: they are too far from the
+  NT to witness its world without an earlier source.
+- **Tags.** Every result prints one italic line under its heading: canon
+  status, kind, date, tier and edition, e.g. `*Not Scripture · Jewish
+  pseudepigraphon (Parables, c. 50 BC–AD 117, debated) · tier A/B · Charles
+  1912*`. Tier A: written before or alongside the NT; tier B: after it, to
+  c. AD 200. CD's tag names the Genizah copy and its date.
+- **Caveats.** Each corpus has a 1–3 sentence caveat, printed once per
+  response with the tiers present (e.g. Philo's Logos is not the incarnate
+  Son; for the Mishnah, the NT's judgment governs).
+- **⚠ notes.** `corpora/editorial_notes.json` holds 46 verse-level notes
+  (emendation, interpolation, reconstruction, contrast, polemic, caution, gap),
+  printed beside the passage as `⚠ <note> (Contrast: Mark 14:62)`; the import
+  fails if a note does not resolve.
+- **Typed links.** Biblical links are `Aligned`, `Echo`, `Shared tradition`,
+  `Contrast` or `Translation of`. 1 Enoch is paired with Gen 6:1–4, Jude 6 and
+  14–15, 2 Pet 2:4 and 1 Pet 3:19–20; the notes file adds 29 links.
+- **Compact output.** Lookups return 4 passages by default (at most 10),
+  excerpts capped at 1,500 English and 600 original characters, within a
+  12,000-character budget; a Qumran line citation shows that line ±2. Sources
+  and caveats print once; both tool descriptions are short and static.
+- **Onkelos.** Onkelos's own renderings in the Metsudah English print `⟨…⟩`;
+  plain `[ ]` are Metsudah's. Passages and links use English verse numbers,
+  with the Hebrew number where it differs: `Targum Onkelos Exodus 8:5 (MT 8:1)`.
+- **Qumran.** 1QpHab now comes from ETCBC like the other scrolls; `[ ]`
+  reconstruction is never matched by search; link anchors must survive
+  outside the brackets; vacats no longer join the text around them.
+- **Philo, 4 Ezra, Mishnah.** Greek-only Philo sections say "Yonge has no
+  English for this section"; `Leg. 31` is rejected instead of read as book 31.
+  A 4 Ezra citation outside 3–14 or in 7:36–105 explains what is missing, and
+  the Latin source is credited by URL. The Mishnah caveat warns that Kulp's
+  Bible references sometimes use Hebrew numbering or contain errors.
+- **Download notice.** `/download/study_bible.db` sends an
+  `X-Data-License-Notice` header, and the root endpoint states it: the
+  database includes CC BY-NC (ETCBC Qumran, Metsudah) and CC BY-SA (Perseus
+  Josephus, First1KGreek Philo, Latin Wikisource) material.
+- Run `python scripts/upgrade_database.py` to re-import the corpora; it now
+  fails, rather than exiting 0, when a registered corpus's files are missing.
+
+---
+
 ## Rabbinic ancient source
 
 - Added the `rabbinic` corpus: the Mishnah (63 tractates, one passage per
@@ -60,13 +107,12 @@
   column with numbered lines, cited `column:line` (`CD 6:11`, `CD VI 11`,
   `1QS 3:13`, `1QSa 2:11`, `1QpHab 7:4`). The Damascus Document (Genizah MS A
   columns 1–16, MS B columns 19–20, shown as `CD-A`/`CD-B`), the Community
-  Rule, and the Rule of the Congregation come from the ETCBC/dss
-  transcription of Abegg, Bowley and Cook (release 2.0.1, CC BY-NC 4.0);
-  Pesher Habakkuk comes from Hebrew Wikisource revision 2949117 (CC BY-SA
-  4.0), with its column 1 line numbers corrected to the scroll's.
-- Every passage is original-only: no openly licensed English translation
-  exists. Charles's 1913 English of the Damascus Document survives only as
-  OCR that cannot be aligned reliably with CD lines, so it is not used.
+  Rule, the Rule of the Congregation and Pesher Habakkuk come from the
+  ETCBC/dss transcription of Abegg, Bowley and Cook (release 2.0.1, CC BY-NC
+  4.0).
+- Every passage is original-only: no English translation is included.
+  Charles's 1913 English of the Damascus Document survives only as OCR that
+  cannot be aligned reliably with CD lines, so it is not used.
 - Added 32 curated links from Pesher Habakkuk to the Habakkuk 1–2 verses its
   lemmas quote, each verified on import against the quoted line, so
   `search_ancient_sources(query="צדיק", biblical_reference="Habakkuk 2:4", corpus="qumran")`
@@ -74,9 +120,10 @@
   and work titles are not searched.
 - Transcription brackets, vacats, and uncertain letters are kept in the text;
   Abegg's morpheme breaks are removed so suffixed words are searchable whole.
-  Search reads through the brackets and circlets inside a word and indexes the
-  corrected reading: erased and editor-removed letters (`{{ }}`, `{ }`) and
-  `vacat` are left out of the search index.
+  Search reads through the circlets and correction signs inside a word and
+  indexes the corrected, surviving reading: `[ ]` reconstruction, erased and
+  editor-removed letters (`{{ }}`, `{ }`) and `vacat` are left out of the
+  search index.
 
 ---
 
@@ -87,10 +134,11 @@
   `Sefaria/Sefaria-Export-Archive` commit `3f1013631fde` and verified by Git
   blob hash and declared licence. Cite them as `Onkelos Genesis 1:1`, `Targum
   Onkelos Gen 1:1` or `Tg. Onq. Deut 32:8`.
-- English: the Metsudah Chumash (2009, CC BY-NC 4.0), labelled on every
-  passage as "English of the Hebrew text with Onkelos's renderings in
-  [brackets]; not a direct translation of the Aramaic", with the licence line
-  `Aramaic text: Public domain; English translation: CC BY-NC 4.0`.
+- English: the Metsudah Chumash (2009, CC BY-NC 4.0), an English of the
+  Hebrew Torah, not a direct translation of the Aramaic; Onkelos's own
+  renderings are marked `⟨…⟩`, with the licence line `Aramaic text: Public
+  domain; English translation: CC BY-NC 4.0`. Cited by English verse number,
+  with the Hebrew number where it differs.
 - Each verse has one "Translation of" biblical link, so
   `search_ancient_sources(query=..., corpus="targum", biblical_reference="Deuteronomy 32:8")`
   finds Onkelos on that verse.

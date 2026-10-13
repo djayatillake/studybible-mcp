@@ -174,15 +174,17 @@ flowchart TD
 
     Classify -->|"Second Temple or Roman Jewish history"| AncientSources
     AncientSources["`**search_ancient_sources**
-    Returns: source passages from registered
-    corpora (Josephus), original/English text,
-    and provenance`"]
+    Returns: passages from texts to c. AD 200
+    (Josephus, Onkelos, Qumran, Philo,
+    1 Enoch, 4 Ezra, Mishnah), each tagged
+    Not Scripture with date and tier, ⚠ notes,
+    typed links, caveats and sources once`"]
     AncientSources --> Respond
 
     Classify -->|"Ancient-source citation (Ant. 18.116)"| AncientLookup
     AncientLookup["`**lookup_ancient_source**
-    Returns: the cited passages in order,
-    original/English text, and provenance`"]
+    Returns: the cited passages in order
+    (4 by default), with the same labels`"]
     AncientLookup --> Respond
 
     %% === THEOLOGY PATH ===
@@ -323,6 +325,16 @@ User question → `lookup_verse` → `get_study_notes` →
 
 **Primary-source history:**
 User question → `search_ancient_sources` → `lookup_ancient_source` (to read a cited passage in full) → `lookup_verse` (for an explicitly linked biblical passage) → response
+
+The ancient sources are limited to texts written by about AD 200 (later
+targums, the Tosefta, the Talmud and Leviticus Rabbah were removed). None is
+Scripture, and every result says so where it is used: an italic tag under the
+heading (canon status, date, tier A or B, edition), any `⚠` editorial note on
+the passage (emendation, interpolation, reconstruction, contrast, caution,
+gap), and typed biblical links (`Aligned`, `Echo`, `Shared tradition`,
+`Contrast`, `Translation of`); each corpus's caveat and the sources print once
+per response. The agent quotes the canonical text first and pairs a
+pseudepigraphon with the aligned passages.
 
 **Edition comparison:**
 User question → `compare_biblical_versions` → `word_study` (when morphology needs explanation) → response
