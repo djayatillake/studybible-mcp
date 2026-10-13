@@ -329,8 +329,9 @@ def test_tag_lines_date_sections_and_name_manuscripts():
         "tier B · Vilna Hebrew, Kulp English"
     )
     assert CORPORA["qumran"].tag_line("damascus_document", None).endswith(
-        "copies: Cairo Genizah, 10th and 11th–12th c. AD"
+        "copies: Cairo Genizah MS A, 10th c. AD; MS B, 11th–12th c. AD"
     )
+    assert CORPORA["qumran"].tag_line("damascus_document", 16001).endswith("MS A, 10th c. AD")
     assert "AD 93–94" in CORPORA["josephus"].tag_line("antiquities", None)
     assert set(enoch.tiers()) == {"A", "B"}
 
@@ -609,6 +610,17 @@ def test_prefix_variants_strip_one_or_two_prefix_letters_and_keep_three_letters(
     assert hebrew_prefix_variants("שם") == []
     assert hebrew_prefix_variants("דבר") == []
     assert hebrew_prefix_variants("יתומים") == []
+
+
+def test_index_gaps_become_word_breaks_and_removals_are_deleted():
+    reconstruction = (r"\[[^\[\]]*\]",)
+    marked = "אלמנ֯[ו]ת [ספר] י{{א}}<<ע>>בורו"
+
+    assert ancient_search_index_text(marked, ERASURES, reconstruction).split() == [
+        "אלמנ", "ת", "יעבורו",
+    ]
+    assert ancient_search_index_text(marked, ERASURES).split() == ["אלמנות", "ספר", "יעבורו"]
+    assert ancient_search_prefix_variants("[ו]בהון", (), reconstruction) == "הון"
 
 
 def test_index_keeps_prefix_variants_in_their_own_column_only_for_hebrew_script():

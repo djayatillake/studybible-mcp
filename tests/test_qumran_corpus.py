@@ -1,4 +1,4 @@
-"""Qumran corpus: ETCBC/dss Text-Fabric and Hebrew Wikisource 1QpHab parsing, import, lookup."""
+"""Qumran corpus: ETCBC/dss Text-Fabric parsing (CD, 1QS, 1QSa, 1QpHab), import, lookup."""
 
 import sqlite3
 from pathlib import Path
@@ -77,6 +77,14 @@ ETCBC_LINES = (
     ("1QS", "1", ["ל[-]שים לחי/ו [ספר ס]ר?ך היחד . לדרוש"]),
     ("1QSb", "f9", ["[ברוך]"]),
     ("1QSa", "1", ["ו/זה הסרך לכול עדת ישראל ^ה^ _ [_]"]),
+    # A vacat sign written with no space either side ('V' between '.]' and a
+    # letter) must not glue 'vacat' to the text around it.
+    ("1QpHab", "1", ["[עד אנה יהוה] ש?ועתי ולוא", "[ושוד וחמס .]Vיג[די]לו ריב"]),
+    ("1QpHab", "2", [
+        "יסופר . V [פשר הדבר על] ה?בוגדים עם איש",
+        "להם ברזי ערמתו . הנה עופלה לוא יושרה",
+        "[נפשו בו] . V פשרו",
+    ]),
 )
 
 
@@ -112,41 +120,15 @@ def _write_etcbc(directory: Path, lines=ETCBC_LINES) -> None:
     )
 
 
-WIKISOURCE = """==פשר משא חבקוק - מבוא==
-מבוא.{{הערה|הערה}}
-==ערוך לפי סדר עמודות ושורות==
-<poem>
-1QpHab עמודה 1
-# [עד אנה יהוה] שועתי ולוא
-# [תשמע - פשרו על מ]חלת דור
-# [הכוהן הרשע ועמו ועל כול הב]אות עליהם
-# [ואזעק אליך חמס - פשרו כיא נזע]קו על
-# [החמס למה תראני און וע]מ[ל תב]יט
-# [ושוד וחמס לנגדי - פשרו כיא ישר]אל בעשק ומעל ...
-# יג[די]לו ח[מס ויה]י ריב
-# על כן תפוג תורה
-
-1QpHab עמודה 2
-# יסופר – [פשרו על רשעים] ובוגדים עם איש
-#  vacat הנה עופלה לוא יושרה [נפשו בו] X
-</poem>
-
-==מסודר לפי רצף קריאה==
-<poem>
-{{ק|[[חבקוק א ב|פסוק ב:]]}} {{צ|[עד אנה יהוה] שועתי}}
-</poem>
-"""
-
 FIXTURE_LINKS = (
-    ("1:8", "ריב", 1, 3, 1, 3, " (lemma mostly restored)"),
-    ("2:2", "הנה עופלה לוא יושרה", 2, 4, 2, 4, ""),
+    ("1:2", "ריב", 1, 3, 1, 3, " (lemma mostly restored)"),
+    ("2:2", "הנה עופלה לוא יושרה", 2, 4, 2, 4, "a (end of 2:4a restored; 2:4b wholly reconstructed)"),
 )
 
 
-def _write_corpus(directory: Path, wikisource: str = WIKISOURCE) -> Path:
+def _write_corpus(directory: Path) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
     _write_etcbc(directory)
-    (directory / qumran.WIKISOURCE_FILE).write_text(wikisource, encoding="utf-8")
     return directory
 
 
@@ -186,7 +168,9 @@ def test_tf_reader_requires_the_nc_licence_and_increasing_nodes(tmp_path):
 def test_etcbc_columns_render_lines_with_brackets_and_marks(tmp_path):
     rows = _by_reference(qumran.parse_etcbc(_write_corpus(tmp_path)))
 
-    assert list(rows) == ["CD 1:1–2", "CD 6:1–11", "CD 19:1", "1QS 1:1", "1QSa 1:1"]
+    assert list(rows) == [
+        "CD 1:1–2", "CD 6:1–11", "CD 19:1", "1QS 1:1", "1QSa 1:1", "1QpHab 1:1–2", "1QpHab 2:1–3",
+    ]
     cd1 = rows["CD 1:1–2"]
     assert cd1["original_text"] == (
         "1 vacat ועתה שמעו כל יודעי צדק ובינו במעשי\n2 אל ׃ כי ריב לו עם כל בשר"
@@ -213,7 +197,40 @@ def test_etcbc_passages_are_original_only_with_the_nc_licence(tmp_path):
         assert row["original_language"] == "Hebrew"
         assert row["source_url"] == qumran.ETCBC_SOURCE_URL
         assert qumran.ETCBC_COMMIT in row["source_url"]
-        assert row["period_tags"] == "second_temple,hasmonean"
+        assert row["edition"] == qumran.ETCBC_EDITION
+        expected = "second_temple,hasmonean" + (
+            ",roman" if row["work_key"] == "pesher_habakkuk" else ""
+        )
+        assert row["period_tags"] == expected
+
+
+def test_pesher_habakkuk_comes_from_etcbc_with_a_spaced_vacat(tmp_path):
+    rows = _by_reference(qumran.parse(_write_corpus(tmp_path)))
+
+    assert rows["1QpHab 1:1–2"]["original_text"] == (
+        "1 [עד אנה יהוה] ש\u05afועתי ולוא\n2 [ושוד וחמס ׃] vacat יג[די]לו ריב"
+    )
+    assert rows["1QpHab 2:1–3"]["original_text"].splitlines()[0] == (
+        "1 יסופר ׃ vacat [פשר הדבר על] ה\u05afבוגדים עם איש"
+    )
+    assert rows["1QpHab 2:1–3"]["author"] == "Pesher Habakkuk"
+    assert not hasattr(qumran, "WIKISOURCE_FILE") and not hasattr(qumran, "parse_pesher_habakkuk")
+    assert qumran.REQUIRED_FILES == qumran.ETCBC_FILES
+
+
+def test_damascus_document_tag_names_each_genizah_manuscript_and_its_date():
+    corpus = CORPORA["qumran"]
+
+    assert corpus.tag_line("damascus_document", COLUMN_LINE.key(6, 1)).endswith(
+        "· copy: Cairo Genizah MS A, 10th c. AD"
+    )
+    assert corpus.tag_line("damascus_document", COLUMN_LINE.key(19, 1)).endswith(
+        "· copy: Cairo Genizah MS B, 11th–12th c. AD"
+    )
+    assert "Genizah" not in corpus.tag_line("community_rule", COLUMN_LINE.key(3, 1))
+    assert "Wikisource" not in corpus.tag_line("pesher_habakkuk", COLUMN_LINE.key(7, 1))
+    assert "no English translation included" in corpus.summary
+    assert "openly licensed" not in corpus.summary
 
 
 
@@ -244,45 +261,14 @@ def test_etcbc_rejects_gaps_unknown_signs_and_missing_scrolls(tmp_path):
         qumran.parse_etcbc(unknown)
 
 
-def test_wikisource_columns_keep_numbered_lines_and_correct_column_1(tmp_path):
-    rows = _by_reference(qumran.parse_pesher_habakkuk(_write_corpus(tmp_path)))
-
-    assert list(rows) == ["1QpHab 1:1–9", "1QpHab 2:1–2"]
-    column_1 = rows["1QpHab 1:1–9"]
-    numbers = [int(line.split(" ", 1)[0]) for line in column_1["original_text"].splitlines()]
-    assert numbers == [1, 2, 3, 4, 5, 6, 8, 9]
-    assert "8 יג[די]לו ח[מס ויה]י ריב" in column_1["original_text"]
-    assert (column_1["sort_start"], column_1["sort_end"]) == (1001, 1009)
-    assert rows["1QpHab 2:1–2"]["original_text"] == (
-        "1 יסופר – [פשרו על רשעים] ובוגדים עם איש\n2 vacat הנה עופלה לוא יושרה [נפשו בו] X"
-    )
-    for row in rows.values():
-        assert not {"text", "translation", "translation_license"} & set(row)
-        assert row["original_license"] == row["license"] == "CC BY-SA 4.0"
-        assert row["source_url"] == qumran.WIKISOURCE_SOURCE_URL
-        assert row["period_tags"] == "second_temple,hasmonean,roman"
-        assert "{{" not in row["original_text"] and "פסוק" not in row["original_text"]
-
-
-@pytest.mark.parametrize("broken, message", [
-    (WIKISOURCE.replace("1QpHab עמודה 2", "1QpHab עמודה 3"), "does not follow"),
-    (WIKISOURCE.replace("# על כן תפוג תורה", "על כן תפוג תורה"), "outside a numbered column"),
-    (WIKISOURCE.replace("# על כן תפוג תורה", "# {{צ|על כן}}"), "Unexpected markup"),
-    (WIKISOURCE.replace("==ערוך לפי סדר עמודות ושורות==", "==אחר=="), "no column-and-line"),
-])
-def test_wikisource_parser_rejects_malformed_pages(tmp_path, broken, message):
-    with pytest.raises(ValueError, match=message):
-        qumran.parse_pesher_habakkuk(_write_corpus(tmp_path, broken))
-
-
 def test_require_files_names_every_missing_file(tmp_path):
     directory = _write_corpus(tmp_path)
     (directory / "oslots.tf").unlink()
-    (directory / qumran.WIKISOURCE_FILE).unlink()
+    (directory / "vac.tf").unlink()
 
     with pytest.raises(FileNotFoundError) as error:
         qumran.require_qumran_files(directory)
-    assert "oslots.tf" in str(error.value) and qumran.WIKISOURCE_FILE in str(error.value)
+    assert "oslots.tf, vac.tf" in str(error.value)
 
 
 def test_download_licence_check_reads_the_header():
@@ -300,9 +286,12 @@ def test_curated_links_are_well_formed_habakkuk_lemmas():
         assert COLUMN_LINE.parse(locator) is not None
         assert quoted.strip() and "[" not in quoted and "]" not in quoted
         assert 1 <= c1 <= c2 <= 2 and (c1, v1) <= (c2, v2)
-        assert suffix == "" or suffix.startswith(" (")
+        assert suffix == "" or suffix.startswith((" (", "a (", "b ("))
         assert (locator, c1, v1) not in seen
         seen.add((locator, c1, v1))
+    # 1QpHab 7:14 keeps four words of Hab 2:4a; the rest of the lemma is restored.
+    assert ("7:14", "הנה עופלה לוא יושרה", 2, 4, 2, 4,
+            "a (end of 2:4a restored; 2:4b wholly reconstructed)") in qumran._BIBLICAL_LINKS
 
 
 def test_links_check_the_quoted_lemma_on_its_line(tmp_path, monkeypatch):
@@ -312,12 +301,36 @@ def test_links_check_the_quoted_lemma_on_its_line(tmp_path, monkeypatch):
     links = qumran.biblical_links(rows)
 
     assert [(link.locator, link.book, link.chapter, link.verse, link.note) for link in links] == [
-        ("1:8", "Hab", 1, 3, "Quotes and interprets: Hab 1:3 (lemma mostly restored)"),
-        ("2:2", "Hab", 2, 4, "Quotes and interprets: Hab 2:4"),
+        ("1:2", "Hab", 1, 3, "Quotes and interprets: Hab 1:3 (lemma mostly restored)"),
+        ("2:2", "Hab", 2, 4,
+         "Quotes and interprets: Hab 2:4a (end of 2:4a restored; 2:4b wholly reconstructed)"),
     ]
     monkeypatch.setattr(qumran, "_BIBLICAL_LINKS", (("2:1", "הנה עופלה", 2, 4, 2, 4, ""),))
     with pytest.raises(ValueError, match="does not contain the quoted lemma"):
         qumran.biblical_links(rows)
+
+
+@pytest.mark.parametrize("anchor", [
+    "עד אנה יהוה",  # wholly inside the reconstruction on 1:1
+    "יהוה שועתי",  # straddles the closing bracket
+    "יגדילו",  # letters restored inside the word
+])
+def test_links_reject_an_anchor_in_the_editors_reconstruction(tmp_path, monkeypatch, anchor):
+    rows = qumran.parse(_write_corpus(tmp_path))
+    line = "1:2" if anchor == "יגדילו" else "1:1"
+    monkeypatch.setattr(qumran, "_BIBLICAL_LINKS", ((line, anchor, 1, 2, 1, 2, ""),))
+
+    with pytest.raises(ValueError, match="reconstruction"):
+        qumran.biblical_links(rows)
+    monkeypatch.setattr(qumran, "_BIBLICAL_LINKS", ((line, f"[{anchor}]", 1, 2, 1, 2, ""),))
+    with pytest.raises(ValueError, match="reconstruction brackets"):
+        qumran.biblical_links(rows)
+
+
+def test_surviving_text_marks_reconstruction_and_drops_signs():
+    assert qumran.surviving_text("[עד אנה] ש\u05afועתי ^ה^ {{א}} vacat יג[די]לו") == (
+        "| שועתי ה יג | לו"
+    )
 
 
 def test_note_renders_verse_spans(tmp_path, monkeypatch):
@@ -370,7 +383,7 @@ def test_import_counts_links_and_is_idempotent(tmp_path, monkeypatch):
 
     assert first == (7, 2)
     assert again == 7 and _counts(db_path) == first
-    assert linked == [("1QpHab 1:1–9", "Hab", 1003), ("1QpHab 2:1–2", "Hab", 2004)]
+    assert linked == [("1QpHab 1:1–2", "Hab", 1003), ("1QpHab 2:1–3", "Hab", 2004)]
 
 
 def test_import_fails_on_an_unresolved_link_and_keeps_the_previous_import(tmp_path, monkeypatch):
@@ -441,7 +454,7 @@ async def test_lookup_returns_the_column_with_licence_and_original_only_note(tmp
 
     assert "### Damascus Document, CD 6:1–11 (CD-A 6:1–11)" in cd
     assert "*Not Scripture · Qumran sectarian rule (composed 2nd–1st c. BC) · tier A ·" in cd
-    assert "copies: Cairo Genizah, 10th and 11th–12th c. AD*" in cd
+    assert "copy: Cairo Genizah MS A, 10th c. AD*" in cd
     assert "[ ] marks modern reconstruction, never evidence" in cd
     assert "11 יורה הצדק באחרית הימים ׃ vacat וכל אשר הובאו בברית" in cd
     assert "*No English translation included; Hebrew only.*" in cd
@@ -453,9 +466,12 @@ async def test_lookup_returns_the_column_with_licence_and_original_only_note(tmp
     assert "2 שורה " not in middle and "8 שורה " not in middle
     assert "1 שורה " in column and "Lines " not in column
     assert "1 vacat ועתה שמעו כל יודעי צדק" in first
-    assert "### Pesher Habakkuk, 1QpHab 2:1–2" in pesher
-    assert "License: CC BY-SA 4.0." in pesher
-    assert "- Echo: Hab 2:4 — Quotes and interprets: Hab 2:4" in pesher
+    assert "### Pesher Habakkuk, 1QpHab 2:1–3" in pesher
+    assert "License: CC BY-NC 4.0 (non-commercial;" in pesher and "CC BY-SA" not in pesher
+    assert (
+        "- Echo: Hab 2:4 — Quotes and interprets: Hab 2:4a "
+        "(end of 2:4a restored; 2:4b wholly reconstructed)"
+    ) in pesher
     assert missing_line.startswith("No passage covers CD 6:30.")
     assert "preceding CD 6:1–11, following CD 19:1" in missing_line
 
@@ -475,33 +491,41 @@ async def test_search_filters_by_habakkuk_link_and_folds_hebrew(tmp_path, monkey
     suffix = await _call(db_path, monkeypatch, search, query="והם ישמרו", corpus="qumran")
     restored = await _call(db_path, monkeypatch, search, query="עופלה", corpus="qumran")
 
-    assert "### Pesher Habakkuk, 1QpHab 2:1–2" in linked
-    assert "1QpHab 1:1–9" not in linked
+    assert "### Pesher Habakkuk, 1QpHab 2:1–3" in linked
+    assert "1QpHab 1:1–2" not in linked
     assert "CD 19:1" in uncertain
     assert "CD 19:1" in suffix
-    assert "1QpHab 2:1–2" in restored
+    assert "1QpHab 2:1–3" in restored
 
 
 @pytest.mark.asyncio
-async def test_search_reads_through_brackets_and_prefixes_and_drops_erasures(tmp_path, monkeypatch):
+async def test_search_never_matches_reconstruction_and_drops_erasures(tmp_path, monkeypatch):
     db_path = _build_db(tmp_path, monkeypatch)
     search = server.handle_search_ancient_sources
 
-    # 1QS 1:1 prints '[ספר ס]ר֯ך' (restoration and circlet inside the word);
-    # 1QSa 1:1 has 'הסרך' with the article prefixed.
+    # 1QS 1:1 prints '[ספר ס]ר֯ך': 'ספר' and the first letter of 'סרך' are an
+    # editor's restoration, so neither is searchable there; 1QSa 1:1 has the
+    # surviving 'הסרך', found through the prefix fallback.
+    restored_word = await _call(db_path, monkeypatch, search, query="ספר", corpus="qumran")
     serekh = await _call(db_path, monkeypatch, search, query="סרך", corpus="qumran")
+    pasted = await _call(db_path, monkeypatch, search, query="ס]ר֯ך", corpus="qumran")
+    # 1QpHab 1:2 prints 'יג[די]לו': surviving letters either side do not join into 'יגלו'.
+    joined = await _call(db_path, monkeypatch, search, query="יגלו", corpus="qumran")
+    surviving = await _call(db_path, monkeypatch, search, query="ריב", corpus="qumran")
     # 'זה' is too short to strip; 'יחד' only occurs prefixed ('היחד') in 1QS 1:1.
     stripped = await _call(db_path, monkeypatch, search, query="יחד", corpus="qumran")
-    pasted = await _call(db_path, monkeypatch, search, query="ס]ר֯ך", corpus="qumran")
     # CD 19:1 prints the scribe's erasure '{{נפ◦◦}}'; CD 1:1 a vacat.
     erased = await _call(db_path, monkeypatch, search, query="נפ", corpus="qumran")
     vacat = await _call(db_path, monkeypatch, search, query="vacat", corpus="qumran")
 
-    # An exact match wins: prefix stripping ('הסרך' in 1QSa 1:1) is only a fallback.
-    assert "1QS 1:1" in serekh and "1QSa 1:1" not in serekh and "prefix" not in serekh
+    assert restored_word.startswith("No Qumran passage contains")
+    assert "1QS 1:1" not in serekh and "### Rule of the Congregation, 1QSa 1:1 (prefix match)" in serekh
+    assert "1QS 1:1" not in pasted
+    assert joined.startswith("No Qumran passage contains")
+    assert "1QpHab 1:1–2" in surviving
+    # The display keeps the reconstruction and its brackets.
+    assert "יג[די]לו" in surviving
     assert "### Community Rule, 1QS 1:1 (prefix match)" in stripped
     assert "*No exact match: these passages match only after stripping" in stripped
-    assert "1QS 1:1" in pasted
-    assert "[ספר ס]ר\u05afך" in serekh
     assert "CD 19:1" not in erased
     assert "CD 1:1" not in vacat

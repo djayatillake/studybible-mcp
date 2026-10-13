@@ -360,7 +360,13 @@ def hebrew_prefix_variants(word: str) -> list[str]:
     ]
 
 
-def _ancient_index_words(original: str, removals: tuple[str, ...]) -> str:
+def _ancient_index_words(
+    original: str, removals: tuple[str, ...], gaps: tuple[str, ...] = (),
+) -> str:
+    for pattern in gaps:
+        # Replaced by a space: the letters either side of a modern
+        # reconstruction ('יג[די]לו') must not join into a word ('יגלו').
+        original = re.sub(pattern, " ", original)
     for pattern in removals:
         # Deleted, not replaced by a space: an erasure inside a word
         # ('י{{א}}<<ע>>בורו') must leave the corrected word whole.
@@ -368,24 +374,30 @@ def _ancient_index_words(original: str, removals: tuple[str, ...]) -> str:
     return fold_ancient_search_text(strip_editorial_signs(original))
 
 
-def ancient_search_index_text(original: str, removals: tuple[str, ...] = ()) -> str:
+def ancient_search_index_text(
+    original: str, removals: tuple[str, ...] = (), gaps: tuple[str, ...] = (),
+) -> str:
     """The folded original-language text stored in the exact search column.
 
-    ``removals`` are a corpus's patterns for printed text that is not part of
-    the reading (e.g. scribal erasures); they are deleted first. Editorial
-    signs are then deleted and the text folded like a query. The displayed
-    text is stored separately and keeps every sign.
+    ``gaps`` are a corpus's patterns for printed text that is not evidence
+    (modern reconstruction); each becomes a word break. ``removals`` are its
+    patterns for printed text that is not part of the reading (e.g. scribal
+    erasures); they are deleted. Editorial signs are then deleted and the text
+    folded like a query. The displayed text is stored separately and keeps
+    every sign.
     """
-    return _ancient_index_words(original, removals)
+    return _ancient_index_words(original, removals, gaps)
 
 
-def ancient_search_prefix_variants(original: str, removals: tuple[str, ...] = ()) -> str:
+def ancient_search_prefix_variants(
+    original: str, removals: tuple[str, ...] = (), gaps: tuple[str, ...] = (),
+) -> str:
     """Hebrew-script words of ``original`` without their leading prefix letters.
 
     Stored in a separate search column that is queried only when the exact
     search finds nothing, so 'הון' finds 'ובהון' as a marked fallback.
     """
-    words = set(re.findall(r"\w+", _ancient_index_words(original, removals)))
+    words = set(re.findall(r"\w+", _ancient_index_words(original, removals, gaps)))
     return " ".join(sorted(dict.fromkeys(
         variant
         for word in words
@@ -3189,7 +3201,8 @@ def rebuild_ancient_search_index(conn: sqlite3.Connection) -> int:
     """Recreate the ancient-source FTS table and refill it from the stored passages.
 
     Used when an older index lacks the prefix-variant column. Each corpus's
-    ``search_index_removals`` are applied as at import. Returns the row count.
+    ``search_index_gaps`` and ``search_index_removals`` are applied as at
+    import. Returns the row count.
     """
     from .corpora import CORPORA  # Corpus modules never import this module.
 
@@ -3199,7 +3212,9 @@ def rebuild_ancient_search_index(conn: sqlite3.Connection) -> int:
         "SELECT id, corpus, work_title, reference, text, original_text FROM ancient_source_passages"
     ).fetchall()
     for passage_id, corpus, work_title, reference, text, original in rows:
-        removals = CORPORA[corpus].search_index_removals if corpus in CORPORA else ()
+        registered = CORPORA.get(corpus)
+        removals = registered.search_index_removals if registered else ()
+        gaps = registered.search_index_gaps if registered else ()
         conn.execute(
             """INSERT INTO ancient_source_passages_fts
                (passage_id, work_title, reference, text, original_text_folded,
@@ -3207,8 +3222,8 @@ def rebuild_ancient_search_index(conn: sqlite3.Connection) -> int:
                VALUES (?, ?, ?, ?, ?, ?)""",
             (
                 passage_id, work_title, reference, text or "",
-                ancient_search_index_text(original or "", removals),
-                ancient_search_prefix_variants(original or "", removals),
+                ancient_search_index_text(original or "", removals, gaps),
+                ancient_search_prefix_variants(original or "", removals, gaps),
             ),
         )
     return len(rows)

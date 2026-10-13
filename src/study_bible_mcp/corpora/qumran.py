@@ -1,10 +1,9 @@
 """Qumran corpus: Hebrew Dead Sea Scrolls texts, one passage per manuscript column.
 
-The Damascus Document (Cairo Genizah MSS A and B), the Community Rule (1QS)
-and the Rule of the Congregation (1QSa) come from the ETCBC/dss Text-Fabric
-transcription by Martin G. Abegg Jr., James E. Bowley and Edward M. Cook
-(CC BY-NC 4.0); Pesher Habakkuk (1QpHab) comes from Hebrew Wikisource
-(CC BY-SA 4.0). No openly licensed English translation exists for any of them,
+The Damascus Document (Cairo Genizah MSS A and B), the Community Rule (1QS),
+the Rule of the Congregation (1QSa) and Pesher Habakkuk (1QpHab) all come from
+the ETCBC/dss Text-Fabric transcription by Martin G. Abegg Jr., James E.
+Bowley and Edward M. Cook (CC BY-NC 4.0). No English translation is included,
 so every passage is original-only.
 """
 
@@ -15,8 +14,8 @@ from itertools import takewhile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .base import BiblicalLink, Corpus, SourceTag, Work
-from .download import fetch_github_directory, fetch_verified, sha256_hex
+from .base import BiblicalLink, Corpus, SourceTag, TagSection, Work
+from .download import fetch_github_directory
 from .locators import COLUMN_LINE
 
 if TYPE_CHECKING:
@@ -45,24 +44,7 @@ ETCBC_FEATURES = (
 )
 ETCBC_FILES = tuple(f"{feature}.tf" for feature in ETCBC_FEATURES)
 
-WIKISOURCE_REVISION = 2949117
-WIKISOURCE_FILE = f"1QpHab.he-wikisource.{WIKISOURCE_REVISION}.wikitext"
-WIKISOURCE_URL = (
-    f"https://he.wikisource.org/w/index.php?oldid={WIKISOURCE_REVISION}&action=raw"
-)
-WIKISOURCE_SHA256 = "2ee32f91af3ea60d4c4d116313d797183c24f79fef6bb4a1758b64c5b55e6b24"
-WIKISOURCE_SOURCE_URL = f"https://he.wikisource.org/w/index.php?oldid={WIKISOURCE_REVISION}"
-WIKISOURCE_LICENSE = "CC BY-SA 4.0"
-WIKISOURCE_EDITION = (
-    "Hebrew Wikisource, 'מגילות מדבר יהודה/1QpHab פשר חבקוק', "
-    f"revision {WIKISOURCE_REVISION} (2025-07-20)"
-)
-# Wikimedia's robot policy requires a User-Agent with contact details.
-WIKIMEDIA_USER_AGENT = (
-    "studybible-mcp/1.0 (+https://github.com/djayatillake/studybible-mcp) httpx"
-)
-
-REQUIRED_FILES = (*ETCBC_FILES, WIKISOURCE_FILE)
+REQUIRED_FILES = ETCBC_FILES
 
 # Labelling contract: dates from the canon review's date ladder.
 _ETCBC_EDITION = "Abegg–Bowley–Cook Hebrew (ETCBC)"
@@ -81,10 +63,16 @@ DAMASCUS_DOCUMENT = Work(
     reference_title="CD",
     locator=COLUMN_LINE,
     aliases=("Damascus Rule", "Zadokite Fragments", "Zadokite Work"),
+    # The ETCBC text is the medieval Genizah copy, not a Qumran manuscript: each
+    # column's tag names its manuscript and date (MS A columns 1–16, MS B 19–20).
     tag=SourceTag(
         kind="Qumran sectarian rule", date="composed 2nd–1st c. BC", tier="A",
         edition=_ETCBC_EDITION,
-        manuscript="copies: Cairo Genizah, 10th and 11th–12th c. AD",
+        manuscript="copies: Cairo Genizah MS A, 10th c. AD; MS B, 11th–12th c. AD",
+        sections=(
+            TagSection("1-16", manuscript="copy: Cairo Genizah MS A, 10th c. AD"),
+            TagSection("19-20", manuscript="copy: Cairo Genizah MS B, 11th–12th c. AD"),
+        ),
     ),
 )
 COMMUNITY_RULE = Work(
@@ -111,7 +99,7 @@ PESHER_HABAKKUK = Work(
     aliases=("Habakkuk Pesher", "Habakkuk Commentary"),
     tag=SourceTag(
         kind="Qumran pesher", date="Herodian-era copy, late 1st c. BC", tier="A",
-        edition="Hebrew Wikisource transcription",
+        edition=_ETCBC_EDITION,
     ),
 )
 WORKS = (DAMASCUS_DOCUMENT, COMMUNITY_RULE, RULE_OF_THE_CONGREGATION, PESHER_HABAKKUK)
@@ -119,7 +107,12 @@ WORKS = (DAMASCUS_DOCUMENT, COMMUNITY_RULE, RULE_OF_THE_CONGREGATION, PESHER_HAB
 # ETCBC scroll acronyms imported, in corpus order. Every column and line label
 # of these scrolls is a plain number; other scrolls (e.g. 1QSb) mix fragment
 # labels and line gaps and are not imported.
-_ETCBC_WORKS = {"CD": DAMASCUS_DOCUMENT, "1QS": COMMUNITY_RULE, "1QSa": RULE_OF_THE_CONGREGATION}
+_ETCBC_WORKS = {
+    "CD": DAMASCUS_DOCUMENT,
+    "1QS": COMMUNITY_RULE,
+    "1QSa": RULE_OF_THE_CONGREGATION,
+    "1QpHab": PESHER_HABAKKUK,
+}
 
 PERIODS = ("second_temple", "hasmonean", "roman")
 # Editorial composition-period tags. The rules and the Damascus Document are
@@ -133,12 +126,12 @@ _PERIOD_TAGS = {
 }
 
 # Editorial links from Pesher Habakkuk to the Habakkuk verses its lemmas quote,
-# never inferred from wording. Fields: 1QpHab column:line where the quotation
-# begins, words of the lemma that survive outside the editor's brackets on that
-# line of the pinned Wikisource text (checked by ``biblical_links`` on import),
-# Habakkuk chapter, verse, end chapter, end verse, and an optional note suffix.
-# Each comment names the matching words of the Masoretic verse. Line numbers
-# follow the scroll (see _WIKISOURCE_LINE_CORRECTIONS for column 1).
+# never inferred from wording. Fields: 1QpHab column:line holding the anchor,
+# anchor words of the lemma on that line of the ETCBC transcription, which
+# must survive outside the editor's [ ] reconstruction (checked by
+# ``biblical_links`` on import), Habakkuk chapter, verse, end chapter, end
+# verse, and an optional note suffix (a half-verse letter and/or a remark on
+# restored text). Each comment names the matching words of the Masoretic verse.
 _BIBLICAL_LINKS = (
     ("1:1", "שועתי ולוא", 1, 2, 1, 2, ""),  # Hab 1:2 'שועתי ולא תשמע'
     ("1:8", "ריב", 1, 3, 1, 3, " (lemma mostly restored)"),  # Hab 1:3b 'ויהי ריב ומדון ישא'
@@ -157,35 +150,23 @@ _BIBLICAL_LINKS = (
     ("6:12", "על משמרתי אעמודה", 2, 1, 2, 1, ""),  # Hab 2:1 'על משמרתי אעמדה'
     ("6:14", "ויענני יהוה", 2, 2, 2, 2, ""),  # Hab 2:2 'ויענני יהוה'; 6:15 'על הלוחות למען'
     ("7:3", "ואשר אמר למען ירוץ הקורא בו", 2, 2, 2, 2, ""),  # Hab 2:2b 'למען ירוץ קורא בו'
-    ("7:5", "כי עוד חזון", 2, 3, 2, 3, ""),  # Hab 2:3a 'כי עוד חזון למועד'; 7:9 Hab 2:3b 'אם יתמהמה חכה לו'
-    ("7:14", "הנה עופלה לוא יושרה", 2, 4, 2, 4, ""),  # Hab 2:4a 'הנה עפלה לא ישרה'
+    ("7:5", "כיא עוד חזון", 2, 3, 2, 3, ""),  # Hab 2:3a 'כי עוד חזון למועד'; 7:9 Hab 2:3b 'אם יתמהמה חכה לו'
+    # Hab 2:4a 'הנה עפלה לא ישרה'; 'נפשו בו' (7:15) and all of 2:4b (7:17) are restored.
+    ("7:14", "הנה עופלה לוא יושרה", 2, 4, 2, 4, "a (end of 2:4a restored; 2:4b wholly reconstructed)"),
     ("8:3", "ואף כיא הון יבגוד גבר יהיר", 2, 5, 2, 6, ""),  # Hab 2:5 'גבר יהיר'; 8:6-8 Hab 2:6 'הלוא כולם משל', 'עבטט'
-    ("8:13", "הלוא פתאום ויקומו", 2, 7, 2, 8, ""),  # Hab 2:7 'הלוא פתע יקומו'; 8:14 Hab 2:8a 'כי אתה שלותה גוים'
+    ("8:13", "הלוא פתאאום ויקוםו", 2, 7, 2, 8, ""),  # Hab 2:7 'הלוא פתע יקומו'; 8:14 Hab 2:8a 'כי אתה שלותה גוים'
     ("9:3", "אמר כי אתה שלותה גוים רבים", 2, 8, 2, 8, ""),  # Hab 2:8a; 9:8 Hab 2:8b 'מדמי אדם וחמס ארץ'
     ("9:12", "הוי הבוצע בצע רע", 2, 9, 2, 11, ""),  # Hab 2:9 'הוי בצע בצע רע'; 9:14 Hab 2:10; 9:15 Hab 2:11 'מקיר תזעק'
-    ("10:2", "ואשר אמר קצות עמים רבים", 2, 10, 2, 10, ""),  # Hab 2:10b 'קצות עמים רבים'
-    ("10:6", "הוי בונה עיר בדמים", 2, 12, 2, 13, ""),  # Hab 2:12; 10:7 Hab 2:13 'מעם יהוה צבאות'
+    ("10:2", "אמר קצות עמים רבים", 2, 10, 2, 10, ""),  # Hab 2:10b 'קצות עמים רבים'; 'ואשר' ends 10:1
+    ("10:6", "בונה עיר בדמים", 2, 12, 2, 13, ""),  # Hab 2:12 ('הוי' ends 10:5); 10:7 Hab 2:13 'מעם יהוה צבאות'
     ("10:14", "כיא תמלא הארץ לדעת את כבוד יהוה", 2, 14, 2, 14, ""),  # Hab 2:14
     ("11:2", "הוי משקה רעיהו", 2, 15, 2, 15, ""),  # Hab 2:15 'הוי משקה רעהו'
     ("11:8", "שבעת", 2, 16, 2, 16, ""),  # Hab 2:16, continued on 11:9 'קלון מ[כ]בוד שתה גם אתה'
-    ("12:1", "מדמי אדם וחמת ארץ קריה", 2, 17, 2, 17, ""),  # Hab 2:17b; 12:6-7 'מדמי קריה וחמס ארץ'
+    ("12:1", "מדמי אדם וחמס ארץ קריה", 2, 17, 2, 17, ""),  # Hab 2:17b; 12:6-7 'מדמי קריה וחמס ארץ'
     ("12:10", "מה הועיל פסל", 2, 18, 2, 18, ""),  # Hab 2:18 'מה הועיל פסל'
-    ("12:15", "לעץ הקיצה", 2, 19, 2, 19, ""),  # Hab 2:19 'לעץ הקיצה'
+    ("12:15", "עצ הקיצה", 2, 19, 2, 19, " (lemma partly restored)"),  # Hab 2:19 'הוי אמר לעץ הקיצה עורי לאבן דומם'
     ("13:1", "הס מלפניו כול", 2, 20, 2, 20, ""),  # Hab 2:20b 'הס מפניו כל הארץ'
 )
-
-# Hebrew Wikisource numbers column 1 continuously from 1 to 14, but folds the
-# wholly restored scroll line 7 ('ושוד וחמס לנגדי') into its line 6, so its
-# lines 7-14 carry scroll lines 8-15. Verified against the ETCBC/dss
-# transcription of 1QpHab at ETCBC_COMMIT, whose surviving words agree line by
-# line after this shift: Wikisource 1:9 'על כן תפוג תורה' is ETCBC 1:10 and
-# Wikisource 1:12 'הוא מורה הצדק' is ETCBC 1:13. Columns 2-13 agree as numbered.
-_WIKISOURCE_LINE_CORRECTIONS = {(1, line): line + 1 for line in range(7, 15)}
-
-_COLUMN_SECTION = "==ערוך לפי סדר עמודות ושורות=="
-_COLUMN_HEADER = re.compile(r"1QpHab עמודה (\d+)")
-_WIKI_MARKUP = re.compile(r"\{\{|\[\[|<")
-
 
 def _period_tags(work: Work) -> str:
     return _PERIOD_TAGS[work.key]
@@ -308,7 +289,8 @@ def _tf_types(path: Path) -> dict[str, tuple[int, int]]:
 # Text-critical brackets of the transcription, by sign feature and value, in
 # opening order: modern reconstruction, removal by a modern editor or by the
 # scribe, correction by a modern editor, by the scribe, or supralinear, and an
-# alternative reading. A vacat (unwritten space) is rendered as 'vacat'.
+# alternative reading. A vacat (unwritten space) is rendered as the word
+# 'vacat', spaced off so it never joins the letters around it.
 _BRACKETS = (
     ("rec", "1", "[", "]"),
     ("rem", "1", "{", "}"),
@@ -317,13 +299,17 @@ _BRACKETS = (
     ("cor", "2", "<<", ">>"),
     ("cor", "3", "^", "^"),
     ("alt", "1", "(", ")"),
-    ("vac", "1", "vacat", ""),
+    ("vac", "1", " vacat ", " "),
 )
 _MARK_FEATURES = ("rec", "rem", "cor", "alt", "vac")
 # Letters removed by the scribe {{ }} or a modern editor { } are not part of
 # the corrected reading, and 'vacat' is not text: search drops them, so
 # 'י{{א}}<<ע>>בורו' is indexed as 'יעבורו'. Doubled braces first.
 SEARCH_INDEX_REMOVALS = (r"\{\{[^{}]*\}\}", r"\{[^{}]*\}", r"\bvacat\b")
+# Modern reconstruction in [ ] is not evidence: search never matches it (the
+# display keeps it), and letters either side of it stay separate words.
+_RECONSTRUCTION = r"\[[^\[\]]*\]"
+SEARCH_INDEX_GAPS = (_RECONSTRUCTION,)
 _EMPTY_BRACKETS = re.compile(r"(\[|\{\{|\{|<<|<|\^|\()(\]|\}\}|\}|>>|>|\^|\))")
 # A circlet above a letter marks it as damaged or uncertain (any of the
 # transcription's four uncertainty degrees); search folding drops it.
@@ -427,53 +413,8 @@ def parse_etcbc(directory: Path) -> list[dict]:
     return rows
 
 
-# --- Hebrew Wikisource 1QpHab --------------------------------------------------
-
-
-def _wikisource_columns(text: str) -> dict[int, list[tuple[int, str]]]:
-    """Scroll lines of the column-and-line section, keyed by column."""
-    _, found, rest = text.partition(_COLUMN_SECTION)
-    _, opened, rest = rest.partition("<poem>")
-    poem, closed, _ = rest.partition("</poem>")
-    if not (found and opened and closed):
-        raise ValueError("1QpHab Wikisource page has no column-and-line <poem> section")
-    columns: dict[int, list[tuple[int, str]]] = {}
-    column = 0
-    for raw in poem.splitlines():
-        line = raw.strip()
-        if not line:
-            continue
-        if header := _COLUMN_HEADER.fullmatch(line):
-            if int(header.group(1)) != column + 1:
-                raise ValueError(f"1QpHab column {header.group(1)} does not follow column {column}")
-            column = int(header.group(1))
-            columns[column] = []
-            continue
-        if not line.startswith("#") or not column:
-            raise ValueError(f"Unexpected 1QpHab line outside a numbered column: {line!r}")
-        content = line[1:].strip()
-        if _WIKI_MARKUP.search(content):
-            raise ValueError(f"Unexpected markup in 1QpHab column {column}: {content!r}")
-        number = len(columns[column]) + 1
-        columns[column].append((_WIKISOURCE_LINE_CORRECTIONS.get((column, number), number), content))
-    if not columns or any(not lines for lines in columns.values()):
-        raise ValueError("1QpHab Wikisource columns must each have lines")
-    return columns
-
-
-def parse_pesher_habakkuk(directory: Path) -> list[dict]:
-    text = (directory / WIKISOURCE_FILE).read_text(encoding="utf-8")
-    return [
-        _column_passage(
-            PESHER_HABAKKUK, column, lines, WIKISOURCE_EDITION, WIKISOURCE_LICENSE,
-            WIKISOURCE_SOURCE_URL,
-        )
-        for column, lines in _wikisource_columns(text).items()
-    ]
-
-
 def parse(directory: Path) -> list[dict]:
-    return [*parse_etcbc(directory), *parse_pesher_habakkuk(directory)]
+    return parse_etcbc(directory)
 
 
 def _passage_lines(passage: dict) -> dict[int, str]:
@@ -484,18 +425,38 @@ def _passage_lines(passage: dict) -> dict[int, str]:
     return lines
 
 
+def surviving_text(line: str) -> str:
+    """A rendered line as the manuscript has it: reconstruction becomes a barrier ' | '.
+
+    Erasures and 'vacat' are dropped and other editorial signs and the
+    uncertainty circlet deleted, so anchor words compare letter for letter and
+    can never match across or inside a modern reconstruction.
+    """
+    text = re.sub(_RECONSTRUCTION, " | ", line)
+    for pattern in SEARCH_INDEX_REMOVALS:
+        text = re.sub(pattern, "", text)
+    text = re.sub(f"[<>^(){{}}{_UNCERTAIN}]", "", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
 def biblical_links(passages: list[dict]) -> list[BiblicalLink]:
-    """The curated 1QpHab lemma links, each checked against its pinned line."""
+    """The curated 1QpHab lemma links, each anchored outside reconstruction on its line."""
     pesher = [row for row in passages if row["work_key"] == PESHER_HABAKKUK.key]
     links = []
     for locator, quoted, c1, v1, c2, v2, suffix in _BIBLICAL_LINKS:
+        if re.search(r"[\[\]]", quoted):
+            raise ValueError(f"1QpHab {locator}: anchor {quoted!r} contains reconstruction brackets")
         column, line = (int(part) for part in locator.split(":"))
         key = COLUMN_LINE.key(column, line)
         passage = next(
             (row for row in pesher if row["sort_start"] <= key <= row["sort_end"]), None
         )
         text = _passage_lines(passage).get(line, "") if passage else ""
-        if quoted not in text:
+        if quoted not in surviving_text(text):
+            if quoted in surviving_text(re.sub(r"[\[\]]", "", text)):
+                raise ValueError(
+                    f"1QpHab {locator}: the anchor {quoted!r} lies in the editor's reconstruction"
+                )
             raise ValueError(f"1QpHab {locator} does not contain the quoted lemma {quoted!r}")
         verses = f"{c1}:{v1}" if (c1, v1) == (c2, v2) else (
             f"{c1}:{v1}–{v2}" if c1 == c2 else f"{c1}:{v1}–{c2}:{v2}"
@@ -514,7 +475,7 @@ def biblical_links(passages: list[dict]) -> list[BiblicalLink]:
 
 
 def require_qumran_files(directory: Path) -> None:
-    """Raise unless every pinned ETCBC feature file and the 1QpHab page are present."""
+    """Raise unless every pinned ETCBC feature file is present."""
     missing = [name for name in REQUIRED_FILES if not (directory / name).is_file()]
     if missing:
         raise FileNotFoundError(
@@ -534,29 +495,8 @@ def _select_download(name: str) -> str | None:
     return name if name in ETCBC_FILES else None
 
 
-def _fetch_wikisource(client: httpx.Client, destination: Path, force: bool) -> bytes:
-    """Download the pinned revision with the contact User-Agent Wikimedia requires.
-
-    Wikimedia's robot policy rejects library clients without contact details,
-    so the request carries its own header; the file is written only once it
-    verifies, and ``fetch_verified`` re-checks whatever is on disk.
-    """
-    if force or not destination.is_file():
-        response = client.get(WIKISOURCE_URL, headers={"User-Agent": WIKIMEDIA_USER_AGENT})
-        response.raise_for_status()
-        actual = sha256_hex(response.content)
-        if actual != WIKISOURCE_SHA256:
-            raise RuntimeError(
-                f"Checksum mismatch for {destination.name}: {actual} != {WIKISOURCE_SHA256}"
-            )
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_bytes(response.content)
-    return fetch_verified(client, WIKISOURCE_URL, destination, WIKISOURCE_SHA256)
-
-
-
 def download(client: httpx.Client, target: Path, force: bool) -> dict:
-    """Fetch the ETCBC feature files at the pinned commit and the pinned 1QpHab revision."""
+    """Fetch the ETCBC feature files at the pinned commit, verified by Git blob hash."""
     files = fetch_github_directory(
         client,
         ETCBC_REPOSITORY,
@@ -572,20 +512,11 @@ def download(client: httpx.Client, target: Path, force: bool) -> dict:
         raise RuntimeError(f"ETCBC/dss {ETCBC_TF_PATH} at {ETCBC_COMMIT} lacks {missing}")
     for entry in files.values():
         entry["license"] = ETCBC_LICENSE
-    content = _fetch_wikisource(client, target / WIKISOURCE_FILE, force)
-    files[WIKISOURCE_FILE] = {
-        "sha256": WIKISOURCE_SHA256,
-        "bytes": len(content),
-        "source_url": WIKISOURCE_SOURCE_URL,
-        "license": WIKISOURCE_LICENSE,
-    }
     return {
-        "sources": [
-            {"repository": ETCBC_REPOSITORY, "commit": ETCBC_COMMIT, "path": ETCBC_TF_PATH,
-             "license": ETCBC_LICENSE},
-            {"source": WIKISOURCE_SOURCE_URL, "version": f"revision {WIKISOURCE_REVISION}",
-             "license": WIKISOURCE_LICENSE},
-        ],
+        "repository": ETCBC_REPOSITORY,
+        "commit": ETCBC_COMMIT,
+        "path": ETCBC_TF_PATH,
+        "license": ETCBC_LICENSE,
         "files": files,
     }
 
@@ -594,13 +525,12 @@ CORPUS = Corpus(
     key="qumran",
     label="Qumran",
     summary=(
-        "Hebrew Dead Sea Scrolls texts without English (none is openly licensed): "
-        "the Damascus Document (Cairo Genizah MS A columns 1–16 and MS B columns "
-        "19–20), the Community Rule (1QS) and the Rule of the Congregation (1QSa) "
-        "from the ETCBC/dss transcription of Abegg, Bowley and Cook, and Pesher "
-        "Habakkuk (1QpHab) from Hebrew Wikisource. Each passage is one manuscript "
-        "column with numbered lines, cited by column:line ('CD 6:11', '1QS 3:13', "
-        "'1QpHab 7:4')."
+        "Hebrew Dead Sea Scrolls texts, no English translation included: the "
+        "Damascus Document (Cairo Genizah MS A columns 1–16 and MS B columns 19–20), "
+        "the Community Rule (1QS), the Rule of the Congregation (1QSa) and Pesher "
+        "Habakkuk (1QpHab), all from the ETCBC/dss transcription of Abegg, Bowley "
+        "and Cook. Each passage is one manuscript column with numbered lines, cited "
+        "by column:line ('CD 6:11', '1QS 3:13', '1QpHab 7:4')."
     ),
     data_dir="qumran",
     original_language=ORIGINAL_LANGUAGE,
@@ -614,6 +544,7 @@ CORPUS = Corpus(
     example_citation="CD 6:11",
     aliases=("Dead Sea Scrolls", "Qumran", "DSS"),
     search_index_removals=SEARCH_INDEX_REMOVALS,
+    search_index_gaps=SEARCH_INDEX_GAPS,
     caveat=CAVEAT,
     line_numbered=True,
 )

@@ -1508,8 +1508,7 @@ def _row_tag(row: dict, default_corpus: str | None) -> tuple[str, tuple[str, ...
     tag, section = registered.tag_for(row.get("work_key"), row.get("sort_start"))
     if tag is None:
         return "Not Scripture", ()
-    tier = section.tier if section else tag.tier
-    return tag.line(section), tuple(tier.split("/"))
+    return tag.line(section), tuple(tag.tier_for(section).split("/"))
 
 
 def _line_window(row: dict, window: tuple[int, int] | None) -> tuple[str, str | None]:

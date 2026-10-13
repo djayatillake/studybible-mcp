@@ -30,8 +30,8 @@ _LEGACY_DEFAULTS = {"book_number": 0, "section_number": "", "section_end": 0}
 _REQUIRED_TEXT = (
     "author", "reference", "period_tags", "edition", "license", "source_url",
 )
-# English is optional only when no openly licensed translation exists; such a
-# passage carries its original-language text instead (e.g. 1QpHab).
+# English is optional: a passage with no English translation included (e.g. the
+# Qumran scrolls) carries its original-language text instead.
 _ENGLISH_FIELDS = ("text", "translation", "translation_license")
 
 
@@ -237,7 +237,7 @@ def import_corpus(
             conn.execute(insert, {column: row.get(column) for column in _COLUMNS}).lastrowid
             for row in rows
         ]
-        removals = corpus.search_index_removals
+        removals, gaps = corpus.search_index_removals, corpus.search_index_gaps
         conn.executemany(
             """INSERT INTO ancient_source_passages_fts
                (passage_id, work_title, reference, text, original_text_folded,
@@ -246,8 +246,8 @@ def import_corpus(
             (
                 (
                     passage_id, row["work_title"], row["reference"], row["text"],
-                    ancient_search_index_text(row.get("original_text") or "", removals),
-                    ancient_search_prefix_variants(row.get("original_text") or "", removals),
+                    ancient_search_index_text(row.get("original_text") or "", removals, gaps),
+                    ancient_search_prefix_variants(row.get("original_text") or "", removals, gaps),
                 )
                 for passage_id, row in zip(ids, rows)
             ),

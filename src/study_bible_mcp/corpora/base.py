@@ -40,13 +40,16 @@ class TagSection:
     """A part of a work dated separately, e.g. 1 Enoch's Parables (37–71).
 
     ``locator`` is text in the work's own citation grammar ('37-71'); a passage
-    takes the first section whose range contains its ``sort_start``.
+    takes the first section whose range contains its ``sort_start``. Empty
+    fields fall back to the work's tag, so a section may set only its
+    ``manuscript`` (the Damascus Document's Genizah MS A and MS B).
     """
 
     locator: str
-    name: str
-    date: str
-    tier: str
+    name: str = ""
+    date: str = ""
+    tier: str = ""
+    manuscript: str | None = None
 
 
 @dataclass(frozen=True)
@@ -72,16 +75,21 @@ class SourceTag:
     def tiers(self) -> tuple[str, ...]:
         """Every tier this tag can print, each a key of ``TIERS``."""
         return tuple(dict.fromkeys(
-            tier for value in (self.tier, *(s.tier for s in self.sections))
+            tier for value in (self.tier, *(s.tier for s in self.sections if s.tier))
             for tier in value.split("/")
         ))
 
+    def tier_for(self, section: TagSection | None = None) -> str:
+        return section.tier if section and section.tier else self.tier
+
     def line(self, section: TagSection | None = None) -> str:
-        date = f"{section.name}, {section.date}" if section else self.date
-        tier = section.tier if section else self.tier
-        parts = [self.status, f"{self.kind} ({date})", f"tier {tier}", self.edition]
-        if self.manuscript:
-            parts.append(self.manuscript)
+        date = self.date
+        if section and section.date:
+            date = f"{section.name}, {section.date}" if section.name else section.date
+        parts = [self.status, f"{self.kind} ({date})", f"tier {self.tier_for(section)}", self.edition]
+        manuscript = section.manuscript if section and section.manuscript else self.manuscript
+        if manuscript:
+            parts.append(manuscript)
         return " · ".join(parts)
 
 
@@ -188,6 +196,9 @@ class Corpus:
     ``search_index_removals`` are regular expressions for printed text that is
     not part of the reading a search should match, such as a transcription's
     scribal erasures; matches are deleted from the search index only.
+    ``search_index_gaps`` are regular expressions for printed text that is not
+    evidence, such as modern reconstruction in [ ]; each match becomes a word
+    break in the search index (the display keeps it).
 
     ``tag`` is the per-result canon/date/edition tag (a work's own ``tag``
     overrides it); ``caveat`` is printed once per response that shows this
@@ -212,6 +223,7 @@ class Corpus:
     aliases: tuple[str, ...] = ()
     heading_label: str = "Editorial heading"
     search_index_removals: tuple[str, ...] = ()
+    search_index_gaps: tuple[str, ...] = ()
     tag: SourceTag | None = None
     caveat: str = ""
     line_numbered: bool = False
