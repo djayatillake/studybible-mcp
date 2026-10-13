@@ -1278,7 +1278,7 @@ public domain; the extracted `58-2ESeng-kjv.usfm` is pinned by SHA-256 because
 eBible regenerates its zip) paired with the Clementine Vulgate's *Liber Quartus
 Esdrae* (Rome 1598) from Latin Wikisource revision 148869 (transcribed from
 public-domain page images; Wikisource transcription CC BY-SA 4.0). Passages are
-one KJV verse with the Latin verse of the same number, except 28 spans where
+one KJV verse with the Latin verse of the same number, except 27 spans where
 the two divide verses differently (usually a speech introduction such as "Et
 dixit ad me," / "And he said unto me" placed on the other side of a verse
 boundary, and an offset in 14:14–20); each span pairs all of its English with

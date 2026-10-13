@@ -52,10 +52,15 @@ EZRA = Work(
     title="4 Ezra",
     reference_title="4 Ezra",
     locator=CHAPTER_VERSE,
-    aliases=("4 Ezr.", "2 Esdras", "2 Esd.", "4 Esdras", "4 Esd.", "Apocalypse of Ezra"),
+    aliases=("4 Ezr.", "2 Esdras", "2 Esd.", "4 Esdras", "4 Esd."),
     tag=SourceTag(
         kind="Jewish apocalypse, 2 Esd 3–14", date="c. AD 100", tier="B",
         edition="KJV 2 Esdras, Clementine Latin",
+    ),
+    coverage_note=(
+        "Only 4 Ezra (2 Esdras 3–14) is served: 2 Esdras 1–2 and 15–16, the later "
+        "Christian additions (5 and 6 Ezra), are excluded, and the KJV and Latin lack "
+        "4 Ezra 7:36–105 (the 'missing fragment', published by Bensly in 1875)."
     ),
 )
 
@@ -222,9 +227,11 @@ LATIN_URL = (
     "https://la.wikisource.org/w/index.php?title=Vulgata_Clementina/Liber_Quartus_Esdrae"
     f"&oldid={LATIN_REVISION}"
 )
+# The Latin Wikisource transcription is CC BY-SA: its URL is part of the
+# edition so the Sources block of every response credits it.
 LATIN_EDITION = (
     "Vulgata Clementina (Rome, 1598), Liber Quartus Esdrae, "
-    f"Latin Wikisource revision {LATIN_REVISION}"
+    f"Latin Wikisource revision {LATIN_REVISION} ({LATIN_URL})"
 )
 EZRA_PERIODS = "roman"  # Composed c. 100 CE, after the destruction of 70 CE (editorial).
 EZRA_CHAPTERS = range(3, 15)

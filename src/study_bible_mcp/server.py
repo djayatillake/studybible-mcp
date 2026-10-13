@@ -794,6 +794,7 @@ async def handle_lookup_ancient_source(args: dict[str, Any]) -> list[TextContent
             f"No passage covers {match.heading}. Imported {work.display_title} runs "
             f"{work.display_title} {work.locator.format_range(result['first'], result['last'])}"
             + (f"; nearest passages: {', '.join(nearest)}." if nearest else ".")
+            + (f" {work.coverage_note}" if work.coverage_note else "")
             + gaps
         )
     count = result["total"]

@@ -329,6 +329,16 @@ def test_resolves_pseudepigrapha_citations(citation, expected):
     assert (resolution.match.work.key, resolution.match.sort_range) == expected
 
 
+def test_apocalypse_of_ezra_is_not_an_alias_of_4_ezra():
+    # The title also names the Greek Apocalypse of Ezra, a different, later work.
+    assert "Apocalypse of Ezra" not in pseudepigrapha.EZRA.names
+    assert resolve_citation("Apocalypse of Ezra 7:28", CORPORA.values()).status == "unknown_work"
+
+
+def test_ezra_aligned_spans_number_twenty_seven():
+    assert len(pseudepigrapha._EZRA_ALIGNED_SPANS) == 27
+
+
 # --- Tools
 
 
@@ -351,6 +361,8 @@ async def test_lookup_enoch_and_both_ezra_citation_forms(tmp_path, fixture_corpu
     ezra = await _call(path, monkeypatch, lookup, citation="4 Ezra 7:106")
     esdras = await _call(path, monkeypatch, lookup, citation="2 Esdras 7:106")
     fragment = await _call(path, monkeypatch, lookup, citation="4 Ezra 7:36")
+    christian = await _call(path, monkeypatch, lookup, citation="2 Esdras 15:1")
+    chapter_one = await _call(path, monkeypatch, lookup, citation="2 Esd. 1:1")
 
     assert enoch.startswith("## 1 Enoch 89:73")
     assert "*Not Scripture · Jewish pseudepigraphon (Dream Visions, c. 165–160 BC) · tier A ·" in enoch
@@ -362,8 +374,15 @@ async def test_lookup_enoch_and_both_ezra_citation_forms(tmp_path, fixture_corpu
     assert "*Not Scripture · Jewish apocalypse, 2 Esd 3–14 (c. AD 100) · tier B ·" in ezra
     assert "**Latin:** Latina septem 36." in ezra
     assert "License: Latin text: CC BY-SA 4.0; English translation: Public domain." in ezra
+    # The CC BY-SA Latin transcription is credited by URL in Sources.
+    assert f"Latin Wikisource revision {pseudepigrapha.LATIN_REVISION} ({pseudepigrapha.LATIN_URL})" in ezra
     assert esdras.split("\n", 1)[1] == ezra.split("\n", 1)[1]
     assert fragment.startswith("No passage covers 4 Ezra 7:36")
+    for reply in (fragment, christian, chapter_one):
+        assert "2 Esdras 1–2 and 15–16, the later Christian additions (5 and 6 Ezra), are excluded" in reply
+        assert "lack 4 Ezra 7:36–105 (the 'missing fragment'" in reply
+    assert christian.startswith("No passage covers 4 Ezra 15:1")
+    assert "1 Enoch" not in christian.split("\n", 1)[0].split(".")[0]
 
 
 @pytest.mark.asyncio

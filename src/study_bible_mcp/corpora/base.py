@@ -113,6 +113,9 @@ class Work:
     collection: Collection | None = None
     # Overrides the corpus's tag (see ``Corpus.tag``) for this work.
     tag: SourceTag | None = None
+    # Printed when a citation falls outside the imported passages: what the
+    # edition omits ('2 Esdras 1–2 and 15–16 are excluded').
+    coverage_note: str = ""
 
     @property
     def names(self) -> tuple[str, ...]:
