@@ -75,9 +75,12 @@ if [[ "$remote_size" != "$local_size" || "$remote_sha" != "$local_sha" ]]; then
     exit 1
 fi
 
-# 6. Atomic swap (same filesystem rename)
+# 6. Atomic swap (same filesystem rename). The database runs in WAL mode: an
+#    old -wal/-shm left beside the new file would be replayed onto it at the
+#    next open and corrupt it, so remove them in the same step. The running
+#    server keeps its handles on the old inode until the restart.
 echo "Replacing live DB..."
-remote "mv ${REMOTE_NEW} ${REMOTE_PATH}"
+remote "mv ${REMOTE_NEW} ${REMOTE_PATH} && rm -f ${REMOTE_PATH}-wal ${REMOTE_PATH}-shm"
 
 # 7. Restart
 echo "Restarting app..."

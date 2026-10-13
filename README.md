@@ -216,11 +216,28 @@ there with a note naming the verse to continue from.
   warning, a difference summary, and Brenton's Greek as the text his English
   translates. Deuteronomy 32:43, for example, reports "word order differs (υἱοὶ
   ἄγγελοι)", and Psalm 40:6 reports "Brenton's Greek reads σῶμα for ὠτία".
-  Differing verse divisions do not count as differences. About 38% of the
-  28,314 rows with Brenton's English are flagged. Unflagged rows (Sirach 17:17,
-  where the English adds words his Greek lacks) can still differ, because a
-  Greek-to-Greek comparison cannot see where his English departs from his own
-  Greek.
+  Differing verse divisions do not count as differences. 8,914 of the 23,684
+  rows with Brenton's own English (38%) are flagged. Unflagged rows can still
+  differ, because a Greek-to-Greek comparison cannot see where his English
+  departs from his own Greek.
+- **Most Apocrypha English is the KJV, not Brenton's translation.** For 1
+  Esdras, 1–2 Maccabees, Baruch, Bel, Judith, the Letter of Jeremiah, Sirach,
+  Susanna, Tobit, Wisdom, and Daniel 3:24–90 (the Prayer of Azariah and Song of
+  the Three), Brenton's edition prints the KJV (Authorized Version) Apocrypha,
+  lightly adapted by Brenton (verse-by-verse similarity to the KJV is 92–100%,
+  against 24–49% for his own Hebrew-canon translations). The KJV was translated
+  from other Greek texts, so it can contain words neither the Rahlfs nor
+  Brenton's Greek has: Sirach 17:17 adds "in the division of the nations of the
+  whole earth". These 4,630 rows label the English "KJV Apocrypha", are named in
+  the Sources block with one closing note, and are not compared with Brenton's
+  Greek. Greek Esther and 3–4 Maccabees are Brenton's own translation.
+- **Apocrypha rows are marked.** Rows outside the 66-book Protestant canon (the
+  Septuagint-only books, the Greek additions to Esther, Daniel 3:24–90, Psalm
+  151, and Odes 7–8, 12 and 14) end their header with "(Apocrypha)", and the
+  closing block adds one line saying they are not in the Protestant canon (cf.
+  Westminster Confession 1.3). Other Septuagint pluses in canonical books
+  (3 Kingdoms 2:35a–o, Proverbs 9:12a–c, ...) are textual variants and are not
+  marked.
 - **LXX-only verses** (pluses such as the Prayer of Azariah, Psalm 151, and the
   Septuagint-only books) have no canonical MT position, so they never appear as
   the counterpart of a different MT verse. Request them with `numbering="lxx"`; a
@@ -699,6 +716,16 @@ variants. `lookup_verse` mentions when a verse has a catalogued variant case or
 interpretation notes. On a database that still has the legacy
 variant schema, the tool asks you to run `python scripts/upgrade_database.py`.
 
+### Further Research
+
+#### `list_research_sources`
+
+List curated, freely accessible research repositories to consult before a general web search: primary-text libraries (Sefaria, CCEL, Perseus, the Internet Archive), open-access journals (Tyndale Bulletin, Themelios, the Journal of Hebrew Scriptures, HTS), Dead Sea Scrolls and Septuagint resources, and Heiser's own sites. Each entry states its coverage, perspective (Jewish, Catholic, Reformed, evangelical, academic/critical, multi-tradition, single-author) and access or licence terms. Filter by `topic` (coverage tag or name, matched loosely) and `perspective`; pass `query` to get a ready-to-open search link for every source that supports one. The list is a set of places to look, not endorsements.
+
+The catalogue lives in [`src/study_bible_mcp/research_sources.json`](src/study_bible_mcp/research_sources.json). It is a directory of repositories, not a per-passage or per-scholar index.
+
+**Checking links.** `python scripts/check_links.py` fetches, over the network, every catalogue URL, every search template filled with a sample query, and (when `db/study_bible.db` or `--db` is present) every distinct `theology_content.url` in the database. It makes about 100 requests to third-party sites, so run it occasionally rather than in CI. Checks run with bounded concurrency and a 20-second timeout; a link that times out is retried once with a 60-second limit, because some hosts are slow rather than dead. Any link answering with status 400 or above, or failing at the network level, is reported as `BROKEN` with where it came from; one that still times out after the retry is reported as `TIMEOUT`. Either makes the run exit non-zero. Hosts known to be slow but working are listed in `LINK_CHECK_SLOW_HOSTS` in the script (currently `drmsh.com`, which has taken 31-57 seconds to answer): their retry gets a 180-second limit, and a timeout that still persists is reported as `SLOW`, a warning that does not fail the run. A real error status from those hosts still does. Some sites refuse `HEAD` requests, so the checker falls back to `GET`. Some answer every automated client with a bot challenge; only for those, an entry may set `"link_check": "skip"` with a `"link_check_reason"`, and the checker lists it as skipped rather than checking it. Verify skipped entries by hand when updating `last_verified`.
+
 ---
 
 ## How Users Interact
@@ -1009,6 +1036,7 @@ studybible-mcp/
 │   ├── server.py              # MCP server (stdio, SSE, and Streamable HTTP)
 │   ├── database.py            # SQLite queries (async)
 │   ├── tools.py               # MCP tool definitions and output formatters
+│   ├── research_sources.json  # Curated open research repositories (list_research_sources)
 │   ├── hermeneutics.py        # Genre detection & interpretation
 │   ├── corpora/               # Ancient-source corpus registry
 │   │   ├── __init__.py        # CORPORA registry (one line per corpus)
@@ -1036,7 +1064,8 @@ studybible-mcp/
 │   ├── generate_embeddings.py # Generate vector embeddings
 │   ├── import_theographic.py  # Import Theographic graph data
 │   ├── upgrade_database.py    # In-place schema/source upgrade of an existing DB
-│   └── smoke_server.py        # Full-database manual smoke suite
+│   ├── smoke_server.py        # Full-database smoke suite
+│   └── check_links.py         # Checks research-source and theology URLs (network)
 ├── tests/                     # Deterministic unit and tool-selection tests
 ├── prompts/
 │   └── system_prompt.md       # Full hermeneutical framework for agents

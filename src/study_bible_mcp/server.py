@@ -51,6 +51,8 @@ from .tools import (
     format_ane_context, format_ane_dimensions,
     format_theology_context, format_theology_themes,
     format_torah_weave,
+    RESEARCH_SOURCES_DEFAULT_LIMIT, RESEARCH_SOURCES_MAX_LIMIT,
+    find_research_sources, format_research_sources,
 )
 from .hermeneutics import (
     get_genre,
@@ -1664,6 +1666,21 @@ async def handle_get_textual_variant(args: dict[str, Any]) -> list[TextContent]:
     return text(format_textual_variant_cases(reference, cases, hints))
 
 
+async def handle_list_research_sources(args: dict[str, Any]) -> list[TextContent]:
+    """Handle list_research_sources tool — curated open repositories to consult."""
+    topic = (args.get("topic") or "").strip() or None
+    query = (args.get("query") or "").strip() or None
+    perspective = (args.get("perspective") or "").strip() or None
+    limit = args.get("limit") or RESEARCH_SOURCES_DEFAULT_LIMIT
+    limit = max(1, min(int(limit), RESEARCH_SOURCES_MAX_LIMIT))
+
+    matches = find_research_sources(topic=topic, perspective=perspective)
+    return text(format_research_sources(
+        matches[:limit], total=len(matches), topic=topic, query=query, perspective=perspective,
+    ))
+
+
+
 _TOOL_HANDLERS = {
     "word_study": handle_word_study,
     "lookup_verse": handle_lookup_verse,
@@ -1689,6 +1706,7 @@ _TOOL_HANDLERS = {
     "get_theology_context": handle_get_theology_context,
     "get_torah_weave": handle_get_torah_weave,
     "get_textual_variant": handle_get_textual_variant,
+    "list_research_sources": handle_list_research_sources,
 }
 
 

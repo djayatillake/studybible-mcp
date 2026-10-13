@@ -28,12 +28,15 @@ emitted as a Mermaid code block within that text.
 import json
 import re
 import unicodedata
+from functools import lru_cache
+from pathlib import Path
+from urllib.parse import quote_plus
 
 from mcp.types import Tool, ToolAnnotations
 
 from .corpora import CORPORA, LINK_RELATIONS, TIERS, all_periods
 from .database import HEBREW_PREFIX_LETTERS, format_biblical_range, strip_editorial_signs
-from .parsers.biblical_versions import VERSE_MAPPING_CREDIT
+from .parsers.biblical_versions import APOCRYPHA_PLURAL_NAMES, VERSE_MAPPING_CREDIT
 
 
 def _parse_json_field(value, default=None):
@@ -54,6 +57,9 @@ def _truncate(text: str, limit: int, suffix: str = "\n\n*[Truncated]*") -> str:
         return text
     return text[:limit] + suffix
 
+
+RESEARCH_SOURCES_DEFAULT_LIMIT = 4
+RESEARCH_SOURCES_MAX_LIMIT = 10
 
 # lookup_ancient_source: passages per citation (default and maximum), excerpt
 # caps per passage, and the whole response's budget (context economy).
@@ -163,7 +169,7 @@ form, is needed.""",
         ),
         description="""Compare the Masoretic Text (MT) and Septuagint (LXX) side by side for an Old Testament or Septuagint verse, range, or chapter. Not for the New Testament. Returns at most ten verses per call and names the verse to continue from.
 
-Rows are grouped by canonical MT/English reference and keep each edition's own reference, so Hebrew/Greek versification differences stay explicit (Psalm 82:6 = Greek Psa.81.6). MT: Westminster Leningrad Codex with STEPBible word glosses (not a translation). LXX: Rahlfs, with Brenton's English only where Brenton translated the same recension. Brenton translated his own Greek, not Rahlfs: where it differs the row warns and shows his Greek, and his English should be quoted as a rendering of that text. LXX-only verses (e.g. the Prayer of Azariah) need numbering='lxx'. Sources, licences, and the TVTMS verse-mapping credit are listed once at the end.""",
+Rows are grouped by canonical MT/English reference and keep each edition's own reference, so Hebrew/Greek versification differences stay explicit (Psalm 82:6 = Greek Psa.81.6). MT: Westminster Leningrad Codex with STEPBible word glosses (not a translation). LXX: Rahlfs, with Brenton's English only where Brenton translated the same recension. Brenton translated his own Greek, not Rahlfs: where it differs the row warns and shows his Greek, and his English should be quoted as a rendering of that text; most Apocrypha rows carry the KJV Apocrypha instead. LXX-only verses (e.g. the Prayer of Azariah) need numbering='lxx'. Sources, licences, and the TVTMS verse-mapping credit are listed once at the end.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -784,7 +790,7 @@ Returns combined commentary from:
 Relevant for published commentary on a specific verse, difficult passages,
 translation and cultural background, and chapter-level overviews of themes and
 context. The content is published scholarship, quoted as-is with source
-attribution.""",
+attribution. For journal articles, see `list_research_sources`.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -967,7 +973,8 @@ Coverage by topic, with the author and theme keys that hold it:
 
 Each entry includes a Source URL when the source is freely available online: Owen's public-domain text (CCEL chapter pages; Monergism volume PDFs for the Exposition of Hebrews), Heiser's papers and Naked Bible podcast transcripts, and Burnett's article series. Stott, Lennox, and Bradley entries have no URL.
 
-Query by verse reference, theme key, and/or author.""",
+Query by verse reference, theme key, and/or author. For other authors, see
+`list_research_sources`.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -1071,6 +1078,32 @@ alignment.""",
             "required": ["reference"]
         }
     ),
+    Tool(
+        name="list_research_sources",
+        annotations=ToolAnnotations(title="Research Sources", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
+        description="""Find free, reliable places to look for scholarly articles, primary texts, and commentary beyond this server's data, before a general web search: open journals, digital libraries, and text archives covering other authors and traditions, church fathers, rabbinic texts, Dead Sea Scrolls, Septuagint studies, and public-domain books. Each listing gives coverage, perspective, and access terms; with a `query`, sources that support it get a ready-to-open search link. Places to look, not endorsements.""",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "topic": {
+                    "type": "string",
+                    "description": "Coverage tag or source name, matched loosely (e.g. 'rabbinic', 'church fathers', 'dead sea scrolls', 'septuagint')"
+                },
+                "query": {
+                    "type": "string",
+                    "description": "Search terms for each source's search link (e.g. 'Psalm 82')"
+                },
+                "perspective": {
+                    "type": "string",
+                    "description": "Jewish, Catholic, Reformed, evangelical, academic, multi-tradition, or single-author"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": f"Maximum sources to return. Default: {RESEARCH_SOURCES_DEFAULT_LIMIT}"
+                }
+            }
+        }
+    ),
 ]
 
 
@@ -1153,6 +1186,135 @@ def format_theology_themes(themes: list[dict]) -> str:
         lines.append(f"**Entries**: {count}")
         lines.append("")
 
+    return "\n".join(lines)
+
+
+# =========================================================================
+# Research sources — curated open repositories (research_sources.json)
+# =========================================================================
+
+RESEARCH_SOURCES_PATH = Path(__file__).with_name("research_sources.json")
+
+# Topic words an agent is likely to use that differ from the catalogue's tags.
+_TOPIC_ALIASES = {
+    "dss": "dead sea scrolls",
+    "qumran": "dead sea scrolls",
+    "lxx": "septuagint",
+    "patristic": "church fathers",
+    "patristics": "church fathers",
+    "talmud": "rabbinic",
+    "midrash": "rabbinic",
+    "mishnah": "rabbinic",
+    "old testament": "hebrew bible",
+    "tanakh": "hebrew bible",
+    "pseudepigrapha": "second temple",
+    "journal": "biblical studies articles",
+    "journals": "biblical studies articles",
+    "articles": "biblical studies articles",
+    "ane": "ancient near east",
+    "manuscripts": "textual criticism",
+}
+
+_RESEARCH_DISCLAIMER = (
+    "*These are places to look, not endorsements. Each source is listed for what it "
+    "holds, with its perspective stated so it can be weighed; check claims against "
+    "the primary texts.*"
+)
+
+
+@lru_cache(maxsize=1)
+def load_research_sources() -> tuple[dict, ...]:
+    """Load the curated research-source catalogue shipped with the package."""
+    with RESEARCH_SOURCES_PATH.open(encoding="utf-8") as f:
+        return tuple(json.load(f))
+
+
+def research_search_url(source: dict, query: str) -> str | None:
+    """Fill a source's search template with the URL-encoded query, if it has one."""
+    template = source.get("search_url_template")
+    if not template:
+        return None
+    return template.replace("{query}", quote_plus(query.strip()))
+
+
+def _normalise_topic(text: str) -> str:
+    return " ".join(re.sub(r"[^a-z0-9\s]", " ", text.lower()).split())
+
+
+def _topic_score(source: dict, topic: str) -> int:
+    """2 = topic names a coverage tag or the source; 1 = every topic word appears; 0 = no match."""
+    tags = [tag.lower() for tag in source["coverage"]]
+    names = _normalise_topic(f"{source['name']} {source['key'].replace('_', ' ')}")
+    wanted = {topic} | {
+        tag for phrase, tag in _TOPIC_ALIASES.items() if re.search(rf"\b{re.escape(phrase)}\b", topic)
+    }
+    for phrase in wanted:
+        if any(phrase in tag or tag in phrase for tag in tags) or phrase in names:
+            return 2
+    haystack = " ".join(tags) + " " + names
+    words = [word for word in topic.split() if len(word) > 2]
+    if words and all(word in haystack for word in words):
+        return 1
+    return 0
+
+
+def find_research_sources(topic: str | None = None, perspective: str | None = None) -> list[dict]:
+    """Filter the catalogue by perspective and loosely by topic, strongest topic matches first."""
+    sources = list(load_research_sources())
+    if perspective and perspective.strip():
+        wanted = perspective.strip().lower()
+        sources = [s for s in sources if wanted in s["perspective"].lower()]
+    normalised = _normalise_topic(topic or "")
+    if normalised:
+        scored = [(_topic_score(s, normalised), s) for s in sources]
+        scored = [pair for pair in scored if pair[0]]
+        scored.sort(key=lambda pair: -pair[0])  # stable: catalogue order within a score
+        sources = [s for _, s in scored]
+    return sources
+
+
+def format_research_sources(
+    sources: list[dict],
+    total: int,
+    topic: str | None = None,
+    query: str | None = None,
+    perspective: str | None = None,
+) -> str:
+    """Format catalogue entries, with a search link per source when a query is given."""
+    filters = [f"{label}: {value}" for label, value in (
+        ("topic", topic), ("perspective", perspective), ("query", query)) if value]
+    header = "## Research Sources"
+    if filters:
+        header += " (" + "; ".join(filters) + ")"
+    lines = [header, "", _RESEARCH_DISCLAIMER, ""]
+
+    if not sources:
+        catalogue = load_research_sources()
+        perspectives = sorted({s["perspective"] for s in catalogue})
+        tags = sorted({tag for s in catalogue for tag in s["coverage"]})
+        lines.append("No sources match these filters.")
+        lines.append(f"- Perspectives: {', '.join(perspectives)}")
+        lines.append(f"- Coverage tags: {', '.join(tags)}")
+        return "\n".join(lines)
+
+    shown = f"Showing {len(sources)} of {total} matching sources." if total > len(sources) else f"{total} matching sources."
+    lines.extend([shown, ""])
+    for source in sources:
+        lines.append(f"### {source['name']}")
+        lines.append(source["url"])
+        lines.append(source["description"])
+        lines.append(f"- **Coverage**: {', '.join(source['coverage'])}")
+        lines.append(f"- **Perspective**: {source['perspective']}")
+        lines.append(f"- **Access**: {source['access']}")
+        if query:
+            link = research_search_url(source, query)
+            if link:
+                lines.append(f"- **Search**: {link}")
+            else:
+                lines.append("- **Search**: no linkable search; browse or use the site's own search")
+        lines.append("")
+    # The oldest date is the one a reader can rely on for every listing shown.
+    lines.append(f"*Listings verified on or after {min(s['last_verified'] for s in sources)}.*")
     return "\n".join(lines)
 
 
@@ -1333,8 +1495,9 @@ def format_biblical_version_comparison(
     Rows sharing a canonical (MT/English) reference are grouped under one
     header; LXX-only rows (no canonical reference) are grouped by their
     edition reference. Each row names its version, edition, and edition
-    reference; licence, source, translation label, verse-mapping credit, and
-    the Brenton caveat appear once in a closing Sources block.
+    reference; licence, source, translation labels, verse-mapping credit, the
+    Brenton and KJV Apocrypha caveats, and the canon note for Apocrypha rows
+    (marked "(Apocrypha)") appear once in a closing Sources block.
     """
     title = f"## Biblical Version Comparison: {reference}"
     if numbering == "lxx":
@@ -1344,7 +1507,10 @@ def format_biblical_version_comparison(
         lines.extend([f"*{note}*", ""])
     current_group: str | None = None
     sources: dict[tuple[str, str], dict] = {}
+    english_labels: dict[tuple[str, str], dict[str, None]] = {}
+    apocrypha: dict[str, None] = {}
     brenton_note = ""
+    kjv_note = ""
     brenton_greek_url = ""
     for row in rows:
         canonical = row.get("canonical_reference")
@@ -1352,11 +1518,18 @@ def format_biblical_version_comparison(
         if group != current_group:
             current_group = group
             lines.extend([f"### {group}", ""])
-        sources.setdefault((row["version"], row["edition"]), row)
+        edition_key = (row["version"], row["edition"])
+        sources.setdefault(edition_key, row)
+        labels = english_labels.setdefault(edition_key, {})
+        if row.get("translation") and row.get("translation_label"):
+            labels[row["translation_label"]] = None
 
         header = f"#### {row['version']} {row['edition']} · {row['edition_reference']}"
         if row.get("mapping_method") and row["mapping_method"] != "identity":
             header += f" (mapping: {row['mapping_method']})"
+        if row.get("apocrypha"):
+            header += " (Apocrypha)"
+            apocrypha[row["apocrypha"]] = None
         lines.append(header)
         if include_original:
             lines.append(f"**{row['language']}:** {row['text']}")
@@ -1370,12 +1543,17 @@ def format_biblical_version_comparison(
                 lines.append(
                     f"**Brenton's Greek (the text his English translates):** {row['brenton_greek']}"
                 )
-        label = _SHORT_ENGLISH_LABELS.get(row["version"]) or row.get("translation_label") or "English"
+        if row.get("kjv_apocrypha"):
+            label = "KJV Apocrypha"
+        else:
+            label = _SHORT_ENGLISH_LABELS.get(row["version"]) or row.get("translation_label") or "English"
         if row.get("translation"):
             lines.append(f"**English ({label}):** {row['translation']}")
         else:
             lines.append("**English:** not available for this edition.")
-        if row.get("translation_note"):
+        if row.get("kjv_apocrypha"):
+            kjv_note = row["translation_note"]
+        elif row.get("translation_note"):
             brenton_note = row["translation_note"]
             if "brenton_greek_differs" in row and row["brenton_greek_differs"] is None:
                 lines.append("*Brenton's Greek for this verse is unavailable, so it was not compared.*")
@@ -1396,7 +1574,7 @@ def format_biblical_version_comparison(
 
     lines.extend(["---", "**Sources**"])
     for (version, edition), row in sources.items():
-        english = row.get("translation_label") or "none"
+        english = "; ".join(english_labels[(version, edition)]) or "none"
         lines.append(
             f"- {version} {edition} ({row['language']}): {row['license']}. "
             f"English: {english}. {row['source_url']}"
@@ -1404,8 +1582,18 @@ def format_biblical_version_comparison(
     if brenton_greek_url:
         lines.append(f"- Brenton's Greek: public domain. {brenton_greek_url}")
     lines.append(f"- Verse mapping: {VERSE_MAPPING_CREDIT}")
+    if apocrypha:
+        names = list(apocrypha)
+        listed = names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}"
+        verb = "are" if len(names) > 1 or names[0] in APOCRYPHA_PLURAL_NAMES else "is"
+        lines.append(
+            f"\n*Apocrypha: {listed} {verb} not in the Protestant canon "
+            "(cf. Westminster Confession 1.3); background only.*"
+        )
     if brenton_note:
         lines.append(f"\n*Brenton's English: {brenton_note}*")
+    if kjv_note:
+        lines.append(f"\n*KJV Apocrypha English: {kjv_note}*")
     return "\n".join(lines).rstrip()
 
 

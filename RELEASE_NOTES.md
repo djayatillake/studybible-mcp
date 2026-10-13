@@ -220,6 +220,41 @@
 
 ---
 
+## Research Sources Catalogue & Link Checker
+
+### New Tool
+
+**`list_research_sources`** lists 37 freely accessible research
+repositories that an agent can consult before a general web search,
+which mostly surfaces blogs and advocacy sites. The catalogue covers
+primary-text libraries, open-access journals, Dead Sea Scrolls and
+Septuagint resources, patristic and Reformation texts, and Heiser's own
+sites. Each entry records its coverage, perspective and access or
+licence terms, and the date it was last verified. The tool filters by
+`topic` (loosely, against coverage tags and names) and by
+`perspective`. With `query`, it adds a URL-encoded search link for
+every source that supports one. The output states that these are
+places to look, not endorsements.
+
+`get_theology_context` and `get_study_notes` now point to the new tool
+for perspectives, journals and primary texts that they do not cover.
+
+### Link Checker
+
+`scripts/check_links.py` checks, over the network, every catalogue URL,
+every search template filled with a sample query, and (when the database
+is present) every distinct `theology_content.url`. It falls back from `HEAD` to
+`GET`, reports broken links (status 400 or above, or a network error)
+with their origin, and exits non-zero when any link is broken. A
+timed-out link is retried once with a 60-second limit and reported as
+`TIMEOUT` if it persists. Hosts known to be slow but working
+(`drmsh.com`, 31-57 s) get a 180-second retry, and a persistent timeout
+there is reported as `SLOW`, a warning that does not fail the run. Sites
+that block automated clients carry an explicit `link_check: "skip"`
+with a reason.
+
+---
+
 ## Textual evidence and interpretation separation
 
 - Replaced the mixed textual-variant record with independent tables and output
@@ -313,11 +348,23 @@
   sequences still differ get a warning, a summary (word order, substitutions,
   additions, omissions), and Brenton's Greek labelled as the text his English
   translates: Deuteronomy 32:43 reports "word order differs (υἱοὶ ἄγγελοι)" and
-  Psalm 40:6 "Brenton's Greek reads σῶμα for ὠτία". Psalm 82:6 and Sirach 17:17
-  agree and show only the note.
-- 10,756 of the 28,314 rows with Brenton's English (38%) are flagged. Brenton's
-  Greek and the summary are stored only on flagged rows, which adds about 5 MB to
-  the database. Existing comparison tables gain the new columns on re-import.
+  Psalm 40:6 "Brenton's Greek reads σῶμα for ὠτία". Psalm 82:6 agrees and shows
+  only the note.
+- For eleven Apocrypha books (1 Esdras, 1–2 Maccabees, Baruch, Bel, Judith,
+  Letter of Jeremiah, Sirach, Susanna, Tobit, Wisdom) and Daniel 3:24–90,
+  Brenton's edition prints the KJV (Authorized Version) Apocrypha, lightly
+  adapted, rather than his own translation; the KJV was translated from other
+  Greek texts (Sirach 17:17 adds "in the division of the nations of the whole
+  earth"). Those rows label the English "KJV Apocrypha", with one closing note,
+  and are not compared with Brenton's Greek, which is not what they translate.
+- Rows outside the Protestant canon (Septuagint-only books, the Greek additions
+  to Esther, Daniel 3:24–90, Psalm 151, Odes 7–8, 12 and 14) are marked
+  "(Apocrypha)", with one closing line that they are not in the Protestant
+  canon (cf. Westminster Confession 1.3).
+- 8,914 of the 23,684 rows with Brenton's own English (38%) are flagged; the
+  4,630 KJV Apocrypha rows are not compared. Brenton's Greek and the summary
+  are stored only on flagged rows, which adds about 5 MB to the database.
+  Existing comparison tables gain the new columns on re-import.
 
 ---
 

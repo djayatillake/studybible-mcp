@@ -99,6 +99,13 @@ fly ssh console -a studybible-mcp -C "python -c \"import base64,zlib;exec(zlib.d
 
 4. Check the live endpoint (Step 5).
 
+The database runs in WAL mode and the server keeps it open, so a patch's changes
+stay in `/data/study_bible.db-wal` until SQLite checkpoints them. Anything that
+copies or replaces the raw `/data/study_bible.db` must allow for that: the
+Step 1 download serves the file without the WAL's changes, and replacing the file
+while a stale `-wal`/`-shm` remains beside it corrupts the new file at its next
+open (Step 4b removes them in the same step as the swap).
+
 ## Step 4b: Upload the Whole Database
 
 Use this when the change is too large to patch, e.g. after
@@ -127,8 +134,10 @@ fly ssh console -a studybible-mcp -C "sh -c 'gzip -dc /data/study_bible.db.new.g
 fly ssh console -a studybible-mcp -C "ls -l /data/study_bible.db.new"
 fly ssh console -a studybible-mcp -C "sha256sum /data/study_bible.db.new"
 
-# 6. Atomically replace the live DB (same filesystem, so mv is a rename)
-fly ssh console -a studybible-mcp -C "mv /data/study_bible.db.new /data/study_bible.db"
+# 6. Atomically replace the live DB (same filesystem, so mv is a rename) and
+#    remove the old WAL files: the DB runs in WAL mode, and a stale -wal left
+#    beside the new file is replayed onto it at the next open, corrupting it.
+fly ssh console -a studybible-mcp -C "sh -c 'mv /data/study_bible.db.new /data/study_bible.db && rm -f /data/study_bible.db-wal /data/study_bible.db-shm'"
 
 # 7. Restart app to pick up new DB (frees the old file's space)
 fly apps restart studybible-mcp
@@ -143,9 +152,10 @@ step 3; the live database is untouched.
 ### If the volume is too small
 
 The upgraded database (~750MB) plus the live one (~680MB) and the compressed
-upload (~300MB) need about 1.75GB, so the default 1GB volume is too small for
-this upgrade. If `df` shows less free space than the
-compressed plus uncompressed sizes, the volume has to be extended first.
+upload (~300MB) need about 1.75GB. The `studybible_data` volume is 2GB (check
+with `fly volumes list -a studybible-mcp`), which fits with little margin. If
+`df` shows less free space than the compressed plus uncompressed sizes, the
+volume has to be extended first.
 
 **Get the user's explicit go-ahead before extending.** It cannot be undone
 (volumes grow but never shrink), it adds to the monthly bill, and the machine

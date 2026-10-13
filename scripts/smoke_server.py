@@ -6,6 +6,8 @@ skipped is decided before calling it, from the row counts of the tables it
 needs; a tool whose data is present must then return a real result. Handler
 errors, empty or no-match results with data present, and registry drift fail
 the run.
+
+External links are checked separately by scripts/check_links.py.
 """
 
 from __future__ import annotations
@@ -15,6 +17,7 @@ import asyncio
 import re
 import sys
 from pathlib import Path
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -75,6 +78,8 @@ TOOL_CASES: dict[str, tuple[dict, tuple[str, ...]]] = {
         {"reference": "Deuteronomy 32:8"},
         ("textual_variant_cases",),
     ),
+    # The catalogue ships with the package, so no table is required.
+    "list_research_sources": ({"topic": "rabbinic", "query": "Psalm 82"}, ()),
 }
 
 # Ancient-source tools run once per registered corpus, each skipped unless that
@@ -163,7 +168,9 @@ async def run(db_path: Path) -> bool:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument(
         "--db",
         type=Path,

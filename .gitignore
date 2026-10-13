@@ -45,8 +45,10 @@ data/aquifer/
 data/acai/
 data/cross_references/
 data/dss/
-data/lxx/
-data/ancient_sources/
+# No trailing slash, so the patterns also match a symlinked data directory
+# (as in git worktrees); "data/lxx/" would match only a real directory.
+data/lxx
+data/ancient_sources
 
 # Database (built from data, not committed)
 db/*.db
