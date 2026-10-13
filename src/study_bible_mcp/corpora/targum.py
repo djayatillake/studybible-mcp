@@ -1,10 +1,16 @@
-"""Targum corpus: Targum Onkelos on the Torah, one passage per Masoretic verse.
+"""Targum corpus: Targum Onkelos on the Torah, one passage per verse.
 
 Aramaic: the Torat Emet text of Onkelos as exported by Sefaria. English: the
-Metsudah Chumash (2009, CC BY-NC), which renders the Hebrew text with Onkelos's
-departures in brackets and is labelled as such on every passage. All files come
-from Sefaria's archived export repository at one commit, verified by Git blob
-hash.
+Metsudah Chumash (2009, CC BY-NC), an English of the Hebrew Torah, not of the
+Aramaic: the words Metsudah marks as Onkelos's own renderings (bold or, in
+Genesis 12–17, italic brackets) are printed ⟨…⟩, and plain [ ] are Metsudah's
+supplements. All files come from Sefaria's archived export repository at one
+commit, verified by Git blob hash.
+
+Versification: Sefaria numbers Onkelos by the Hebrew (MT) verses. Passages,
+citations and links use the server's English (BSB/KJV) numbering, and the
+heading names the Hebrew number where it differs: 'Targum Onkelos Exodus 8:5
+(MT 8:1)'. So 'Onkelos Genesis 32:30' is the Peniel verse (MT 32:31).
 """
 
 from __future__ import annotations
@@ -44,7 +50,11 @@ AUTHOR = "Targum Onkelos"
 PERIOD_TAGS = "amoraic"
 TAG = SourceTag(
     kind="Jewish Aramaic Torah rendering", date="final form c. 3rd–5th c. AD, Babylonia",
-    tier="B", edition="Torat Emet Aramaic; Metsudah English of the Hebrew",
+    tier="B",
+    edition=(
+        "Torat Emet Aramaic; Metsudah: English of the Hebrew Torah; "
+        "⟨marked⟩ words are Onkelos's renderings"
+    ),
 )
 CAVEAT = (
     "Not Scripture: a Jewish Aramaic rendering of the Torah (final form c. 3rd–5th c. AD) "
@@ -65,8 +75,8 @@ BOOKS = {
 
 METSUDAH = (
     "Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos translation] — "
-    "English of the Hebrew text with Onkelos's renderings in [brackets]; not a "
-    "direct translation of the Aramaic"
+    "English of the Hebrew Torah, not a direct translation of the Aramaic; ⟨marked⟩ "
+    "words are Onkelos's renderings, [ ] Metsudah's own supplements"
 )
 
 
@@ -144,19 +154,106 @@ _ARAMAIC_TEXT_CORRECTIONS = {
 }
 
 _WHITESPACE = re.compile(r"\s+")
-_EMPHASIS_TAG = re.compile(r"</?(?:b|i)>")
+# Metsudah marks Onkelos's renderings as bold (in Genesis 12–17, italic)
+# bracket groups, '[<b>Glory of the</b>]'; plain brackets are its own English
+# supplements, '[a vision of]', and other italics are transliterated terms
+# ('<i>kohein</i>', and '[<i>shekolim</i>]' in Numbers 7).
+_ONKELOS_BOLD = re.compile(r"\[<b>(.*?)</b>\]")
+_ONKELOS_ITALIC = re.compile(r"\[<i>(.*?)</i>\]")
+_BOLD = re.compile(r"<b>(.*?)</b>")
+_ITALIC_TAG = re.compile(r"</?i>")
+# 'Chazak' closes Genesis, Leviticus and Numbers: a liturgical exclamation in
+# bold, neither Torah nor Onkelos.
+_CHAZAK = re.compile(r"\s*<b>Chazak</b>\s*$")
+_ITALIC_ONKELOS_CHAPTERS = {("Genesis", chapter) for chapter in range(12, 18)}
+ONKELOS_OPEN, ONKELOS_CLOSE = "⟨", "⟩"
 
 
 def _normalize(text: str) -> str:
     return _WHITESPACE.sub(" ", text).strip()
 
 
-def clean_metsudah(text: str) -> str:
-    """Metsudah English without its bold/italic tags; bracketed Onkelos renderings stay."""
-    text = _normalize(html.unescape(_EMPHASIS_TAG.sub("", text)))
-    if re.search(r"[<>{}]", text):
+def _mark(match: re.Match) -> str:
+    return f"{ONKELOS_OPEN}{match.group(1).strip()}{ONKELOS_CLOSE}"
+
+
+def clean_metsudah(text: str, italic_marks_onkelos: bool = False) -> str:
+    """Metsudah English with Onkelos's renderings marked ⟨…⟩ and other emphasis dropped.
+
+    A bold group ('[<b>…</b>]', or bold text partly inside brackets such as
+    '[lit. <b>…</b>]') is Onkelos's rendering; so is an italic bracket group
+    where ``italic_marks_onkelos`` (Genesis 12–17). Any other markup, a
+    footnote asterisk, or unbalanced ⟨ ⟩ fails.
+    """
+    text = _CHAZAK.sub("", text)
+    text = _ONKELOS_BOLD.sub(_mark, text)
+    if italic_marks_onkelos:
+        text = _ONKELOS_ITALIC.sub(_mark, text)
+    text = _BOLD.sub(_mark, text)
+    text = _normalize(html.unescape(_ITALIC_TAG.sub("", text)))
+    if re.search(r"[<>{}*]", text):
         raise ValueError(f"Unexpected markup left in Metsudah text: {text[:80]!r}")
+    depth = 0
+    for char in text:
+        depth += {ONKELOS_OPEN: 1, ONKELOS_CLOSE: -1}.get(char, 0)
+        if depth not in (0, 1):
+            raise ValueError(f"Unbalanced Onkelos marks in Metsudah text: {text[:80]!r}")
+    if depth:
+        raise ValueError(f"Unbalanced Onkelos marks in Metsudah text: {text[:80]!r}")
     return text
+
+
+# --- Versification -----------------------------------------------------------
+#
+# Sefaria numbers Onkelos by the Hebrew (MT) verses; the server cites the
+# English (BSB/KJV) verses. Runs of MT verses that the English numbers
+# differently, as in TAHOT's verses table ('Exo.8.5(8.1)'): (book, MT chapter,
+# first and last MT verse, English chapter, English number of the first).
+MT_TO_ENGLISH = (
+    ("Genesis", 32, 1, 1, 31, 55),
+    ("Genesis", 32, 2, 33, 32, 1),
+    ("Exodus", 7, 26, 29, 8, 1),
+    ("Exodus", 8, 1, 28, 8, 5),
+    ("Exodus", 21, 37, 37, 22, 1),
+    ("Exodus", 22, 1, 30, 22, 2),
+    ("Leviticus", 5, 20, 26, 6, 1),
+    ("Leviticus", 6, 1, 23, 6, 8),
+    ("Numbers", 17, 1, 15, 16, 36),
+    ("Numbers", 17, 16, 28, 17, 1),
+    ("Numbers", 30, 1, 1, 29, 40),
+    ("Numbers", 30, 2, 17, 30, 1),
+    ("Deuteronomy", 13, 1, 1, 12, 32),
+    ("Deuteronomy", 13, 2, 19, 13, 1),
+    ("Deuteronomy", 23, 1, 1, 22, 30),
+    ("Deuteronomy", 23, 2, 26, 23, 1),
+    ("Deuteronomy", 28, 69, 69, 29, 1),
+    ("Deuteronomy", 29, 1, 28, 29, 2),
+)
+# Sefaria's Onkelos divides the Decalogue by the upper accents: one verse holds
+# the four short commandments (English Exod 20:13–16, Deut 5:17–20) and the
+# verses after it are numbered three lower than the English. Book: (chapter,
+# the joined verse, the chapter's verse count in that division).
+DECALOGUE = {"Exodus": (20, 13, 23), "Deuteronomy": (5, 17, 30)}
+# Sefaria's Onkelos Numbers 26:1 also holds 'after the plague', MT 25:19.
+_JOINED_MT = {("Numbers", 26, 1): "MT 25:19–26:1"}
+
+
+def english_verses(book: str, chapter: int, verse: int) -> tuple[int, int, int, str | None]:
+    """English (chapter, first verse, last verse) of a Sefaria Onkelos verse, and its own label.
+
+    The label ('MT 8:1', 'Sefaria 20:14') is None where the numbers agree.
+    """
+    for name, mt_chapter, first, last, english_chapter, english_first in MT_TO_ENGLISH:
+        if (name, mt_chapter) == (book, chapter) and first <= verse <= last:
+            english = english_first + verse - first
+            return english_chapter, english, english, f"MT {chapter}:{verse}"
+    if book in DECALOGUE and chapter == DECALOGUE[book][0]:
+        joined = DECALOGUE[book][1]
+        if verse == joined:
+            return chapter, verse, verse + 3, f"Sefaria {chapter}:{verse}"
+        if verse > joined:
+            return chapter, verse + 3, verse + 3, f"Sefaria {chapter}:{verse}"
+    return chapter, verse, verse, _JOINED_MT.get((book, chapter, verse))
 
 
 def _load(directory: Path, source: SourceFile) -> list[list[str]]:
@@ -202,30 +299,59 @@ def _aramaic_verses(book: str, chapters: list[list[str]]) -> dict[tuple[int, int
     return verses
 
 
-def _english_verses(book: str, directory: Path) -> dict[tuple[int, int], str]:
-    """Non-empty Metsudah English keyed by (chapter, verse)."""
+def _english_verses(book: str, chapters: list[list[str]]) -> dict[tuple[int, int], str]:
+    """Non-empty Metsudah English keyed by (chapter, verse), Onkelos's renderings marked."""
     return {
         (chapter_number, verse_number): text
-        for chapter_number, chapter in enumerate(_load(directory, _source(book, "metsudah")), 1)
+        for chapter_number, chapter in enumerate(chapters, 1)
         for verse_number, raw in enumerate(chapter, 1)
-        if (text := clean_metsudah(raw))
+        if (text := clean_metsudah(raw, (book, chapter_number) in _ITALIC_ONKELOS_CHAPTERS))
     }
 
 
+def _check_decalogue(book: str, source: SourceFile, chapters: list[list[str]]) -> None:
+    """Fail unless a Decalogue chapter present in the file has the upper-accent verse count."""
+    if book in DECALOGUE:
+        chapter, _, count = DECALOGUE[book]
+        if len(chapters) >= chapter and chapters[chapter - 1] and len(chapters[chapter - 1]) != count:
+            raise ValueError(
+                f"{source.filename}: expected the upper-accent Decalogue division "
+                f"({count} verses in chapter {chapter})"
+            )
+
+
 def parse_targum_book(directory: Path, book: str) -> list[dict]:
-    """One passage per verse with Aramaic or English; a verse with only one is single-language."""
+    """One passage per Sefaria verse, keyed and cited by the English verse(s) it covers.
+
+    A verse with only Aramaic or only English is single-language. The English
+    keys must rise through the book, so a renumbering that does not fit the
+    source fails the parse.
+    """
     work = WORKS[book]
-    aramaic_source = _source(book, "aramaic")
-    aramaic = _aramaic_verses(book, _load(directory, aramaic_source))
-    english = _english_verses(book, directory)
+    aramaic_source, english_source = _source(book, "aramaic"), _source(book, "metsudah")
+    aramaic_chapters = _load(directory, aramaic_source)
+    english_chapters = _load(directory, english_source)
+    _check_decalogue(book, aramaic_source, aramaic_chapters)
+    _check_decalogue(book, english_source, english_chapters)
+    aramaic = _aramaic_verses(book, aramaic_chapters)
+    english = _english_verses(book, english_chapters)
     rows: list[dict] = []
+    previous_end = 0
     for chapter, verse in sorted(aramaic.keys() | english.keys()):
+        english_chapter, first, last, label = english_verses(book, chapter, verse)
+        start = work.locator.key(english_chapter, first)
+        end = work.locator.key(english_chapter, last)
+        if start <= previous_end:
+            raise ValueError(f"onkelos {book} {chapter}:{verse}: English verses out of order")
+        previous_end = end
+        verses = f"{first}" if first == last else f"{first}–{last}"
         row = {
             "author": AUTHOR,
             "work_key": work.key,
-            "reference": f"{work.display_title} {chapter}:{verse}",
-            "sort_start": work.locator.key(chapter, verse),
-            "sort_end": work.locator.key(chapter, verse),
+            "reference": f"{work.display_title} {english_chapter}:{verses}",
+            "alternate_reference": label,
+            "sort_start": start,
+            "sort_end": end,
             "edition": (
                 f"Torat Emet Aramaic text (toratemetfreeware.com), Sefaria version "
                 f"'{aramaic_source.version_title}'"
@@ -257,21 +383,27 @@ _BOOK_BY_WORK = {work.key: book for book, work in WORKS.items()}
 
 
 def biblical_links(passages: list[dict]) -> list[BiblicalLink]:
-    """One link per passage to the Torah verse it translates, from its sort key."""
+    """One link per passage to the English Torah verse(s) it translates, from its sort keys.
+
+    The note names the Hebrew numbering where it differs, so the link prints
+    'Translation of: Exod 8:5 (MT 8:1)'.
+    """
     links = []
     for passage in passages:
         book = _BOOK_BY_WORK[passage["work_key"]]
         _, book_code, _ = BOOKS[book]
         chapter, verse = divmod(passage["sort_start"], 1000)
+        end_chapter, end_verse = divmod(passage["sort_end"], 1000)
+        label = passage.get("alternate_reference")
         links.append(BiblicalLink(
             work_key=passage["work_key"],
             locator=f"{chapter}:{verse}",
             book=book_code,
             chapter=chapter,
             verse=verse,
-            end_chapter=chapter,
-            end_verse=verse,
-            note="",
+            end_chapter=end_chapter,
+            end_verse=end_verse,
+            note=f"({label})" if label else "",
             relation="translation",
         ))
     return links
@@ -321,10 +453,11 @@ CORPUS = Corpus(
     label="Targum",
     summary=(
         "Targum Onkelos on the five books of the Torah (Torat Emet Aramaic via "
-        "Sefaria), one passage per Masoretic verse, cited by book and chapter:verse "
-        "('Onkelos Genesis 1:2', 'Tg. Onq. Deut 32:8'), each linked to the verse it "
-        "translates. English: the Metsudah Chumash (2009, CC BY-NC), an English of "
-        "the Hebrew text with Onkelos's renderings in brackets."
+        "Sefaria), one passage per verse, cited by book and chapter:verse in English "
+        "numbering with the Hebrew number shown where it differs ('Onkelos Exodus 8:5' "
+        "= MT 8:1; 'Tg. Onq. Deut 32:8'), each linked to the verse it translates. "
+        "English: the Metsudah Chumash (2009, CC BY-NC), an English of the Hebrew "
+        "Torah with Onkelos's renderings marked ⟨…⟩."
     ),
     data_dir="targum",
     original_language=ORIGINAL_LANGUAGE,

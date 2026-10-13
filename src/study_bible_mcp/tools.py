@@ -1410,7 +1410,11 @@ def format_biblical_version_comparison(
 
 
 def _format_ancient_biblical_link(link: dict) -> str:
-    """'Echo: Jude 14–15 — Related text: ...' (relation, biblical range, editorial note)."""
+    """'Echo: Jude 14–15 — Related text: ...' (relation, biblical range, editorial note).
+
+    A parenthesised note qualifies the reference itself: 'Translation of: Exod
+    8:5 (MT 8:1)'.
+    """
     start_chapter, start_verse = divmod(link["sort_start"], 1000)
     end_chapter, end_verse = divmod(link["sort_end"], 1000)
     reference = format_biblical_range(
@@ -1418,7 +1422,9 @@ def _format_ancient_biblical_link(link: dict) -> str:
     )
     relation = LINK_RELATIONS.get(link.get("relation") or "", "Link")
     note = link.get("relationship_note")
-    return f"{relation}: {reference}" + (f" — {note}" if note else "")
+    if not note:
+        return f"{relation}: {reference}"
+    return f"{relation}: {reference}" + (f" {note}" if note.startswith("(") else f" — {note}")
 
 
 def _format_ancient_note(note: dict, reference: str) -> str:
