@@ -1,361 +1,320 @@
-"""Import licensed ancient Jewish source texts into searchable passages."""
+"""Import registered ancient-source corpora into searchable, citable passages."""
 
 from __future__ import annotations
 
-import re
 import sqlite3
-import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Any
 
-from ..database import fold_ancient_search_text
-
-
-PERSEUS_COMMIT = "01b725d835e6e733062ffd79e0efdbae1ba06e5c"
-PERSEUS_BASE_URL = (
-    "https://github.com/PerseusDL/canonical-greekLit/blob/"
-    f"{PERSEUS_COMMIT}/data/tlg0526"
-)
-LICENSE = "CC BY-SA 4.0"
-
-WORKS = {
-    "tlg001": {
-        "key": "antiquities",
-        "title": "Jewish Antiquities",
-        "reference_title": "Antiquities",
-    },
-    "tlg002": {
-        "key": "life",
-        "title": "Life of Josephus",
-        "reference_title": "Life",
-    },
-    "tlg003": {
-        "key": "against_apion",
-        "title": "Against Apion",
-        "reference_title": "Against Apion",
-    },
-    "tlg004": {
-        "key": "jewish_war",
-        "title": "The Jewish War",
-        "reference_title": "War",
-    },
-}
-
-# Editorial links, intentionally separate from Josephus's text. These identify
-# direct narrative overlap, not literary dependence or historical agreement.
-# Each link targets one Niese section and is attached to the imported passage
-# whose section span contains it; import fails if any link does not resolve.
-# Fields: work_key, book, Niese section, biblical book, chapter, verse, end
-# chapter, end verse, note. The comment on each entry names what was verified
-# in the pinned Whiston text of the passage containing that Niese section.
-_BIBLICAL_LINKS = (
-    ("antiquities", 1, 27, "Gen", 1, 1, 1, 31, "Narrative overlap: creation"),  # "In the beginning God created"
-    ("antiquities", 1, 34, "Gen", 2, 4, 2, 25, "Narrative overlap: creation of humanity"),  # "God took dust from the ground"
-    ("antiquities", 1, 40, "Gen", 3, 1, 3, 24, "Narrative overlap: Eden and expulsion"),  # garden, serpent
-    ("antiquities", 1, 72, "Gen", 6, 1, 9, 29, "Narrative overlap: Noah and the flood"),  # "angels of God accompanied with women", Noah
-    ("antiquities", 2, 224, "Exo", 2, 1, 2, 10, "Narrative overlap: birth of Moses"),  # Thermuthis finds the cradle
-    ("antiquities", 2, 254, "Exo", 2, 11, 2, 22, "Narrative overlap: flight of Moses"),  # "he took his flight through the deserts"
-    ("antiquities", 2, 311, "Exo", 12, 1, 14, 31, "Narrative overlap: exodus from Egypt"),  # last plague, Passover sacrifice
-    ("antiquities", 3, 89, "Exo", 19, 1, 20, 26, "Narrative overlap: Sinai and the law"),  # God speaking at the mountain, two tables
-    ("antiquities", 15, 380, "Jhn", 2, 20, 2, 20, "Narrative overlap: Herod begins rebuilding the temple"),  # "eighteenth year ... to build ... the temple"
-    ("antiquities", 15, 391, "Mrk", 13, 1, 13, 2, "Narrative overlap: the stones of Herod's temple"),  # "stones that were white and strong"
-    ("antiquities", 15, 391, "Luk", 21, 5, 21, 6, "Narrative overlap: the stones and dedicated spoils of Herod's temple"),  # stones; spoils "dedicated to the temple"
-    ("antiquities", 17, 191, "Mat", 2, 19, 2, 19, "Narrative overlap: death of Herod the Great"),  # "he died, the fifth day after ... Antipater"
-    ("antiquities", 17, 317, "Mat", 2, 22, 2, 22, "Narrative overlap: Archelaus made ethnarch over Judea"),  # Archelaus ethnarch; Judea
-    ("antiquities", 18, 1, "Luk", 2, 1, 2, 2, "Narrative overlap: census under Cyrenius (Quirinius)"),  # Cyrenius, taxation
-    ("antiquities", 18, 4, "Act", 5, 37, 5, 37, "Narrative overlap: Judas the Gaulonite and the census"),  # "Judas, a Gaulonite"
-    ("antiquities", 18, 23, "Act", 5, 37, 5, 37, "Narrative overlap: Judas the Galilean"),  # "Judas the Galilean"
-    ("antiquities", 18, 35, "Luk", 3, 2, 3, 2, "Narrative overlap: Ananus deposed and Caiaphas made high priest"),  # Ananus, Joseph Caiaphas
-    ("antiquities", 18, 35, "Jhn", 18, 13, 18, 14, "Narrative overlap: Caiaphas made high priest"),  # Joseph Caiaphas
-    ("antiquities", 18, 63, "Luk", 23, 1, 23, 25, "Narrative overlap: Jesus condemned under Pilate (Testimonium Flavianum; disputed authenticity)"),  # Jesus, Pilate, cross
-    ("antiquities", 18, 95, "Jhn", 18, 13, 18, 14, "Narrative overlap: Caiaphas removed from the high priesthood"),  # Vitellius deprives Caiaphas
-    ("antiquities", 18, 116, "Mrk", 6, 17, 6, 29, "Related account: death of John the Baptist"),  # John "called the Baptist", Herod
-    ("antiquities", 19, 343, "Act", 12, 20, 12, 23, "Narrative overlap: death of Agrippa I at Caesarea"),  # Cesarea, acclaimed a god, five days
-    ("antiquities", 20, 97, "Act", 5, 36, 5, 36, "Narrative overlap: Theudas, under the procurator Fadus"),  # Theudas, Jordan
-    ("antiquities", 20, 141, "Act", 24, 24, 24, 24, "Narrative overlap: Felix and Drusilla"),  # Felix, Drusilla
-    ("antiquities", 20, 169, "Act", 21, 38, 21, 38, "Narrative overlap: the Egyptian prophet"),  # out of Egypt, Mount of Olives
-    ("antiquities", 20, 200, "Gal", 1, 19, 1, 19, "Narrative overlap: James, the brother of Jesus"),  # "the brother of Jesus ... James"
-    ("jewish_war", 2, 118, "Act", 5, 37, 5, 37, "Narrative overlap: Judas the Galilean"),  # "a certain Galilean, whose name was Judas"
-    ("jewish_war", 2, 261, "Act", 21, 38, 21, 38, "Narrative overlap: the Egyptian false prophet"),  # Egyptian, Mount of Olives
-    ("jewish_war", 6, 249, "Mrk", 13, 2, 13, 2, "Narrative overlap: burning of the temple"),  # holy house "doomed it to the fire"
-    ("jewish_war", 6, 249, "Luk", 21, 6, 21, 6, "Narrative overlap: burning of the temple"),
-    ("jewish_war", 6, 420, "Luk", 21, 20, 21, 24, "Narrative overlap: Jerusalem besieged and its people taken captive"),  # "shut up by an army", "carried captive"
-    ("jewish_war", 7, 1, "Mrk", 13, 2, 13, 2, "Narrative overlap: demolition of the city and temple"),  # "demolish the entire city and temple"
-    ("jewish_war", 7, 1, "Luk", 21, 6, 21, 6, "Narrative overlap: demolition of the city and temple"),
+from ..corpora import CORPORA, LINK_RELATIONS, Corpus, combined_license, resolve_citation
+from ..corpora import editorial_notes
+from ..corpora.editorial_notes import EditorialLink, EditorialNote, EditorialNotes
+from ..database import (
+    BOOK_ABBREV_MAP,
+    ancient_search_index_text,
+    ancient_search_prefix_variants,
 )
 
-# Whiston section 17.13.1 is labelled n="13" in the English TEI. The Greek
-# TEI's Whiston_chapter 13 milestone and the text itself (Archelaus deposes
-# Joazar, son of Boethus) place it at Niese 17.339.
-_ENGLISH_SECTION_CORRECTIONS = {("tlg001", 17, "13"): 339}
+_BOOK_CODES = frozenset(BOOK_ABBREV_MAP.values())
 
-_NS = {"tei": "http://www.tei-c.org/ns/1.0"}
-_TEI = "{http://www.tei-c.org/ns/1.0}"
-_SKIP_TEXT_ELEMENTS = {"note", "pb", "head"}
-
-
-def _local_name(tag: str) -> str:
-    return tag.rsplit("}", 1)[-1]
-
-
-def _source_text(element: ET.Element, skip: set[str] = _SKIP_TEXT_ELEMENTS) -> str:
-    """Return element text without editorial children, preserving TEI spacing."""
-    parts: list[str] = []
-
-    def visit(node: ET.Element) -> None:
-        if node.text:
-            parts.append(node.text)
-        for child in node:
-            if _local_name(child.tag) not in skip:
-                visit(child)
-            if child.tail:
-                parts.append(child.tail)
-
-    visit(element)
-    return re.sub(r"\s+", " ", "".join(parts)).strip()
-
-
-def _section_elements(root: ET.Element) -> list[tuple[int, ET.Element]]:
-    books = root.findall(".//tei:div[@subtype='book']", _NS)
-    if books:
-        sections: list[tuple[int, ET.Element]] = []
-        for book in books:
-            book_number = int(book.attrib["n"])
-            for section in book.findall(".//tei:div[@subtype='section']", _NS):
-                sections.append((book_number, section))
-        return sections
-    return [
-        (1, section)
-        for section in root.findall(".//tei:div[@subtype='section']", _NS)
-    ]
-
-
-def _period_tags(work_key: str, book_number: int) -> str:
-    if work_key == "antiquities":
-        if book_number <= 10:
-            return "biblical"
-        if book_number == 11:
-            return "biblical,second_temple,persian"
-        if book_number == 12:
-            return "second_temple,hellenistic,hasmonean"
-        if book_number == 13:
-            return "second_temple,hasmonean"
-        if book_number <= 17:
-            return "second_temple,herodian"
-        return "second_temple,herodian,roman"
-    if work_key == "jewish_war":
-        if book_number == 1:
-            return "second_temple,hasmonean,herodian"
-        return "second_temple,roman,first_jewish_revolt"
-    if work_key == "life":
-        return "second_temple,roman,first_jewish_revolt"
-    return "second_temple,roman"
-
-
-def _validate_license(root: ET.Element, path: Path) -> None:
-    targets = [node.attrib.get("target", "") for node in root.findall(".//tei:licence", _NS)]
-    if not any("creativecommons.org/licenses/by-sa/4.0" in target for target in targets):
-        raise ValueError(f"Expected CC BY-SA 4.0 license metadata in {path}")
-
-
-def _span_reference(title: str, book: int, start: int, end: int, has_books: bool) -> str:
-    sections = str(start) if end == start else f"{start}–{end}"
-    return f"{title} {book}.{sections}" if has_books else f"{title} {sections}"
-
-
-def _english_sections(work_id: str, root: ET.Element, has_books: bool) -> dict[int, list[dict]]:
-    """English Whiston sections per book, labelled with their starting Niese section."""
-    by_book: dict[int, list[dict]] = {}
-    chapter_by_book: dict[int, str] = {}
-    for book, section in _section_elements(root):
-        label = section.attrib["n"]
-        start = _ENGLISH_SECTION_CORRECTIONS.get((work_id, book, label), int(label))
-        whiston_section = None
-        for milestone in section.iter(f"{_TEI}milestone"):
-            if milestone.attrib.get("unit") == "Whiston_chapter":
-                chapter_by_book[book] = milestone.attrib["n"]
-            elif milestone.attrib.get("unit") == "Whiston_section" and whiston_section is None:
-                whiston_section = milestone.attrib["n"]
-        if whiston_section is None:
-            raise ValueError(f"{work_id} {book}.{label}: missing Whiston_section milestone")
-        whiston = [str(book)] if has_books else []
-        if book in chapter_by_book:
-            whiston.append(chapter_by_book[book])
-        whiston.append(whiston_section)
-        headings = [_source_text(head) for head in section.findall("tei:head", _NS)]
-        sections = by_book.setdefault(book, [])
-        if sections and start <= sections[-1]["start"]:
-            raise ValueError(
-                f"{work_id} book {book}: English section {label} does not follow "
-                f"section {sections[-1]['start']}"
-            )
-        sections.append({
-            "start": start,
-            "text": _source_text(section),
-            "alternate_reference": f"Whiston {'.'.join(whiston)}",
-            "editorial_heading": " ".join(h for h in headings if h) or None,
-        })
-    return by_book
-
-
-def _greek_sections(work_id: str, root: ET.Element) -> dict[int, list[tuple[int, str]]]:
-    """Niese Greek sections per book; the later 'arg' tables of contents are excluded."""
-    by_book: dict[int, list[tuple[int, str]]] = {}
-    for book, section in _section_elements(root):
-        label = section.attrib["n"]
-        if label == "arg":
-            continue
-        if not label.isdigit():
-            raise ValueError(f"{work_id} book {book}: unexpected Greek section label {label!r}")
-        by_book.setdefault(book, []).append((int(label), _source_text(section)))
-    for sections in by_book.values():
-        sections.sort()
-    return by_book
-
-
-def parse_josephus_work(directory: Path, work_id: str) -> list[dict]:
-    """Pair each Whiston English section with every Niese Greek section it spans.
-
-    The English TEI has one division per Whiston section, labelled with the Niese
-    section at which it starts; the Greek TEI has one division per Niese section.
-    An English section spans [its start, the next English start) within its
-    book; the last section of a book runs through the book's last Greek section.
-    """
-    metadata = WORKS[work_id]
-    english_path = directory / f"tlg0526.{work_id}.perseus-eng2.xml"
-    greek_path = directory / f"tlg0526.{work_id}.perseus-grc2.xml"
-    english_root = ET.parse(english_path).getroot()
-    greek_root = ET.parse(greek_path).getroot()
-    _validate_license(english_root, english_path)
-    _validate_license(greek_root, greek_path)
-
-    has_books = metadata["key"] != "life"
-    english = _english_sections(work_id, english_root, has_books)
-    greek = _greek_sections(work_id, greek_root)
-    unpaired_books = set(greek) - set(english)
-    if unpaired_books:
-        raise ValueError(f"{work_id}: Greek books {sorted(unpaired_books)} have no English sections")
-
-    rows: list[dict] = []
-    for book, sections in english.items():
-        greek_sections = greek.get(book, [])
-        if greek_sections and greek_sections[0][0] < sections[0]["start"]:
-            raise ValueError(
-                f"{work_id} book {book}: Greek section {greek_sections[0][0]} precedes "
-                f"the first English section {sections[0]['start']}"
-            )
-        last_greek = greek_sections[-1][0] if greek_sections else sections[-1]["start"]
-        for index, section in enumerate(sections):
-            start = section["start"]
-            if index + 1 < len(sections):
-                end = sections[index + 1]["start"] - 1
-            else:
-                end = max(start, last_greek)
-            greek_text = " ".join(
-                text for number, text in greek_sections if start <= number <= end and text
-            )
-            rows.append({
-                "corpus": "josephus",
-                "author": "Flavius Josephus",
-                "work_key": metadata["key"],
-                "work_title": metadata["title"],
-                "reference": _span_reference(metadata["reference_title"], book, start, end, has_books),
-                "alternate_reference": section["alternate_reference"],
-                "book_number": book,
-                "section_number": str(start),
-                "section_end": end,
-                "editorial_heading": section["editorial_heading"],
-                "text": section["text"],
-                "original_text": greek_text or None,
-                "period_tags": _period_tags(metadata["key"], book),
-                "edition": "Benedikt Niese, Flavii Iosephi Opera (1885–1895)",
-                "translation": "William Whiston, The Works of Flavius Josephus (1856)",
-                "license": LICENSE,
-                "source_url": f"{PERSEUS_BASE_URL}/{work_id}",
-            })
-    return rows
-
-
-def _resolve_biblical_links(passages: list[tuple]) -> list[tuple]:
-    """Attach each curated link to the passage whose Niese span contains its section."""
-    spans: dict[tuple[str, int], list[tuple[int, int, int]]] = {}
-    for passage_id, work_key, book_number, section_start, section_end in passages:
-        spans.setdefault((work_key, book_number), []).append(
-            (int(section_start), int(section_end), passage_id)
-        )
-    link_rows = []
-    for work_key, book_number, section, biblical_book, c1, v1, c2, v2, note in _BIBLICAL_LINKS:
-        passage_id = next(
-            (
-                pid
-                for start, end, pid in spans.get((work_key, book_number), [])
-                if start <= section <= end
-            ),
-            None,
-        )
-        if passage_id is None:
-            raise ValueError(
-                f"Curated biblical link {work_key} {book_number}.{section} -> "
-                f"{biblical_book} {c1}:{v1} does not resolve to an imported passage"
-            )
-        link_rows.append((passage_id, biblical_book, c1 * 1000 + v1, c2 * 1000 + v2, note))
-    return link_rows
-
-
-JOSEPHUS_TEI_FILES = tuple(
-    f"tlg0526.{work_id}.perseus-{language}.xml"
-    for work_id in WORKS
-    for language in ("eng2", "grc2")
+# Every column written per passage; keys absent from a passage dict are NULL
+# except the legacy Josephus columns, which default as below.
+_COLUMNS = (
+    "corpus", "author", "work_key", "work_title", "collection", "reference",
+    "alternate_reference", "book_number", "section_number", "section_end",
+    "sort_start", "sort_end", "editorial_heading", "text", "original_text",
+    "original_language", "period_tags", "edition", "translation", "license",
+    "original_license", "translation_license", "source_url",
 )
+_LEGACY_DEFAULTS = {"book_number": 0, "section_number": "", "section_end": 0}
+_REQUIRED_TEXT = (
+    "author", "reference", "period_tags", "edition", "license", "source_url",
+)
+# English is optional: a passage with no English translation included (e.g. the
+# Qumran scrolls) carries its original-language text instead.
+_ENGLISH_FIELDS = ("text", "translation", "translation_license")
 
 
-def require_josephus_files(directory: Path) -> None:
-    """Raise unless all eight pinned Josephus TEI files are present."""
-    missing = [name for name in JOSEPHUS_TEI_FILES if not (directory / name).is_file()]
+def _passage(corpus: Corpus, raw: dict[str, Any]) -> dict[str, Any]:
+    """Validate one parsed passage and fill registry-derived fields."""
+    row = {**_LEGACY_DEFAULTS, **raw}
+    label = f"{corpus.key} {row.get('reference', '<no reference>')}"
+    unknown = set(row) - set(_COLUMNS)
+    if unknown:
+        raise ValueError(f"{label}: unknown passage fields {sorted(unknown)}")
+    try:
+        work = corpus.work(row.get("work_key", ""))
+    except KeyError as error:
+        raise ValueError(f"{label}: {error.args[0]}") from None
+    derived = {
+        "corpus": corpus.key,
+        "work_title": work.title,
+        "collection": work.collection.title if work.collection else None,
+    }
+    for field, value in derived.items():
+        if row.setdefault(field, value) != value:
+            raise ValueError(f"{label}: {field} {row[field]!r} != registry value {value!r}")
+    missing = [field for field in _REQUIRED_TEXT if not row.get(field)]
+    has_english = [field for field in _ENGLISH_FIELDS if row.get(field)]
+    if has_english and len(has_english) != len(_ENGLISH_FIELDS):
+        missing += [field for field in _ENGLISH_FIELDS if not row.get(field)]
+    if not has_english and not row.get("original_text"):
+        missing += [*_ENGLISH_FIELDS, "or original_text"]
     if missing:
-        raise FileNotFoundError(
-            f"Josephus sources in {directory} are incomplete; missing "
-            f"{', '.join(missing)}. Run python scripts/download_ancient_sources.py."
+        raise ValueError(f"{label}: missing {', '.join(missing)}")
+    row["text"] = row.get("text") or ""
+    start, end = row.get("sort_start"), row.get("sort_end")
+    if not isinstance(start, int) or not isinstance(end, int) or start > end:
+        raise ValueError(f"{label}: sort_start/sort_end must be integers with start <= end")
+    if row.get("original_text"):
+        row.setdefault("original_language", corpus.original_language)
+        if not row.get("original_license"):
+            raise ValueError(f"{label}: original_text needs original_license")
+    expected_license = combined_license(
+        row.get("original_license"), row.get("translation_license"), row.get("original_language")
+    )
+    if row["license"] != expected_license:
+        raise ValueError(f"{label}: license {row['license']!r} != {expected_license!r}")
+    unknown_periods = set(row["period_tags"].split(",")) - set(corpus.periods)
+    if unknown_periods:
+        raise ValueError(f"{label}: period tags {sorted(unknown_periods)} not in {corpus.key}.periods")
+    return row
+
+
+def _passage_index(rows: list[dict[str, Any]]) -> dict[str, list[tuple[int, int, int]]]:
+    by_work: dict[str, list[tuple[int, int, int]]] = {}
+    for index, row in enumerate(rows):
+        by_work.setdefault(row["work_key"], []).append((row["sort_start"], row["sort_end"], index))
+    return by_work
+
+
+# A resolved link: passage index, book code, sort start, sort end, note, relation.
+LinkRow = tuple[int, str, int, int, str, str]
+
+
+def _link_rows(
+    corpus: Corpus, rows: list[dict[str, Any]], curated: list[EditorialLink] = (),
+) -> list[LinkRow]:
+    """Resolve each link to the passage(s) it attaches to.
+
+    A corpus module's link attaches to the passage containing its locator. A
+    link from the editorial notes file attaches to every passage its citation
+    covers, and replaces a module link to the same passage and range (so the
+    file can retype or re-annotate it).
+    """
+    by_work = _passage_index(rows)
+    resolved: dict[tuple[int, str, int, int], LinkRow] = {}
+    for link in corpus.biblical_links(rows):
+        target = f"{link.work_key} {link.locator} -> {link.book} {link.chapter}:{link.verse}"
+        if link.book not in _BOOK_CODES:
+            raise ValueError(f"Curated biblical link {target}: unknown book code {link.book!r}")
+        if link.relation not in LINK_RELATIONS:
+            raise ValueError(f"Curated biblical link {target}: unknown relation {link.relation!r}")
+        start, end = link.chapter * 1000 + link.verse, link.end_chapter * 1000 + link.end_verse
+        if not (1 <= link.verse <= 999 and 1 <= link.end_verse <= 999 and start <= end):
+            raise ValueError(f"Curated biblical link {target}: invalid verse range")
+        sort_range = corpus.work(link.work_key).locator.parse(link.locator)
+        index = None
+        if sort_range is not None:
+            key = sort_range[0]
+            index = next(
+                (i for first, last, i in by_work.get(link.work_key, []) if first <= key <= last),
+                None,
+            )
+        if index is None:
+            raise ValueError(
+                f"Curated biblical link {target} does not resolve to an imported passage"
+            )
+        resolved[(index, link.book, start, end)] = (index, link.book, start, end, link.note, link.relation)
+    for link in curated:
+        start, end = link.chapter * 1000 + link.verse, link.end_chapter * 1000 + link.end_verse
+        _, _, indexes = _covered(corpus, by_work, link.citation, "Editorial link")
+        for index in indexes:
+            resolved[(index, link.book, start, end)] = (
+                index, link.book, start, end, link.note, link.relation,
+            )
+    return list(resolved.values())
+
+
+def _covered(
+    corpus: Corpus, by_work: dict[str, list[tuple[int, int, int]]], citation: str, what: str,
+    gap: bool = False,
+) -> tuple[str, tuple[int, int], list[int]]:
+    """The canonical citation, its sort range, and the indexes of the passages it covers.
+
+    For a ``gap`` (a range the edition lacks) with no passage inside it, the
+    passages immediately before and after the range are returned instead.
+    """
+    resolution = resolve_citation(citation, [corpus])
+    if resolution.status != "ok":
+        raise ValueError(f"{what} {citation!r} ({corpus.key}) does not resolve to a citation")
+    match = resolution.match
+    start, end = match.sort_range
+    passages = by_work.get(match.work.key, [])
+    indexes = [index for first, last, index in passages if first <= end and last >= start]
+    if not indexes and gap:
+        before = [index for first, last, index in passages if last < start]
+        after = [index for first, last, index in passages if first > end]
+        indexes = [*before[-1:], *after[:1]]
+    if not indexes:
+        raise ValueError(
+            f"{what} {citation!r} ({corpus.key}) does not resolve to an imported passage"
         )
+    canonical = f"{match.work.display_title} {match.work.locator.format_range(start, end)}"
+    return canonical, (start, end), indexes
+
+
+def _note_rows(
+    corpus: Corpus, rows: list[dict[str, Any]], notes: list[EditorialNote],
+) -> list[tuple[int, dict[str, Any]]]:
+    """Resolve each editorial note to (passage index, note row) pairs; fails on an unresolved note."""
+    by_work = _passage_index(rows)
+    resolved = []
+    for note in notes:
+        canonical, (start, end), indexes = _covered(
+            corpus, by_work, note.citation, "Editorial note", gap=note.kind == "gap"
+        )
+        for index in indexes:
+            resolved.append((index, {
+                "corpus": corpus.key,
+                "work_key": rows[index]["work_key"],
+                "citation": canonical,
+                "sort_start": start,
+                "sort_end": end,
+                "kind": note.kind,
+                "note": note.text,
+                "contrast": "; ".join(note.contrast),
+                "aligned": "; ".join(note.aligned),
+            }))
+    return resolved
+
+
+def import_corpus(
+    conn: sqlite3.Connection, key: str, directory: Path, notes: EditorialNotes | None = None,
+) -> int:
+    """Replace one registered corpus's passages, FTS rows, biblical links and editorial notes.
+
+    ``notes`` defaults to the committed ``corpora/editorial_notes.json``; only
+    its entries for this corpus are used. The files are checked and every
+    passage, link and note validated before any row is touched; the
+    replacement then runs in a savepoint, so a failure leaves the previously
+    imported corpus intact. Returns the passage count.
+    """
+    corpus = CORPORA[key]
+    corpus.require_files(directory)
+    rows = [_passage(corpus, dict(raw)) for raw in corpus.parse(directory)]
+    if not rows:
+        raise ValueError(f"{key}: the parser produced no passages from {directory}")
+    if notes is None:
+        notes = editorial_notes.load_editorial_notes()
+    corpus_notes, corpus_links = notes.for_corpus(key)
+    links = _link_rows(corpus, rows, corpus_links)
+    note_rows = _note_rows(corpus, rows, corpus_notes)
+
+    conn.execute("SAVEPOINT import_corpus")
+    try:
+        conn.execute(
+            """DELETE FROM ancient_source_biblical_links WHERE passage_id IN
+               (SELECT id FROM ancient_source_passages WHERE corpus = ?)""",
+            (key,),
+        )
+        conn.execute(
+            """DELETE FROM ancient_source_notes WHERE passage_id IN
+               (SELECT id FROM ancient_source_passages WHERE corpus = ?)""",
+            (key,),
+        )
+        conn.execute(
+            """DELETE FROM ancient_source_passages_fts WHERE passage_id IN
+               (SELECT id FROM ancient_source_passages WHERE corpus = ?)""",
+            (key,),
+        )
+        conn.execute("DELETE FROM ancient_source_passages WHERE corpus = ?", (key,))
+        insert = (
+            f"INSERT INTO ancient_source_passages ({', '.join(_COLUMNS)}) "
+            f"VALUES ({', '.join(':' + column for column in _COLUMNS)})"
+        )
+        ids = [
+            conn.execute(insert, {column: row.get(column) for column in _COLUMNS}).lastrowid
+            for row in rows
+        ]
+        removals, gaps = corpus.search_index_removals, corpus.search_index_gaps
+        conn.executemany(
+            """INSERT INTO ancient_source_passages_fts
+               (passage_id, work_title, reference, text, original_text_folded,
+                original_prefix_variants)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (
+                (
+                    passage_id, row["work_title"], row["reference"], row["text"],
+                    ancient_search_index_text(row.get("original_text") or "", removals, gaps),
+                    ancient_search_prefix_variants(row.get("original_text") or "", removals, gaps),
+                )
+                for passage_id, row in zip(ids, rows)
+            ),
+        )
+        conn.executemany(
+            """INSERT INTO ancient_source_biblical_links
+               (passage_id, biblical_book, sort_start, sort_end, relationship_note, relation)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            ((ids[index], *link) for index, *link in links),
+        )
+        conn.executemany(
+            """INSERT OR IGNORE INTO ancient_source_notes
+               (passage_id, corpus, work_key, citation, sort_start, sort_end, kind, note,
+                contrast, aligned)
+               VALUES (:passage_id, :corpus, :work_key, :citation, :sort_start, :sort_end,
+                       :kind, :note, :contrast, :aligned)""",
+            ({"passage_id": ids[index], **note} for index, note in note_rows),
+        )
+        # Merge FTS segments so a re-import does not leave deleted entries behind.
+        conn.execute(
+            "INSERT INTO ancient_source_passages_fts(ancient_source_passages_fts) VALUES ('optimize')"
+        )
+    except BaseException:
+        conn.execute("ROLLBACK TO import_corpus")
+        conn.execute("RELEASE import_corpus")
+        raise
+    conn.execute("RELEASE import_corpus")
+    conn.commit()
+    return len(rows)
 
 
 def import_josephus(conn: sqlite3.Connection, directory: Path) -> int:
     """Replace the Josephus corpus and rebuild its FTS and biblical links."""
-    require_josephus_files(directory)
-    conn.execute("DELETE FROM ancient_source_biblical_links WHERE passage_id IN (SELECT id FROM ancient_source_passages WHERE corpus = 'josephus')")
-    conn.execute("DELETE FROM ancient_source_passages_fts WHERE passage_id IN (SELECT id FROM ancient_source_passages WHERE corpus = 'josephus')")
-    conn.execute("DELETE FROM ancient_source_passages WHERE corpus = 'josephus'")
+    return import_corpus(conn, "josephus", directory)
 
-    rows = [row for work_id in WORKS for row in parse_josephus_work(directory, work_id)]
-    conn.executemany(
-        """INSERT INTO ancient_source_passages
-           (corpus, author, work_key, work_title, reference, alternate_reference,
-            book_number, section_number, section_end, editorial_heading, text,
-            original_text, period_tags, edition, translation, license, source_url)
-           VALUES (:corpus, :author, :work_key, :work_title, :reference,
-                   :alternate_reference, :book_number, :section_number,
-                   :section_end, :editorial_heading, :text, :original_text,
-                   :period_tags, :edition, :translation, :license, :source_url)""",
-        rows,
-    )
-    passages = conn.execute(
-        """SELECT id, work_key, book_number, section_number, section_end,
-                  work_title, reference, text, original_text
-           FROM ancient_source_passages WHERE corpus = 'josephus'"""
-    ).fetchall()
-    conn.executemany(
-        """INSERT INTO ancient_source_passages_fts
-           (passage_id, work_title, reference, text, original_text_folded)
-           VALUES (?, ?, ?, ?, ?)""",
-        (
-            (row[0], row[5], row[6], row[7], fold_ancient_search_text(row[8] or ""))
-            for row in passages
-        ),
-    )
-    conn.executemany(
-        """INSERT INTO ancient_source_biblical_links
-           (passage_id, biblical_book, sort_start, sort_end, relationship_note)
-           VALUES (?, ?, ?, ?, ?)""",
-        _resolve_biblical_links([row[:5] for row in passages]),
-    )
-    conn.commit()
-    return len(rows)
+
+def missing_corpora(root: Path) -> dict[str, str]:
+    """Registered corpora whose source files under ``root`` are absent or incomplete.
+
+    Maps each corpus key to the reason (its ``require_files`` error).
+    """
+    missing = {}
+    for key, corpus in CORPORA.items():
+        directory = root / corpus.data_dir
+        if not directory.is_dir():
+            missing[key] = f"{directory} not found"
+            continue
+        try:
+            corpus.require_files(directory)
+        except FileNotFoundError as error:
+            missing[key] = str(error)
+    return missing
+
+
+def import_available_corpora(
+    conn: sqlite3.Connection, root: Path, notes: EditorialNotes | None = None,
+) -> dict[str, int | None]:
+    """Import every registered corpus whose directory exists under ``root``.
+
+    Returns passage counts per corpus key, None for a corpus not downloaded. A
+    present but incomplete corpus raises from its ``require_files`` check.
+    """
+    if notes is None:
+        notes = editorial_notes.load_editorial_notes()
+    return {
+        key: import_corpus(conn, key, root / corpus.data_dir, notes)
+        if (root / corpus.data_dir).exists()
+        else None
+        for key, corpus in CORPORA.items()
+    }

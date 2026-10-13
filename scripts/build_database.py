@@ -30,7 +30,8 @@ from study_bible_mcp.parsers.lexicon import (
 from study_bible_mcp.parsers.tagged_text import parse_tagnt, parse_tahot, parse_morphology_codes
 from study_bible_mcp.parsers.proper_names import parse_tipnr
 from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
-from study_bible_mcp.parsers.ancient_sources import import_josephus, require_josephus_files
+from study_bible_mcp.corpora import CORPORA
+from study_bible_mcp.parsers.ancient_sources import import_available_corpora
 
 console = Console()
 
@@ -203,14 +204,18 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
                 "(run scripts/download_biblical_versions.py)[/yellow]"
             )
 
-        # Import licensed ancient sources when downloaded.
-        josephus_dir = data_dir / "ancient_sources" / "josephus"
-        if josephus_dir.exists():
-            require_josephus_files(josephus_dir)
-            josephus_count = import_josephus(conn, josephus_dir)
-            console.print(
-                f"  [green]✓[/green] Imported {josephus_count} Josephus passages"
-            )
+        # Import every registered ancient-source corpus that has been downloaded;
+        # a present but incomplete corpus directory fails the build.
+        ancient_dir = data_dir / "ancient_sources"
+        for key, count in import_available_corpora(conn, ancient_dir).items():
+            label = CORPORA[key].label
+            if count is None:
+                console.print(
+                    f"  [yellow]Skipping {label}: {ancient_dir / CORPORA[key].data_dir} "
+                    "not found (run scripts/download_ancient_sources.py)[/yellow]"
+                )
+            else:
+                console.print(f"  [green]✓[/green] Imported {count} {label} passages")
 
         # Optimize
         console.print("\nOptimizing database...")

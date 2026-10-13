@@ -50,7 +50,8 @@ Once connected, you have access to these tools:
 |------|-------------|---------|
 | `lookup_verse` | Verse text with Greek/Hebrew | "Look up John 3:16" |
 | `compare_biblical_versions` | Provenance-aware MT/LXX comparison | "Compare MT and LXX for Psalm 24:1" |
-| `search_ancient_sources` | Licensed Josephus primary-source search | "Search Josephus for John the Baptist" |
+| `search_ancient_sources` | Licensed ancient-source search (Josephus) | "Search Josephus for John the Baptist" |
+| `lookup_ancient_source` | Read an ancient source by citation | "Look up Antiquities 18.116" |
 | `word_study` | Greek/Hebrew lexicon study | "Study G26" |
 | `search_lexicon` | Search lexicons by concept | "Greek words for love" |
 | `get_cross_references` | Related passages and theme chains | "Cross-references for Romans 3:21" |

@@ -174,9 +174,18 @@ flowchart TD
 
     Classify -->|"Second Temple or Roman Jewish history"| AncientSources
     AncientSources["`**search_ancient_sources**
-    Returns: Josephus source passages,
-    Greek/English text, and provenance`"]
+    Returns: passages from texts to c. AD 200
+    (Josephus, Onkelos, Qumran, Philo,
+    1 Enoch, 4 Ezra, Mishnah), each tagged
+    Not Scripture with date and tier, ⚠ notes,
+    typed links, caveats and sources once`"]
     AncientSources --> Respond
+
+    Classify -->|"Ancient-source citation (Ant. 18.116)"| AncientLookup
+    AncientLookup["`**lookup_ancient_source**
+    Returns: the cited passages in order
+    (4 by default), with the same labels`"]
+    AncientLookup --> Respond
 
     %% === THEOLOGY PATH ===
     Classify -->|"Attributed scholarship"| TheologyContext
@@ -264,6 +273,7 @@ flowchart TD
     style VersionComparison fill:#7ed321,stroke:#5a9e18,color:#fff
     style AncientSources fill:#e67e22,stroke:#cf6d17,color:#fff
     style ResearchSources fill:#3498db,stroke:#2178b5,color:#fff
+    style AncientLookup fill:#e67e22,stroke:#cf6d17,color:#fff
 ```
 
 ## Tool Colour Key
@@ -274,7 +284,7 @@ flowchart TD
 | Purple | Hybrid search | find_similar_passages, graph_enriched_search |
 | Red | Graph knowledge | explore_genealogy, explore_person_events, explore_place, find_connection, people_in_passage |
 | Light blue | Scholarly commentary | get_study_notes, get_bible_dictionary, get_key_terms, get_theology_context, list_research_sources |
-| Dark orange | Cultural and historical context | get_ane_context, search_ancient_sources |
+| Dark orange | Cultural and historical context | get_ane_context, search_ancient_sources, lookup_ancient_source |
 | Orange | Agent decisions | Classification and enrichment decision points |
 | Blue | User interaction | Question input and final response |
 
@@ -324,7 +334,17 @@ User question → `lookup_verse` → `get_study_notes` →
 `get_ane_context` (for cultural illumination) → `word_study` → response
 
 **Primary-source history:**
-User question → `search_ancient_sources` → `lookup_verse` (for an explicitly linked biblical passage) → response
+User question → `search_ancient_sources` → `lookup_ancient_source` (to read a cited passage in full) → `lookup_verse` (for an explicitly linked biblical passage) → response
+
+The ancient sources are limited to texts written by about AD 200 (later
+targums, the Tosefta, the Talmud and Leviticus Rabbah were removed). None is
+Scripture, and every result says so where it is used: an italic tag under the
+heading (canon status, date, tier A or B, edition), any `⚠` editorial note on
+the passage (emendation, interpolation, reconstruction, contrast, caution,
+gap), and typed biblical links (`Aligned`, `Echo`, `Shared tradition`,
+`Contrast`, `Translation of`); each corpus's caveat and the sources print once
+per response. The agent quotes the canonical text first and pairs a
+pseudepigraphon with the aligned passages.
 
 **Edition comparison:**
 User question → `compare_biblical_versions` → `word_study` (when morphology needs explanation) → response

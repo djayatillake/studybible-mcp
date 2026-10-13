@@ -197,6 +197,19 @@ class TestSearchAncientSourcesSelection:
         assert best_tool("Find the ancient source passage about Herod's temple") == "search_ancient_sources"
 
 
+class TestLookupAncientSourceSelection:
+    """Queries that should route to lookup_ancient_source."""
+
+    def test_josephus_citation(self):
+        assert best_tool("Look up Antiquities 18.116 in Josephus") == "lookup_ancient_source"
+
+    def test_abbreviated_citation(self):
+        assert best_tool("Read the citation Ant. 15.320") == "lookup_ancient_source"
+
+    def test_cited_passage(self):
+        assert best_tool("Show me the passage cited as War 6.316") == "lookup_ancient_source"
+
+
 class TestSearchLexiconSelection:
     """Queries that should route to search_lexicon."""
 
@@ -471,7 +484,8 @@ ALL_TOOLS = {tool.name for tool in TOOLS}
 # Every test case above, collected for coverage checking
 _EXPECTED_TOOLS_TESTED = {
     "word_study", "lookup_verse", "compare_biblical_versions",
-    "search_lexicon", "search_ancient_sources", "get_cross_references",
+    "search_lexicon", "search_ancient_sources", "lookup_ancient_source",
+    "get_cross_references",
     "lookup_name", "parse_morphology", "search_by_strongs",
     "find_similar_passages", "explore_genealogy", "people_in_passage",
     "explore_person_events", "explore_place", "find_connection",

@@ -35,8 +35,13 @@ This guide covers running your own instance of the Study Bible MCP server.
    ```
    The additional commands download the pinned 59-book Rahlfs morphology
    corpus, explicit MT/LXX versification mappings, public-domain Brenton English
-   and Greek USFM, and the licensed Josephus Greek/English corpus. They validate
-   source checksums before import.
+   and Greek USFM, and every registered ancient-source corpus (currently the
+   licensed Josephus and Philo Greek/English corpora, the 1 Enoch and 4 Ezra
+   pseudepigrapha, the Targum Onkelos Aramaic/English corpus, the Hebrew
+   Qumran corpus, and the Mishnah from Sefaria) into
+   `data/ancient_sources/<corpus>/`.
+   They validate source checksums before import; the build imports each
+   downloaded corpus and fails on an incomplete one.
 5. **Build the database**
    ```bash
    python scripts/build_database.py
@@ -45,19 +50,22 @@ This guide covers running your own instance of the Study Bible MCP server.
    This creates the base `db/study_bible.db` and imports the bundled attributed
    theology and manuscript-variant records. Its final size depends on the
    optional graph, commentary, and embedding datasets; the deployed database is
-   about 750MB once the MT/LXX and Josephus corpora are imported.
+   about 750MB once the MT/LXX and Josephus corpora are imported; Philo adds
+   about 34MB and the pseudepigrapha about 2MB.
 
-   To bring an existing database (for example one downloaded from a deployment)
+   To bring an existing database (for example one downloaded from a deployment,
+   which carries the licence notice under "Data Source" below)
    up to the current schema and sources, upgrade it in place instead of
    rebuilding:
    ```bash
    python scripts/upgrade_database.py --database db/study_bible.db
    ```
-   The upgrade downloads the pinned LXX/Brenton and Josephus sources (present
-   files are skipped and every file is checksum-verified), migrates the legacy
-   mixed `textual_variants` tables, imports MT/LXX, Josephus, and the bundled
-   variant cases, and runs SQLite integrity and foreign-key checks on a
-   temporary copy. The original file is replaced only when everything
+   The upgrade downloads the pinned LXX/Brenton sources and every registered
+   ancient-source corpus (present files are skipped and every file is
+   checksum-verified), migrates the legacy mixed `textual_variants` tables and
+   adds new columns, imports MT/LXX, every downloaded ancient-source corpus,
+   and the bundled variant cases, and runs SQLite integrity and foreign-key
+   checks on a temporary copy. The original file is replaced only when everything
    succeeds, and re-running is safe. Pass `--offline` to use sources already
    under `data/`. A server pointed at a database that has not been upgraded
    answers `get_textual_variant` with a message to run this script.
@@ -264,4 +272,13 @@ licensed under CC BY 4.0. The data includes:
 - **TIPNR**: Proper names database
 - **TEGMC/TEHMC**: Morphology code expansions
 
-All data remains freely available under the same license.
+The STEPBible data remains freely available under the same license.
+
+The ancient-source corpora keep their own licences, printed in every result's
+Sources block. A database that includes them, such as the one served at
+`/download/study_bible.db`, contains CC BY-NC 4.0 material (the ETCBC Dead Sea
+Scrolls transcription and the Metsudah Chumash English), for non-commercial use
+only, and CC BY-SA 4.0 material (Perseus Josephus, First1KGreek Philo, Latin
+Wikisource 4 Ezra), which must be shared alike. The server sends this notice in
+the download's `X-Data-License-Notice` header and in the root endpoint's
+description.

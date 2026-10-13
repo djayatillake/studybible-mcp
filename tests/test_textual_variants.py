@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import sqlite3
 from pathlib import Path
@@ -616,7 +617,10 @@ def test_upgrade_is_repeatable_and_failure_leaves_original_untouched(
     # Corpus importers have their own tests; stub them so this test exercises
     # the migration, variant import, integrity/FK checks, and file swap.
     monkeypatch.setattr(upgrade_database, "import_biblical_versions", lambda conn, path: (3, 2))
-    monkeypatch.setattr(upgrade_database, "import_josephus", lambda conn, path: 1)
+    monkeypatch.setattr(upgrade_database, "missing_corpora", lambda root: {})
+    monkeypatch.setattr(
+        upgrade_database, "import_available_corpora", lambda conn, root: {"josephus": 1}
+    )
 
     first = upgrade_database.upgrade_in_place(database, data_dir)
     first_snapshot = _variant_snapshot(database)
@@ -628,14 +632,15 @@ def test_upgrade_is_repeatable_and_failure_leaves_original_untouched(
     assert first["migrated_interpretive_cases"] == 1
     assert first["textual_variant_cases"] == second["textual_variant_cases"] == 4
     assert first_snapshot == second_snapshot
+    assert first["josephus_passages"] == second["josephus_passages"] == 1
     assert not database.with_name(database.name + ".upgrade-tmp").exists()
 
     original_bytes = database.read_bytes()
 
-    def failing_josephus(conn, path):
+    def failing_corpora(conn, root):
         raise RuntimeError("corpus import failed")
 
-    monkeypatch.setattr(upgrade_database, "import_josephus", failing_josephus)
+    monkeypatch.setattr(upgrade_database, "import_available_corpora", failing_corpora)
     with pytest.raises(RuntimeError, match="corpus import failed"):
         upgrade_database.upgrade_in_place(database, data_dir)
 
@@ -648,3 +653,48 @@ def test_upgrade_is_repeatable_and_failure_leaves_original_untouched(
     with pytest.raises(RuntimeError, match="corpus import failed"):
         upgrade_database.upgrade_in_place(legacy, data_dir)
     assert legacy.read_bytes() == legacy_bytes
+
+
+def test_upgrade_fails_when_a_registered_corpus_is_missing(tmp_path, monkeypatch):
+    import click
+
+    import scripts.upgrade_database as upgrade_database
+    from study_bible_mcp.corpora import CORPORA
+
+    database = tmp_path / "study_bible.db"
+    _create_legacy_db(database)
+    original_bytes = database.read_bytes()
+    ancient = tmp_path / "data" / "ancient_sources"
+    for corpus in CORPORA.values():
+        (ancient / corpus.data_dir).mkdir(parents=True)
+    # Every corpus directory exists but one; the others pass their file check.
+    (ancient / "qumran").rmdir()
+    for key, corpus in CORPORA.items():
+        if key != "qumran":
+            monkeypatch.setitem(
+                CORPORA, key, dataclasses.replace(corpus, require_files=lambda directory: None)
+            )
+
+    with pytest.raises(click.ClickException, match=r"Missing ancient-source corpora.*qumran"):
+        upgrade_database.require_ancient_sources(ancient)
+    with pytest.raises(click.ClickException, match="qumran"):
+        upgrade_database.upgrade_in_place(database, tmp_path / "data")
+    assert database.read_bytes() == original_bytes
+
+    # A present but incomplete corpus fails too, naming the missing file.
+    (ancient / "qumran").mkdir()
+    with pytest.raises(click.ClickException, match=r"qumran: .*incomplete; missing"):
+        upgrade_database.require_ancient_sources(ancient)
+
+    # Corpora that were never imported (e.g. a stub import) also fail the upgrade.
+    monkeypatch.setitem(
+        CORPORA, "qumran", dataclasses.replace(CORPORA["qumran"], require_files=lambda directory: None)
+    )
+    monkeypatch.setattr(upgrade_database, "import_biblical_versions", lambda conn, path: (3, 2))
+    monkeypatch.setattr(
+        upgrade_database, "import_available_corpora",
+        lambda conn, root: {key: (None if key == "philo" else 1) for key in CORPORA},
+    )
+    with pytest.raises(click.ClickException, match=r"not imported: philo"):
+        upgrade_database.upgrade_in_place(database, tmp_path / "data")
+    assert database.read_bytes() == original_bytes

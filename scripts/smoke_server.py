@@ -21,6 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+from study_bible_mcp.corpora import CORPORA
 from study_bible_mcp.database import StudyBibleDB
 from study_bible_mcp.tools import TOOLS
 import study_bible_mcp.server as server_module
@@ -36,10 +37,6 @@ TOOL_CASES: dict[str, tuple[dict, tuple[str, ...]]] = {
     "compare_biblical_versions": (
         {"reference": "Psalm 24:1"},
         ("biblical_version_verses",),
-    ),
-    "search_ancient_sources": (
-        {"query": "John Baptist", "corpus": "josephus", "limit": 3},
-        ("ancient_source_passages",),
     ),
     "parse_morphology": ({"code": "V-AAI-3S", "language": "greek"}, ("morphology",)),
     "search_by_strongs": ({"strongs": "G26", "limit": 5}, ("lexicon", "verses")),
@@ -85,23 +82,55 @@ TOOL_CASES: dict[str, tuple[dict, tuple[str, ...]]] = {
     "list_research_sources": ({"topic": "rabbinic", "query": "Psalm 82"}, ()),
 }
 
+# Ancient-source tools run once per registered corpus, each skipped unless that
+# corpus has imported rows.
+_PER_CORPUS_TOOLS = ("search_ancient_sources", "lookup_ancient_source")
+
+
+def _cases() -> list[tuple[str, str, dict, tuple[str, ...], str | None]]:
+    """(label, tool, arguments, required tables, required corpus) for every run."""
+    cases = [(name, name, arguments, tables, None) for name, (arguments, tables) in TOOL_CASES.items()]
+    for key, corpus in CORPORA.items():
+        cases.append((
+            f"search_ancient_sources[{key}]",
+            "search_ancient_sources",
+            {"query": corpus.example_query, "corpus": key, "limit": 3},
+            ("ancient_source_passages",),
+            key,
+        ))
+        cases.append((
+            f"lookup_ancient_source[{key}]",
+            "lookup_ancient_source",
+            {"citation": corpus.example_citation, "corpus": key},
+            ("ancient_source_passages",),
+            key,
+        ))
+    return cases
+
+
 # Matched against the first line of a response only, so words such as
 # "not available" inside a normal multi-section result cannot trigger it.
 _EMPTY_RESULT = re.compile(
-    r"^(no |verse not found|unknown |could not|please provide|unsupported|error:)"
+    r"^(no |verse not found|unknown |could not|please provide|unsupported|error:"
+    r"|ambiguous )"
     r"|not available|unavailable|have not been generated"
     r"|upgrade_database\.py|build_database\.py|rebuild the database",
     re.IGNORECASE,
 )
 
 
-async def _missing_tables(database: StudyBibleDB, tables: tuple[str, ...]) -> list[str]:
-    return [table for table in tables if not await database._table_has_rows(table)]
+async def _missing(database: StudyBibleDB, tables: tuple[str, ...], corpus: str | None) -> list[str]:
+    missing = [table for table in tables if not await database._table_has_rows(table)]
+    if corpus and not missing and await database._fetchone(
+        "SELECT 1 FROM ancient_source_passages WHERE corpus = ? LIMIT 1", (corpus,)
+    ) is None:
+        missing.append(f"ancient_source_passages (corpus {corpus})")
+    return missing
 
 
 async def run(db_path: Path) -> bool:
     registered = {tool.name for tool in TOOLS}
-    covered = set(TOOL_CASES)
+    covered = set(TOOL_CASES) | set(_PER_CORPUS_TOOLS)
     if registered != covered:
         print(f"Registry mismatch: missing={sorted(registered - covered)}, extra={sorted(covered - registered)}")
         return False
@@ -112,28 +141,29 @@ async def run(db_path: Path) -> bool:
     database = StudyBibleDB(db_path)
     await database.connect()
     server_module.db = database
+    cases = _cases()
     failures = 0
     skips = 0
     try:
-        for name, (arguments, tables) in TOOL_CASES.items():
-            missing = await _missing_tables(database, tables)
+        for label, name, arguments, tables, corpus in cases:
+            missing = await _missing(database, tables, corpus)
             if missing:
                 skips += 1
-                print(f"SKIP {name}: no rows in {', '.join(missing)}")
+                print(f"SKIP {label}: no rows in {', '.join(missing)}")
                 continue
             response = await server_module.call_tool(name, arguments)
             result = (response[0].text if response else "").strip()
             first_line = result.splitlines()[0] if result else ""
             if not result or _EMPTY_RESULT.search(first_line):
                 failures += 1
-                print(f"FAIL {name}: data present but got: {result[:200]!r}")
+                print(f"FAIL {label}: data present but got: {result[:200]!r}")
             else:
-                print(f"OK   {name}: {len(result)} characters")
+                print(f"OK   {label}: {len(result)} characters")
     finally:
         server_module.db = None
         await database.close()
 
-    print(f"\n{len(TOOL_CASES) - failures - skips} passed, {skips} skipped, {failures} failed")
+    print(f"\n{len(cases) - failures - skips} passed, {skips} skipped, {failures} failed")
     return failures == 0
 
 
