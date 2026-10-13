@@ -53,7 +53,8 @@ This guide covers running your own instance of the Study Bible MCP server.
    about 750MB once the MT/LXX and Josephus corpora are imported; Philo adds
    about 34MB and the pseudepigrapha about 2MB.
 
-   To bring an existing database (for example one downloaded from a deployment)
+   To bring an existing database (for example one downloaded from a deployment,
+   which carries the licence notice under "Data Source" below)
    up to the current schema and sources, upgrade it in place instead of
    rebuilding:
    ```bash
@@ -271,4 +272,13 @@ licensed under CC BY 4.0. The data includes:
 - **TIPNR**: Proper names database
 - **TEGMC/TEHMC**: Morphology code expansions
 
-All data remains freely available under the same license.
+The STEPBible data remains freely available under the same license.
+
+The ancient-source corpora keep their own licences, printed in every result's
+Sources block. A database that includes them, such as the one served at
+`/download/study_bible.db`, contains CC BY-NC 4.0 material (the ETCBC Dead Sea
+Scrolls transcription and the Metsudah Chumash English), for non-commercial use
+only, and CC BY-SA 4.0 material (Perseus Josephus, First1KGreek Philo, Latin
+Wikisource 4 Ezra), which must be shared alike. The server sends this notice in
+the download's `X-Data-License-Notice` header and in the root endpoint's
+description.

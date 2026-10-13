@@ -132,7 +132,13 @@ The server includes a pre-built SQLite database (~600MB) containing:
 
 ---
 
-You can download the pre-built database directly: **[study_bible.db](https://studybible-mcp.fly.dev/download/study_bible.db)** (~600MB)
+You can download the pre-built database directly: **[study_bible.db](https://studybible-mcp.fly.dev/download/study_bible.db)** (~750MB)
+
+The database includes CC BY-NC 4.0 material (the ETCBC Dead Sea Scrolls
+transcription and the Metsudah Chumash English), for non-commercial use only,
+and CC BY-SA 4.0 material (Perseus Josephus, First1KGreek Philo, Latin
+Wikisource 4 Ezra), which must be shared alike. The download response repeats
+this in an `X-Data-License-Notice` header.
 
 ---
 

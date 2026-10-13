@@ -1787,6 +1787,19 @@ def _get_privacy_text() -> str:
     return "Privacy policy not found. See https://github.com/djayatillake/studybible-mcp/blob/main/PRIVACY.md"
 
 
+# The downloadable database bundles non-commercial and share-alike texts; the
+# download response and the root endpoint carry this notice. ASCII only: it is
+# also sent as an HTTP header.
+DATABASE_LICENSE_NOTICE = (
+    "The database includes CC BY-NC 4.0 material (ETCBC Dead Sea Scrolls transcription, "
+    "Metsudah Chumash English), non-commercial use only, and CC BY-SA 4.0 material "
+    "(Perseus Josephus, First1KGreek Philo, Latin Wikisource 4 Ezra), share alike."
+)
+ROOT_DESCRIPTION = (
+    f"Bible study tools with Greek/Hebrew lexicons via MCP. {DATABASE_LICENSE_NOTICE}"
+)
+
+
 def _make_shared_routes():
     """Create route handler functions and routes shared by SSE and HTTP transports."""
     from starlette.routing import Route
@@ -1819,6 +1832,7 @@ def _make_shared_routes():
             path=str(db_path),
             filename="study_bible.db",
             media_type="application/x-sqlite3",
+            headers={"X-Data-License-Notice": DATABASE_LICENSE_NOTICE},
         )
 
     async def privacy_policy(request):
@@ -1868,7 +1882,7 @@ async def run_sse_server(host: str, port: int):
         return JSONResponse({
             "name": "Study Bible MCP Server",
             "version": "1.0.0",
-            "description": "Bible study tools with Greek/Hebrew lexicons via MCP",
+            "description": ROOT_DESCRIPTION,
             "transport": "sse",
             "endpoints": {
                 "/sse": "SSE connection endpoint",
@@ -1950,7 +1964,7 @@ async def run_http_server(host: str, port: int):
         return JSONResponse({
             "name": "Study Bible MCP Server",
             "version": "1.0.0",
-            "description": "Bible study tools with Greek/Hebrew lexicons via MCP",
+            "description": ROOT_DESCRIPTION,
             "transports": ["streamable-http", "sse"],
             "endpoints": {
                 "/mcp": "Streamable HTTP MCP endpoint (recommended)",
@@ -1959,7 +1973,9 @@ async def run_http_server(host: str, port: int):
                 "/health": "Health check",
                 "/privacy": "Privacy policy",
                 "/static/icon.png": "Server icon",
-                "/download/study_bible.db": "Download pre-built database (~600MB)",
+                "/download/study_bible.db": (
+                    "Download pre-built database (~750MB; includes CC BY-NC and CC BY-SA texts)"
+                ),
             },
             "tools": [tool.name for tool in TOOLS],
         })
