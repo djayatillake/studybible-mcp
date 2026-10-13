@@ -4,35 +4,18 @@
 
 ## Rabbinic ancient source
 
-- Added the `rabbinic` corpus (12,210 passages): the Mishnah (63 tractates,
-  Vilna 1913 Hebrew with Kulp's *Mishnah Yomit* English), the Tosefta (61
-  tractates, Vilna numbering, Machon Mamre Hebrew with Sefaria Community
-  English for 2,133 halakhot and Hebrew only for the rest), 16 Babylonian
-  Talmud tractates (William Davidson Aramaic and English, CC BY-NC 4.0), and
-  Leviticus Rabbah (Hebrew Wikisource with The Sefaria Midrash Rabbah
-  English). Every passage carries its versions' licences.
+- Added the `rabbinic` corpus: the Mishnah (63 tractates, one passage per
+  mishnah), Vilna 1913 Hebrew (public domain) with Kulp's *Mishnah Yomit*
+  English (CC BY). Every passage carries its versions' licences.
 - Sefaria files are pinned to a commit of Sefaria-Export-Archive and verified
-  by Git blob hash; Wikisource pages are pinned by revision id and SHA-1.
-  Versions without an open licence are rejected.
-- Citations: `Mishnah Shekalim 1:1`, `m. Shek. 1:1`, `Tosefta Menahot 13:4`,
-  `Bava Batra 3b-4a`, `Pes. 57a:8`, `Leviticus Rabbah 3:5`. Talmud passages are
-  amudim, with long amudim cut into Sefaria segment ranges (`Bava Batra
-  3b:1–9`); a daf citation returns them all. `Tosefta Menahot 13:18`–`13:23`
-  (Zuckermandel) resolve to Vilna 13:4.
-- The whole Bavli would add 169 MB to the database; the 16 most-cited
-  tractates add 71 MB (107 MB for the corpus).
-- Where the Aramaic and English divide an amud into different numbers of
-  segments, the amud is kept whole if it fits the 8,000-character display;
-  otherwise (18 amudim, 36 passages) each segment range's Aramaic edition line
-  says the Aramaic was matched to the English by length. The William Davidson
-  English spells Boethus "Baitos".
-- Citation names ignore apostrophes (`Ta'anit 2a` = `Taanit 2a`,
+  by Git blob hash. Versions without an open licence are rejected.
+- Citations: `Mishnah Shekalim 1:1`, `m. Shek. 1:1`, `Shekalim 1:1`.
+- Citation names ignore apostrophes (`Ta'anit 2:1` = `Taanit 2:1`,
   `Me'ilah`), and the `lookup_ancient_source` description summarises a
   collection of more than four works by count, grammar, and example instead of
-  listing each one (1,503 characters with Josephus and the rabbinic corpus).
-- Six curated biblical links: Mishnah Shekalim 1:1 and 1:3 (Matthew
-  17:24–27), Bava Batra 4a (John 2:20, Mark 13:1, Luke 21:5), Pesachim 57a
-  (Acts 4:6).
+  listing each one.
+- Two curated biblical links: Mishnah Shekalim 1:1 and 1:3 (Matthew
+  17:24–27).
 
 ---
 
@@ -99,27 +82,20 @@
 
 ## Targum ancient source
 
-- Added the `targum` corpus: Targum Onkelos and Targum Pseudo-Jonathan on all
-  five books of the Torah, 11,684 Aramaic verse passages (Torat Emet text via
-  Sefaria) pinned to `Sefaria/Sefaria-Export-Archive` commit `3f1013631fde` and
-  verified by Git blob hash and declared licence. Cite them as `Onkelos Genesis
-  1:1`, `Targum Onkelos Gen 1:1`, `Pseudo-Jonathan Exodus 12:40` or `Tg. Ps.-J.
-  Deut 32:8`; a bare `Genesis 1:1` is ambiguous between the targums.
-- English: Etheridge (1862–65, public domain) for Pseudo-Jonathan and for
-  Onkelos Genesis 6:1–14:24. Other Onkelos verses carry the Metsudah Chumash
-  (2009, CC BY-NC 4.0), labelled on every passage as "English of the Hebrew text
-  with Onkelos's renderings in [brackets]; not a direct translation of the
-  Aramaic", with the licence line `Aramaic text: Public domain; English
-  translation: CC BY-NC 4.0`. The 79 Pseudo-Jonathan verses Etheridge omits or
-  groups elsewhere are Aramaic-only; braced text the digitizer supplied becomes
-  `…`.
-- Each targum verse has one "Translation of" biblical link, so
+- Added the `targum` corpus: Targum Onkelos on all five books of the Torah,
+  5,846 Aramaic verse passages (Torat Emet text via Sefaria) pinned to
+  `Sefaria/Sefaria-Export-Archive` commit `3f1013631fde` and verified by Git
+  blob hash and declared licence. Cite them as `Onkelos Genesis 1:1`, `Targum
+  Onkelos Gen 1:1` or `Tg. Onq. Deut 32:8`.
+- English: the Metsudah Chumash (2009, CC BY-NC 4.0), labelled on every
+  passage as "English of the Hebrew text with Onkelos's renderings in
+  [brackets]; not a direct translation of the Aramaic", with the licence line
+  `Aramaic text: Public domain; English translation: CC BY-NC 4.0`.
+- Each verse has one "Translation of" biblical link, so
   `search_ancient_sources(query=..., corpus="targum", biblical_reference="Deuteronomy 32:8")`
-  finds the targums of that verse. Pseudo-Jonathan Genesis 20:15–18 is re-keyed
-  to Masoretic verses (Sefaria numbers it by position).
-- Citation names now treat hyphens and dashes between name tokens like spaces,
-  so `Pseudo-Jonathan` and `Tg. Ps.-J.` resolve; locator ranges are unchanged.
-- The corpus adds about 24 MiB to a vacuumed database.
+  finds Onkelos on that verse.
+- Citation names treat hyphens and dashes between name tokens like spaces;
+  locator ranges are unchanged.
 
 ---
 
@@ -137,8 +113,7 @@
   pinned download, parser, curated biblical links, and period tags. Josephus
   is ported with identical passages, Greek, search index, and links.
 - Added a locator grammar library: `section`, `book.section`,
-  `chapter:verse`, `column:line` (with Roman column numerals), and Talmud
-  `daf+amud` (`3b`, `3b-4a`, `3a-b`).
+  `chapter:verse`, and `column:line` (with Roman column numerals).
 - `search_ancient_sources` accepts any registered corpus or `all`; its
   description and corpus and period lists come from the registry, and every
   result names its corpus.

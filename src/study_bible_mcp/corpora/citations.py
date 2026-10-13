@@ -46,7 +46,7 @@ class Resolution:
 
 @lru_cache(maxsize=None)
 def _name_regex(name: str) -> re.Pattern[str]:
-    """Match a name ignoring case, punctuation, dashes and spacing ('A.J.' ~ 'AJ', 'Ps.-J.' ~ 'Ps. J.')."""
+    """Match a name ignoring case, punctuation, dashes and spacing ('A.J.' ~ 'AJ', 'Tg. Onq.' ~ 'Tg Onq')."""
     tokens = re.findall(r"[^\W_]+", name.lower())
     if not tokens:
         raise ValueError(f"Citation name {name!r} has no letters or digits")
@@ -91,10 +91,10 @@ def resolve_citation(citation: str, corpora: Iterable[Corpus]) -> Resolution:
     """Resolve ``citation`` against the works of ``corpora``.
 
     A citation is ``[corpus alias] [collection name] work name locator``, e.g.
-    'Josephus, Ant. 18.116' or 'Tosefta Menahot 13:22'. Among works whose name
+    'Josephus, Ant. 18.116' or 'Mishnah Shekalim 1:1'. Among works whose name
     prefixes the citation and whose locator grammar parses the rest, the
     longest name match wins; a tie between different works is ambiguous (a
-    collection prefix such as 'Mishnah' or 'Bavli' breaks it).
+    collection prefix such as 'Mishnah' breaks it).
     """
     text = _APOSTROPHES.sub("", unicodedata.normalize("NFC", citation)).strip()
     candidates = [match for corpus in corpora for match in _work_matches(corpus, text)]

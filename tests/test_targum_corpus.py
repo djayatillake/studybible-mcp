@@ -14,12 +14,9 @@ from study_bible_mcp.database import StudyBibleDB, create_schema
 from study_bible_mcp.parsers.ancient_sources import import_corpus
 
 ONKELOS_GEN_1_1 = "בְּקַדְמִין בְּרָא יְיָ יָת שְׁמַיָּא וְיָת אַרְעָא"
+ONKELOS_GEN_1_2 = "וְאַרְעָא הֲוָת צַדְיָא וְרֵקַנְיָא"
 ONKELOS_GEN_6_1 = "וַהֲוָה אֲרֵי שָׁרִיאוּ בְּנֵי אֲנָשָׁא לְמִסְגֵּי"
 ONKELOS_EXOD_12_40 = "וּמוֹתַב בְּנֵי יִשְׂרָאֵל דִי יְתִיבוּ בְּמִצְרָיִם אַרְבַּע מְאָה וּתְלָתִין שְׁנִין:"
-PSJ_DEUT_32_8 = "בְּאַחְסָנוּת עִלָאָה עַלְמָא לְעַמְמַיָא רָמָא פִיצְתָא עִם שׁוּבְעִין מַלְאָכַיָא"
-PSJ_SARAH = "וּלְוַת שָרָה אָמַר הָא יְהָבִית אֶלֶף סִלְעִין דִכְסַף לְאָחוּךְ"
-PSJ_LAND = "וַאֲמַר אֲבִימֶלְךְ הָא אַרְעִי קַדְמָךְ וּבִדַתָקֵן בְּעֵינָךְ תִּיב"
-PSJ_PRAYER = "וְצַלִי אַבְרָהָם קֳדָם יְיָ וְאָסֵי יְיָ יַת אֲבִימֶלֶךְ אֲרוּם מֵיחַד אָחִיד"
 
 
 def _chapters(**verses_by_chapter) -> list[list[str]]:
@@ -31,36 +28,18 @@ def _chapters(**verses_by_chapter) -> list[list[str]]:
 def _texts() -> dict[str, list[list[str]]]:
     texts = {source.filename: [[f"{source.filename} 1:1"]] for source in targum.SOURCE_FILES}
     texts["onkelos_genesis.aramaic.json"] = _chapters(
-        c1=[ONKELOS_GEN_1_1], c6=[ONKELOS_GEN_6_1], c49=[""] * 11 + ["??? יְסַמְקוּן טּוּרוֹהִי"],
+        c1=[ONKELOS_GEN_1_1, ONKELOS_GEN_1_2], c6=[ONKELOS_GEN_6_1],
+        c49=[""] * 11 + ["??? יְסַמְקוּן טּוּרוֹהִי"],
     )
     texts["onkelos_genesis.metsudah.json"] = _chapters(
-        c1=["In the beginning [<b>In the first times</b>] Elohim <i>created</i>  the heavens."],
-        c6=["Metsudah 6:1, not used where Etheridge exists."],
+        c1=["In the beginning [<b>In the first times</b>] Elohim <i>created</i>  the heavens.", ""],
+        c6=["It came to pass when man began to multiply on the face of the earth,"],
         c49=[""] * 11 + ["His eyes are red from wine."],
-    )
-    texts["onkelos_genesis.etheridge.json"] = _chapters(
-        c6=["And it was when the sons of men had begun to multiply upon the earth,"],
     )
     texts["onkelos_exodus.aramaic.json"] = _chapters(c12=[""] * 39 + [ONKELOS_EXOD_12_40])
     texts["onkelos_exodus.metsudah.json"] = _chapters(
         c12=[""] * 39 + ["The habitation of the B&#8217;nei Yisrael in Egypt [<b>lasted</b>] 430 years."],
     )
-    texts["pseudo_jonathan_genesis.aramaic.json"] = _chapters(
-        c1=["בְּקַדְמִין בְּרָא יְיָ"], c20=["א"] * 14 + [PSJ_SARAH, PSJ_LAND, PSJ_PRAYER],
-    )
-    texts["pseudo_jonathan_genesis.etheridge.json"] = _chapters(
-        c1=["In the beginning the Lord created."],
-        c20=["E"] * 14 + [
-            " {And Abimelech said, Behold, my land is before you; and wherever is right in your eyes, dwell.}  ",
-            " And to Sarah he said, Behold, I have given a thousand sileen of silver to thy brother. ",
-        ],
-    )
-    texts["pseudo_jonathan_deuteronomy.aramaic.json"] = _chapters(c32=[""] * 7 + [PSJ_DEUT_32_8, "ט"])
-    texts["pseudo_jonathan_deuteronomy.etheridge.json"] = _chapters(c32=[""] * 7 + [
-        " When the Most High made allotment of the world, He cast the lot among the seventy "
-        "angels; the Word &lt;mymr'&gt; {Dibbura} of the Lord * was there ; *Or, the decree\n",
-        " _  ",
-    ])
     return texts
 
 
@@ -85,11 +64,11 @@ def _rows(directory: Path) -> dict[str, dict]:
 # --- Parser
 
 
-def test_onkelos_pairs_aramaic_with_etheridge_where_he_exists_and_labelled_metsudah_elsewhere(tmp_path):
+def test_onkelos_pairs_aramaic_with_labelled_metsudah_english(tmp_path):
     rows = _rows(_write(tmp_path))
 
     genesis = rows["Targum Onkelos Genesis 1:1"]
-    etheridge = rows["Targum Onkelos Genesis 6:1"]
+    flood = rows["Targum Onkelos Genesis 6:1"]
     exodus = rows["Targum Onkelos Exodus 12:40"]
 
     assert genesis["original_text"] == ONKELOS_GEN_1_1
@@ -100,9 +79,8 @@ def test_onkelos_pairs_aramaic_with_etheridge_where_he_exists_and_labelled_metsu
     assert genesis["license"] == "Aramaic text: Public domain; English translation: CC BY-NC 4.0"
     assert (genesis["sort_start"], genesis["sort_end"], genesis["work_key"]) == (1001, 1001, "onkelos_genesis")
     assert genesis["author"] == "Targum Onkelos" and genesis["period_tags"] == "amoraic"
-    assert etheridge["text"].startswith("And it was when the sons of men")
-    assert etheridge["translation"] == targum.ETHERIDGE_ONKELOS
-    assert etheridge["license"] == "Public domain"
+    assert flood["text"].startswith("It came to pass when man began")
+    assert flood["translation"] == targum.METSUDAH
     assert exodus["text"] == "The habitation of the B’nei Yisrael in Egypt [lasted] 430 years."
     assert exodus["original_text"] == ONKELOS_EXOD_12_40
     assert rows["Targum Onkelos Genesis 49:12"]["original_text"] == "יְסַמְקוּן טּוּרוֹהִי"
@@ -110,43 +88,20 @@ def test_onkelos_pairs_aramaic_with_etheridge_where_he_exists_and_labelled_metsu
     assert targum.SEFARIA_COMMIT in genesis["source_url"]
 
 
-def test_pseudo_jonathan_keys_genesis_20_by_masoretic_verse_and_cleans_etheridge(tmp_path):
-    rows = _rows(_write(tmp_path))
+def test_a_verse_without_english_is_an_aramaic_only_passage(tmp_path):
+    row = _rows(_write(tmp_path))["Targum Onkelos Genesis 1:2"]
 
-    land = rows["Targum Pseudo-Jonathan Genesis 20:15"]
-    sarah = rows["Targum Pseudo-Jonathan Genesis 20:16"]
-    prayer = rows["Targum Pseudo-Jonathan Genesis 20:17–18"]
-    deut = rows["Targum Pseudo-Jonathan Deuteronomy 32:8"]
-
-    assert land["original_text"] == PSJ_LAND
-    assert "text" not in land and "translation" not in land and "translation_license" not in land
-    assert land["license"] == "Public domain"
-    assert sarah["original_text"] == PSJ_SARAH
-    assert sarah["text"].startswith("And to Sarah he said")
-    assert (prayer["sort_start"], prayer["sort_end"]) == (20017, 20018)
-    assert deut["text"] == (
-        "When the Most High made allotment of the world, He cast the lot among the seventy "
-        "angels; the Word of the Lord was there;"
-    )
-    assert deut["translation"] == targum.ETHERIDGE_PSEUDO_JONATHAN
-    assert deut["period_tags"] == "amoraic,early_islamic"
-    assert "text" not in rows["Targum Pseudo-Jonathan Deuteronomy 32:9"]
-    for row in rows.values():
-        assert row["license"] == combined_license(
-            row.get("original_license"), row.get("translation_license"), "Aramaic"
-        )
+    assert row["original_text"] == ONKELOS_GEN_1_2
+    assert not {"text", "translation", "translation_license"} & set(row)
+    assert row["license"] == "Public domain"
+    assert row["license"] == combined_license(row.get("original_license"), None, "Aramaic")
 
 
-def test_supplied_clauses_become_ellipses_and_glosses_are_dropped():
-    assert targum.clean_etheridge(
-        "{for we are about to destroy this place,} for the cry of it is great."
-    ) == "… for the cry of it is great."
-    assert targum.clean_etheridge("the Oracle {Word; Dibbera} speaking") == "the Oracle speaking"
-    assert targum.clean_etheridge(" . . .\n") == ""
-    with pytest.raises(ValueError, match="markup"):
-        targum.clean_etheridge("a stray { brace")
+def test_metsudah_cleaning_rejects_unexpected_markup():
     with pytest.raises(ValueError, match="markup"):
         targum.clean_metsudah("an <sup>1</sup> footnote")
+    with pytest.raises(ValueError, match="markup"):
+        targum.clean_metsudah("a stray { brace")
 
 
 def test_parser_rejects_unexpected_licence_and_missing_correction(tmp_path):
@@ -163,14 +118,14 @@ def test_parser_rejects_unexpected_licence_and_missing_correction(tmp_path):
 
 def test_require_files_names_every_missing_file(tmp_path):
     directory = _write(tmp_path)
-    (directory / "onkelos_genesis.etheridge.json").unlink()
-    (directory / "pseudo_jonathan_numbers.aramaic.json").unlink()
+    (directory / "onkelos_genesis.metsudah.json").unlink()
+    (directory / "onkelos_numbers.aramaic.json").unlink()
 
     with pytest.raises(FileNotFoundError) as error:
         targum.require_targum_files(directory)
 
-    assert "onkelos_genesis.etheridge.json, pseudo_jonathan_numbers.aramaic.json" in str(error.value)
-    assert len(targum.SOURCE_FILES) == 21
+    assert "onkelos_genesis.metsudah.json, onkelos_numbers.aramaic.json" in str(error.value)
+    assert len(targum.SOURCE_FILES) == 10
 
 
 # --- Import and links
@@ -196,13 +151,8 @@ def test_import_links_every_passage_to_the_verse_it_translates_and_is_idempotent
         "SELECT l.biblical_book, l.sort_start, l.sort_end, l.relationship_note "
         "FROM ancient_source_biblical_links l JOIN ancient_source_passages p ON p.id = l.passage_id "
         "WHERE p.reference = ?",
-        ("Targum Pseudo-Jonathan Genesis 20:17–18",),
-    ).fetchone() == ("Gen", 20017, 20018, "Translation of: Gen 20:17–18")
-    assert conn.execute(
-        "SELECT l.biblical_book, l.relationship_note FROM ancient_source_biblical_links l "
-        "JOIN ancient_source_passages p ON p.id = l.passage_id WHERE p.reference = ?",
-        ("Targum Pseudo-Jonathan Deuteronomy 32:8",),
-    ).fetchone() == ("Deu", "Translation of: Deut 32:8")
+        ("Targum Onkelos Exodus 12:40",),
+    ).fetchone() == ("Exo", 12040, 12040, "Translation of: Exod 12:40")
     assert conn.execute(
         "SELECT collection, work_title FROM ancient_source_passages WHERE reference = ?",
         ("Targum Onkelos Exodus 12:40",),
@@ -218,12 +168,8 @@ def test_import_links_every_passage_to_the_verse_it_translates_and_is_idempotent
     ("Tg. Onq. Gen. 1:1-3", "onkelos_genesis", (1001, 1003)),
     ("Onqelos Exodus 12", "onkelos_exodus", (12000, 12999)),
     ("Onkelos Num 24:17", "onkelos_numbers", (24017, 24017)),
-    ("Pseudo-Jonathan Exodus 12:40", "pseudo_jonathan_exodus", (12040, 12040)),
-    ("Tg. Ps.-J. Deut 32:8", "pseudo_jonathan_deuteronomy", (32008, 32008)),
-    ("Pseudo-Jonathan Deuteronomy 32:8", "pseudo_jonathan_deuteronomy", (32008, 32008)),
-    ("Targum Pseudo-Jonathan Lev 16:1–2", "pseudo_jonathan_leviticus", (16001, 16002)),
-    ("Targum Jonathan Genesis 20:17", "pseudo_jonathan_genesis", (20017, 20017)),
-    ("TPsJ Gen 20:15", "pseudo_jonathan_genesis", (20015, 20015)),
+    ("Tg. Onq. Deut 32:8", "onkelos_deuteronomy", (32008, 32008)),
+    ("Genesis 1:1", "onkelos_genesis", (1001, 1001)),
 ])
 def test_resolves_targum_citations(citation, work_key, sort_range):
     resolution = resolve_citation(citation, list(CORPORA.values()))
@@ -234,13 +180,11 @@ def test_resolves_targum_citations(citation, work_key, sort_range):
     )
 
 
-def test_bare_book_citation_is_ambiguous_between_targums():
-    resolution = resolve_citation("Genesis 1:1", list(CORPORA.values()))
-
-    assert resolution.status == "ambiguous"
-    assert {match.work.key for match in resolution.candidates} == {
-        "onkelos_genesis", "pseudo_jonathan_genesis",
-    }
+@pytest.mark.parametrize("citation", [
+    "Pseudo-Jonathan Exodus 12:40", "Tg. Ps.-J. Deut 32:8", "Targum Jonathan Genesis 20:17",
+])
+def test_only_onkelos_is_registered(citation):
+    assert resolve_citation(citation, list(CORPORA.values())).status == "unknown_work"
 
 
 # --- Tools
@@ -261,21 +205,18 @@ async def test_lookup_shows_aramaic_english_and_licence_labels(tmp_path, monkeyp
     db_path = _import(tmp_path)
     lookup = server.handle_lookup_ancient_source
 
-    deut = await _call(db_path, monkeypatch, lookup, citation="Pseudo-Jonathan Deuteronomy 32:8")
     onkelos = await _call(db_path, monkeypatch, lookup, citation="Onkelos Genesis 1:1")
-    original_only = await _call(db_path, monkeypatch, lookup, citation="Tg. Ps.-J. Gen 20:15")
-    span = await _call(db_path, monkeypatch, lookup, citation="Pseudo-Jonathan Genesis 20:18")
+    original_only = await _call(db_path, monkeypatch, lookup, citation="Tg. Onq. Gen 1:2")
+    exodus = await _call(db_path, monkeypatch, lookup, citation="Onkelos Exodus 12:40")
 
-    assert deut.startswith("## Targum Pseudo-Jonathan Deuteronomy 32:8")
-    assert "seventy angels" in deut and PSJ_DEUT_32_8 in deut
-    assert "**License:** Public domain" in deut
-    assert "Translation of: Deut 32:8" in deut
+    assert onkelos.startswith("## Targum Onkelos Genesis 1:1")
     assert ONKELOS_GEN_1_1 in onkelos and "In the beginning [In the first times]" in onkelos
     assert "not a direct translation of the Aramaic" in onkelos
     assert "**License:** Aramaic text: Public domain; English translation: CC BY-NC 4.0" in onkelos
     assert "**English translation:** none openly licensed" in original_only
-    assert PSJ_LAND in original_only
-    assert "Targum Pseudo-Jonathan Genesis 20:17–18" in span
+    assert ONKELOS_GEN_1_2 in original_only
+    assert "**License:** Public domain" in original_only
+    assert "Translation of: Exod 12:40" in exodus
 
 
 @pytest.mark.asyncio
@@ -284,18 +225,18 @@ async def test_search_filters_by_biblical_reference_and_folds_aramaic(tmp_path, 
     search = server.handle_search_ancient_sources
 
     linked = await _call(
-        db_path, monkeypatch, search, query="angels", corpus="targum",
-        biblical_reference="Deuteronomy 32:8",
+        db_path, monkeypatch, search, query="Egypt", corpus="targum",
+        biblical_reference="Exodus 12:40",
     )
     elsewhere = await _call(
-        db_path, monkeypatch, search, query="angels", corpus="targum",
+        db_path, monkeypatch, search, query="Egypt", corpus="targum",
         biblical_reference="Genesis 1:1",
     )
-    aramaic = await _call(db_path, monkeypatch, search, query="מלאכיא", corpus="targum")
+    aramaic = await _call(db_path, monkeypatch, search, query="במצרים", corpus="targum")
 
-    assert "Targum Pseudo-Jonathan Deuteronomy 32:8" in linked
+    assert "Targum Onkelos Exodus 12:40" in linked
     assert "No Targum passage contains" in elsewhere
-    assert "Targum Pseudo-Jonathan Deuteronomy 32:8" in aramaic
+    assert "Targum Onkelos Exodus 12:40" in aramaic
 
 
 # --- Download
@@ -337,5 +278,6 @@ def test_download_verifies_blob_hashes_and_declared_licences(tmp_path):
 
     assert manifest["repository"] == "Sefaria/Sefaria-Export-Archive"
     assert manifest["commit"] == targum.SEFARIA_COMMIT
-    assert len(manifest["files"]) == 21
+    assert len(manifest["files"]) == 10
     assert manifest["files"]["onkelos_genesis.metsudah.json"]["license"] == "CC-BY-NC"
+    assert "Etheridge" not in manifest["license"]

@@ -25,7 +25,7 @@ _REQUIRED_TEXT = (
     "author", "reference", "period_tags", "edition", "license", "source_url",
 )
 # English is optional only when no openly licensed translation exists; such a
-# passage carries its original-language text instead (e.g. Tosefta, 1QpHab).
+# passage carries its original-language text instead (e.g. 1QpHab).
 _ENGLISH_FIELDS = ("text", "translation", "translation_license")
 
 

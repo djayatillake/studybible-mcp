@@ -1,7 +1,7 @@
 """Citation locator grammars: locator text to an inclusive integer sort range.
 
 A work's locator turns the part of a citation after the work name ('18.116',
-'3b-4a', 'VI, 11') into ``(sort_start, sort_end)``. Passages store keys from the
+'3:5-7', 'VI, 11') into ``(sort_start, sort_end)``. Passages store keys from the
 same grammar in ``ancient_source_passages.sort_start``/``sort_end`` (built with
 the locator's ``key`` method), so a lookup is a plain interval-overlap query.
 """
@@ -148,64 +148,7 @@ class NumberedLocator:
         return f"{render(first)}–{render(last[shared:])}"
 
 
-_DAF = re.compile(r"(\d+)\s*([ab])?", re.IGNORECASE)
-
-
-@dataclass(frozen=True)
-class DafLocator:
-    """Talmud folio citations: daf number plus amud a/b.
-
-    Key = ``daf * 2`` for amud a and ``daf * 2 + 1`` for amud b. Accepts ``3b``,
-    ``3b-4a``, ``3a-b``, ``2-3`` (whole dapim), and ``3`` (both amudim).
-    """
-
-    name: str = "daf+amud"
-    example: str = "3b-4a"
-
-    @staticmethod
-    def key(daf: int, amud: str) -> int:
-        """Sort key of one amud, e.g. ``key(3, 'b') == 7``; raises on bad input."""
-        side = amud.lower()
-        if daf < 1 or side not in ("a", "b"):
-            raise ValueError(f"daf+amud: invalid {daf}{amud}")
-        return daf * 2 + (side == "b")
-
-    def parse(self, text: str) -> SortRange | None:
-        pieces = _pieces(text)
-        if pieces is None:
-            return None
-        start = _DAF.fullmatch(pieces[0])
-        if start is None or int(start[1]) < 1:
-            return None
-        daf = int(start[1])
-        low, high = self.key(daf, start[2] or "a"), self.key(daf, start[2] or "b")
-        if len(pieces) == 2:
-            if re.fullmatch(r"[ab]", pieces[1], re.IGNORECASE):
-                high = self.key(daf, pieces[1])
-            else:
-                end = _DAF.fullmatch(pieces[1])
-                if end is None or int(end[1]) < 1:
-                    return None
-                high = self.key(int(end[1]), end[2] or "b")
-        return (low, high) if low <= high else None
-
-    @staticmethod
-    def format(key: int) -> str:
-        daf, side = divmod(key, 2)
-        return f"{daf}{'ab'[side]}"
-
-    def format_range(self, start: int, end: int) -> str:
-        if start == end:
-            return self.format(start)
-        whole = start % 2 == 0 and end % 2 == 1
-        if whole:
-            first, last = start // 2, end // 2
-            return str(first) if first == last else f"{first}–{last}"
-        return f"{self.format(start)}–{self.format(end)}"
-
-
 SECTION = NumberedLocator("section", "116", depth=1)
 BOOK_SECTION = NumberedLocator("book.section", "18.116")
 CHAPTER_VERSE = NumberedLocator("chapter:verse", "1:1", separator=":")
 COLUMN_LINE = NumberedLocator("column:line", "6:11", separator=":", roman=True)
-DAF_AMUD = DafLocator()

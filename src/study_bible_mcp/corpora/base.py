@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class Collection:
-    """A named collection within a corpus, cited as a prefix ('Mishnah', 'Bavli')."""
+    """A named collection within a corpus, cited as a prefix ('Mishnah', 'Targum Onkelos')."""
 
     title: str
     aliases: tuple[str, ...] = ()
@@ -34,7 +34,7 @@ class Work:
     user may cite ('Ant.', 'A.J.'). Punctuation and spacing in names are not
     significant: 'A.J.' also matches 'AJ' and 'A. J.'. Work keys are unique
     within a corpus; works sharing a title across collections need distinct keys
-    (e.g. 'mishnah_bava_batra' and 'bavli_bava_batra').
+    (e.g. 'mishnah_bava_batra' and 'other_bava_batra').
     """
 
     key: str
@@ -50,7 +50,7 @@ class Work:
 
     @property
     def display_title(self) -> str:
-        """Reference title with its collection, e.g. 'Tosefta Menahot'."""
+        """Reference title with its collection, e.g. 'Mishnah Shekalim'."""
         if self.collection is None:
             return self.reference_title
         return f"{self.collection.title} {self.reference_title}"

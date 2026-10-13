@@ -26,7 +26,6 @@ from study_bible_mcp.corpora.locators import (
     BOOK_SECTION,
     CHAPTER_VERSE,
     COLUMN_LINE,
-    DAF_AMUD,
     SECTION,
     roman_to_int,
 )
@@ -41,11 +40,13 @@ from study_bible_mcp.parsers.ancient_sources import import_corpus
 from study_bible_mcp.tools import TOOLS
 
 
-# --- Test-only corpora shaped like the planned rabbinic, pseudepigrapha and Qumran ones.
+# --- Test-only corpora shaped like the rabbinic, pseudepigrapha and Qumran ones.
 
 MISHNAH = Collection("Mishnah", ("m.",))
-TOSEFTA = Collection("Tosefta", ("t.", "Tos."))
-BAVLI = Collection("Babylonian Talmud", ("Bavli", "Talmud", "b.", "BT"))
+# Test-only collections sharing a tractate title with the Mishnah under other
+# grammars, to exercise collection prefixes and selection by locator grammar.
+SCROLLS = Collection("Test Scrolls", ("ts.",))
+SECTIONS = Collection("Test Sections", ("tsec.",))
 BAVA_BATRA = ("BB", "Baba Bathra", "B. Bat.")
 
 
@@ -62,14 +63,9 @@ def _corpus(key, works, parse=lambda directory: [], links=lambda passages: [], p
 
 RABBINIC_WORKS = (
     Work("mishnah_bava_batra", "Bava Batra", "Bava Batra", CHAPTER_VERSE, BAVA_BATRA, MISHNAH),
-    Work("tosefta_bava_batra", "Bava Batra", "Bava Batra", CHAPTER_VERSE, BAVA_BATRA, TOSEFTA),
-    Work("bavli_bava_batra", "Bava Batra", "Bava Batra", DAF_AMUD, BAVA_BATRA, BAVLI),
-    Work("bavli_pesachim", "Pesachim", "Pesachim", DAF_AMUD, ("Pes.",), BAVLI),
-    Work("bavli_avodah_zarah", "Avodah Zarah", "Avodah Zarah", DAF_AMUD, ("Abod. Zar.",), BAVLI),
+    Work("scroll_bava_batra", "Bava Batra", "Bava Batra", COLUMN_LINE, BAVA_BATRA, SCROLLS),
+    Work("section_bava_batra", "Bava Batra", "Bava Batra", SECTION, BAVA_BATRA, SECTIONS),
     Work("mishnah_shekalim", "Shekalim", "Shekalim", CHAPTER_VERSE, ("Shek.",), MISHNAH),
-    Work("tosefta_menahot", "Menahot", "Menahot", CHAPTER_VERSE, ("Men.",), TOSEFTA),
-    Work("leviticus_rabbah", "Leviticus Rabbah", "Leviticus Rabbah", CHAPTER_VERSE,
-         ("Lev. Rab.", "Vayikra Rabbah")),
 )
 PSEUDEPIGRAPHA_WORKS = (
     Work("1_enoch", "1 Enoch", "1 Enoch", CHAPTER_VERSE, ("1 En.", "Ethiopic Enoch")),
@@ -149,21 +145,6 @@ def test_chapter_verse_and_section_locators():
     assert SECTION.parse("1.2") is None
 
 
-def test_daf_amud_locator():
-    assert DAF_AMUD.key(3, "b") == 7
-    assert DAF_AMUD.parse("3b") == (7, 7)
-    assert DAF_AMUD.parse("3b-4a") == (7, 8)
-    assert DAF_AMUD.parse("57a") == (114, 114)
-    assert DAF_AMUD.parse("3a-b") == (6, 7)
-    assert DAF_AMUD.parse("3") == (6, 7)
-    assert DAF_AMUD.parse("2-3") == (4, 7)
-    assert DAF_AMUD.parse("4a-3b") is None
-    assert DAF_AMUD.parse("1:1") is None
-    assert DAF_AMUD.parse("3c") is None
-    assert DAF_AMUD.format_range(7, 8) == "3b–4a"
-    assert DAF_AMUD.format_range(6, 7) == "3"
-
-
 def test_column_line_locator_accepts_roman_columns():
     assert roman_to_int("VI") == 6 and roman_to_int("xiv") == 14 and roman_to_int("iiii") is None
     for text in ("6:11", "VI 11", "vi, 11", "VI.11"):
@@ -185,8 +166,6 @@ def test_locator_key_rejects_out_of_range_parts():
         BOOK_SECTION.key(18, 1000)
     with pytest.raises(ValueError):
         BOOK_SECTION.key(18)
-    with pytest.raises(ValueError):
-        DAF_AMUD.key(3, "c")
 
 
 # --- Citation resolution
@@ -208,17 +187,13 @@ def _resolved(citation, corpora=TEST_CORPORA):
     ("B.J. 6.316", ("josephus", "jewish_war", (6316, 6316))),
     ("Life 1", ("josephus", "life", (1, 1))),
     ("Against Apion 2.1", ("josephus", "against_apion", (2001, 2001))),
-    ("Bava Batra 3b-4a", ("rabbinic", "bavli_bava_batra", (7, 8))),
-    ("BB 3b", ("rabbinic", "bavli_bava_batra", (7, 7))),
-    ("Baba Bathra 3b", ("rabbinic", "bavli_bava_batra", (7, 7))),
-    ("Talmud Bava Batra 3b", ("rabbinic", "bavli_bava_batra", (7, 7))),
-    ("Pesachim 57a", ("rabbinic", "bavli_pesachim", (114, 114))),
-    ("Avodah Zarah 5a", ("rabbinic", "bavli_avodah_zarah", (10, 10))),
+    ("Bava Batra VI 11", ("rabbinic", "scroll_bava_batra", (6011, 6011))),
+    ("BB VI 11-VII 2", ("rabbinic", "scroll_bava_batra", (6011, 7002))),
+    ("Baba Bathra vi, 11", ("rabbinic", "scroll_bava_batra", (6011, 6011))),
+    ("Test Sections Bava Batra 116", ("rabbinic", "section_bava_batra", (116, 116))),
     ("Mishnah Bava Batra 1:1", ("rabbinic", "mishnah_bava_batra", (1001, 1001))),
     ("m. B. Bat. 1:1", ("rabbinic", "mishnah_bava_batra", (1001, 1001))),
     ("Mishnah Shekalim 1:1", ("rabbinic", "mishnah_shekalim", (1001, 1001))),
-    ("Tosefta Menahot 13:22", ("rabbinic", "tosefta_menahot", (13022, 13022))),
-    ("Leviticus Rabbah 3:5", ("rabbinic", "leviticus_rabbah", (3005, 3005))),
     ("1 Enoch 89:73", ("pseudepigrapha", "1_enoch", (89073, 89073))),
     ("4 Ezra 11-12", ("pseudepigrapha", "4_ezra", (11000, 12999))),
     ("CD 1:1", ("qumran", "damascus_document", (1001, 1001))),
@@ -235,22 +210,23 @@ def test_shared_title_without_collection_is_ambiguous_until_prefixed():
 
     assert ambiguous.status == "ambiguous"
     assert {match.work.key for match in ambiguous.candidates} == {
-        "mishnah_bava_batra", "tosefta_bava_batra",
+        "mishnah_bava_batra", "scroll_bava_batra",
     }
-    assert _resolved("Tosefta Bava Batra 1:1")[1] == "tosefta_bava_batra"
+    assert _resolved("Test Scrolls Bava Batra 1:1")[1] == "scroll_bava_batra"
+    assert _resolved("ts. BB 1:1")[1] == "scroll_bava_batra"
 
 
 def test_hyphens_and_dashes_separate_name_tokens_but_not_locators():
-    targums = _corpus("targums", (
-        Work("psj_exodus", "Exodus", "Exodus", CHAPTER_VERSE, ("Exod.",),
-             Collection("Targum Pseudo-Jonathan", ("Pseudo-Jonathan", "Tg. Ps.-J."))),
+    hyphenated = _corpus("hyphenated", (
+        Work("proto_exodus", "Exodus", "Exodus", CHAPTER_VERSE, ("Exod.",),
+             Collection("Proto-Collection", ("Proto-Coll.", "Pr.-C."))),
     ))
-    corpora = (CORPORA["josephus"], targums)
+    corpora = (CORPORA["josephus"], hyphenated)
 
-    for citation in ("Pseudo-Jonathan Exodus 12:40", "Pseudo Jonathan Exodus 12:40",
-                     "Pseudo–Jonathan Exod. 12:40", "Tg. Ps.-J. Exod 12:40", "Tg Ps J Exodus 12:40"):
-        assert _resolved(citation, corpora) == ("targums", "psj_exodus", (12040, 12040)), citation
-    assert _resolved("Tg. Ps.-J. Exodus 12:40-13:2", corpora)[2] == (12040, 13002)
+    for citation in ("Proto-Collection Exodus 12:40", "Proto Collection Exodus 12:40",
+                     "Proto–Collection Exod. 12:40", "Pr.-C. Exod 12:40", "Pr C Exodus 12:40"):
+        assert _resolved(citation, corpora) == ("hyphenated", "proto_exodus", (12040, 12040)), citation
+    assert _resolved("Pr.-C. Exodus 12:40-13:2", corpora)[2] == (12040, 13002)
     assert _resolved("Ant. 18.116-119", corpora) == ("josephus", "antiquities", (18116, 18119))
     assert _resolved("Ant. 18.116–119", corpora) == ("josephus", "antiquities", (18116, 18119))
 
@@ -269,13 +245,13 @@ def test_unknown_work_and_unreadable_locator():
 
 def test_apostrophes_in_transliterated_names_are_ignored():
     corpus = _corpus("apostrophes", (
-        Work("bavli_taanit", "Taanit", "Taanit", DAF_AMUD),
+        Work("mishnah_taanit", "Taanit", "Taanit", CHAPTER_VERSE),
         Work("mishnah_meilah", "Me'ilah", "Me'ilah", CHAPTER_VERSE),
     ))
 
     for citation, expected in (
-        ("Ta'anit 2a", ("bavli_taanit", (4, 4))),
-        ("Ta’anit 2a", ("bavli_taanit", (4, 4))),
+        ("Ta'anit 2:1", ("mishnah_taanit", (2001, 2001))),
+        ("Ta’anit 2:1", ("mishnah_taanit", (2001, 2001))),
         ("Meʼilah 1:1", ("mishnah_meilah", (1001, 1001))),
         ("Meilah 1:1", ("mishnah_meilah", (1001, 1001))),
     ):
@@ -596,7 +572,7 @@ async def test_lookup_shows_licences_and_original_language_of_any_corpus(tmp_pat
 
     found = await _lookup(db_path, monkeypatch, citation="m. Shek. 1:1")
     ambiguous = await _lookup(db_path, monkeypatch, citation="Bava Batra 1:1")
-    work_missing = await _lookup(db_path, monkeypatch, citation="Tosefta Menahot 13:22")
+    work_missing = await _lookup(db_path, monkeypatch, citation="Mishnah Bava Batra 1:1")
     corpus_missing = await _lookup(db_path, monkeypatch, citation="1 Enoch 89:73")
 
     assert found.startswith("## Mishnah Shekalim 1:1")
@@ -607,8 +583,9 @@ async def test_lookup_shows_licences_and_original_language_of_any_corpus(tmp_pat
     assert f"**Hebrew text excerpt:**\n{SHEKALIM_HEBREW}" in found
     assert ambiguous.startswith("Ambiguous citation 'Bava Batra 1:1'")
     assert "Mishnah Bava Batra (Rabbinic, cited by chapter:verse)" in ambiguous
-    assert "Tosefta Bava Batra" in ambiguous and "Babylonian Talmud" not in ambiguous
-    assert work_missing == "No Tosefta Menahot passages are imported in this database."
+    assert "Test Scrolls Bava Batra (Rabbinic, cited by column:line)" in ambiguous
+    assert "Test Sections" not in ambiguous
+    assert work_missing == "No Mishnah Bava Batra passages are imported in this database."
     assert "Pseudepigrapha corpus is not in this database" in corpus_missing
     assert "python scripts/upgrade_database.py" in corpus_missing
 

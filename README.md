@@ -233,10 +233,9 @@ currently holds `josephus`: 2,304 Whiston sections from *Jewish Antiquities*,
 *The Jewish War*, *Life*, and *Against Apion*. Each section is paired with
 every Niese Greek section it spans and referenced as a Niese span plus
 Whiston's numbering, e.g. `Antiquities 15.317–322 (Whiston 15.9.3)`. `targum`
-holds Targum Onkelos and Targum Pseudo-Jonathan on the five books of the Torah:
-11,684 Aramaic verse passages, with Etheridge's public-domain English for
-Pseudo-Jonathan and the CC BY-NC Metsudah English for most of Onkelos (see
-[Targums](#targums)), each linked to the verse it translates. `qumran`
+holds Targum Onkelos on the five books of the Torah: 5,846 Aramaic verse
+passages with the CC BY-NC Metsudah English (see [Targums](#targums)), each
+linked to the verse it translates. `qumran`
 holds 44 Hebrew manuscript columns with numbered lines and no English (none is
 openly licensed): the Damascus Document (`CD 1:1–21`, Genizah MS A columns 1–16
 and MS B columns 19–20), the Community Rule (`1QS`), and the Rule of the
@@ -250,12 +249,8 @@ R. H. Charles's English, one passage per Charles verse, and 4 Ezra (2 Esdras
 3–14) in the KJV with the Clementine Latin, one passage per verse (1,679
 passages); both works are non-canonical and are labelled as attributed to
 Enoch or Ezra. The
-`rabbinic` corpus holds 12,210 passages from Sefaria and Hebrew Wikisource:
-the Mishnah (63 tractates, by mishnah), the Tosefta (61 tractates, Vilna
-numbering, by halakhah), 16 of the 37 Babylonian Talmud tractates (the full
-Bavli is too large for the deployed database; by amud, long amudim cut into
-segment ranges such as `Bava Batra 3b:1–9`), and Leviticus Rabbah (by
-section). Each result names its corpus, work, and citation, and shows up to
+`rabbinic` corpus holds the Mishnah from Sefaria (63 tractates, one passage per
+mishnah). Each result names its corpus, work, and citation, and shows up to
 1,500 characters of English around the first match and a shorter
 original-language excerpt (match-centred when the query is in the original's
 script; a passage without openly licensed English shows its original instead);
@@ -284,10 +279,10 @@ different word (`קדש` finds `מקדש`). Passages containing every query word
 first; when none do, passages matching any word are returned with an explicit
 note. `biblical_reference` accepts a chapter, verse, or verse range (`Luke 21`,
 `Luke 21:5`, `Luke 21:5-6`) and filters to editorial links: curated
-narrative-overlap links (33 for Josephus, 6 for the rabbinic corpus), each
+narrative-overlap links (33 for Josephus, 2 for the rabbinic corpus), each
 checked against the linked passage text, and one "Translation of" link per
 targum verse, derived from its verse key (`biblical_reference="Deuteronomy 32:8"`
-with `corpus="targum"` finds both targums of that verse). Period tags,
+with `corpus="targum"` finds Onkelos on that verse). Period tags,
 biblical links, and editorial chapter headings (Whiston's, for Josephus) are
 labelled editorial metadata; they are not presented as claims made by the
 ancient author. Empty results say whether the corpus is missing, the reference
@@ -300,11 +295,10 @@ abbreviation plus a locator in that work's numbering; an author prefix is
 optional. For Josephus: `Antiquities`/`Ant.`/`A.J.`, `War`/`B.J.`/`J.W.`, and
 `Against Apion`/`C. Ap.` take Niese `book.section`; `Life`/`Vita` takes a
 section.
-For the targums, `Targum Onkelos`/`Onkelos`/`Tg. Onq.` or `Targum
-Pseudo-Jonathan`/`Pseudo-Jonathan`/`Tg. Ps.-J.` precedes a Torah book
-(`Genesis`/`Gen`, `Exodus`/`Exod`, `Leviticus`/`Lev`, `Numbers`/`Num`,
-`Deuteronomy`/`Deut`) and `chapter:verse`; a bare `Genesis 1:1` is ambiguous
-between the two targums. For Qumran: `CD`/`Damascus Document`/`Zadokite Fragments`, `1QS`/
+For Targum Onkelos, `Targum Onkelos`/`Onkelos`/`Tg. Onq.` precedes a Torah
+book (`Genesis`/`Gen`, `Exodus`/`Exod`, `Leviticus`/`Lev`, `Numbers`/`Num`,
+`Deuteronomy`/`Deut`) and `chapter:verse`; the prefix is optional, so a bare
+`Genesis 1:1` also finds Onkelos. For Qumran: `CD`/`Damascus Document`/`Zadokite Fragments`, `1QS`/
 `Community Rule`, `1QSa`/`1Q28a`/`Rule of the Congregation`, and
 `1QpHab`/`Pesher Habakkuk` take `column:line`, with Arabic or Roman column
 numbers (`CD 6:11`, `CD VI 11`, `1QpHab VII 1-5`); each returns the whole
@@ -319,21 +313,17 @@ and `4 Ezra 11:1` are the same passage; 2 Esdras 1–2 and 15–16 (5 and 6 Ezra
 are not included. 4 Ezra is cited in modern (Bensly) numbering: the KJV and
 Clementine Latin lack the "missing fragment" 7:36–105, so their 7:36–70 is
 4 Ezra 7:106–140, shown as e.g. `4 Ezra 7:106 (KJV 2 Esdras 7:36)`.
-For the rabbinic corpus: Mishnah and Tosefta tractates take
-`chapter:mishnah`/`chapter:halakhah` behind a collection prefix (`Mishnah`/`m.`,
-`Tosefta`/`t.`; e.g. `m. Shek. 1:1`, `Tosefta Menahot 13:4`); Babylonian Talmud
-tractates take `daf+amud` with an optional Sefaria segment (`Bava Batra 3b-4a`,
-`Pes. 57a:8`, `b. Sanh. 43a`); `Leviticus Rabbah`/`Lev. Rab.`/`Vayikra Rabbah`
-takes `chapter:section`. Tractate names follow Sefaria (`Menachot`,
-`Pesachim`) with SBL abbreviations and common spellings as aliases (`Menahot`,
-`Men.`, `Pesah.`, `B. Bat.`); apostrophes are ignored, so `Ta'anit 2a` is
-`Taanit 2a`.
+For the Mishnah, a tractate takes `chapter:mishnah`, with an optional
+`Mishnah`/`m.` prefix (`Mishnah Shekalim 1:1`, `m. Shek. 1:1`). Tractate names
+follow Sefaria (`Menachot`, `Pesachim`) with SBL abbreviations and common
+spellings as aliases (`Menahot`, `Men.`, `Pesah.`, `B. Bat.`); apostrophes are
+ignored, so `Ta'anit 2:1` is `Taanit 2:1`.
 
 ```text
 lookup_ancient_source(citation="Ant. 15.320")            # inside Antiquities 15.317–322
 lookup_ancient_source(citation="Josephus, War 6.316")
 lookup_ancient_source(citation="Antiquities 18.116-121", include_original=False)
-lookup_ancient_source(citation="Tg. Ps.-J. Deut 32:8")
+lookup_ancient_source(citation="Tg. Onq. Deut 32:8")
 lookup_ancient_source(citation="Onkelos Genesis 1:1-3")
 lookup_ancient_source(citation="CD 6:11")               # inside CD 6:1–21 (CD-A)
 lookup_ancient_source(citation="1QpHab 7:4")
@@ -341,17 +331,15 @@ lookup_ancient_source(citation="Philo, Legat. 299")
 lookup_ancient_source(citation="Leg. 1.31")
 lookup_ancient_source(citation="1 Enoch 89:73")
 lookup_ancient_source(citation="2 Esdras 11:1")          # = 4 Ezra 11:1
-lookup_ancient_source(citation="Bava Batra 3b-4a")      # 4 passages, 3b:1–9 to 4a:10–17
-lookup_ancient_source(citation="Tosefta Menahot 13:22") # Zuckermandel numbering: Vilna 13:4
+lookup_ancient_source(citation="m. Shek. 1:3")
 ```
 
 A locator inside a longer passage returns the passage containing it; a range
 returns every overlapping passage in citation order, at most 10, with a note
 when more exist. Each passage shows its corpus, work, citation, edition,
-translation, license, source, and curated biblical links. When registered
-works share a title (as the rabbinic collections do), a collection
-prefix such as `Mishnah` or `Bavli`, or the locator grammar itself (a daf such
-as `3b` fits only a Talmud tractate), selects one.
+translation, license, source, and curated biblical links. If registered
+works share a title, a collection prefix (such as `Mishnah`) or the locator
+grammar itself selects one.
 Unknown works list the supported works, ambiguous citations list the
 candidates, unreadable locators name the expected grammar, a locator outside
 the imported text names the imported range and the nearest passages, and a
@@ -997,8 +985,8 @@ studybible-mcp/
 │   │   ├── citations.py       # Citation-to-work resolution
 │   │   ├── download.py        # Checksum-verified download helpers
 │   │   ├── josephus.py        # Josephus TEI parser, works, and links
-│   │   ├── targum.py          # Onkelos and Pseudo-Jonathan Sefaria files, verse keys
-│   │   └── rabbinic.py        # Mishnah, Tosefta, Bavli, Leviticus Rabbah (Sefaria, Wikisource)
+│   │   ├── targum.py          # Targum Onkelos Sefaria files, verse keys
+│   │   └── rabbinic.py        # Mishnah (Sefaria)
 │   └── parsers/
 │       ├── lexicon.py         # TFLSJ, BDB, Abbott-Smith, TBESG, TBESH parsers
 │       ├── aquifer.py         # BibleAquifer JSON parser
@@ -1125,48 +1113,29 @@ authenticity.
 
 ### Targums
 
-The `targum` corpus holds Targum Onkelos and Targum Pseudo-Jonathan on all five
-books of the Torah, one work per targum and book (`onkelos_genesis` …
-`pseudo_jonathan_deuteronomy`, cited as `Onkelos Genesis 1:1` or `Tg. Ps.-J.
-Deut 32:8`). The 21 version files come from Sefaria's archived export,
+The `targum` corpus holds Targum Onkelos on all five books of the Torah, one
+work per book (`onkelos_genesis` … `onkelos_deuteronomy`, cited as `Onkelos
+Genesis 1:1` or `Tg. Onq. Deut 32:8`). The 10 version files come from Sefaria's
+archived export,
 [Sefaria/Sefaria-Export-Archive](https://github.com/Sefaria/Sefaria-Export-Archive)
 at commit `3f1013631fdfe452e953a93a2c5f921319e394ed` (the last commit holding
 the JSON texts), each checked against its pinned Git blob hash and against the
 `license` and `versionTitle` it declares; `merged.json` files are never used.
 
-- **Aramaic:** the Torat Emet text of each targum (Sefaria versions `Onkelos
-  {Book}` and `Targum Jonathan on {Book}`), declared Public Domain by Sefaria.
-  One passage per Masoretic verse: 5,846 for Onkelos and 5,838 for
-  Pseudo-Jonathan, which lacks Gen 5:5–7, 6:15, 10:23, 21:34 and 41:49. Sefaria
-  numbers Pseudo-Jonathan Genesis 20 by position, so its 20:15 and 20:16 are
-  swapped relative to the Masoretic text and its 20:17 runs through 20:18; the
-  parser keys them as 20:16, 20:15 and `Genesis 20:17–18` (checked against
-  Onkelos and the Etheridge English). A `???` digitization mark before Onkelos
-  Genesis 49:12 is removed.
-- **Pseudo-Jonathan English:** J. W. Etheridge, *The Targums of Onkelos and
-  Jonathan ben Uzziel on the Pentateuch* (London, 1862–65), public domain, keyed
-  to Masoretic verses by Sefaria. Braced text in that file is not Etheridge's:
-  clauses the digitizer supplied (e.g. Deut 9:12 `{Onq., Nf. MT; …}`, or Gen
-  18:4, 19:13 and 20:15, absent from Etheridge's text at targum.info) are shown
-  as `…`, and glosses of Aramaic terms (`{Dibbera}`), transliterations
-  (`<mymr'>`) and footnotes are dropped. The 79 verses Etheridge omits,
-  abbreviates (the repeated offerings of Num 7) or groups into a neighbour are
-  Aramaic-only passages.
-- **Onkelos English:** Etheridge's Onkelos is on Sefaria only for Genesis
-  6:1–14:24 (223 verses, public domain), and his full Onkelos at targum.info has
-  no verse numbers, so it is not aligned by hand. Every other Onkelos verse
-  carries the Metsudah Chumash (Metsudah Publications, 2009, Sefaria version
-  `Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos translation]`,
-  CC BY-NC 4.0). It translates the Hebrew text and gives Onkelos's renderings in
-  brackets, so it is **not a direct translation of the Aramaic** beside it;
-  each passage's translation field says so, and its licence line reads
-  `Aramaic text: Public domain; English translation: CC BY-NC 4.0`.
+- **Aramaic:** the Torat Emet text of Onkelos (Sefaria versions `Onkelos
+  {Book}`), declared Public Domain by Sefaria. One passage per Masoretic verse
+  (5,846). A `???` digitization mark before Genesis 49:12 is removed.
+- **English:** the Metsudah Chumash (Metsudah Publications, 2009, Sefaria
+  version `Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos
+  translation]`, CC BY-NC 4.0). It translates the Hebrew text and gives
+  Onkelos's renderings in brackets, so it is **not a direct translation of the
+  Aramaic** beside it; each passage's translation field says so, and its
+  licence line reads `Aramaic text: Public domain; English translation: CC
+  BY-NC 4.0`. A verse without Metsudah English is an Aramaic-only passage.
 
-Each passage has one editorial "Translation of" link to the verse or verses
-its sort key covers, so `biblical_reference` finds the targums of a verse.
-Period tags give the redaction era (editorial): `amoraic` for Onkelos,
-`amoraic,early_islamic` for Pseudo-Jonathan. The corpus adds about 24 MiB to a
-vacuumed database.
+Each passage has one editorial "Translation of" link to the verse its sort key
+covers, so `biblical_reference` finds Onkelos on a verse. The period tag gives
+the redaction era (editorial): `amoraic`.
 
 ### Qumran
 
@@ -1286,59 +1255,22 @@ eagle vision (4 Ezra 11–12) with Daniel 7, which 4 Ezra 12:11 names.
 
 ### Rabbinic texts
 
-The `rabbinic` corpus comes from Sefaria's JSON export, pinned to commit
-`3f1013631fdfe452e953a93a2c5f921319e394ed` of
+The `rabbinic` corpus holds the Mishnah from Sefaria's JSON export, pinned to
+commit `3f1013631fdfe452e953a93a2c5f921319e394ed` of
 [Sefaria/Sefaria-Export-Archive](https://github.com/Sefaria/Sefaria-Export-Archive)
 (the last full export committed before Sefaria moved it to a GCS bucket that
-is overwritten monthly and not versioned) and verified by Git blob hash, plus
-330 Hebrew Wikisource pages pinned by revision id and SHA-1. Every Sefaria
-version declares its own licence; downloads and imports reject any version
-that is not Public Domain, CC0, CC-BY or CC-BY-NC. CC-BY and CC-BY-NC are
-recorded as CC BY 3.0 and CC BY-NC 4.0, the licences Sefaria's reader links
-them to.
+is overwritten monthly and not versioned) and verified by Git blob hash. Every
+Sefaria version declares its own licence; downloads and imports reject any
+version that is not Public Domain or CC-BY. CC-BY is recorded as CC BY 3.0,
+the licence Sefaria's reader links it to.
 
 - **Mishnah**, all 63 tractates, one passage per mishnah (`Mishnah Shekalim
   1:1`): Hebrew *Mishnah, ed. Romm, Vilna 1913* (public domain) with Joshua
   Kulp's *Mishnah Yomit* English (CC BY). Bikkurim chapter 4, absent from the
   Vilna version, is English only.
-- **Tosefta**, all 61 tractates of Sefaria's Vilna edition (Kelim in three
-  parts), one passage per halakhah, Hebrew from Machon Mamre (public domain;
-  Tahorot from Sefaria's public-domain *Tosefta Tohorot* copy). The *Sefaria
-  Community Translation* (CC0) supplies English for 2,133 halakhot; the other
-  1,929 are Hebrew only, as no openly licensed English exists. Vilna Menahot 13
-  has four halakhot; Zuckermandel's 13:18–23 (the high-priestly houses and
-  R. Yohanan ben Torta on the fall of Shiloh and the Temples) all lie in Vilna
-  13:4, which carries that alternate reference, and `Tosefta Menahot 13:18`
-  to `13:23` resolve to it (concordance from the ERC project
-  [Judaism and Rome](https://www.judaism-and-rome.org/tosefta-menahot-1321-23),
-  checked against the text).
-- **Babylonian Talmud**, William Davidson (Koren Noé) Aramaic and English,
-  both CC BY-NC 4.0. One passage per amud; an amud longer than 7,500
-  characters is cut into Sefaria segment ranges (`Bava Batra 3b:1–9`,
-  `3b:10–16`) so lookup shows each in full, and `Bava Batra 3b` returns all of
-  them. Where the Aramaic and English segment counts differ (42 amudim of the
-  imported tractates), segments are paired by length. Such an amud is kept
-  whole when it fits the 8,000-character display (2 amudim); the 18 that are
-  still cut (36 passages) say so in their Aramaic edition line ("Aramaic
-  matched to this English segment range by length"). **The Bavli covers 16 of
-  its 37 tractates**: the whole Bavli would add 169 MB to the database, so 16
-  tractates (71 MB) are imported: Berakhot, Shabbat, Pesachim, Yoma, Sukkah,
-  Rosh Hashanah, Taanit, Megillah, Chagigah, Sotah, Gittin, Bava Batra,
-  Sanhedrin, Makkot, Avodah Zarah and Tamid. **The William Davidson English
-  spells Boethus "Baitos"** (בית בייתוס, "the house of Baitos"): search
-  `Baitos` or `בייתוס`, not `Boethus`, to find Pesachim 57a.
-- **Leviticus Rabbah**, one passage per chapter:section: Hebrew from
-  [Hebrew Wikisource](https://he.wikisource.org/wiki/ויקרא_רבה) (CC BY-SA 4.0)
-  with *The Sefaria Midrash Rabbah, 2022* English (CC BY). Wikisource's
-  quotation templates keep the quoted verse; notes, source citations and
-  navigation are dropped, and an unknown template fails the import.
 
-Footnotes, footnote markers and HTML are removed from the English. Two
-unclosed footnotes in the Leviticus Rabbah English and two unclosed Wikisource
-templates are corrected in the parser, each checked to still apply. Curated
-links: Mishnah Shekalim 1:1 and 1:3 to Matthew 17:24–27 (the half-shekel),
-Bava Batra 4a to John 2:20, Mark 13:1 and Luke 21:5 (Herod's rebuilding and
-its stones), and Pesachim 57a to Acts 4:6 (the high-priestly families).
+Footnotes, footnote markers and HTML are removed from the English. Curated
+links: Mishnah Shekalim 1:1 and 1:3 to Matthew 17:24–27 (the half-shekel).
 
 ### BDB Hebrew Lexicon
 
@@ -1454,11 +1386,11 @@ MIT License. See [LICENSE](LICENSE).
 Data from STEPBible is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 OpenScriptorium LXX morphology and MT/LXX verse mappings (derived in part from STEPBible's TVTMS) are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); the Rahlfs Greek text and Brenton's English translation and Greek text are public domain.
 The Perseus Josephus Greek and English TEI editions are licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
-The targum Aramaic (Torat Emet) and Etheridge's English are public domain as declared by [Sefaria](https://www.sefaria.org/); the Metsudah Chumash English of Onkelos is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) (non-commercial use only), and its licence is shown on every passage.
+The Onkelos Aramaic (Torat Emet) is public domain as declared by [Sefaria](https://www.sefaria.org/); the Metsudah Chumash English of Onkelos is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) (non-commercial use only), and its licence is shown on every passage.
 The ETCBC/dss Dead Sea Scrolls transcription (Abegg, Bowley and Cook) is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/); the Hebrew Wikisource Pesher Habakkuk text is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 The First1KGreek Philo Greek and English TEI editions are licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); Cohn–Wendland's Greek and Yonge's English are public domain.
 Charles's 1 Enoch (via English Wikisource) and the KJV 2 Esdras (via eBible.org) are public domain; the Latin Wikisource transcription of the Clementine 4 Esdras is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
-Rabbinic texts carry each version's licence on every passage: the William Davidson Talmud (Aramaic and English) is [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) and may not be used commercially; Kulp's Mishnah Yomit and The Sefaria Midrash Rabbah English are CC BY; Hebrew Wikisource's Leviticus Rabbah is [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); the Sefaria Community Translation is CC0; the Vilna Mishnah and Machon Mamre Tosefta are public domain.
+Mishnah passages carry each version's licence: Kulp's Mishnah Yomit English is CC BY, and the Vilna Mishnah is public domain.
 Data from BibleAquifer and ACAI is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 Torah Weave data from Moshe Kline ([chaver.com](https://www.chaver.com/)) is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 BDB, Abbott-Smith, the Treasury of Scripture Knowledge, and the works of John Owen are public domain.
@@ -1473,12 +1405,12 @@ The theology and ANE entries are original summary prose written for this project
 - [STEPBible.org / Tyndale House Cambridge](https://github.com/STEPBible/STEPBible-Data) for TVTMS, the versification data behind those mappings
 - [eBible.org](https://ebible.org/details.php?id=eng-Brenton) for the public-domain Brenton Septuagint, English and [Greek](https://ebible.org/details.php?id=grcbrent)
 - [Perseus Digital Library](https://github.com/PerseusDL/canonical-greekLit) for the licensed Josephus Greek and English editions
-- [Sefaria](https://www.sefaria.org/) for the Torat Emet targum texts, Etheridge's targum translations, and the Metsudah Chumash English, via [Sefaria-Export-Archive](https://github.com/Sefaria/Sefaria-Export-Archive)
+- [Sefaria](https://www.sefaria.org/) for the Torat Emet text of Onkelos and the Metsudah Chumash English, via [Sefaria-Export-Archive](https://github.com/Sefaria/Sefaria-Export-Archive)
 - [ETCBC/dss](https://github.com/ETCBC/dss) and Martin G. Abegg Jr., James E. Bowley and Edward M. Cook for the Dead Sea Scrolls transcription, and [Hebrew Wikisource](https://he.wikisource.org/) for Pesher Habakkuk
 - [Open Greek and Latin / First1KGreek](https://github.com/OpenGreekAndLatin/First1KGreek) for the licensed Philo Greek and English editions
 - [Wikisource](https://en.wikisource.org/wiki/The_Book_of_Enoch_(Charles)) contributors for R. H. Charles's 1 Enoch and the [Latin Clementine Vulgate](https://la.wikisource.org/wiki/Vulgata_Clementina) 4 Esdras
 - [eBible.org](https://ebible.org/find/show.php?id=eng-kjv) for the public-domain KJV with Apocrypha
-- [Sefaria](https://www.sefaria.org/) for the Mishnah, Tosefta, William Davidson Talmud and Midrash Rabbah texts, and [Hebrew Wikisource](https://he.wikisource.org/) for the Hebrew of Leviticus Rabbah
+- [Sefaria](https://www.sefaria.org/) for the Vilna Mishnah and Joshua Kulp's Mishnah Yomit English
 - [BibleAquifer](https://github.com/BibleAquifer) for study notes, dictionary, translation notes, and key terms
 - [eliranwong](https://github.com/eliranwong/unabridged-BDB-Hebrew-lexicon) for the unabridged BDB Hebrew lexicon
 - [translatable-exegetical-tools](https://github.com/translatable-exegetical-tools/Abbott-Smith) for the Abbott-Smith Greek Lexicon TEI XML edition
