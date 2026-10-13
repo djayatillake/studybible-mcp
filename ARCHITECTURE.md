@@ -184,6 +184,15 @@ flowchart TD
     Returns: attributed scholarship
     by reference, theme, or author`"]
     TheologyContext --> Respond
+    TheologyContext -->|"Other perspectives\nor primary texts"| ResearchSources
+
+    %% === FURTHER RESEARCH PATH ===
+    Classify -->|"Where to read more\n(e.g. 'Scholarly articles\non Psalm 82')"| ResearchSources
+    ResearchSources["`**list_research_sources**
+    Returns: open repositories with
+    coverage, perspective, licence,
+    and search links`"]
+    ResearchSources --> Respond
 
     %% === TORAH STRUCTURE PATH ===
     Classify -->|"Torah structural parallels"| TorahWeave
@@ -254,6 +263,7 @@ flowchart TD
     style TextualVariant fill:#7ed321,stroke:#5a9e18,color:#fff
     style VersionComparison fill:#7ed321,stroke:#5a9e18,color:#fff
     style AncientSources fill:#e67e22,stroke:#cf6d17,color:#fff
+    style ResearchSources fill:#3498db,stroke:#2178b5,color:#fff
 ```
 
 ## Tool Colour Key
@@ -263,7 +273,7 @@ flowchart TD
 | Green | Core text & language | lookup_verse, compare_biblical_versions, word_study, search_lexicon, search_by_strongs, get_cross_references, parse_morphology, lookup_name, get_torah_weave, get_textual_variant |
 | Purple | Hybrid search | find_similar_passages, graph_enriched_search |
 | Red | Graph knowledge | explore_genealogy, explore_person_events, explore_place, find_connection, people_in_passage |
-| Light blue | Scholarly commentary | get_study_notes, get_bible_dictionary, get_key_terms, get_theology_context |
+| Light blue | Scholarly commentary | get_study_notes, get_bible_dictionary, get_key_terms, get_theology_context, list_research_sources |
 | Dark orange | Cultural and historical context | get_ane_context, search_ancient_sources |
 | Orange | Agent decisions | Classification and enrichment decision points |
 | Blue | User interaction | Question input and final response |
@@ -328,3 +338,7 @@ User question → `get_torah_weave` → `lookup_verse` → response
 
 **Attributed theological study:**
 User question → `get_theology_context` → `lookup_verse` → response
+
+**Further research beyond the server's data:**
+User question → `get_theology_context` → `list_research_sources`
+(for other perspectives, journals, or primary texts) → response

@@ -449,6 +449,19 @@ class TestGetAneContextSelection:
         assert best_tool("What did the ancient Near Eastern cosmology look like for creation texts?") == "get_ane_context"
 
 
+class TestListResearchSourcesSelection:
+    """Queries that should route to list_research_sources."""
+
+    def test_scholarly_articles_on_passage(self):
+        assert best_tool("Where can I find scholarly articles on Psalm 82?") == "list_research_sources"
+
+    def test_free_rabbinic_sources(self):
+        assert best_tool("Free sources for rabbinic commentary") == "list_research_sources"
+
+    def test_church_fathers_texts(self):
+        assert best_tool("Where can I read the church fathers online for free?") == "list_research_sources"
+
+
 # ---------------------------------------------------------------------------
 # Aggregate tests – verify no tool is unreachable
 # ---------------------------------------------------------------------------
@@ -468,6 +481,7 @@ _EXPECTED_TOOLS_TESTED = {
     "get_theology_context",
     "get_torah_weave",
     "get_textual_variant",
+    "list_research_sources",
 }
 
 
