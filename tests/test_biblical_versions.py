@@ -11,14 +11,21 @@ import httpx
 import pytest
 
 from study_bible_mcp import server
+from study_bible_mcp.parsers import biblical_versions as biblical_versions_module
 from study_bible_mcp.database import StudyBibleDB, create_schema, parse_passage_reference
 from study_bible_mcp.parsers.biblical_versions import (
     BRENTON_BOOK_CODES,
+    APOCRYPHA_BOOK_NAMES,
     BRENTON_TRANSLATION_NOTE,
+    KJV_APOCRYPHA_NOTE,
+    KJV_APOCRYPHA_TRANSLATION_LABEL,
     LXX_BOOK_CODES,
+    LXX_TRANSLATION_LABEL,
+    MT_BOOK_CODES,
     LXX_SOURCE_BOOKS,
     REQUIRED_BRENTON_BOOKS,
     REQUIRED_BRENTON_GREEK_BOOKS,
+    apocrypha_name,
     compare_brenton_greek,
     expand_lxx_morphology,
     import_biblical_versions,
@@ -563,6 +570,7 @@ async def test_matching_greek_shows_only_the_standing_note(tmp_path):
     assert "Warning" not in output and "Brenton's Greek (the text" not in output
     assert output.count(BRENTON_TRANSLATION_NOTE) == 1
     assert f"*Brenton's English: {BRENTON_TRANSLATION_NOTE}*" in output
+    assert "Apocrypha" not in output and "apocrypha" not in row
 
 
 async def test_rows_without_brenton_english_are_unchanged(tmp_path):
@@ -576,13 +584,139 @@ async def test_rows_without_brenton_english_are_unchanged(tmp_path):
     assert theodotion["brenton_greek_differs"] == 0
 
 
-async def test_english_without_brenton_greek_says_it_was_not_compared(tmp_path):
+async def test_english_without_brenton_greek_says_it_was_not_compared(tmp_path, monkeypatch):
+    # Tobit is a KJV Apocrypha book; treat it as Brenton's own here to reach this path.
+    monkeypatch.setattr(biblical_versions_module, "KJV_APOCRYPHA_BOOKS", frozenset())
     result = await _compare(_build_db(tmp_path), "Tobit 1:1")
     output = format_biblical_version_comparison("Tobit 1:1", result["rows"], numbering="lxx")
 
     assert result["rows"][0]["brenton_greek_differs"] is None
     assert "Brenton's Greek for this verse is unavailable, so it was not compared." in output
     assert "Warning" not in output
+
+
+async def test_kjv_apocrypha_english_is_labelled_with_one_closing_note(tmp_path):
+    result = await _compare(_build_db(tmp_path), "Tobit 1:1")
+    row = result["rows"][0]
+    output = format_biblical_version_comparison("Tobit 1:1", result["rows"], numbering="lxx")
+
+    assert row["kjv_apocrypha"] is True
+    assert "brenton_greek_differs" not in row and "brenton_greek" not in row
+    assert "#### LXX Rahlfs Septuagint (1935) · Tob.1.1 (mapping: lxx-only) (Apocrypha)" in output
+    assert "**English (KJV Apocrypha):** The book of the words of Tobit." in output
+    assert "Warning" not in output and "1611" not in output
+    assert f"English: {KJV_APOCRYPHA_TRANSLATION_LABEL}." in output  # Sources block
+    assert output.count(KJV_APOCRYPHA_NOTE) == 1
+    assert output.endswith(f"*KJV Apocrypha English: {KJV_APOCRYPHA_NOTE}*")
+    assert (
+        "*Apocrypha: Tobit is not in the Protestant canon "
+        "(cf. Westminster Confession 1.3); background only.*"
+    ) in output
+    assert "Brenton's English:" not in output and "English (Brenton)" not in output
+    assert "Brenton's Greek (the text" not in output and "not compared" not in output
+    assert output.index("**Sources**") < output.index("*Apocrypha:")
+
+
+async def test_daniel_3_24_to_90_is_kjv_apocrypha(tmp_path):
+    result = await _compare(_build_db(tmp_path), "Daniel 3:25", numbering="lxx")
+    old_greek, theodotion = result["rows"]
+    output = format_biblical_version_comparison("Daniel 3:25", result["rows"], numbering="lxx")
+
+    assert theodotion["kjv_apocrypha"] is True and "kjv_apocrypha" not in old_greek
+    assert "brenton_greek_differs" not in theodotion
+    assert old_greek["apocrypha"] == theodotion["apocrypha"]
+    assert output.count(" (Apocrypha)\n") == 2
+    assert "**English (KJV Apocrypha):** Then Azarias stood up" in output
+    assert "*Apocrypha: the Prayer of Azariah and Song of the Three (Dan 3:24–90) are not" in output
+    assert "Brenton's English:" not in output and "not compared" not in output
+
+
+async def test_mixed_kjv_and_brenton_rows_list_both_english_labels(tmp_path):
+    # Greek numbering: Daniel 3:25 (Theodotion, KJV) and 3:92 (= MT 3:25, Brenton's own).
+    result = await _compare(_build_db(tmp_path), "Daniel 3:25-92", numbering="lxx")
+    output = format_biblical_version_comparison("Daniel 3:25-92", result["rows"], numbering="lxx")
+    sources = output[output.index("**Sources**"):]
+
+    assert [row["edition_reference"] for row in result["rows"]] == [
+        "Dan.3.25", "Dan.3.25", "Dan.3.25", "Dan.3.92", "Dan.3.92",
+    ]
+    assert "**English (KJV Apocrypha):** Then Azarias" in output
+    assert "**English (Brenton):** and the appearance of the fourth" in output
+    assert (
+        f"Theodotion (Greek): {result['rows'][-1]['license']}. "
+        f"English: {KJV_APOCRYPHA_TRANSLATION_LABEL}; {LXX_TRANSLATION_LABEL}."
+    ) in sources
+    assert "Old Greek (Greek): " in sources and "English: none." in sources
+    assert output.count(KJV_APOCRYPHA_NOTE) == output.count(BRENTON_TRANSLATION_NOTE) == 1
+    assert output.count(" (Apocrypha)\n") == 2 and output.count("*Apocrypha:") == 1
+    assert "Dan.3.92 (mapping: tvtms) (Apocrypha)" not in output
+
+
+def test_kjv_apocrypha_range_in_daniel_is_not_compared_at_import(tmp_path):
+    morphology_dir = tmp_path / "morphology"
+    morphology_dir.mkdir()
+    verses = [
+        ("Dan 3:25", "καὶ συστὰς Αζαριας προσηύξατο"),
+        ("Dan 3:92", "ἡ ὅρασις τοῦ τετάρτου ὁμοία υἱῷ θεοῦ"),
+    ]
+    (morphology_dir / "daniel-theodotion.json").write_text(
+        json.dumps([{"ref": ref, "words": _words(text)} for ref, text in verses]), encoding="utf-8"
+    )
+    pairings = {}
+    for pair in PAIRS:
+        pairings.setdefault((pair["grk_book"], pair["grk_ref"]), []).append(pair)
+    translations = {("DAG", "3:25"): "Then Azarias stood up.", ("DAG", "3:92"): "like the Son of God."}
+    # Both verses differ from Brenton's Greek; only 3:92 (outside 3:24-90) is compared.
+    greek = {("DAG", "3:25"): "καὶ συστὰς Ανανιας προσηύξατο", ("DAG", "3:92"): "ἡ ὅρασις τοῦ τετάρτου ὁμοία ἀγγέλῳ θεοῦ"}
+
+    rows = {
+        row["edition_reference"]: row
+        for row in (dict(zip(LXX_ROW_FIELDS, row)) for row in iter_lxx_rows(
+            morphology_dir, pairings, translations, greek
+        ))
+    }
+
+    assert [rows["Dan.3.25"][key] for key in LXX_ROW_FIELDS[-3:]] == [None, None, None]
+    assert rows["Dan.3.92"]["brenton_greek_differs"] == 1
+
+
+@pytest.mark.parametrize(("book", "chapter", "verse", "canonical", "expected"), [
+    ("Sir", 17, 17, None, "Sirach"),
+    ("Pss", 17, 1, None, "the Psalms of Solomon"),
+    ("EsG", 1, 1, None, "the Greek additions to Esther"),
+    ("EsG", 1, 1, "Est.1.1", None),
+    ("Dan", 3, 24, None, "the Prayer of Azariah and Song of the Three (Dan 3:24–90)"),
+    ("Dan", 3, 90, None, "the Prayer of Azariah and Song of the Three (Dan 3:24–90)"),
+    ("Dan", 3, 91, "Dan.3.24", None),
+    ("Dan", 4, 17, None, None),  # Old Greek plus 4:17a, a textual variant
+    ("Psa", 151, 1, None, "Psalm 151"),
+    ("Psa", 144, 13, None, None),  # 144:13a, a textual plus
+    ("1Ki", 2, 35, None, None),  # 3 Kingdoms 2:35a
+    ("Ode", 1, 1, None, None),  # Exodus 15
+    ("Ode", 12, 1, None, "the Prayer of Manasseh (Ode 12)"),
+    ("2Es", 1, 1, "Ezr.1.1", None),
+])
+def test_apocrypha_rows_are_identified(book, chapter, verse, canonical, expected):
+    assert apocrypha_name(book, chapter, verse, canonical) == expected
+
+
+def test_every_lxx_only_book_but_ezra_nehemiah_greek_esther_and_odes_is_apocrypha():
+    lxx_only = set(LXX_BOOK_CODES.values()) - set(MT_BOOK_CODES.values())
+    assert set(APOCRYPHA_BOOK_NAMES) == lxx_only - {"2Es", "EsG", "Ode"}
+
+
+def test_kjv_apocrypha_books_are_not_compared_with_brentons_greek(tmp_path, monkeypatch):
+    # Deuteronomy 32:43 differs from Brenton's Greek fixture (it is flagged
+    # elsewhere); as a KJV Apocrypha book it must be stored uncompared.
+    monkeypatch.setattr(biblical_versions_module, "KJV_APOCRYPHA_BOOKS", frozenset({"Deu"}))
+    conn = sqlite3.connect(_build_db(tmp_path))
+    stored = conn.execute(
+        """SELECT brenton_greek_differs, brenton_greek, brenton_greek_difference
+           FROM biblical_version_verses WHERE edition_reference = 'Deu.32.43'"""
+    ).fetchall()
+    conn.close()
+
+    assert stored == [(None, None, None)]
 
 
 def test_import_adds_comparison_columns_to_an_existing_table(tmp_path):

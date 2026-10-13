@@ -34,6 +34,78 @@ BRENTON_TRANSLATION_NOTE = (
     "Vaticanus and is not the Rahlfs text shown, and his English sometimes departs even "
     "from that Greek, so his wording may not match the Greek beside it."
 )
+# For these books (Rahlfs edition-book codes) and for Daniel 3:24-90 (the
+# Prayer of Azariah and Song of the Three, the KJV "Song of the Three
+# Children"), eBible's Brenton prints the KJV (Authorized Version) Apocrypha,
+# lightly adapted, not his own translation: verse-by-verse similarity to
+# eBible's KJV is 0.92-1.00 (0.24-0.49 for the Hebrew-canon books). The KJV was
+# translated from other Greek texts, so neither the Rahlfs nor Brenton's Greek
+# is what it renders (Sirach 17:17 adds "in the division of the nations of the
+# whole earth"). Greek Esther and 3-4 Maccabees are Brenton's own.
+KJV_APOCRYPHA_BOOKS = frozenset({
+    "1Es", "1Ma", "2Ma", "Bar", "Bel", "Jdt", "Lje", "Sir", "Sus", "Tob", "Wis",
+})
+KJV_APOCRYPHA_TRANSLATION_LABEL = "KJV (Authorized Version) Apocrypha, lightly adapted by Brenton"
+KJV_APOCRYPHA_NOTE = (
+    "Brenton's edition prints it in place of his own translation. The KJV was translated "
+    "from other Greek texts, not the Rahlfs or Brenton's Greek shown, so it can add or "
+    "omit words that Greek lacks (e.g. Sirach 17:17)."
+)
+
+
+def is_kjv_apocrypha(edition_book: str, chapter: int, verse: int) -> bool:
+    """True where Brenton's English is the KJV Apocrypha rather than his own."""
+    return edition_book in KJV_APOCRYPHA_BOOKS or (
+        edition_book == "Dan" and chapter == 3 and 24 <= verse <= 90
+    )
+
+
+# Rahlfs books and passages outside the 66-book Protestant canon (Westminster
+# Confession 1.3): every LXX-only book except 2 Esdras (Ezra-Nehemiah) and Greek
+# Esther, plus the Greek additions to canonical books. Odes 1-6, 9-11 and 13
+# reprint canonical songs (Exodus 15, Luke 1, ...) and are not marked.
+APOCRYPHA_BOOK_NAMES = {
+    "1Es": "1 Esdras", "1Ma": "1 Maccabees", "2Ma": "2 Maccabees",
+    "3Ma": "3 Maccabees", "4Ma": "4 Maccabees", "Bar": "Baruch",
+    "Bel": "Bel and the Dragon", "Jdt": "Judith", "Lje": "the Letter of Jeremiah",
+    "Pss": "the Psalms of Solomon", "Sir": "Sirach", "Sus": "Susanna",
+    "Tob": "Tobit", "Wis": "Wisdom",
+}
+_ESTHER_ADDITIONS = "the Greek additions to Esther"
+_AZARIAH = "the Prayer of Azariah and Song of the Three"
+_NONCANONICAL_ODES = {
+    7: f"{_AZARIAH} (Odes 7–8)", 8: f"{_AZARIAH} (Odes 7–8)",
+    12: "the Prayer of Manasseh (Ode 12)", 14: "Ode 14 (a morning hymn)",
+}
+# Names that take a plural verb ("... are not in the Protestant canon").
+APOCRYPHA_PLURAL_NAMES = frozenset({
+    "the Psalms of Solomon", _ESTHER_ADDITIONS, f"{_AZARIAH} (Dan 3:24–90)",
+    f"{_AZARIAH} (Odes 7–8)",
+})
+
+
+def apocrypha_name(
+    edition_book: str, chapter: int, verse: int, canonical_reference: str | None
+) -> str | None:
+    """Name the non-canonical book or Greek addition a Rahlfs row belongs to.
+
+    Greek Esther's additions are its lettered verses with no MT position; the
+    other additions are Daniel 3:24-90 (both editions) and Psalm 151. Other
+    LXX pluses in canonical books (3 Kingdoms 2:35a, Proverbs 9:12a, ...) are
+    textual variants, not Apocrypha, and return None.
+    """
+    if edition_book in APOCRYPHA_BOOK_NAMES:
+        return APOCRYPHA_BOOK_NAMES[edition_book]
+    if edition_book == "Ode":
+        return _NONCANONICAL_ODES.get(chapter)
+    if edition_book == "EsG" and canonical_reference is None:
+        return _ESTHER_ADDITIONS
+    if edition_book == "Dan" and chapter == 3 and 24 <= verse <= 90:
+        return f"{_AZARIAH} (Dan 3:24–90)"
+    if edition_book == "Psa" and chapter == 151:
+        return "Psalm 151"
+    return None
+
 
 MT_EDITION = "STEPBible TAHOT / Westminster Leningrad Codex"
 MT_LICENSE = "CC BY 4.0"
@@ -620,7 +692,9 @@ def iter_lxx_rows(
     Rows carrying Brenton's English are compared with Brenton's own Greek for
     the same verse: ``brenton_greek_differs`` is 1 when it differs from Rahlfs
     (and Brenton's Greek plus a difference summary are stored), 0 when it
-    agrees, and NULL when there is no English or no Brenton Greek verse.
+    agrees, and NULL when there is no English or no Brenton Greek verse. Verses
+    whose English is the KJV Apocrypha (see ``is_kjv_apocrypha``) are not
+    compared (NULL): that English does not translate Brenton's Greek.
     """
     rahlfs_words = _rahlfs_words(morphology_dir) if brenton_greek else frozenset()
     for path in sorted(morphology_dir.glob("*.json")):
@@ -661,7 +735,11 @@ def iter_lxx_rows(
                 positions.append((None, None, None, None, "", translation, unpaired_method))
 
             comparison: tuple[int | None, str | None, str | None] = (None, None, None)
-            if greek_texts[index] and any(position[5] for position in positions):
+            if (
+                greek_texts[index]
+                and not is_kjv_apocrypha(edition_book, edition_chapter, edition_verse)
+                and any(position[5] for position in positions)
+            ):
                 difference = compare_brenton_greek(
                     _neighbours(texts, index), _neighbours(greek_texts, index), rahlfs_words
                 )

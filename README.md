@@ -210,11 +210,28 @@ there with a note naming the verse to continue from.
   warning, a difference summary, and Brenton's Greek as the text his English
   translates. Deuteronomy 32:43, for example, reports "word order differs (υἱοὶ
   ἄγγελοι)", and Psalm 40:6 reports "Brenton's Greek reads σῶμα for ὠτία".
-  Differing verse divisions do not count as differences. About 38% of the
-  28,314 rows with Brenton's English are flagged. Unflagged rows (Sirach 17:17,
-  where the English adds words his Greek lacks) can still differ, because a
-  Greek-to-Greek comparison cannot see where his English departs from his own
-  Greek.
+  Differing verse divisions do not count as differences. 8,914 of the 23,684
+  rows with Brenton's own English (38%) are flagged. Unflagged rows can still
+  differ, because a Greek-to-Greek comparison cannot see where his English
+  departs from his own Greek.
+- **Most Apocrypha English is the KJV, not Brenton's translation.** For 1
+  Esdras, 1–2 Maccabees, Baruch, Bel, Judith, the Letter of Jeremiah, Sirach,
+  Susanna, Tobit, Wisdom, and Daniel 3:24–90 (the Prayer of Azariah and Song of
+  the Three), Brenton's edition prints the KJV (Authorized Version) Apocrypha,
+  lightly adapted by Brenton (verse-by-verse similarity to the KJV is 92–100%,
+  against 24–49% for his own Hebrew-canon translations). The KJV was translated
+  from other Greek texts, so it can contain words neither the Rahlfs nor
+  Brenton's Greek has: Sirach 17:17 adds "in the division of the nations of the
+  whole earth". These 4,630 rows label the English "KJV Apocrypha", are named in
+  the Sources block with one closing note, and are not compared with Brenton's
+  Greek. Greek Esther and 3–4 Maccabees are Brenton's own translation.
+- **Apocrypha rows are marked.** Rows outside the 66-book Protestant canon (the
+  Septuagint-only books, the Greek additions to Esther, Daniel 3:24–90, Psalm
+  151, and Odes 7–8, 12 and 14) end their header with "(Apocrypha)", and the
+  closing block adds one line saying they are not in the Protestant canon (cf.
+  Westminster Confession 1.3). Other Septuagint pluses in canonical books
+  (3 Kingdoms 2:35a–o, Proverbs 9:12a–c, ...) are textual variants and are not
+  marked.
 - **LXX-only verses** (pluses such as the Prayer of Azariah, Psalm 151, and the
   Septuagint-only books) have no canonical MT position, so they never appear as
   the counterpart of a different MT verse. Request them with `numbering="lxx"`; a

@@ -34,7 +34,7 @@ from urllib.parse import quote_plus
 
 from mcp.types import Tool, ToolAnnotations
 
-from .parsers.biblical_versions import VERSE_MAPPING_CREDIT
+from .parsers.biblical_versions import APOCRYPHA_PLURAL_NAMES, VERSE_MAPPING_CREDIT
 
 
 def _parse_json_field(value, default=None):
@@ -155,7 +155,7 @@ form, is needed.""",
         ),
         description="""Compare the Masoretic Text (MT) and Septuagint (LXX) side by side for an Old Testament or Septuagint verse, range, or chapter. Not for the New Testament. Returns at most ten verses per call and names the verse to continue from.
 
-Rows are grouped by canonical MT/English reference and keep each edition's own reference, so Hebrew/Greek versification differences stay explicit (Psalm 82:6 = Greek Psa.81.6). MT: Westminster Leningrad Codex with STEPBible word glosses (not a translation). LXX: Rahlfs, with Brenton's English only where Brenton translated the same recension. Brenton translated his own Greek, not Rahlfs: where it differs the row warns and shows his Greek, and his English should be quoted as a rendering of that text. LXX-only verses (e.g. the Prayer of Azariah) need numbering='lxx'. Sources, licences, and the TVTMS verse-mapping credit are listed once at the end.""",
+Rows are grouped by canonical MT/English reference and keep each edition's own reference, so Hebrew/Greek versification differences stay explicit (Psalm 82:6 = Greek Psa.81.6). MT: Westminster Leningrad Codex with STEPBible word glosses (not a translation). LXX: Rahlfs, with Brenton's English only where Brenton translated the same recension. Brenton translated his own Greek, not Rahlfs: where it differs the row warns and shows his Greek, and his English should be quoted as a rendering of that text; most Apocrypha rows carry the KJV Apocrypha instead. LXX-only verses (e.g. the Prayer of Azariah) need numbering='lxx'. Sources, licences, and the TVTMS verse-mapping credit are listed once at the end.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -1434,8 +1434,9 @@ def format_biblical_version_comparison(
     Rows sharing a canonical (MT/English) reference are grouped under one
     header; LXX-only rows (no canonical reference) are grouped by their
     edition reference. Each row names its version, edition, and edition
-    reference; licence, source, translation label, verse-mapping credit, and
-    the Brenton caveat appear once in a closing Sources block.
+    reference; licence, source, translation labels, verse-mapping credit, the
+    Brenton and KJV Apocrypha caveats, and the canon note for Apocrypha rows
+    (marked "(Apocrypha)") appear once in a closing Sources block.
     """
     title = f"## Biblical Version Comparison: {reference}"
     if numbering == "lxx":
@@ -1445,7 +1446,10 @@ def format_biblical_version_comparison(
         lines.extend([f"*{note}*", ""])
     current_group: str | None = None
     sources: dict[tuple[str, str], dict] = {}
+    english_labels: dict[tuple[str, str], dict[str, None]] = {}
+    apocrypha: dict[str, None] = {}
     brenton_note = ""
+    kjv_note = ""
     brenton_greek_url = ""
     for row in rows:
         canonical = row.get("canonical_reference")
@@ -1453,11 +1457,18 @@ def format_biblical_version_comparison(
         if group != current_group:
             current_group = group
             lines.extend([f"### {group}", ""])
-        sources.setdefault((row["version"], row["edition"]), row)
+        edition_key = (row["version"], row["edition"])
+        sources.setdefault(edition_key, row)
+        labels = english_labels.setdefault(edition_key, {})
+        if row.get("translation") and row.get("translation_label"):
+            labels[row["translation_label"]] = None
 
         header = f"#### {row['version']} {row['edition']} · {row['edition_reference']}"
         if row.get("mapping_method") and row["mapping_method"] != "identity":
             header += f" (mapping: {row['mapping_method']})"
+        if row.get("apocrypha"):
+            header += " (Apocrypha)"
+            apocrypha[row["apocrypha"]] = None
         lines.append(header)
         if include_original:
             lines.append(f"**{row['language']}:** {row['text']}")
@@ -1471,12 +1482,17 @@ def format_biblical_version_comparison(
                 lines.append(
                     f"**Brenton's Greek (the text his English translates):** {row['brenton_greek']}"
                 )
-        label = _SHORT_ENGLISH_LABELS.get(row["version"]) or row.get("translation_label") or "English"
+        if row.get("kjv_apocrypha"):
+            label = "KJV Apocrypha"
+        else:
+            label = _SHORT_ENGLISH_LABELS.get(row["version"]) or row.get("translation_label") or "English"
         if row.get("translation"):
             lines.append(f"**English ({label}):** {row['translation']}")
         else:
             lines.append("**English:** not available for this edition.")
-        if row.get("translation_note"):
+        if row.get("kjv_apocrypha"):
+            kjv_note = row["translation_note"]
+        elif row.get("translation_note"):
             brenton_note = row["translation_note"]
             if "brenton_greek_differs" in row and row["brenton_greek_differs"] is None:
                 lines.append("*Brenton's Greek for this verse is unavailable, so it was not compared.*")
@@ -1497,7 +1513,7 @@ def format_biblical_version_comparison(
 
     lines.extend(["---", "**Sources**"])
     for (version, edition), row in sources.items():
-        english = row.get("translation_label") or "none"
+        english = "; ".join(english_labels[(version, edition)]) or "none"
         lines.append(
             f"- {version} {edition} ({row['language']}): {row['license']}. "
             f"English: {english}. {row['source_url']}"
@@ -1505,8 +1521,18 @@ def format_biblical_version_comparison(
     if brenton_greek_url:
         lines.append(f"- Brenton's Greek: public domain. {brenton_greek_url}")
     lines.append(f"- Verse mapping: {VERSE_MAPPING_CREDIT}")
+    if apocrypha:
+        names = list(apocrypha)
+        listed = names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}"
+        verb = "are" if len(names) > 1 or names[0] in APOCRYPHA_PLURAL_NAMES else "is"
+        lines.append(
+            f"\n*Apocrypha: {listed} {verb} not in the Protestant canon "
+            "(cf. Westminster Confession 1.3); background only.*"
+        )
     if brenton_note:
         lines.append(f"\n*Brenton's English: {brenton_note}*")
+    if kjv_note:
+        lines.append(f"\n*KJV Apocrypha English: {kjv_note}*")
     return "\n".join(lines).rstrip()
 
 
