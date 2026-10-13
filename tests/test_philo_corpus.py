@@ -317,11 +317,13 @@ async def test_lookup_returns_paired_greek_and_english(tmp_path, fixture_corpus,
     greek_only = await _call(path, monkeypatch, lookup, citation="Spec. 2.124")
 
     assert opif.startswith("## Opif. 26")
-    assert "**Corpus:** Philo" in opif and "**License:** CC BY-SA 4.0" in opif
+    assert "*Not Scripture · Hellenistic Jewish philosophy (c. AD 20–50) · tier A ·" in opif
+    assert "- Philo: Not Scripture; not Christian." in opif and "License: CC BY-SA 4.0." in opif
     assert "In the beginning God created the heaven and the earth" in opif
     assert "ἐν ἀρχῇ ἐποίησεν" in opif
-    assert "Gen 1:1 — Quotes and expounds" in opif
-    assert "none openly licensed" in greek_only and "Ταῦτα περὶ τῆς ἑβδόμης" in greek_only
+    assert "- Echo: Gen 1:1 — Quotes and expounds" in opif
+    assert "No English translation included" in greek_only
+    assert "Ταῦτα περὶ τῆς ἑβδόμης" in greek_only
 
 
 @pytest.mark.asyncio

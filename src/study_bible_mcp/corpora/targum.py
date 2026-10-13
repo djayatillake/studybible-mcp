@@ -261,7 +261,7 @@ def biblical_links(passages: list[dict]) -> list[BiblicalLink]:
     links = []
     for passage in passages:
         book = _BOOK_BY_WORK[passage["work_key"]]
-        citation_code, book_code, _ = BOOKS[book]
+        _, book_code, _ = BOOKS[book]
         chapter, verse = divmod(passage["sort_start"], 1000)
         links.append(BiblicalLink(
             work_key=passage["work_key"],
@@ -271,7 +271,8 @@ def biblical_links(passages: list[dict]) -> list[BiblicalLink]:
             verse=verse,
             end_chapter=chapter,
             end_verse=verse,
-            note=f"Translation of: {citation_code} {chapter}:{verse}",
+            note="",
+            relation="translation",
         ))
     return links
 

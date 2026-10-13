@@ -21,6 +21,9 @@ _ROMAN = re.compile(
     r"(?=[mdclxvi])m{0,3}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})", re.IGNORECASE
 )
 _ROMAN_VALUES = {"i": 1, "v": 5, "x": 10, "l": 50, "c": 100, "d": 500, "m": 1000}
+# The largest top-level number a locator accepts. No cited work comes close;
+# a larger number is a typing error and would overflow SQLite's integer keys.
+MAX_TOP_LEVEL = 99_999
 
 
 class Locator(Protocol):
@@ -100,7 +103,7 @@ class NumberedLocator:
                 value = roman
             else:
                 return None
-            if not top and value >= self.scale:
+            if value >= (MAX_TOP_LEVEL + 1 if top else self.scale):
                 return None
             numbers.append(value)
         return numbers

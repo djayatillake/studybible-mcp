@@ -6,8 +6,14 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-from ..corpora import CORPORA, Corpus, combined_license
-from ..database import BOOK_ABBREV_MAP, ancient_search_index_text
+from ..corpora import CORPORA, LINK_RELATIONS, Corpus, combined_license, resolve_citation
+from ..corpora import editorial_notes
+from ..corpora.editorial_notes import EditorialLink, EditorialNote, EditorialNotes
+from ..database import (
+    BOOK_ABBREV_MAP,
+    ancient_search_index_text,
+    ancient_search_prefix_variants,
+)
 
 _BOOK_CODES = frozenset(BOOK_ABBREV_MAP.values())
 
@@ -75,16 +81,35 @@ def _passage(corpus: Corpus, raw: dict[str, Any]) -> dict[str, Any]:
     return row
 
 
-def _link_rows(corpus: Corpus, rows: list[dict[str, Any]]) -> list[tuple[int, str, int, int, str]]:
-    """Resolve each curated link to the index of the passage containing its locator."""
+def _passage_index(rows: list[dict[str, Any]]) -> dict[str, list[tuple[int, int, int]]]:
     by_work: dict[str, list[tuple[int, int, int]]] = {}
     for index, row in enumerate(rows):
         by_work.setdefault(row["work_key"], []).append((row["sort_start"], row["sort_end"], index))
-    resolved = []
+    return by_work
+
+
+# A resolved link: passage index, book code, sort start, sort end, note, relation.
+LinkRow = tuple[int, str, int, int, str, str]
+
+
+def _link_rows(
+    corpus: Corpus, rows: list[dict[str, Any]], curated: list[EditorialLink] = (),
+) -> list[LinkRow]:
+    """Resolve each link to the passage(s) it attaches to.
+
+    A corpus module's link attaches to the passage containing its locator. A
+    link from the editorial notes file attaches to every passage its citation
+    covers, and replaces a module link to the same passage and range (so the
+    file can retype or re-annotate it).
+    """
+    by_work = _passage_index(rows)
+    resolved: dict[tuple[int, str, int, int], LinkRow] = {}
     for link in corpus.biblical_links(rows):
         target = f"{link.work_key} {link.locator} -> {link.book} {link.chapter}:{link.verse}"
         if link.book not in _BOOK_CODES:
             raise ValueError(f"Curated biblical link {target}: unknown book code {link.book!r}")
+        if link.relation not in LINK_RELATIONS:
+            raise ValueError(f"Curated biblical link {target}: unknown relation {link.relation!r}")
         start, end = link.chapter * 1000 + link.verse, link.end_chapter * 1000 + link.end_verse
         if not (1 <= link.verse <= 999 and 1 <= link.end_verse <= 999 and start <= end):
             raise ValueError(f"Curated biblical link {target}: invalid verse range")
@@ -100,28 +125,101 @@ def _link_rows(corpus: Corpus, rows: list[dict[str, Any]]) -> list[tuple[int, st
             raise ValueError(
                 f"Curated biblical link {target} does not resolve to an imported passage"
             )
-        resolved.append((index, link.book, start, end, link.note))
+        resolved[(index, link.book, start, end)] = (index, link.book, start, end, link.note, link.relation)
+    for link in curated:
+        start, end = link.chapter * 1000 + link.verse, link.end_chapter * 1000 + link.end_verse
+        _, _, indexes = _covered(corpus, by_work, link.citation, "Editorial link")
+        for index in indexes:
+            resolved[(index, link.book, start, end)] = (
+                index, link.book, start, end, link.note, link.relation,
+            )
+    return list(resolved.values())
+
+
+def _covered(
+    corpus: Corpus, by_work: dict[str, list[tuple[int, int, int]]], citation: str, what: str,
+    gap: bool = False,
+) -> tuple[str, tuple[int, int], list[int]]:
+    """The canonical citation, its sort range, and the indexes of the passages it covers.
+
+    For a ``gap`` (a range the edition lacks) with no passage inside it, the
+    passages immediately before and after the range are returned instead.
+    """
+    resolution = resolve_citation(citation, [corpus])
+    if resolution.status != "ok":
+        raise ValueError(f"{what} {citation!r} ({corpus.key}) does not resolve to a citation")
+    match = resolution.match
+    start, end = match.sort_range
+    passages = by_work.get(match.work.key, [])
+    indexes = [index for first, last, index in passages if first <= end and last >= start]
+    if not indexes and gap:
+        before = [index for first, last, index in passages if last < start]
+        after = [index for first, last, index in passages if first > end]
+        indexes = [*before[-1:], *after[:1]]
+    if not indexes:
+        raise ValueError(
+            f"{what} {citation!r} ({corpus.key}) does not resolve to an imported passage"
+        )
+    canonical = f"{match.work.display_title} {match.work.locator.format_range(start, end)}"
+    return canonical, (start, end), indexes
+
+
+def _note_rows(
+    corpus: Corpus, rows: list[dict[str, Any]], notes: list[EditorialNote],
+) -> list[tuple[int, dict[str, Any]]]:
+    """Resolve each editorial note to (passage index, note row) pairs; fails on an unresolved note."""
+    by_work = _passage_index(rows)
+    resolved = []
+    for note in notes:
+        canonical, (start, end), indexes = _covered(
+            corpus, by_work, note.citation, "Editorial note", gap=note.kind == "gap"
+        )
+        for index in indexes:
+            resolved.append((index, {
+                "corpus": corpus.key,
+                "work_key": rows[index]["work_key"],
+                "citation": canonical,
+                "sort_start": start,
+                "sort_end": end,
+                "kind": note.kind,
+                "note": note.text,
+                "contrast": "; ".join(note.contrast),
+                "aligned": "; ".join(note.aligned),
+            }))
     return resolved
 
 
-def import_corpus(conn: sqlite3.Connection, key: str, directory: Path) -> int:
-    """Replace one registered corpus's passages, FTS rows, and biblical links.
+def import_corpus(
+    conn: sqlite3.Connection, key: str, directory: Path, notes: EditorialNotes | None = None,
+) -> int:
+    """Replace one registered corpus's passages, FTS rows, biblical links and editorial notes.
 
-    The files are checked and every passage and link validated before any row
-    is touched; the replacement then runs in a savepoint, so a failure leaves
-    the previously imported corpus intact. Returns the passage count.
+    ``notes`` defaults to the committed ``corpora/editorial_notes.json``; only
+    its entries for this corpus are used. The files are checked and every
+    passage, link and note validated before any row is touched; the
+    replacement then runs in a savepoint, so a failure leaves the previously
+    imported corpus intact. Returns the passage count.
     """
     corpus = CORPORA[key]
     corpus.require_files(directory)
     rows = [_passage(corpus, dict(raw)) for raw in corpus.parse(directory)]
     if not rows:
         raise ValueError(f"{key}: the parser produced no passages from {directory}")
-    links = _link_rows(corpus, rows)
+    if notes is None:
+        notes = editorial_notes.load_editorial_notes()
+    corpus_notes, corpus_links = notes.for_corpus(key)
+    links = _link_rows(corpus, rows, corpus_links)
+    note_rows = _note_rows(corpus, rows, corpus_notes)
 
     conn.execute("SAVEPOINT import_corpus")
     try:
         conn.execute(
             """DELETE FROM ancient_source_biblical_links WHERE passage_id IN
+               (SELECT id FROM ancient_source_passages WHERE corpus = ?)""",
+            (key,),
+        )
+        conn.execute(
+            """DELETE FROM ancient_source_notes WHERE passage_id IN
                (SELECT id FROM ancient_source_passages WHERE corpus = ?)""",
             (key,),
         )
@@ -139,25 +237,34 @@ def import_corpus(conn: sqlite3.Connection, key: str, directory: Path) -> int:
             conn.execute(insert, {column: row.get(column) for column in _COLUMNS}).lastrowid
             for row in rows
         ]
+        removals = corpus.search_index_removals
         conn.executemany(
             """INSERT INTO ancient_source_passages_fts
-               (passage_id, work_title, reference, text, original_text_folded)
-               VALUES (?, ?, ?, ?, ?)""",
+               (passage_id, work_title, reference, text, original_text_folded,
+                original_prefix_variants)
+               VALUES (?, ?, ?, ?, ?, ?)""",
             (
                 (
                     passage_id, row["work_title"], row["reference"], row["text"],
-                    ancient_search_index_text(
-                        row.get("original_text") or "", corpus.search_index_removals
-                    ),
+                    ancient_search_index_text(row.get("original_text") or "", removals),
+                    ancient_search_prefix_variants(row.get("original_text") or "", removals),
                 )
                 for passage_id, row in zip(ids, rows)
             ),
         )
         conn.executemany(
             """INSERT INTO ancient_source_biblical_links
-               (passage_id, biblical_book, sort_start, sort_end, relationship_note)
-               VALUES (?, ?, ?, ?, ?)""",
+               (passage_id, biblical_book, sort_start, sort_end, relationship_note, relation)
+               VALUES (?, ?, ?, ?, ?, ?)""",
             ((ids[index], *link) for index, *link in links),
+        )
+        conn.executemany(
+            """INSERT OR IGNORE INTO ancient_source_notes
+               (passage_id, corpus, work_key, citation, sort_start, sort_end, kind, note,
+                contrast, aligned)
+               VALUES (:passage_id, :corpus, :work_key, :citation, :sort_start, :sort_end,
+                       :kind, :note, :contrast, :aligned)""",
+            ({"passage_id": ids[index], **note} for index, note in note_rows),
         )
         # Merge FTS segments so a re-import does not leave deleted entries behind.
         conn.execute(
@@ -177,14 +284,36 @@ def import_josephus(conn: sqlite3.Connection, directory: Path) -> int:
     return import_corpus(conn, "josephus", directory)
 
 
-def import_available_corpora(conn: sqlite3.Connection, root: Path) -> dict[str, int | None]:
+def missing_corpora(root: Path) -> dict[str, str]:
+    """Registered corpora whose source files under ``root`` are absent or incomplete.
+
+    Maps each corpus key to the reason (its ``require_files`` error).
+    """
+    missing = {}
+    for key, corpus in CORPORA.items():
+        directory = root / corpus.data_dir
+        if not directory.is_dir():
+            missing[key] = f"{directory} not found"
+            continue
+        try:
+            corpus.require_files(directory)
+        except FileNotFoundError as error:
+            missing[key] = str(error)
+    return missing
+
+
+def import_available_corpora(
+    conn: sqlite3.Connection, root: Path, notes: EditorialNotes | None = None,
+) -> dict[str, int | None]:
     """Import every registered corpus whose directory exists under ``root``.
 
     Returns passage counts per corpus key, None for a corpus not downloaded. A
     present but incomplete corpus raises from its ``require_files`` check.
     """
+    if notes is None:
+        notes = editorial_notes.load_editorial_notes()
     return {
-        key: import_corpus(conn, key, root / corpus.data_dir)
+        key: import_corpus(conn, key, root / corpus.data_dir, notes)
         if (root / corpus.data_dir).exists()
         else None
         for key, corpus in CORPORA.items()

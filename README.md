@@ -250,12 +250,17 @@ R. H. Charles's English, one passage per Charles verse, and 4 Ezra (2 Esdras
 passages); both works are non-canonical and are labelled as attributed to
 Enoch or Ezra. The
 `rabbinic` corpus holds the Mishnah from Sefaria (63 tractates, one passage per
-mishnah). Each result names its corpus, work, and citation, and shows up to
-1,500 characters of English around the first match and a shorter
-original-language excerpt (match-centred when the query is in the original's
-script; a passage without openly licensed English shows its original instead);
-the edition, translation, license, and pinned source are listed once at the
-end. Up to 4 passages are returned by default.
+mishnah). Each result gives its citation and, on the line below, its
+canon-and-date tag (e.g. `*Not Scripture · Jewish pseudepigraphon (Parables,
+c. 50 BC–AD 117, debated) · tier A/B · Charles 1912*`), then up to 1,500
+characters of English around the first match and a shorter original-language
+excerpt (match-centred when the query is in the original's script; a passage
+without English shows its original instead), any editorial `⚠` notes, and its
+typed biblical links. A closing **Caveats** block prints each corpus's caveat
+and the date tiers present once, and a **Sources** block lists the edition,
+translation, license (non-commercial licences marked and linked), and pinned
+source once. Up to 4 passages are returned by default, within a
+12,000-character budget (see [Ancient sources](#ancient-sources)).
 
 ```text
 search_ancient_sources(
@@ -272,17 +277,22 @@ title (`Jewish`, `War`, `Life`) does not match every passage of that work.
 English search is stemmed (`build` matches `building`); Greek, Hebrew, and
 Aramaic search ignores accents, breathings, vowel points, cantillation, and case
 (`βαπτισμω` matches `βαπτισμῷ`), and editorial signs printed inside a word
-(`אלמנות` matches `אלמנ֯[ו]ת`). A Hebrew or Aramaic word also matches with one or
-two attached prefix letters (ו ב ה ל מ כ ש): `הון המקדש` finds `ובהון המקדש`.
-Because a root letter can look like a prefix, a search can also find a
-different word (`קדש` finds `מקדש`). Passages containing every query word come
+(`אלמנות` matches `אלמנ֯[ו]ת`). Passages containing every query word come
 first; when none do, passages matching any word are returned with an explicit
-note. `biblical_reference` accepts a chapter, verse, or verse range (`Luke 21`,
-`Luke 21:5`, `Luke 21:5-6`) and filters to editorial links: curated
-narrative-overlap links (33 for Josephus, 2 for the rabbinic corpus), each
-checked against the linked passage text, and one "Translation of" link per
-targum verse, derived from its verse key (`biblical_reference="Deuteronomy 32:8"`
-with `corpus="targum"` finds Onkelos on that verse). Period tags,
+note. Only when the exact search finds nothing is a Hebrew or Aramaic word
+retried with one or two attached prefix letters (ו ב ה ל מ כ ש) stripped from
+the indexed words, keeping at least three letters (`הון` then finds `ובהון`);
+those results are marked `(prefix match)`, because a root letter can look like
+a prefix (`קדש` finds `מקדש`). `biblical_reference` accepts a chapter, verse,
+or range (`Luke 21`, `Luke 21:5`, `Luke 21:5-6`, `Jude 6`) and filters to
+editorial links: curated links (33 for Josephus, 2 for the rabbinic corpus),
+each checked against the linked passage text, links from
+`corpora/editorial_notes.json`, and one "Translation of" link per targum
+verse, derived from its verse key (`biblical_reference="Deuteronomy 32:8"`
+with `corpus="targum"` finds Onkelos on that verse). Each link is typed —
+`Aligned`, `Echo`, `Shared tradition`, `Contrast`, or `Translation of` — and
+printed as e.g. `- Shared tradition: Mark 6:17–29 — Related account: death of
+John the Baptist`. Period tags,
 biblical links, and editorial chapter headings (Whiston's, for Josephus) are
 labelled editorial metadata; they are not presented as claims made by the
 ancient author. Empty results say whether the corpus is missing, the reference
@@ -301,8 +311,9 @@ book (`Genesis`/`Gen`, `Exodus`/`Exod`, `Leviticus`/`Lev`, `Numbers`/`Num`,
 `Genesis 1:1` also finds Onkelos. For Qumran: `CD`/`Damascus Document`/`Zadokite Fragments`, `1QS`/
 `Community Rule`, `1QSa`/`1Q28a`/`Rule of the Congregation`, and
 `1QpHab`/`Pesher Habakkuk` take `column:line`, with Arabic or Roman column
-numbers (`CD 6:11`, `CD VI 11`, `1QpHab VII 1-5`); each returns the whole
-column containing the line, with the line numbers in the text.
+numbers (`CD 6:11`, `CD VI 11`, `1QpHab VII 1-5`); a line citation shows the
+cited lines ±2 from the column that contains them, and a column citation
+(`CD 6`) the whole column, with the line numbers in the text.
 For Philo, SBL short titles, Latin titles, and English titles
 (`Opif.`/`De Opificio Mundi`/`On the Creation of the World`, `Legat.`/`Leg.
 Gai.`, `Her.`/`Heres`, ...) take a Cohn–Wendland section; the multi-book works
@@ -335,16 +346,21 @@ lookup_ancient_source(citation="m. Shek. 1:3")
 ```
 
 A locator inside a longer passage returns the passage containing it; a range
-returns every overlapping passage in citation order, at most 10, with a note
-when more exist. Each passage shows its corpus, work, citation, edition,
-translation, license, source, and curated biblical links. If registered
-works share a title, a collection prefix (such as `Mishnah`) or the locator
-grammar itself selects one.
-Unknown works list the supported works, ambiguous citations list the
-candidates, unreadable locators name the expected grammar, a locator outside
-the imported text names the imported range and the nearest passages, and a
-database without the corpus (or imported before citation lookup) is told to
-run `python scripts/upgrade_database.py`.
+returns the overlapping passages in citation order, 4 by default (`limit` up
+to 10), with a note when more exist. Each passage shows its citation,
+canon-and-date tag, up to 1,500 characters of English and 600 of the original
+(`full_text=true` lifts these caps), editorial `⚠` notes, and typed biblical
+links; caveats and sources are printed once at the end, and the response
+stops at about 12,000 characters, naming the citation to continue from. If
+registered works share a title, a collection prefix (such as `Mishnah`) or the
+locator grammar itself selects one.
+Unknown works get a short summary of the citable works (and a close match,
+e.g. `Did you mean Antiquities?`), ambiguous citations list the candidates,
+unreadable or missing locators name the expected grammar with an example from
+the same work, a locator outside the imported text names the imported range,
+the nearest passages, and any `gap` note covering it, and a database without
+the corpus (or with ancient-source tables from before the current schema) is
+told to run `python scripts/upgrade_database.py`.
 
 #### 2. `word_study`
 
@@ -1082,9 +1098,34 @@ Editorial signs inside words (`[ ] ⟨ ⟩ < > { } ( ) ^ ¦`) and invisible form
 characters are deleted rather than treated as word breaks, in the index and the
 query; a corpus can also declare `search_index_removals`, patterns for printed
 text that is not part of the reading (Qumran's scribal erasures and `vacat`),
-which are deleted from the index. Every Hebrew-script word is also indexed
-without one or two leading prefix letters, keeping at least two letters. The
-displayed text keeps every sign.
+which are deleted from the index. Every Hebrew-script word is also indexed,
+in a separate column searched only as a fallback, without one or two leading
+prefix letters, keeping at least three letters. The displayed text keeps
+every sign.
+
+Every passage is labelled so that the agent never mistakes it for Scripture:
+
+- **Tag.** Each corpus (or work) declares a `SourceTag` in the registry: canon
+  status, kind, composition date, date tier (A: written before or alongside the
+  NT; B: after the NT, to c. AD 200), edition, and, where the copy is much
+  later than the work, the manuscript date. 1 Enoch is dated book by book.
+  The registry refuses a corpus with an untagged work.
+- **Caveat.** Each corpus declares a 1–3 sentence caveat, printed once per
+  response that shows it (e.g. Philo: his Logos is not the incarnate Son).
+- **Editorial notes.** `src/study_bible_mcp/corpora/editorial_notes.json`
+  (committed) holds verse-level notes — `emendation`, `interpolation`,
+  `reconstruction`, `contrast`, `polemic`, `caution`, `gap` — with contrasting
+  and aligned biblical references, and extra typed links. Each corpus import
+  loads them into `ancient_source_notes` (one row per passage a citation
+  covers; a `gap` note sits on the passages either side of its range) and
+  fails if a citation covers no passage or a biblical reference does not
+  parse. A file link to the same passage and range as a module link replaces
+  it. Notes print as `⚠ <note> (Contrast: Mark 14:62)`, once per response.
+- **Typed links.** `ancient_source_biblical_links.relation` is `aligned`,
+  `echo`, `shared_tradition`, `contrast`, or `translation`. Module links take
+  `echo` when their note says the text cites, quotes or expounds the Bible and
+  `shared_tradition` otherwise; `create_schema` adds the column to older
+  databases with the same rule, and rebuilds an older search index.
 
 ### Josephus
 

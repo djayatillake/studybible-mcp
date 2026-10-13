@@ -8,6 +8,7 @@ Supports stdio, SSE, and Streamable HTTP transports for local and remote deploym
 
 import asyncio
 import contextlib
+import difflib
 import logging
 import os
 import re
@@ -39,7 +40,7 @@ from .database import (
 # Purple book with gold cross icon (32x32 PNG, base64 encoded)
 ICON_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAtklEQVR42mNgGOmAEZtgQ9TV/7SwrGGZNiNeB9DKYnwOYcGl6MajG1S1VENOA6s4E4yxounvfw0NDZpYjm4mckgz0drnhMxmIdew5bO3M9w+twfOr5veS5Y5TAOdDUcdMOAOYCE2wWEDqkYueNVEpnpSxwHIqR3ZcmziqMBzNA1QJwqwFTLocT5aEI06YNQBow6gaUGEDUAqGk/qhwCu1iutWsY4+wW0bJYT1S+gZUgMqq7ZKAAA/oE/8EmGTpMAAAAASUVORK5CYII="
 from .tools import (
-    ANCIENT_LOOKUP_LIMIT, TOOLS, _truncate, format_lexicon_entry, format_verse, format_name_entry,
+    ANCIENT_LINE_CONTEXT, ANCIENT_LOOKUP_DEFAULT, ANCIENT_LOOKUP_LIMIT, TOOLS, _truncate, format_lexicon_entry, format_verse, format_name_entry,
     format_genealogy, format_person_events, format_place_history,
     format_passage_entities, format_connection_path,
     format_enriched_verse, format_biblical_version_comparison,
@@ -570,6 +571,13 @@ def _ancient_scope_label(corpus: str | None) -> str:
     return CORPORA[corpus].label if corpus else "ancient-source"
 
 
+ANCIENT_UPGRADE_MESSAGE = (
+    "This database's ancient-source tables predate the current schema (typed biblical "
+    "links, editorial notes, and the search index). Run `python scripts/upgrade_database.py` "
+    "to upgrade it."
+)
+
+
 async def handle_search_ancient_sources(args: dict[str, Any]) -> list[TextContent]:
     """Search registered ancient-source corpora with period and biblical-link filters."""
     query = args.get("query", "").strip()
@@ -615,6 +623,8 @@ async def handle_search_ancient_sources(args: dict[str, Any]) -> list[TextConten
             "name with a chapter, verse, or verse range, e.g. 'Luke 21', "
             "'Luke 21:5', or 'Luke 21:5-6'."
         )
+    if status == "outdated_schema":
+        return text(ANCIENT_UPGRADE_MESSAGE)
     if status == "corpus_missing":
         scope = f"The {label} corpus is" if corpus else "No ancient-source corpus is"
         return text(
@@ -647,21 +657,65 @@ async def handle_search_ancient_sources(args: dict[str, Any]) -> list[TextConten
             biblical_reference=biblical_reference,
             period=period,
             match=result["match"],
+            prefix_match=result["prefix_match"],
         )
     )
 
 
 def _citable_works() -> str:
-    return "; ".join(
-        f"{corpus.label} ({corpus.key}): "
-        + ", ".join(work.display_title for work in corpus.works)
-        + f", e.g. '{corpus.example_citation}'"
+    """A short summary of the citable works: names for small corpora, a count and example otherwise."""
+    parts = []
+    for corpus in CORPORA.values():
+        works = corpus.works
+        if len(works) <= 4:
+            names = ", ".join(work.display_title for work in works)
+        else:
+            collections = {work.collection.title for work in works if work.collection}
+            prefix = f"{collections.pop()}, " if len(collections) == 1 else ""
+            names = f"{prefix}{len(works)} works"
+        parts.append(f"{corpus.label} ({names}; e.g. '{corpus.example_citation}')")
+    return "; ".join(parts)
+
+
+# A locator at the end of a citation ('18.116', '3:13-4:2', 'vi 11'), dropped
+# before suggesting a work name for an unknown citation.
+_TRAILING_LOCATOR = re.compile(r"[\s.,]+[\divxlc][\divxlc\s.:,\-–]*$", re.IGNORECASE)
+
+
+def _similar_works(citation: str) -> list[str]:
+    """Work names close to an unrecognised citation's name ('Antiquites' -> 'Antiquities')."""
+    name = _TRAILING_LOCATOR.sub("", citation).strip().lower()
+    titles = {
+        title.lower(): work.display_title
         for corpus in CORPORA.values()
-    )
+        for work in corpus.works
+        for title in (*work.names, work.display_title)
+    }
+    matches = difflib.get_close_matches(name, titles, n=3, cutoff=0.75)
+    return list(dict.fromkeys(titles[match] for match in matches))
 
 
 def _candidate(match) -> str:
     return f"{match.work.display_title} ({match.corpus.label}, cited by {match.work.locator.name})"
+
+
+async def _work_example(match) -> str:
+    """A citation of the first imported passage of the matched work, else its grammar example."""
+    work = match.work
+    first = await db.first_ancient_passage(match.corpus.key, work.key)
+    if first:
+        return f"'{work.display_title} {work.locator.format_range(first['sort_start'], first['sort_start'])}'"
+    return f"'{work.display_title} {work.locator.example}'"
+
+
+def _line_window(corpus, work, start: int, end: int) -> tuple[int, int] | None:
+    """For a line-numbered corpus, the cited lines ±ANCIENT_LINE_CONTEXT (a whole-column citation gets None)."""
+    scale = getattr(work.locator, "scale", None)
+    if not corpus.line_numbered or scale is None:
+        return None
+    if start % scale == 0 and end % scale == scale - 1:
+        return None
+    return start - ANCIENT_LINE_CONTEXT, end + ANCIENT_LINE_CONTEXT
 
 
 async def handle_lookup_ancient_source(args: dict[str, Any]) -> list[TextContent]:
@@ -678,12 +732,19 @@ async def handle_lookup_ancient_source(args: dict[str, Any]) -> list[TextContent
             f"Unsupported ancient-source corpus '{corpus_key}'. Available corpora: "
             f"{', '.join(CORPORA)}."
         )
+    try:
+        limit = int(args.get("limit", ANCIENT_LOOKUP_DEFAULT))
+    except (TypeError, ValueError):
+        limit = 0
+    if not 1 <= limit <= ANCIENT_LOOKUP_LIMIT:
+        return text(f"'limit' must be an integer from 1 to {ANCIENT_LOOKUP_LIMIT}.")
     corpora = [CORPORA[corpus_key]] if corpus_key else list(CORPORA.values())
     resolution = resolve_citation(citation, corpora)
     if resolution.status == "unknown_work":
+        similar = _similar_works(citation)
+        hint = f" Did you mean {' or '.join(similar)}?" if similar else ""
         return text(
-            f"Unknown work in citation '{citation}'. Supported corpora and works: "
-            f"{_citable_works()}."
+            f"Unknown work in citation '{citation}'.{hint} Citable works: {_citable_works()}."
         )
     if resolution.status == "ambiguous":
         return text(
@@ -694,9 +755,9 @@ async def handle_lookup_ancient_source(args: dict[str, Any]) -> list[TextContent
     if resolution.status == "bad_locator":
         locator = resolution.candidates[0].locator_text
         problem = f"Could not read the locator '{locator}'" if locator else "No locator"
-        examples = ", ".join(
-            dict.fromkeys(f"'{match.corpus.example_citation}'" for match in resolution.candidates)
-        )
+        examples = ", ".join(dict.fromkeys(
+            [await _work_example(match) for match in resolution.candidates]
+        ))
         return text(
             f"{problem} in '{citation}'. Expected: "
             + "; ".join(_candidate(match) for match in resolution.candidates)
@@ -706,9 +767,9 @@ async def handle_lookup_ancient_source(args: dict[str, Any]) -> list[TextContent
     match = resolution.match
     work, corpus = match.work, match.corpus
     start, end = match.sort_range
-    result = await db.lookup_ancient_passages(
-        corpus.key, work.key, start, end, ANCIENT_LOOKUP_LIMIT
-    )
+    result = await db.lookup_ancient_passages(corpus.key, work.key, start, end, limit)
+    if result["status"] == "outdated_schema":
+        return text(ANCIENT_UPGRADE_MESSAGE)
     if result["status"] == "corpus_missing":
         return text(
             f"The {corpus.label} corpus is not in this database (or was imported "
@@ -723,10 +784,14 @@ async def handle_lookup_ancient_source(args: dict[str, Any]) -> list[TextContent
             for side, key in (("preceding", "before"), ("following", "after"))
             if result[key]
         ]
+        gaps = "".join(
+            f" ⚠ {note['citation']}: {note['note']}" for note in result.get("gap_notes") or ()
+        )
         return text(
             f"No passage covers {match.heading}. Imported {work.display_title} runs "
             f"{work.display_title} {work.locator.format_range(result['first'], result['last'])}"
             + (f"; nearest passages: {', '.join(nearest)}." if nearest else ".")
+            + gaps
         )
     count = result["total"]
     note = (
@@ -741,6 +806,12 @@ async def handle_lookup_ancient_source(args: dict[str, Any]) -> list[TextContent
             result["rows"],
             count,
             include_original=args.get("include_original", True),
+            full_text=bool(args.get("full_text", False)),
+            window=_line_window(corpus, work, start, end),
+            next_citation=lambda row: (
+                f"{work.display_title} "
+                f"{work.locator.format_range(row['sort_start'], row['sort_start'])}"
+            ),
         )
     )
 

@@ -433,19 +433,29 @@ async def test_lookup_returns_the_column_with_licence_and_original_only_note(tmp
     lookup = server.handle_lookup_ancient_source
 
     cd = await _call(db_path, monkeypatch, lookup, citation="CD 6:11")
+    middle = await _call(db_path, monkeypatch, lookup, citation="CD 6:5")
+    column = await _call(db_path, monkeypatch, lookup, citation="CD 6")
     first = await _call(db_path, monkeypatch, lookup, citation="Damascus Document 1:1")
     pesher = await _call(db_path, monkeypatch, lookup, citation="1QpHab 2:1")
     missing_line = await _call(db_path, monkeypatch, lookup, citation="CD 6:30")
 
     assert "### Damascus Document, CD 6:1–11 (CD-A 6:1–11)" in cd
+    assert "*Not Scripture · Qumran sectarian rule (composed 2nd–1st c. BC) · tier A ·" in cd
+    assert "copies: Cairo Genizah, 10th and 11th–12th c. AD*" in cd
+    assert "[ ] marks modern reconstruction, never evidence" in cd
     assert "11 יורה הצדק באחרית הימים ׃ vacat וכל אשר הובאו בברית" in cd
-    assert "- **English translation:** none openly licensed" in cd
-    assert "- **License:** CC BY-NC 4.0" in cd
-    assert "No openly licensed English translation is available" in cd
+    assert "*No English translation included; Hebrew only.*" in cd
+    assert "License: CC BY-NC 4.0 (non-commercial; https://creativecommons.org/licenses/by-nc/4.0/)." in cd
+    # A line citation shows the cited line ±2, not the whole column.
+    assert "*Lines 6:9–11 shown (the cited line ±2); cite the column for all of it.*" in cd
+    assert "9 שורה " in cd and "8 שורה " not in cd
+    assert "3 שורה " in middle and "7 שורה " in middle
+    assert "2 שורה " not in middle and "8 שורה " not in middle
+    assert "1 שורה " in column and "Lines " not in column
     assert "1 vacat ועתה שמעו כל יודעי צדק" in first
     assert "### Pesher Habakkuk, 1QpHab 2:1–2" in pesher
-    assert "- **License:** CC BY-SA 4.0" in pesher
-    assert "2:4 — Quotes and interprets: Hab 2:4" in pesher
+    assert "License: CC BY-SA 4.0." in pesher
+    assert "- Echo: Hab 2:4 — Quotes and interprets: Hab 2:4" in pesher
     assert missing_line.startswith("No passage covers CD 6:30.")
     assert "preceding CD 6:1–11, following CD 19:1" in missing_line
 
@@ -480,12 +490,17 @@ async def test_search_reads_through_brackets_and_prefixes_and_drops_erasures(tmp
     # 1QS 1:1 prints '[ספר ס]ר֯ך' (restoration and circlet inside the word);
     # 1QSa 1:1 has 'הסרך' with the article prefixed.
     serekh = await _call(db_path, monkeypatch, search, query="סרך", corpus="qumran")
+    # 'זה' is too short to strip; 'יחד' only occurs prefixed ('היחד') in 1QS 1:1.
+    stripped = await _call(db_path, monkeypatch, search, query="יחד", corpus="qumran")
     pasted = await _call(db_path, monkeypatch, search, query="ס]ר֯ך", corpus="qumran")
     # CD 19:1 prints the scribe's erasure '{{נפ◦◦}}'; CD 1:1 a vacat.
     erased = await _call(db_path, monkeypatch, search, query="נפ", corpus="qumran")
     vacat = await _call(db_path, monkeypatch, search, query="vacat", corpus="qumran")
 
-    assert "1QS 1:1" in serekh and "1QSa 1:1" in serekh
+    # An exact match wins: prefix stripping ('הסרך' in 1QSa 1:1) is only a fallback.
+    assert "1QS 1:1" in serekh and "1QSa 1:1" not in serekh and "prefix" not in serekh
+    assert "### Community Rule, 1QS 1:1 (prefix match)" in stripped
+    assert "*No exact match: these passages match only after stripping" in stripped
     assert "1QS 1:1" in pasted
     assert "[ספר ס]ר\u05afך" in serekh
     assert "CD 19:1" not in erased

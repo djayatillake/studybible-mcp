@@ -34,6 +34,7 @@ from study_bible_mcp.corpora.locators import (
 from study_bible_mcp.database import (
     StudyBibleDB,
     ancient_search_index_text,
+    ancient_search_prefix_variants,
     create_schema,
     fold_ancient_search_text,
     hebrew_prefix_variants,
@@ -348,9 +349,24 @@ def test_tool_schemas_list_registered_corpora_and_periods():
 
     assert search["corpus"]["enum"] == [*CORPORA, "all"]
     assert lookup["corpus"]["enum"] == list(CORPORA)
+    assert lookup["limit"]["default"] == 4 and lookup["limit"]["maximum"] == 10
+    for key in ("targum", "qumran", "pseudepigrapha", "rabbinic"):
+        assert f"{key} = " in search["corpus"]["description"]
     for corpus in CORPORA.values():
-        assert f"`{corpus.key}`" in tools["search_ancient_sources"].description
         assert set(corpus.periods) <= set(search["period"]["enum"])
+
+
+def test_ancient_tool_descriptions_are_short_and_static():
+    tools = {tool.name: tool for tool in TOOLS}
+    search = tools["search_ancient_sources"].description
+    lookup = tools["lookup_ancient_source"].description
+
+    assert len(search) <= 1200 and len(lookup) <= 800
+    # No per-corpus summaries or generated work lists.
+    for corpus in CORPORA.values():
+        assert corpus.summary not in search + lookup
+    for name in ("Contempl.", "Mishnah Berakhot", "Targum Onkelos Leviticus", "Against Apion"):
+        assert name not in search + lookup
 
 
 def test_combined_license_collapses_identical_licenses():
@@ -565,7 +581,8 @@ async def test_search_reads_through_editorial_signs_and_prefixes(tmp_path, rabbi
 
         restored = await search("אלמנות")
         pasted = await search("אלמנ֯[ו]ת")
-        unprefixed = await search("הון המקדש")
+        exact_word = await search("הון המקדש")
+        unprefixed = await search("הון")
         one_prefix = await search("בהון")
         corrected = await search("יעבורו")
         erased = await search("יאבורו")
@@ -574,27 +591,33 @@ async def test_search_reads_through_editorial_signs_and_prefixes(tmp_path, rabbi
         await database.close()
 
     assert stored == MARKED_HEBREW
-    for found in (restored, pasted, one_prefix, corrected):
+    for found in (restored, pasted, unprefixed, one_prefix, corrected):
         assert [row["reference"] for row in found["rows"]] == ["Mishnah Shekalim 1:1"]
     assert pasted["terms"] == ["אלמנות"]
-    assert unprefixed["match"] == "all"
+    # Prefix stripping is a fallback: an exact word ('המקדש') wins, even alone.
+    assert (exact_word["match"], exact_word["prefix_match"]) == ("any", False)
+    assert unprefixed["prefix_match"] and one_prefix["prefix_match"]
+    assert not restored["prefix_match"]
     assert erased["status"] == "no_match"
     assert vacat["status"] == "no_match"
 
 
-def test_prefix_variants_strip_one_or_two_prefix_letters_and_keep_two_letters():
+def test_prefix_variants_strip_one_or_two_prefix_letters_and_keep_three_letters():
     assert hebrew_prefix_variants("ובהון") == ["בהון", "הון"]
-    assert hebrew_prefix_variants("ומה") == ["מה"]
+    assert hebrew_prefix_variants("ומה") == []
+    assert hebrew_prefix_variants("והבית") == ["הבית", "בית"]
     assert hebrew_prefix_variants("שם") == []
     assert hebrew_prefix_variants("דבר") == []
     assert hebrew_prefix_variants("יתומים") == []
 
 
-def test_index_text_adds_new_prefix_variants_only_for_hebrew_script():
+def test_index_keeps_prefix_variants_in_their_own_column_only_for_hebrew_script():
     assert ancient_search_index_text("Ἰωάννου [τοῦ] βαπτιστοῦ") == "ιωαννου του βαπτιστου"
+    assert ancient_search_prefix_variants("Ἰωάννου [τοῦ] βαπτιστοῦ") == ""
     # 'טוב' is already indexed, so 'וטוב' adds nothing.
-    assert ancient_search_index_text("וטוב טוב") == "וטוב טוב"
-    assert ancient_search_index_text("ובהון") == "ובהון\nבהון הון"
+    assert ancient_search_prefix_variants("וטוב טוב") == ""
+    assert ancient_search_index_text("ובהון") == "ובהון"
+    assert ancient_search_prefix_variants("ובהון") == "בהון הון"
 
 
 def test_excerpt_centres_hebrew_matches_through_points_signs_and_prefixes():
@@ -637,11 +660,15 @@ async def test_lookup_shows_licences_and_original_language_of_any_corpus(tmp_pat
     corpus_missing = await _lookup(db_path, monkeypatch, citation="1 Enoch 89:73")
 
     assert found.startswith("## Mishnah Shekalim 1:1")
-    assert "**Corpus:** Rabbinic" in found
-    assert "**Work:** Shekalim (Mishnah)" in found
-    assert "**Hebrew edition:** Test Hebrew edition" in found
-    assert "**License:** Hebrew text: CC BY-NC 4.0; English translation: Public domain" in found
-    assert f"**Hebrew text excerpt:**\n{SHEKALIM_HEBREW}" in found
+    assert "### Mishnah Shekalim 1:1\n*Not Scripture · Test tradition (c. AD 200) · tier B · Test edition*" in found
+    assert "- Rabbinic: Not Scripture: rabbinic test caveat." in found
+    assert "- Tier B: after the NT" in found
+    assert (
+        "- Rabbinic: Hebrew: Test Hebrew edition. English: Test English translation. License: "
+        "Hebrew text: CC BY-NC 4.0 (non-commercial; https://creativecommons.org/licenses/by-nc/4.0/); "
+        "English translation: Public domain. https://example.test/shekalim"
+    ) in found
+    assert f"**Hebrew:** {SHEKALIM_HEBREW}" in found
     assert ambiguous.startswith("Ambiguous citation 'Bava Batra 1:1'")
     assert "Mishnah Bava Batra (Rabbinic, cited by chapter:verse)" in ambiguous
     assert "Test Scrolls Bava Batra (Rabbinic, cited by column:line)" in ambiguous
@@ -664,10 +691,9 @@ async def test_original_only_passage_imports_and_renders_its_original(tmp_path, 
         tmp_path / "corpora.db", monkeypatch, citation="m. Shek. 1:1", include_original=False
     )
 
-    assert "**English translation:** none openly licensed" in found
-    assert "showing the Hebrew text only" in found
-    assert f"**Hebrew text excerpt:**\n{SHEKALIM_HEBREW}" in found
-    assert "**License:** CC BY-NC 4.0" in found
+    assert "*No English translation included; Hebrew only.*" in found
+    assert f"**Hebrew:** {SHEKALIM_HEBREW}" in found
+    assert "English: none included. License: CC BY-NC 4.0 (non-commercial" in found
 
 
 # --- Downloads and smoke coverage

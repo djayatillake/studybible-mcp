@@ -353,12 +353,15 @@ async def test_lookup_enoch_and_both_ezra_citation_forms(tmp_path, fixture_corpu
     fragment = await _call(path, monkeypatch, lookup, citation="4 Ezra 7:36")
 
     assert enoch.startswith("## 1 Enoch 89:73")
-    assert "**Corpus:** Pseudepigrapha" in enoch and "**License:** Public domain" in enoch
-    assert "all the bread on it was polluted" in enoch and "none openly licensed" not in enoch
-    assert "Mal 1:7 — Related image" in enoch
+    assert "*Not Scripture · Jewish pseudepigraphon (Dream Visions, c. 165–160 BC) · tier A ·" in enoch
+    assert "- Pseudepigrapha: Not Scripture: pseudepigrapha outside the 66-book canon" in enoch
+    assert "License: Public domain." in enoch
+    assert "all the bread on it was polluted" in enoch and "No English translation" not in enoch
+    assert "- Shared tradition: Mal 1:7 — Related image" in enoch
     assert "(KJV 2 Esdras 7:36)" in ezra and "English seven 36." in ezra
-    assert "**Latin text excerpt:**\nLatina septem 36." in ezra
-    assert "**License:** Latin text: CC BY-SA 4.0; English translation: Public domain" in ezra
+    assert "*Not Scripture · Jewish apocalypse, 2 Esd 3–14 (c. AD 100) · tier B ·" in ezra
+    assert "**Latin:** Latina septem 36." in ezra
+    assert "License: Latin text: CC BY-SA 4.0; English translation: Public domain." in ezra
     assert esdras.split("\n", 1)[1] == ezra.split("\n", 1)[1]
     assert fragment.startswith("No passage covers 4 Ezra 7:36")
 

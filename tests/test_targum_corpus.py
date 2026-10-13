@@ -148,11 +148,11 @@ def test_import_links_every_passage_to_the_verse_it_translates_and_is_idempotent
     assert import_corpus(conn, "targum", tmp_path / "targum") == count
     assert conn.execute("SELECT COUNT(*) FROM ancient_source_biblical_links").fetchone()[0] == count
     assert conn.execute(
-        "SELECT l.biblical_book, l.sort_start, l.sort_end, l.relationship_note "
+        "SELECT l.biblical_book, l.sort_start, l.sort_end, l.relationship_note, l.relation "
         "FROM ancient_source_biblical_links l JOIN ancient_source_passages p ON p.id = l.passage_id "
         "WHERE p.reference = ?",
         ("Targum Onkelos Exodus 12:40",),
-    ).fetchone() == ("Exo", 12040, 12040, "Translation of: Exod 12:40")
+    ).fetchone() == ("Exo", 12040, 12040, "", "translation")
     assert conn.execute(
         "SELECT collection, work_title FROM ancient_source_passages WHERE reference = ?",
         ("Targum Onkelos Exodus 12:40",),
@@ -212,11 +212,15 @@ async def test_lookup_shows_aramaic_english_and_licence_labels(tmp_path, monkeyp
     assert onkelos.startswith("## Targum Onkelos Genesis 1:1")
     assert ONKELOS_GEN_1_1 in onkelos and "In the beginning [In the first times]" in onkelos
     assert "not a direct translation of the Aramaic" in onkelos
-    assert "**License:** Aramaic text: Public domain; English translation: CC BY-NC 4.0" in onkelos
-    assert "**English translation:** none openly licensed" in original_only
+    assert "*Not Scripture · Jewish Aramaic Torah rendering (final form c. 3rd–5th c. AD" in onkelos
+    assert (
+        "License: Aramaic text: Public domain; English translation: CC BY-NC 4.0 "
+        "(non-commercial; https://creativecommons.org/licenses/by-nc/4.0/)."
+    ) in onkelos
+    assert "No English translation included; Aramaic only." in original_only
     assert ONKELOS_GEN_1_2 in original_only
-    assert "**License:** Public domain" in original_only
-    assert "Translation of: Exod 12:40" in exodus
+    assert "License: Public domain." in original_only
+    assert "- Translation of: Exod 12:40\n" in exodus
 
 
 @pytest.mark.asyncio

@@ -31,8 +31,8 @@ import unicodedata
 
 from mcp.types import Tool, ToolAnnotations
 
-from .corpora import CORPORA, all_periods
-from .database import HEBREW_PREFIX_LETTERS, strip_editorial_signs
+from .corpora import CORPORA, LINK_RELATIONS, TIERS, all_periods
+from .database import HEBREW_PREFIX_LETTERS, format_biblical_range, strip_editorial_signs
 from .parsers.biblical_versions import VERSE_MAPPING_CREDIT
 
 
@@ -55,50 +55,18 @@ def _truncate(text: str, limit: int, suffix: str = "\n\n*[Truncated]*") -> str:
     return text[:limit] + suffix
 
 
-# Most passages lookup_ancient_source returns for one citation.
+# lookup_ancient_source: passages per citation (default and maximum), excerpt
+# caps per passage, and the whole response's budget (context economy).
+ANCIENT_LOOKUP_DEFAULT = 4
 ANCIENT_LOOKUP_LIMIT = 10
-
-_ANCIENT_CORPORA = "\n".join(
-    f"- `{corpus.key}`: {corpus.summary}" for corpus in CORPORA.values()
-)
-# A corpus's works are listed one by one, except that a collection (or the
-# corpus's uncollected works) with more than this many works is summarised by
-# count, citation grammar, and an example; their names stay resolvable.
-_LISTED_WORKS_PER_GROUP = 4
-
-
-def _work_groups(corpus) -> str:
-    groups: dict[str | None, list] = {}
-    for work in corpus.works:
-        groups.setdefault(work.collection.title if work.collection else None, []).append(work)
-    parts = []
-    for title, works in groups.items():
-        if len(works) <= _LISTED_WORKS_PER_GROUP:
-            parts.extend(
-                f"{work.display_title} ({', '.join((*work.aliases[:2], work.locator.name))})"
-                for work in works
-            )
-            continue
-        grammars = ", ".join(dict.fromkeys(work.locator.name for work in works))
-        example = works[0]
-        parts.append(
-            f"{title or corpus.label}: {len(works)} works by {grammars}, "
-            f"e.g. '{example.display_title} {example.locator.example}'"
-        )
-    return "; ".join(parts)
-
-
-_ANCIENT_WORKS = "\n".join(
-    f"- {corpus.label} (e.g. '{corpus.example_citation}'): {_work_groups(corpus)}"
-    for corpus in CORPORA.values()
-)
-_COLLECTIONS = sorted({
-    work.collection.title for corpus in CORPORA.values() for work in corpus.works if work.collection
-})
-_ANCIENT_COLLECTION_NOTE = (
-    f" A collection prefix ({', '.join(_COLLECTIONS)}) selects between works that share a title."
-    if _COLLECTIONS else ""
-)
+ANCIENT_ENGLISH_EXCERPT = 1500
+ANCIENT_ORIGINAL_EXCERPT = 600
+# With full_text the per-passage caps rise to these; the budget still applies.
+ANCIENT_FULL_ENGLISH = 8000
+ANCIENT_FULL_ORIGINAL = 3000
+ANCIENT_RESPONSE_BUDGET = 12000
+# Lines either side of a cited line in a line-numbered corpus (Qumran).
+ANCIENT_LINE_CONTEXT = 2
 
 TOOLS = [
     Tool(
@@ -244,33 +212,24 @@ Rows are grouped by canonical MT/English reference and keep each edition's own r
             destructiveHint=False,
             idempotentHint=True,
         ),
-        description=f"""Find an ancient source passage by searching its words: licensed Jewish
-primary sources on Second Temple and early Roman history, such as Herod and the
-temple, John the Baptist, or the Jewish revolt, in Josephus and other corpora.
+        description="""Find an ancient source passage by searching its words: Jewish texts of the
+Second Temple world to c. AD 200 (Josephus on Herod, the temple, John the
+Baptist and the Jewish revolt; Targum Onkelos; the Qumran rules; Philo;
+1 Enoch and 4 Ezra; the Mishnah). None is Scripture: each result carries a
+canon, date and edition tag, and each corpus's caveat and the sources are
+printed once at the end.
 
-Registered corpora (`corpus`; `all` searches every imported corpus):
-{_ANCIENT_CORPORA}
+English search is stemmed and matches only the translation's wording. Search
+Greek, Hebrew and Aramaic in their own script (accents, vowel points and case
+are ignored; transliterations such as "logos" do not match). Passages with
+every word come first; otherwise passages with any word, and the output says
+so. Only if nothing matches exactly is a Hebrew or Aramaic word retried
+without prefix letters (ו ב ה ל מ כ ש), and those results are marked.
 
-English search is stemmed (build/building) and matches only the translation's
-own wording (a translator may render one original term several ways). Search Greek,
-Hebrew, and Aramaic terms in their own script: accents, breathings, vowel
-points, cantillation, and case are ignored (λογος matches λόγος), but
-transliterations such as "logos" or "memra" do not match. Editorial signs
-inside a word (restorations [ ], corrections, uncertain-letter circlets) are
-ignored, and a Hebrew or Aramaic word also matches with one or two prefix
-letters (ו ב ה ל מ כ ש) attached: הון finds ובהון. Because a root letter can
-look like a prefix, this can also match a different word (קדש finds מקדש).
-Passages containing every query word are returned first; if none contain all
-of them, passages matching any word are returned and the output says so.
-
-Only the passage text is searched, not work titles or references. Results are
-source passages, not modern historical judgments. Each result gives the corpus,
-work, conventional citation, editorial period tags, and an excerpt around the
-first match; the original-language edition, translation, license, and source
-are listed once at the end. Editorial chapter headings are labelled as such,
-not as the ancient author's text. `biblical_reference` uses a small curated set
-of editorial narrative-overlap links and is never inferred from keyword
-overlap. To read a passage by its citation, use lookup_ancient_source.""",
+Only passage text is searched, not titles or references. `biblical_reference`
+keeps passages with a curated editorial link (aligned, echo, shared tradition,
+contrast) to that range, never keyword overlap. To read a passage by its
+citation, use lookup_ancient_source.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -282,7 +241,7 @@ overlap. To read a passage by its citation, use lookup_ancient_source.""",
                     "type": "string",
                     "enum": [*CORPORA, "all"],
                     "default": "josephus",
-                    "description": "Registered corpus to search, or 'all'. Default: josephus",
+                    "description": "Corpus to search, or 'all'. targum = Onkelos; qumran = CD, 1QS, 1QSa, 1QpHab; pseudepigrapha = 1 Enoch, 4 Ezra; rabbinic = Mishnah. Default: josephus",
                 },
                 "biblical_reference": {
                     "type": "string",
@@ -312,24 +271,15 @@ overlap. To read a passage by its citation, use lookup_ancient_source.""",
             destructiveHint=False,
             idempotentHint=True,
         ),
-        description=f"""Look up an ancient source by citation, such as 'Antiquities 18.116',
-'Ant. 15.320', 'War 6.316', or 'Life 1', and read the cited text in English
-translation alongside the original language.
-
-A citation is a work name or common abbreviation followed by a locator in that
-work's own numbering; an author prefix ('Josephus, Ant. 18.116') is
-optional.{_ANCIENT_COLLECTION_NOTE} A locator inside a longer passage returns the
-passage that contains it; a range ('Ant. 18.116-119') returns every
-overlapping passage in order, at most {ANCIENT_LOOKUP_LIMIT}.
-
-Citable works (a summarised group accepts each work's usual name and
-abbreviations):
-{_ANCIENT_WORKS}
-
-Each passage shows its corpus, work, citation, original-language edition,
-translation, license, and source URL. Unknown, ambiguous, or out-of-range
-citations get a message listing the supported works, the candidates, or the
-imported range. To find passages by their wording, use search_ancient_sources.""",
+        description="""Look up an ancient source by citation and read it in English with the
+original language: 'Antiquities 18.116', 'Ant. 15.320', 'War 6.316', 'Life 1',
+'Onkelos Gen 49:10', 'CD 6:11', 'Opif. 26', '1 Enoch 1:9', '4 Ezra 7:28',
+'m. Sukkah 4:9'. A work name or abbreviation is followed by a locator in that
+work's numbering; a range returns the overlapping passages in order. None is
+Scripture: each passage carries a canon, date and edition tag and any
+editorial ⚠ notes; caveats and sources are printed once. An unknown or
+ambiguous citation gets a short list of works or candidates. To find passages
+by wording, use search_ancient_sources.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -346,6 +296,18 @@ imported range. To find passages by their wording, use search_ancient_sources.""
                     "type": "boolean",
                     "default": True,
                     "description": "Include the original-language text. Default: true",
+                },
+                "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": ANCIENT_LOOKUP_LIMIT,
+                    "default": ANCIENT_LOOKUP_DEFAULT,
+                    "description": f"Maximum passages. Default: {ANCIENT_LOOKUP_DEFAULT}",
+                },
+                "full_text": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Show whole passages instead of excerpts (English is cut at 1,500 characters, the original at 600). Default: false",
                 },
             },
             "required": ["citation"],
@@ -1448,16 +1410,25 @@ def format_biblical_version_comparison(
 
 
 def _format_ancient_biblical_link(link: dict) -> str:
+    """'Echo: Jude 14–15 — Related text: ...' (relation, biblical range, editorial note)."""
     start_chapter, start_verse = divmod(link["sort_start"], 1000)
     end_chapter, end_verse = divmod(link["sort_end"], 1000)
-    start = f"{link['biblical_book']} {start_chapter}:{start_verse}"
-    end = (
-        f"{end_verse}"
-        if start_chapter == end_chapter
-        else f"{end_chapter}:{end_verse}"
+    reference = format_biblical_range(
+        link["biblical_book"], start_chapter, start_verse, end_chapter, end_verse
     )
-    reference = start if link["sort_start"] == link["sort_end"] else f"{start}–{end}"
-    return f"{reference} — {link['relationship_note']}"
+    relation = LINK_RELATIONS.get(link.get("relation") or "", "Link")
+    note = link.get("relationship_note")
+    return f"{relation}: {reference}" + (f" — {note}" if note else "")
+
+
+def _format_ancient_note(note: dict, reference: str) -> str:
+    """'⚠ <note> (Contrast: Mark 14:62. Aligned: Jude 6)', naming the citation if it differs."""
+    related = "; ".join(
+        f"{label}: {note[field]}" for field, label in (("contrast", "Contrast"), ("aligned", "Aligned"))
+        if note.get(field)
+    ).replace("; Aligned:", ". Aligned:")
+    where = "" if note["citation"] == reference else f"{note['citation']}: "
+    return f"⚠ {where}{note['note']}" + (f" ({related})" if related else "")
 
 
 def _fold_with_positions(text: str) -> tuple[str, list[int]]:
@@ -1516,6 +1487,160 @@ def _match_excerpt(text: str, query: str, limit: int) -> str:
     return f"{'…' if start else ''}{text[start:end]}{'…' if end < len(text) else ''}"
 
 
+_ORIGINAL_SCRIPT = re.compile(r"[\u0370-\u03ff\u1f00-\u1fff\u0590-\u05ff]")
+_NC_LICENSE = re.compile(r"CC BY-NC(-SA)? (\d\.\d)")
+
+
+def _passage_heading(row: dict) -> str:
+    """'### Flavius Josephus, Antiquities 18.116–119 (Whiston 18.5.2)', without a repeated author."""
+    reference = row["reference"]
+    heading = reference if reference.startswith(row["author"]) else f"{row['author']}, {reference}"
+    if row.get("alternate_reference"):
+        heading += f" ({row['alternate_reference']})"
+    return f"### {heading}"
+
+
+def _row_tag(row: dict, default_corpus: str | None) -> tuple[str, tuple[str, ...]]:
+    """The italic per-result tag (labelling contract L1) and the tiers it names."""
+    registered = CORPORA.get(row.get("corpus") or default_corpus or "")
+    if registered is None:
+        return "Not Scripture", ()
+    tag, section = registered.tag_for(row.get("work_key"), row.get("sort_start"))
+    if tag is None:
+        return "Not Scripture", ()
+    tier = section.tier if section else tag.tier
+    return tag.line(section), tuple(tier.split("/"))
+
+
+def _line_window(row: dict, window: tuple[int, int] | None) -> tuple[str, str | None]:
+    """A line-numbered original cut to the lines whose keys fall in ``window``.
+
+    Returns the text and a note naming the lines shown, or the whole text and
+    None when the window covers the passage (or the corpus is not line-numbered).
+    """
+    text = row["original_text"]
+    registered = CORPORA.get(row.get("corpus") or "")
+    if window is None or registered is None or not registered.line_numbered:
+        return text, None
+    try:
+        scale = registered.work(row["work_key"]).locator.scale
+    except (KeyError, AttributeError):
+        return text, None
+    base = row["sort_start"] - row["sort_start"] % scale
+    kept = []
+    for line in text.splitlines():
+        number = line.split(" ", 1)[0]
+        if number.isdigit() and window[0] <= base + int(number) <= window[1]:
+            kept.append(line)
+    if not kept or len(kept) == len(text.splitlines()):
+        return text, None
+    first, last = kept[0].split(" ", 1)[0], kept[-1].split(" ", 1)[0]
+    column = base // scale
+    lines = f"{column}:{first}" if first == last else f"{column}:{first}–{last}"
+    return "\n".join(kept), (
+        f"Lines {lines} shown (the cited line ±{ANCIENT_LINE_CONTEXT}); "
+        f"cite the column for all of it."
+    )
+
+
+def _excerpt(text: str, query: str, limit: int, note_cut: bool) -> str:
+    excerpt = _match_excerpt(text, query, limit)
+    if note_cut and len(text) > limit:
+        excerpt += f" *[excerpt of {len(text):,} characters; full_text=true shows more]*"
+    return excerpt
+
+
+def _ancient_passage_lines(
+    row: dict,
+    corpus: str | None,
+    query: str,
+    *,
+    include_original: bool,
+    english_limit: int,
+    original_limit: int,
+    seen_notes: set,
+    note_cut: bool = False,
+    window: tuple[int, int] | None = None,
+) -> tuple[list[str], tuple[str, ...]]:
+    """One passage: heading, tag, editorial heading, excerpts, ⚠ notes and typed links."""
+    registered = CORPORA.get(row.get("corpus") or corpus or "")
+    language = row.get("original_language") or (
+        registered.original_language if registered else "Original-language"
+    )
+    tag, tiers = _row_tag(row, corpus)
+    lines = [_passage_heading(row), f"*{tag}*"]
+    if row.get("editorial_heading"):
+        label = registered.heading_label if registered else "Editorial heading"
+        lines.append(f"*{label} (editorial): {row['editorial_heading']}*")
+    original_query = query if _ORIGINAL_SCRIPT.search(query) else ""
+    if row.get("text"):
+        lines.extend(["", _excerpt(row["text"], query, english_limit, note_cut)])
+        if row.get("original_text") and include_original:
+            original, _ = _line_window(row, window)
+            limit = original_limit * 2 if original_query else original_limit
+            lines.extend(["", f"**{language}:** {_excerpt(original, original_query, limit, note_cut)}"])
+    elif row.get("original_text"):
+        # Without English the original is the passage: centre it on the match.
+        original, shown = _line_window(row, window)
+        lines.extend(["", f"*No English translation included; {language} only.*"])
+        if shown:
+            lines.append(f"*{shown}*")
+        lines.extend(["", f"**{language}:** {_excerpt(original, query, english_limit, note_cut)}"])
+    for note in row.get("editorial_notes") or ():
+        key = (note["citation"], note["kind"], note["note"])
+        if key not in seen_notes:
+            seen_notes.add(key)
+            lines.extend(["", _format_ancient_note(note, row["reference"])])
+    if row.get("biblical_links"):
+        lines.append("")
+        lines.extend(f"- {_format_ancient_biblical_link(link)}" for link in row["biblical_links"])
+    lines.extend(["", "---", ""])
+    return lines, tiers
+
+
+def _license_text(license_: str) -> str:
+    """The licence, with non-commercial licences marked and linked."""
+    def mark(match: re.Match) -> str:
+        variant = "by-nc-sa" if match.group(1) else "by-nc"
+        return (
+            f"{match.group(0)} (non-commercial; "
+            f"https://creativecommons.org/licenses/{variant}/{match.group(2)}/)"
+        )
+    return _NC_LICENSE.sub(mark, license_)
+
+
+def _closing_block(rows: list[dict], corpus: str | None, tiers: set[str]) -> list[str]:
+    """Caveats once per corpus present (labelling contract L2), the tier key, and Sources once."""
+    lines = ["**Caveats**"]
+    present = dict.fromkeys(row.get("corpus") or corpus or "" for row in rows)
+    for key in present:
+        registered = CORPORA.get(key)
+        if registered and registered.caveat:
+            lines.append(f"- {registered.label}: {registered.caveat}")
+        elif key:
+            lines.append(f"- {registered.label if registered else key}: Not Scripture.")
+    for tier in sorted(tiers & set(TIERS)):
+        lines.append(f"- Tier {tier}: {TIERS[tier]}.")
+    sources: dict[tuple, list[str]] = {}
+    for row in rows:
+        registered = CORPORA.get(row.get("corpus") or corpus or "")
+        label = registered.label if registered else (row.get("corpus") or "Ancient source")
+        language = row.get("original_language") or (
+            registered.original_language if registered else "Original-language"
+        )
+        translation = row["translation"] if row.get("text") else "none included"
+        key = (label, language, row["edition"], translation, row["license"])
+        if row["source_url"] not in sources.setdefault(key, []):
+            sources[key].append(row["source_url"])
+    lines.extend(["", "**Sources**"])
+    for (label, language, edition, translation, license_), urls in sources.items():
+        lines.append(
+            f"- {label}: {language}: {edition}. English: {translation}. "
+            f"License: {_license_text(license_)}. " + " ".join(urls)
+        )
+    return lines
+
+
 def format_ancient_source_results(
     query: str,
     rows: list[dict],
@@ -1523,84 +1648,49 @@ def format_ancient_source_results(
     biblical_reference: str | None = None,
     period: str | None = None,
     match: str = "all",
+    prefix_match: bool = False,
 ) -> str:
-    """Format primary-source results compactly, with provenance listed once.
+    """Format primary-source results compactly, with caveats and provenance listed once.
 
-    Each result shows a heading, its corpus, work and editorial period tags, an
-    excerpt of the English around the first match, and a shorter
-    original-language excerpt (a longer, match-centred one when the query is
-    in Greek or Hebrew script). Without English, the original is the excerpt.
+    Each result shows a heading, its canon/date/edition tag, an excerpt of the
+    English around the first match, a shorter original-language excerpt (a
+    longer, match-centred one when the query is in Greek or Hebrew script),
+    editorial ⚠ notes and typed biblical links. Without English, the original
+    is the excerpt. Results stop at the response budget.
     """
     filters = [f"corpus={corpus}"]
     if biblical_reference:
         filters.append(f"biblical_reference={biblical_reference}")
     if period:
         filters.append(f"period={period}")
-    lines = [
-        f"## Ancient Source Search: {query}",
-        "",
-        f"*Filters: {', '.join(filters)}*",
-        "",
-    ]
+    lines = [f"## Ancient Source Search: {query}", "", f"*Filters: {', '.join(filters)}*", ""]
     if match == "any":
+        lines.extend(["*No passage contains all terms; showing passages matching any term.*", ""])
+    if prefix_match:
         lines.extend([
-            "*No passage contains all terms; showing passages matching any term.*",
+            "*No exact match: these passages match only after stripping Hebrew/Aramaic prefix "
+            "letters (ו ב ה ל מ כ ש), which can also match a different word (קדש finds מקדש).*",
             "",
         ])
-    original_script_query = any(
-        "\u0370" <= ch <= "\u03ff" or "\u1f00" <= ch <= "\u1fff" or "\u0590" <= ch <= "\u05ff"
-        for ch in query
-    )
-    sources: dict[tuple, list[str]] = {}
+    default_corpus = None if corpus == "all" else corpus
+    tiers: set[str] = set()
+    seen_notes: set = set()
+    shown: list[dict] = []
     for row in rows:
-        registered = CORPORA.get(row.get("corpus") or corpus or "")
-        language = row.get("original_language") or (
-            registered.original_language if registered else "Original-language"
+        block, row_tiers = _ancient_passage_lines(
+            row, default_corpus, query, include_original=True,
+            english_limit=ANCIENT_ENGLISH_EXCERPT, original_limit=ANCIENT_ORIGINAL_EXCERPT,
+            seen_notes=seen_notes,
         )
-        corpus_label = registered.label if registered else (row.get("corpus") or "Ancient source")
-        heading = f"### {row['author']}, {row['reference']}"
-        if row.get("alternate_reference"):
-            heading += f" ({row['alternate_reference']})"
-        lines.append(heading)
-        work = row["work_title"]
-        if row.get("collection"):
-            work = f"{work} ({row['collection']})"
-        lines.append(f"*{corpus_label} · {work} · editorial period tags: {row['period_tags']}*")
-        if row.get("editorial_heading"):
-            label = registered.heading_label if registered else "Editorial heading"
-            lines.append(f"*{label} (editorial): {row['editorial_heading']}*")
-        translation = row["translation"] if row.get("text") else "none openly licensed"
-        key = (corpus_label, language, row["edition"], translation, row["license"])
-        if row["source_url"] not in sources.setdefault(key, []):
-            sources[key].append(row["source_url"])
-        if row.get("text"):
-            lines.extend(["", _match_excerpt(row["text"], query, 1500)])
-            if row.get("original_text"):
-                original = (
-                    _match_excerpt(row["original_text"], query, 1200)
-                    if original_script_query
-                    else _match_excerpt(row["original_text"], "", 600)
-                )
-                lines.extend(["", f"**{language}:** {original}"])
-        else:
-            # Without English the original is the passage: centre it on the match.
-            lines.extend([
-                "",
-                "*English translation: none openly licensed.*",
-                "",
-                f"**{language}:** {_match_excerpt(row['original_text'], query, 1500)}",
-            ])
-        if row.get("biblical_links"):
-            lines.extend(["", "**Editorial biblical links:**"])
-            for link in row["biblical_links"]:
-                lines.append(f"- {_format_ancient_biblical_link(link)}")
-        lines.extend(["", "---", ""])
-    lines.append("**Sources**")
-    for (corpus_label, language, edition, translation, license_), urls in sources.items():
-        lines.append(
-            f"- {corpus_label}: {language}: {edition}. English: {translation}. "
-            f"License: {license_}. " + " ".join(urls)
-        )
+        if prefix_match:
+            block[0] += " (prefix match)"
+        if shown and sum(map(len, lines)) + sum(map(len, block)) > ANCIENT_RESPONSE_BUDGET:
+            lines.extend([f"*{len(rows) - len(shown)} more results omitted to keep the response short.*", ""])
+            break
+        lines.extend(block)
+        tiers.update(row_tiers)
+        shown.append(row)
+    lines.extend(_closing_block(shown, default_corpus, tiers))
     return "\n".join(lines).rstrip()
 
 
@@ -1610,76 +1700,47 @@ def format_ancient_source_lookup(
     rows: list[dict],
     total: int,
     include_original: bool = True,
+    full_text: bool = False,
+    window: tuple[int, int] | None = None,
+    next_citation=None,
 ) -> str:
-    """Format the passages overlapping one resolved citation, in citation order."""
+    """Format the passages overlapping one resolved citation, in citation order.
+
+    Excerpts are capped per passage (unless ``full_text``) and the response
+    stops at ``ANCIENT_RESPONSE_BUDGET`` characters, saying where to continue.
+    ``window`` (a sort-key range) cuts a line-numbered original to the cited
+    lines; ``next_citation(row)`` renders the citation to continue from.
+    """
     lines = [f"## {heading}", "", f"*{resolution_note}*", ""]
     if total > len(rows):
         lines.extend([
             f"*Showing the first {len(rows)} of {total} overlapping passages; cite a "
-            f"narrower range to read the rest.*",
+            f"narrower range or raise limit (at most {ANCIENT_LOOKUP_LIMIT}) to read more.*",
             "",
         ])
+    tiers: set[str] = set()
+    seen_notes: set = set()
+    shown: list[dict] = []
     for row in rows:
-        lines.extend(
-            _format_ancient_passage(row, None, excerpt_limit=8000, include_original=include_original)
+        block, row_tiers = _ancient_passage_lines(
+            row, None, "", include_original=include_original,
+            english_limit=ANCIENT_FULL_ENGLISH if full_text else ANCIENT_ENGLISH_EXCERPT,
+            original_limit=ANCIENT_FULL_ORIGINAL if full_text else ANCIENT_ORIGINAL_EXCERPT,
+            seen_notes=seen_notes, note_cut=not full_text, window=window,
         )
+        if shown and sum(map(len, lines)) + sum(map(len, block)) > ANCIENT_RESPONSE_BUDGET:
+            resume = f" Continue from {next_citation(row)}." if next_citation else ""
+            lines.extend([
+                f"*Stopped at the {ANCIENT_RESPONSE_BUDGET:,}-character response budget after "
+                f"{len(shown)} passages.{resume}*",
+                "",
+            ])
+            break
+        lines.extend(block)
+        tiers.update(row_tiers)
+        shown.append(row)
+    lines.extend(_closing_block(shown, None, tiers))
     return "\n".join(lines).rstrip()
-
-
-def _format_ancient_passage(
-    row: dict,
-    corpus: str | None,
-    excerpt_limit: int,
-    include_original: bool = True,
-) -> list[str]:
-    """One passage with its corpus, work, citation, edition, translation, and license."""
-    registered = CORPORA.get(row.get("corpus") or corpus or "")
-    language = row.get("original_language") or (
-        registered.original_language if registered else "Original-language"
-    )
-    heading = f"### {row['author']}, {row['reference']}"
-    if row.get("alternate_reference"):
-        heading += f" ({row['alternate_reference']})"
-    work = row["work_title"]
-    if row.get("collection"):
-        work = f"{work} ({row['collection']})"
-    lines = [heading]
-    if registered:
-        lines.append(f"- **Corpus:** {registered.label}")
-    lines.append(f"- **Work:** {work}")
-    if row.get("editorial_heading"):
-        label = registered.heading_label if registered else "Editorial heading"
-        lines.append(f"- **{label} (editorial):** {row['editorial_heading']}")
-    lines.append(f"- **Editorial period tags:** {row['period_tags']}")
-    lines.append(f"- **{language} edition:** {row['edition']}")
-    has_english = bool(row.get("text"))
-    if has_english:
-        lines.append(f"- **English translation:** {row['translation']}")
-    else:
-        lines.append("- **English translation:** none openly licensed")
-    lines.append(f"- **License:** {row['license']}")
-    lines.append(f"- **Source:** {row['source_url']}")
-    lines.append("")
-    if has_english:
-        lines.append(_truncate(row["text"], excerpt_limit, "\n\n*[Passage excerpt truncated]*"))
-    else:
-        lines.append(
-            f"*No openly licensed English translation is available for this passage; "
-            f"showing the {language} text only.*"
-        )
-    # Without English the original is the passage, so show it regardless.
-    if row.get("original_text") and (include_original or not has_english):
-        lines.extend([
-            "",
-            f"**{language} text excerpt:**",
-            _truncate(row["original_text"], excerpt_limit, f"\n\n*[{language} excerpt truncated]*"),
-        ])
-    if row.get("biblical_links"):
-        lines.extend(["", "**Editorial biblical links:**"])
-        for link in row["biblical_links"]:
-            lines.append(f"- {_format_ancient_biblical_link(link)}")
-    lines.extend(["", "---", ""])
-    return lines
 
 
 def _format_sourced_statement(item: dict, field: str, label: str) -> list[str]:

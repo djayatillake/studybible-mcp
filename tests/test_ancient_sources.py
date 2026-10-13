@@ -311,13 +311,17 @@ async def test_lookup_resolves_a_section_inside_a_whiston_span(tmp_path, monkeyp
 
     assert inside.startswith("## Antiquities 18.117\n")
     assert "1 overlapping passage*" in inside
-    assert "### Flavius Josephus, Antiquities 18.116–119 (Whiston 18.5.2)" in inside
-    assert "**Corpus:** Josephus" in inside and "**License:** CC BY-SA 4.0" in inside
-    assert "**Greek text excerpt:**\nἸωάννου" in inside
-    assert "Mrk 6:17–29 — Related account" in inside
+    assert (
+        "### Flavius Josephus, Antiquities 18.116–119 (Whiston 18.5.2)\n"
+        "*Not Scripture · Jewish history (AD 93–94) · tier A · Niese Greek, Whiston English*"
+    ) in inside
+    assert "- Josephus: Not Scripture: a Jewish historian writing c. AD 75–100" in inside
+    assert "License: CC BY-SA 4.0." in inside
+    assert "**Greek:** Ἰωάννου" in inside
+    assert "- Shared tradition: Mark 6:17–29 — Related account" in inside
     assert spanning.index("Antiquities 18.116–119") < spanning.index("Antiquities 18.120–121")
     assert "2 overlapping passages" in spanning
-    assert "Greek text excerpt" not in no_greek and "Some thought" in no_greek
+    assert "**Greek:**" not in no_greek and "Some thought" in no_greek
     assert "### Flavius Josephus, Life 1 (Whiston 1)" in life
 
 
@@ -327,9 +331,9 @@ async def test_lookup_caps_passages_and_explains_failures(tmp_path, monkeypatch)
     empty_path = tmp_path / "empty.db"
     sqlite3.connect(empty_path).close()
     lookup = server.handle_lookup_ancient_source
-    monkeypatch.setattr(server, "ANCIENT_LOOKUP_LIMIT", 1)
-
-    capped = await _call(db_path, monkeypatch, lookup, citation="Antiquities 18")
+    capped = await _call(db_path, monkeypatch, lookup, citation="Antiquities 18", limit=1)
+    bad_limit = await _call(db_path, monkeypatch, lookup, citation="Antiquities 18", limit=11)
+    oversized = await _call(db_path, monkeypatch, lookup, citation="Ant. 99999999999999999999.1")
     out_of_range = await _call(db_path, monkeypatch, lookup, citation="Ant. 18.200")
     unknown = await _call(db_path, monkeypatch, lookup, citation="Lifeboat 1-2")
     no_locator = await _call(db_path, monkeypatch, lookup, citation="Antiquities")
@@ -339,14 +343,19 @@ async def test_lookup_caps_passages_and_explains_failures(tmp_path, monkeypatch)
 
     assert "Showing the first 1 of 2 overlapping passages" in capped
     assert "Antiquities 18.120–121" not in capped
+    assert bad_limit == "'limit' must be an integer from 1 to 10."
+    assert oversized.startswith("Could not read the locator '99999999999999999999.1'")
     assert out_of_range == (
         "No passage covers Antiquities 18.200. Imported Antiquities runs Antiquities "
         "18.116–121; nearest passages: preceding Antiquities 18.120–121."
     )
     assert unknown.startswith("Unknown work in citation 'Lifeboat 1-2'")
-    assert "Josephus (josephus): Antiquities, Life, Against Apion, War" in unknown
+    assert "Josephus (Antiquities, Life, Against Apion, War; e.g. 'Antiquities 18.116')" in unknown
+    assert "Rabbinic (Mishnah, 63 works; e.g. 'Mishnah Shekalim 1:1')" in unknown
+    assert len(unknown) < 700
     assert no_locator.startswith("No locator in 'Antiquities'")
-    assert "cited by book.section" in no_locator and "'Antiquities 18.116'" in no_locator
+    # The example is the work's first imported passage, not another work's.
+    assert "cited by book.section" in no_locator and "e.g. 'Antiquities 18.116'" in no_locator
     assert whiston.startswith("Could not read the locator '18.5.2'")
     assert bad_corpus.startswith("Unsupported ancient-source corpus 'nonesuch'")
     assert "python scripts/upgrade_database.py" in missing
@@ -376,7 +385,8 @@ async def test_search_accepts_all_and_rejects_unregistered_corpora(tmp_path, mon
     unknown = await _call(db_path, monkeypatch, search, query="John", corpus="nonesuch")
 
     assert "*Filters: corpus=all*" in everything
-    assert "*Josephus · Jewish Antiquities ·" in everything and "Antiquities 18.116–119" in everything
+    assert "*Not Scripture · Jewish history (AD 93–94) · tier A ·" in everything
+    assert "Antiquities 18.116–119" in everything
     assert none == "No ancient-source passage contains any of the search terms (xylophone)."
     assert unknown == (
         f"Unsupported ancient-source corpus 'nonesuch'. Available corpora: "
@@ -398,6 +408,9 @@ def test_parser_emits_generic_sort_keys_and_licences(tmp_path):
 
 def test_ancient_source_formatter_labels_primary_text_and_provenance():
     row = {
+        "corpus": "josephus",
+        "work_key": "antiquities",
+        "sort_start": 18116,
         "author": "Flavius Josephus",
         "reference": "Antiquities 18.116–119",
         "alternate_reference": "Whiston 18.5.2",
@@ -416,10 +429,14 @@ def test_ancient_source_formatter_labels_primary_text_and_provenance():
     output = format_ancient_source_results("John Baptist", [row], "josephus")
 
     assert "### Flavius Josephus, Antiquities 18.116–119 (Whiston 18.5.2)" in output
-    assert "*Josephus · Jewish Antiquities · editorial period tags: second_temple,herodian,roman*" in output
+    assert "*Not Scripture · Jewish history (AD 93–94) · tier A · Niese Greek, Whiston English*" in output
     assert "*Whiston chapter heading (editorial): HOW HEROD" in output
     assert "**Greek:** Ἰωάννου τοῦ βαπτιστοῦ" in output
     assert output.endswith(
+        "**Caveats**\n"
+        "- Josephus: Not Scripture: a Jewish historian writing c. AD 75–100; his editorial "
+        "framing is his own.\n"
+        "- Tier A: written before or alongside the NT.\n\n"
         "**Sources**\n- Josephus: Greek: Benedikt Niese. English: William Whiston. "
         "License: CC BY-SA 4.0. https://example.test/josephus"
     )

@@ -221,8 +221,9 @@ async def test_lookup_and_search_tools(fixture_dir, tmp_path, monkeypatch):
     english = await _call(path, monkeypatch, search, query="money changers", corpus="rabbinic")
 
     assert shekalim.startswith("## Mishnah Shekalim 1:1")
-    assert "**License:** Hebrew text: Public domain; English translation: CC BY 3.0" in shekalim
-    assert "Mat 17:24–27 — Related account" in shekalim
+    assert "License: Hebrew text: Public domain; English translation: CC BY 3.0." in shekalim
+    assert "- Shared tradition: Matt 17:24–27 — Related account" in shekalim
+    assert "Where the NT evaluates these traditions" in shekalim
     assert "Mishnah Shekalim 1:1" in folded
     assert "Mishnah Shekalim 1:3" in english
 
