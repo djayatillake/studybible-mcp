@@ -301,10 +301,22 @@ def test_unresolved_link_fails_import(tmp_path, fixture_corpus, monkeypatch):
 
 def test_curated_links_target_registered_works_and_valid_books():
     books = set(BOOK_ABBREV_MAP.values())
-    for work_key, locator, book, c1, v1, c2, v2, note in pseudepigrapha._BIBLICAL_LINKS:
+    for work_key, locator, book, c1, v1, c2, v2, note, *relation in pseudepigrapha._BIBLICAL_LINKS:
         work = CORPORA["pseudepigrapha"].work(work_key)
         assert work.locator.parse(locator) is not None and book in books and note
         assert (c1, v1) <= (c2, v2)
+        assert relation in ([], ["aligned"], ["echo"], ["shared_tradition"], ["contrast"])
+
+
+def test_module_links_pair_1_enoch_with_the_scripture_that_takes_it_up():
+    relations = {
+        (link.locator, link.book): link.relation for link in pseudepigrapha.biblical_links([])
+    }
+    assert relations[("1:9", "Jud")] == "aligned"
+    assert relations[("6:1", "Gen")] == "aligned"
+    assert relations[("46:1", "Dan")] == "echo"
+    assert relations[("10:4", "Lev")] == "shared_tradition"
+    assert relations[("12:11", "Dan")] == "echo"
 
 
 # --- Citations

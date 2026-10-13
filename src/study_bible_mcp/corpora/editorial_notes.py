@@ -21,7 +21,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..database import format_biblical_range, parse_biblical_range
+from ..database import expand_single_chapter_reference, format_biblical_range, parse_biblical_range
 from .base import CURATED_LINK_RELATIONS
 from .citations import resolve_citation
 
@@ -85,7 +85,11 @@ def _text(entry: dict, field: str, where: str, required: bool = True) -> str:
 
 
 def _biblical(reference: object, where: str) -> tuple[str, int, int, int, int]:
-    parsed = parse_biblical_range(reference) if isinstance(reference, str) else None
+    """Parse a note's biblical reference; a single-chapter book cited by verse ('Jude 6') is chapter 1."""
+    parsed = (
+        parse_biblical_range(expand_single_chapter_reference(reference))
+        if isinstance(reference, str) else None
+    )
     if parsed is None:
         raise ValueError(f"{where}: biblical reference {reference!r} does not parse")
     return parsed

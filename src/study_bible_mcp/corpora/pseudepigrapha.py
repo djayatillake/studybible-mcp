@@ -259,13 +259,16 @@ _EZRA_ALIGNED_SPANS = (
 
 # Editorial links, separate from the texts. They name narrative overlaps and
 # shared imagery, not dependence or historicity. Fields: work_key, locator,
-# biblical book, chapter, verse, end chapter, end verse, note. The comment on
-# each entry quotes what was verified in the pinned text of that passage.
+# biblical book, chapter, verse, end chapter, end verse, note, and optionally
+# the relation (else derived from the note: corpora.base.default_link_relation).
+# 'aligned' marks the passages the Bible itself takes up (Jude 14–15; Gen 6),
+# pairing the pseudepigraphon with Scripture as David's rule requires. The
+# comment on each entry quotes what was verified in the pinned text.
 _BIBLICAL_LINKS = (
-    ("1_enoch", "1:9", "Jud", 1, 14, 1, 15, "Related text: Jude 14–15 cites a prophecy of Enoch in closely similar words"),  # "He cometh with ten thousands of His holy ones To execute judgement upon all"
-    ("1_enoch", "6:1", "Gen", 6, 1, 6, 2, "Narrative overlap: the children of heaven and the daughters of men"),  # 6:1 "beautiful and comely daughters"; 6:2 "the angels, the children of the heaven, saw and lusted"
+    ("1_enoch", "1:9", "Jud", 1, 14, 1, 15, "Related text: Jude 14–15 cites a prophecy of Enoch in closely similar words", "aligned"),  # "He cometh with ten thousands of His holy ones To execute judgement upon all"
+    ("1_enoch", "6:1", "Gen", 6, 1, 6, 2, "Narrative overlap: the children of heaven and the daughters of men", "aligned"),  # 6:1 "beautiful and comely daughters"; 6:2 "the angels, the children of the heaven, saw and lusted"
     ("1_enoch", "10:4", "Lev", 16, 8, 16, 10, "Shared name: Azazel"),  # "Bind Azâzêl hand and foot, and cast him into the darkness"
-    ("1_enoch", "46:1", "Dan", 7, 9, 7, 13, "Related imagery: one with a head of days, white like wool, and one with the appearance of a man"),  # "a head of days ... white like wool ... the appearance of a man"
+    ("1_enoch", "46:1", "Dan", 7, 9, 7, 13, "Related imagery: one with a head of days, white like wool, and one with the appearance of a man", "echo"),  # "a head of days ... white like wool ... the appearance of a man"
     ("1_enoch", "89:1", "Gen", 6, 13, 8, 19, "Allegorical retelling: Noah's vessel and the flood"),  # white bull "became a man, and built for himself a great vessel"
     ("1_enoch", "89:12", "Gen", 25, 21, 25, 26, "Allegorical retelling: a boar and a sheep, conventionally read as Esau and Jacob"),  # "begat a black wild boar and a white sheep"
     ("1_enoch", "89:13", "Gen", 37, 25, 37, 28, "Allegorical retelling: one of the twelve given up and taken to Egypt, conventionally read as Joseph"),  # "they gave up one of them to the asses ... gave up that sheep to the wolves"

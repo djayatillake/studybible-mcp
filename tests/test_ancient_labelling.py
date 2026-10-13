@@ -148,6 +148,26 @@ def test_committed_editorial_notes_file_is_valid():
 
     assert isinstance(notes, EditorialNotes)
     assert set(json.loads(COMMITTED_NOTES_PATH.read_text(encoding="utf-8"))) == {"notes", "links"}
+    assert (len(notes.notes), len(notes.links)) == (46, 29)
+    by_citation = {note.citation: note for note in notes.notes}
+    # Onkelos is cited by English verse: the Peniel verse is Gen 32:30 (MT 32:31).
+    assert "Targum Onkelos Genesis 32:30" in by_citation
+    assert "Targum Onkelos Genesis 32:31" not in by_citation
+    assert by_citation["1 Enoch 71:14"].kind == "emendation"
+    assert by_citation["1 Enoch 71:14"].contrast == ("Mark 14:62", "John 3:13")
+    assert {note.corpus for note in notes.notes} == set(CORPORA)
+    assert all(link.relation in ("aligned", "echo") for link in notes.links)
+
+
+def test_single_chapter_books_are_cited_by_verse():
+    notes = parse_editorial_notes({
+        "notes": [{**NOTES["notes"][0], "contrast": ["Jude 6", "Jude 1:6", "Phlm 4-6"]}],
+        "links": [{**NOTES["links"][0], "biblical": "Jude 6"}],
+    })
+
+    assert notes.notes[0].contrast == ("Jude 6", "Jude 6", "Phlm 4–6")
+    assert (notes.links[0].book, notes.links[0].chapter, notes.links[0].verse) == ("Jud", 1, 6)
+    assert (notes.links[0].end_chapter, notes.links[0].end_verse) == (1, 6)
 
 
 def _note(**overrides):
@@ -274,8 +294,10 @@ def test_module_links_get_relations_from_their_notes():
     assert philo["Retells"] == philo["Related figure"] == "shared_tradition"
     enoch = {(link.locator, link.book): link.relation
              for link in CORPORA["pseudepigrapha"].biblical_links([])}
-    assert enoch[("1:9", "Jud")] == enoch[("12:11", "Dan")] == "echo"
-    assert enoch[("6:1", "Gen")] == "shared_tradition"
+    # Set explicitly: the passages Scripture takes up are aligned.
+    assert enoch[("1:9", "Jud")] == enoch[("6:1", "Gen")] == "aligned"
+    assert enoch[("12:11", "Dan")] == enoch[("46:1", "Dan")] == "echo"
+    assert enoch[("10:4", "Lev")] == "shared_tradition"
 
 
 # --- Rendering: tags, notes, links, caveats once
