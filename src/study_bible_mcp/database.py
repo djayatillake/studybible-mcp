@@ -535,17 +535,25 @@ class StudyBibleDB:
     
     @staticmethod
     def _normalize_strongs(strongs: str) -> str:
-        """Normalize Strong's number to match DB format (e.g., G26 -> G0026)."""
+        """Normalize Strong's number to match DB format (G26 -> G0026, h430g -> H0430G)."""
         strongs = strongs.upper().strip()
-        if len(strongs) >= 2 and strongs[0] in ("G", "H"):
-            num = strongs[1:]
-            return strongs[0] + num.zfill(4)
+        match = re.fullmatch(r"([GH])0*(\d{1,4})([A-Z]?)", strongs)
+        if match:
+            prefix, number, suffix = match.groups()
+            return f"{prefix}{int(number):04d}{suffix}"
         return strongs
 
     async def get_lexicon_entry(self, strongs: str) -> dict | None:
         """Get a single lexicon entry by Strong's number."""
         strongs = self._normalize_strongs(strongs)
-        return await self._fetchone("SELECT * FROM lexicon WHERE strongs = ?", (strongs,))
+        entry = await self._fetchone("SELECT * FROM lexicon WHERE strongs = ?", (strongs,))
+        if entry is None and re.fullmatch(r"[GH]\d{4}[A-Z]", strongs):
+            # The lexicon is keyed by the bare number; STEPBible's sense
+            # suffix (H0430G) appears only in verse word data.
+            entry = await self._fetchone(
+                "SELECT * FROM lexicon WHERE strongs = ?", (strongs[:-1],)
+            )
+        return entry
     
     async def search_lexicon(
         self,
@@ -627,11 +635,19 @@ class StudyBibleDB:
         )
     
     async def get_verses_with_strongs(self, strongs: str, limit: int = 20) -> list[dict]:
-        """Find verses containing a specific Strong's number."""
+        """Find verses containing a specific Strong's number.
+
+        Word data keeps STEPBible's one-letter sense suffix (H0430G), so a bare
+        number also matches its suffixed forms; a suffixed number matches only
+        itself.
+        """
         strongs = self._normalize_strongs(strongs)
+        patterns = [f'%"{strongs}"%']
+        if re.fullmatch(r"[GH]\d{4}", strongs):
+            patterns.append(f'%"{strongs}_"%')
+        where = " OR ".join("word_data LIKE ?" for _ in patterns)
         return await self._fetchall(
-            "SELECT * FROM verses WHERE word_data LIKE ? LIMIT ?",
-            (f'%"{strongs}"%', limit),
+            f"SELECT * FROM verses WHERE {where} LIMIT ?", (*patterns, limit)
         )
 
     # "Luke 19", "Luke 19:1-3", "Luke 19:45-20:2", "Psalm 23-24", "Luk.19.1".

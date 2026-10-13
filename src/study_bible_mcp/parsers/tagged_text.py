@@ -203,11 +203,13 @@ def parse_hebrew_word(parts: list[str]) -> dict | None:
     elif 'H9018' in strongs_field:
         section_end = 'setumah'  # Minor section break (ס)
 
-    # Extract the primary Strong's number
+    # Extract the primary Strong's number. STEPBible braces the root word:
+    # "H9003/{H7225G}" is the prefix "in" (H9003) plus "beginning" (H7225G).
+    # The first number is only a prefix, so take the braced one when present.
     strongs = ''
     if strongs_field:
-        # Remove braces and take first number
-        strongs_clean = re.sub(r'[{}]', '', strongs_field)
+        root = re.search(r'\{([^}]*)\}', strongs_field)
+        strongs_clean = root.group(1) if root else strongs_field
         strongs_parts = re.split(r'[/,\\\\]', strongs_clean)
         for s in strongs_parts:
             normalized = normalize_strongs(s.strip())
