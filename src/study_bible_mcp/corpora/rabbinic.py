@@ -55,8 +55,9 @@ TAG = SourceTag(
 )
 CAVEAT = (
     "Not Scripture: rabbinic tradition redacted c. AD 200; attributions to pre-70 sages are "
-    "unverified. Where the NT evaluates these traditions (Mark 7; Matt 19; Heb 9–10), the "
-    "NT's judgment governs."
+    "unverified, and Kulp's bracketed Bible references sometimes use Hebrew numbering or "
+    "contain errors. Where the NT evaluates these traditions (Mark 7; Matt 19; Heb 9–10), "
+    "the NT's judgment governs."
 )
 
 CHAPTER_MISHNAH = NumberedLocator("chapter:mishnah", "1:1", separator=":")
