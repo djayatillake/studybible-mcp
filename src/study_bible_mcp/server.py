@@ -280,24 +280,30 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
     if not rows:
         return text(f"No verse text on file for {reference}.")
 
-    # A verse may be stored as several rows; cap on distinct verses.
+    # A verse may be stored as several rows; cap on distinct numbered verses
+    # (a verse-0 psalm superscription is shown but not counted).
     verse_keys = list(dict.fromkeys((row["chapter"], row["verse"]) for row in rows))
-    if len(verse_keys) > LOOKUP_VERSE_MAX_VERSES:
-        shown = set(verse_keys[:LOOKUP_VERSE_MAX_VERSES])
-        rows = [row for row in rows if (row["chapter"], row["verse"]) in shown]
-        rest = _passage_label(
-            book_name, verse_keys[LOOKUP_VERSE_MAX_VERSES], verse_keys[-1]
-        )
+    numbered = [key for key in verse_keys if key[1] > 0]
+    if len(numbered) > LOOKUP_VERSE_MAX_VERSES:
+        last_shown = numbered[LOOKUP_VERSE_MAX_VERSES - 1]
+        rows = [row for row in rows if (row["chapter"], row["verse"]) <= last_shown]
+        rest = _passage_label(book_name, numbered[LOOKUP_VERSE_MAX_VERSES], numbered[-1])
         notes.append(
-            f"Showing the first {LOOKUP_VERSE_MAX_VERSES} of {len(verse_keys)} "
+            f"Showing the first {LOOKUP_VERSE_MAX_VERSES} of {len(numbered)} "
             f"verses. Continue with reference='{rest}'."
         )
-        verse_keys = verse_keys[:LOOKUP_VERSE_MAX_VERSES]
+        verse_keys = [key for key in verse_keys if key <= last_shown]
     shown_start, shown_end = verse_keys[0], verse_keys[-1]
     single = shown_start == shown_end
+    if shown_start[1] == 0 and len(verse_keys) > 1:
+        shown_start = verse_keys[1]
 
+    # A passage omits the per-word Strong's list (most of its size) unless
+    # morphology is requested; a single verse keeps it.
+    include_words = single or include_morphology
     verse_text = "\n".join(
-        format_verse(row, include_original, include_morphology) for row in rows
+        format_verse(row, include_original, include_morphology, include_words)
+        for row in rows
     )
     whole_chapters = parsed["start_verse"] is None and parsed["end_verse"] is None
     if single and not notes:

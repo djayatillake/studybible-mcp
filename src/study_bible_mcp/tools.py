@@ -147,7 +147,8 @@ term's underlying vocabulary, or the semantic range behind an English rendering.
 Returns, for each verse in canonical order:
 - The English verse text (STEPBible word-by-word glosses)
 - The original Greek/Hebrew text (optional, on by default)
-- A word-by-word breakdown with Strong's numbers and glosses
+- A word-by-word breakdown with Strong's numbers and glosses (single verses;
+  for a passage only when include_morphology is set)
 - Optional grammatical parsing for each word
 
 And once for the passage:
@@ -157,7 +158,8 @@ And once for the passage:
 
 Accepts 'John 3:16', 'Luke 19:1-3', cross-chapter ranges such as
 'Luke 19:45-20:2', and whole chapters such as 'Psalm 23'. Single-chapter books
-may be cited by verse alone ('Jude 3', 'Philemon 6', '3 John 4'). Numbering is
+may be cited by verse alone ('Jude 3', 'Philemon 6', '3 John 4'); 'Jude 1' is the
+whole chapter. Numbering is
 English; a Psalm superscription (verse 1 in the Hebrew) is labelled as the
 superscription. Returns at most 50 verses per call, with a note naming the
 reference that continues a longer passage.
@@ -177,7 +179,7 @@ form, is needed.""",
                 },
                 "include_morphology": {
                     "type": "boolean",
-                    "description": "Include grammatical parsing for each word. Default: false"
+                    "description": "Include grammatical parsing for each word (and, for a passage, the word-by-word list). Default: false"
                 }
             },
             "required": ["reference"]
@@ -1320,8 +1322,13 @@ def _verse_heading(verse: dict) -> str:
     return f"{label} (Hebrew {book}.{hebrew})" if hebrew else label
 
 
-def format_verse(verse: dict, include_original: bool = True, include_morphology: bool = False) -> str:
-    """Format a verse for display."""
+def format_verse(
+    verse: dict,
+    include_original: bool = True,
+    include_morphology: bool = False,
+    include_words: bool = True,
+) -> str:
+    """Format a verse for display; ``include_words`` controls the word list."""
     lines = []
     
     lines.append(f"## {_verse_heading(verse)}")
@@ -1335,7 +1342,7 @@ def format_verse(verse: dict, include_original: bool = True, include_morphology:
         lines.append("")
     
     words = _parse_json_field(verse.get('word_data'))
-    if words and include_original:
+    if words and include_original and include_words:
         lines.append("### Word Analysis")
         for w in words:
             if isinstance(w, dict):

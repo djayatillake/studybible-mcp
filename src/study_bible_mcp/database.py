@@ -57,7 +57,7 @@ BOOK_ABBREV_MAP = {
     "psalms": "Psa", "psalm": "Psa", "ps": "Psa",
     "proverbs": "Pro", "prov": "Pro", "pr": "Pro",
     "ecclesiastes": "Ecc", "eccl": "Ecc",
-    "song of solomon": "Sng", "song": "Sng", "sos": "Sng",
+    "song of solomon": "Sng", "song of songs": "Sng", "song": "Sng", "sos": "Sng",
     "isaiah": "Isa", "isa": "Isa",
     "jeremiah": "Jer", "jer": "Jer",
     "lamentations": "Lam", "lam": "Lam",
@@ -66,7 +66,7 @@ BOOK_ABBREV_MAP = {
     "hosea": "Hos", "hos": "Hos",
     "joel": "Jol",
     "amos": "Amo",
-    "obadiah": "Oba", "obad": "Oba",
+    "obadiah": "Oba", "obad": "Oba", "ob": "Oba",
     "jonah": "Jon",
     "micah": "Mic", "mic": "Mic",
     "nahum": "Nam", "nah": "Nam",
@@ -92,7 +92,7 @@ BOOK_ABBREV_MAP = {
     "1 timothy": "1Ti", "1tim": "1Ti", "1 tim": "1Ti",
     "2 timothy": "2Ti", "2tim": "2Ti", "2 tim": "2Ti",
     "titus": "Tit",
-    "philemon": "Phm", "phlm": "Phm",
+    "philemon": "Phm", "philem": "Phm", "phlm": "Phm",
     "hebrews": "Heb", "heb": "Heb",
     "james": "Jas", "jas": "Jas",
     "1 peter": "1Pe", "1pet": "1Pe", "1 pet": "1Pe",
@@ -162,16 +162,17 @@ _SINGLE_CHAPTER_REF_RE = re.compile(
 def expand_single_chapter_reference(reference: str) -> str:
     """Rewrite verse-only citations of single-chapter books as chapter 1.
 
-    'Jude 3' -> 'Jude 1:3', 'Philemon 4-6' -> 'Philemon 1:4-6', and a bare
-    'Jude' -> 'Jude 1' (the whole book). A lone number is a verse, matching
-    standard citation style. Anything else, including 'Jude 1:3', is
+    'Jude 3' -> 'Jude 1:3' and 'Philemon 4-6' -> 'Philemon 1:4-6', matching
+    standard citation style. A bare 'Jude' and a lone 'Jude 1' both mean the
+    chapter (the whole book), as chapter-level tools such as get_study_notes
+    and people_in_passage expect. Anything else, including 'Jude 1:3', is
     returned unchanged.
     """
     match = _SINGLE_CHAPTER_REF_RE.match(reference)
     if not match or book_code(match["book"]) not in SINGLE_CHAPTER_BOOKS:
         return reference
     book = re.sub(r"\s+", " ", match["book"]).strip()
-    if not match["verses"]:
+    if not match["verses"] or match["verses"] == "1":
         return f"{book} 1"
     verses = re.sub(r"\s*[\u2010-\u2015\u2212-]\s*", "-", match["verses"])
     return f"{book} 1:{verses}"
@@ -554,8 +555,6 @@ class StudyBibleDB:
         r"(?:\s*-\s*(?:(?P<c2>\d+)[:.])?(?P<v2>\d+)[a-z]?)?$",
         re.IGNORECASE,
     )
-    _BOOK_CODES = {code.lower(): code for code in BOOK_ABBREV_MAP.values()}
-
     @classmethod
     def parse_passage_reference(cls, reference: str) -> dict | None:
         """Parse a verse, verse range, cross-chapter range, or chapter reference.
@@ -571,14 +570,9 @@ class StudyBibleDB:
         if not match:
             return None
         book_name = re.sub(r"\s+", " ", match["book"]).strip()
-        key = book_name.lower()
-        compact = key.replace(" ", "")
-        book = (
-            BOOK_ABBREV_MAP.get(key)
-            or BOOK_ABBREV_MAP.get(compact)
-            or cls._BOOK_CODES.get(compact)
-            or compact[:3].title()
-        )
+        # An unresolved name falls through to a code with no verses, which
+        # lookup_verse reports as an unknown book.
+        book = book_code(book_name) or book_name.replace(" ", "")[:3].title()
         start_chapter = int(match["c1"])
         start_verse = int(match["v1"]) if match["v1"] else None
         end_chapter = int(match["c2"]) if match["c2"] else start_chapter

@@ -26,6 +26,9 @@ def _fixture_rows():
     # OT rows keyed by English(Hebrew) numbering, as in STEPBible TAHOT.
     rows += [_verse_row(f"Psa.40.{v}(40.{v + 1})", "Psa", 40, v) for v in range(0, 10)]
     rows += [_verse_row(f"Psa.119.{v}", "Psa", 119, v) for v in range(1, 61)]
+    # Psalms with a verse-0 superscription: 50 and 72 numbered verses.
+    rows += [_verse_row(f"Psa.18.{v}(18.{v + 1})", "Psa", 18, v) for v in range(0, 51)]
+    rows += [_verse_row(f"Psa.78.{v}(78.{v + 1})", "Psa", 78, v) for v in range(0, 73)]
     # One English verse stored as two rows.
     rows += [
         _verse_row("1Ch.12.4", "1Ch", 12, 4),
@@ -220,7 +223,8 @@ async def test_empty_verses_table_points_to_build_script(tmp_path, monkeypatch):
     ("reference", "expected"),
     [
         ("Jude 3", "Jude 1:3"),
-        ("Jude 1", "Jude 1:1"),
+        ("Jude 1", "Jude 1"),
+        ("Obadiah 1", "Obadiah 1"),
         ("Philemon 4–6", "Philemon 1:4-6"),
         ("3 John 4", "3 John 1:4"),
         ("3John 4", "3John 1:4"),
@@ -245,6 +249,32 @@ async def test_single_chapter_citations_resolve_through_the_tool_boundary(lookup
     assert _verse_headings(await call("3 John 4")) == ["3Jn.1.4"]
     assert _verse_headings(await call("Jude 3-5")) == ["Jud.1.3", "Jud.1.4", "Jud.1.5"]
     assert len(_verse_headings(await call("Jude"))) == 25
+    # A lone "1" is the chapter, as chapter-level tools expect.
+    assert len(_verse_headings(await call("Jude 1"))) == 25
+    # Compact names resolve through the shared book-name resolver.
+    assert _verse_headings(await call("3John 4")) == ["3Jn.1.4"]
+
+
+async def test_passage_omits_word_list_unless_morphology_requested(lookup_db):
+    passage = await _lookup("Luke 19:1-3")
+    single = await _lookup("John 3:16")
+    parsed = await _lookup("Luke 19:1-3", include_morphology=True)
+
+    assert passage.count("### Original Text") == 3
+    assert "### Word Analysis" not in passage
+    assert "### Word Analysis" in single
+    assert parsed.count("### Word Analysis") == 3
+
+
+async def test_superscription_does_not_count_toward_the_cap(lookup_db):
+    psalm_18 = await _lookup("Psalm 18", include_original=False)
+    psalm_78 = await _lookup("Psalm 78", include_original=False)
+
+    assert psalm_18.startswith("# Psalm 18\n")
+    assert "Showing the first" not in psalm_18
+    assert len(_verse_headings(psalm_18)) == 50  # plus the superscription
+    assert psalm_78.startswith("# Psalm 78:1-50\n")
+    assert "Showing the first 50 of 72 verses. Continue with reference='Psalm 78:51-72'" in psalm_78
 
 
 async def test_psalm_superscription_is_labelled(lookup_db):
