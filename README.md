@@ -1491,7 +1491,10 @@ Semantic search uses OpenAI's `text-embedding-3-small` model via [sqlite-vec](ht
 
 ## Contributing
 
-Contributions welcome! Especially:
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the test
+suite (run in CI on every pull request) and the rules every change keeps:
+small outputs, Scripture kept distinct from other sources, pinned and licensed
+data, and safe database upgrades. Especially welcome:
 
 - Additional thematic cross-references
 - Improved genre detection
