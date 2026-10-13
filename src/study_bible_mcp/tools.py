@@ -1587,7 +1587,8 @@ def _ancient_passage_lines(
     elif row.get("original_text"):
         # Without English the original is the passage: centre it on the match.
         original, shown = _line_window(row, window)
-        lines.extend(["", f"*No English translation included; {language} only.*"])
+        missing = registered.no_english_note if registered else "No English translation included"
+        lines.extend(["", f"*{missing}; {language} only.*"])
         if shown:
             lines.append(f"*{shown}*")
         lines.extend(["", f"**{language}:** {_excerpt(original, query, english_limit, note_cut)}"])

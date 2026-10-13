@@ -264,7 +264,7 @@ def test_curated_links_target_registered_works_and_valid_books():
 
 def test_every_work_resolves_by_short_title_full_title_and_aliases():
     for work in CORPORA["philo"].works:
-        locator = "1.1" if work.locator is philo.BOOK_SECTION else "1"
+        locator = "1.1" if work.locator.depth == 2 else "1"
         for name in work.names:
             resolution = resolve_citation(f"{name} {locator}", CORPORA.values())
             assert resolution.status == "ok", (name, resolution)
@@ -295,6 +295,20 @@ def test_book_section_grammar_rejects_bare_sections_of_multi_book_works():
     assert resolve_citation("Spec. 1.2.3", CORPORA.values()).status == "bad_locator"
 
 
+@pytest.mark.parametrize("citation", ["Leg. 31", "Leg. 4.1", "Somn. 3", "Mos. 0.5", "Spec. 5.1"])
+def test_multi_book_works_reject_a_book_they_do_not_have(citation):
+    # 'Leg. 31' is section 31 cited without its book, not book 31.
+    assert resolve_citation(citation, CORPORA.values()).status == "bad_locator"
+
+
+def test_multi_book_works_declare_their_book_counts():
+    books = {work.key: work.locator.books for work in CORPORA["philo"].works if work.locator.depth == 2}
+    assert books == {"leg": 3, "somn": 2, "mos": 2, "spec": 4}
+    josephus = {work.key: work.locator.books for work in CORPORA["josephus"].works}
+    assert josephus == {"antiquities": 20, "life": None, "against_apion": 2, "jewish_war": 7}
+    assert resolve_citation("Ant. 21.1", CORPORA.values()).status == "bad_locator"
+
+
 # --- Tools
 
 
@@ -322,8 +336,12 @@ async def test_lookup_returns_paired_greek_and_english(tmp_path, fixture_corpus,
     assert "In the beginning God created the heaven and the earth" in opif
     assert "ἐν ἀρχῇ ἐποίησεν" in opif
     assert "- Echo: Gen 1:1 — Quotes and expounds" in opif
-    assert "No English translation included" in greek_only
+    assert "*Yonge has no English for this section; Greek only.*" in greek_only
+    assert "No English translation included" not in greek_only
     assert "Ταῦτα περὶ τῆς ἑβδόμης" in greek_only
+    bad_book = await _call(path, monkeypatch, lookup, citation="Leg. 31")
+    assert bad_book.startswith("Could not read the locator '31' in 'Leg. 31'.")
+    assert "cited by book.section, books 1–3" in bad_book
 
 
 @pytest.mark.asyncio

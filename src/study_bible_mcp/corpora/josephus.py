@@ -11,7 +11,7 @@ from dataclasses import replace
 
 from .base import BiblicalLink, Corpus, SourceTag, Work, combined_license
 from .download import fetch_github_directory
-from .locators import BOOK_SECTION, SECTION
+from .locators import SECTION, book_section
 
 if TYPE_CHECKING:
     import httpx
@@ -39,7 +39,7 @@ WORKS = {
         key="antiquities",
         title="Jewish Antiquities",
         reference_title="Antiquities",
-        locator=BOOK_SECTION,
+        locator=book_section(20),
         aliases=(
             "Ant.", "A.J.", "Antiquities of the Jews", "Antiquitates Judaicae",
             "Jewish Ant.",
@@ -58,7 +58,7 @@ WORKS = {
         key="against_apion",
         title="Against Apion",
         reference_title="Against Apion",
-        locator=BOOK_SECTION,
+        locator=book_section(2),
         aliases=("C. Ap.", "Ap.", "Apion", "Ag. Ap.", "Contra Apionem"),
         tag=replace(TAG, date="c. AD 95–100"),
     ),
@@ -66,7 +66,7 @@ WORKS = {
         key="jewish_war",
         title="The Jewish War",
         reference_title="War",
-        locator=BOOK_SECTION,
+        locator=book_section(7),
         aliases=(
             "B.J.", "J.W.", "Jewish War", "Wars of the Jews", "War of the Jews",
             "Bellum Judaicum", "Bell.",

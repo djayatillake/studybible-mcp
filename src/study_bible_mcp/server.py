@@ -696,7 +696,10 @@ def _similar_works(citation: str) -> list[str]:
 
 
 def _candidate(match) -> str:
-    return f"{match.work.display_title} ({match.corpus.label}, cited by {match.work.locator.name})"
+    locator = match.work.locator
+    books = getattr(locator, "books", None)
+    grammar = f"{locator.name}, books 1–{books}" if books else locator.name
+    return f"{match.work.display_title} ({match.corpus.label}, cited by {grammar})"
 
 
 async def _work_example(match) -> str:

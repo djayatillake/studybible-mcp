@@ -204,7 +204,9 @@ class Corpus:
     overrides it); ``caveat`` is printed once per response that shows this
     corpus (1–3 sentences). ``line_numbered`` marks passages whose original
     text is one numbered line per row ('11 text'), so a line citation shows
-    only the cited lines and their neighbours.
+    only the cited lines and their neighbours. ``no_english_note`` is printed
+    above a passage that has only its original ('Yonge has no English for
+    this section').
     """
 
     key: str
@@ -227,6 +229,7 @@ class Corpus:
     tag: SourceTag | None = None
     caveat: str = ""
     line_numbered: bool = False
+    no_english_note: str = "No English translation included"
 
     def work(self, key: str) -> Work:
         for work in self.works:

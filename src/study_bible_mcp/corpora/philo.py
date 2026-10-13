@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from .base import BiblicalLink, Corpus, SourceTag, Work, combined_license
 from .download import fetch_verified, git_blob_sha1
-from .locators import BOOK_SECTION, SECTION
+from .locators import SECTION, book_section
 
 if TYPE_CHECKING:
     import httpx
@@ -58,7 +58,8 @@ def _work(key, title, short, locator, *aliases):
 
 
 # tlg id -> treatise. Short titles follow the SBL Handbook; multi-book works are
-# cited book.section ('Leg. 1.31'), the rest by section ('Opif. 1'). Blob hashes
+# cited book.section ('Leg. 1.31', books capped at the work's count so 'Leg. 31'
+# is not read as book 31), the rest by section ('Opif. 1'). Blob hashes
 # are the Git blob SHA-1s of the grc1 and eng1 files at COMMIT.
 TREATISES = {
     "tlg001": _Treatise(_work(
@@ -66,7 +67,7 @@ TREATISES = {
         "Op.", "De Opificio Mundi", "On the Creation", "Creation of the World",
     ), 1, 1, "b7a7546f5a27cc30a79976f29ff86c6afb297e5d", "f6fa0377cfe8a5b8a30d6568a99420ffcb7f9936"),
     "tlg002": _Treatise(_work(
-        "leg", "Allegorical Interpretation", "Leg.", BOOK_SECTION,
+        "leg", "Allegorical Interpretation", "Leg.", book_section(3),
         "Leg. All.", "Legum Allegoriae", "Allegorical Interpretation of Genesis",
         "On the Allegories of the Sacred Laws",
     ), 1, 1, "9e26b69b588c36751f1e1de8755b2e9325d39106", "bc3190c9259edeb4474ebe7025e990cf224293f7"),
@@ -129,7 +130,7 @@ TREATISES = {
         "mut", "On the Change of Names", "Mut.", SECTION, "De Mutatione Nominum",
     ), 3, 2, "653fc764203903a0d1101ca505e86c593cb37ddb", "344d0a34becf1091feb2c784a03fab3d35a601eb"),
     "tlg019": _Treatise(_work(
-        "somn", "On Dreams", "Somn.", BOOK_SECTION, "De Somniis",
+        "somn", "On Dreams", "Somn.", book_section(2), "De Somniis",
     ), 3, 2, "15c00e63974400ece0f397415815eea6d7bf0004", "0bc625d520159f127e2186ee9b55d0bec8c15585"),
     "tlg020": _Treatise(_work(
         "abr", "On the Life of Abraham", "Abr.", SECTION, "De Abrahamo", "On Abraham",
@@ -140,7 +141,7 @@ TREATISES = {
         "Life of Joseph",
     ), 4, 2, "64f1cfbdd988bceb9cf6660c79558be725956353", "8ae067b74c574d1afbee839ec03908f5afbc9e85"),
     "tlg022": _Treatise(_work(
-        "mos", "On the Life of Moses", "Mos.", BOOK_SECTION, "Vit. Mos.", "De Vita Mosis",
+        "mos", "On the Life of Moses", "Mos.", book_section(2), "Vit. Mos.", "De Vita Mosis",
         "Life of Moses",
     ), 4, 3, "a8b460b9ef0ef9e1d6b490de88faae3308afc9cc", "f93c43182be0a148df79a0d8d20e0da9e81a0ac3"),
     "tlg023": _Treatise(_work(
@@ -148,7 +149,7 @@ TREATISES = {
         "De Decalogo", "Concerning the Ten Commandments",
     ), 4, 3, "826af0566f41e2d6e09b0816e9bfed9218e69fef", "04fc44754d05b0ce8d0a07baffd0d4274643f374"),
     "tlg024": _Treatise(_work(
-        "spec", "On the Special Laws", "Spec.", BOOK_SECTION,
+        "spec", "On the Special Laws", "Spec.", book_section(4),
         "Spec. Leg.", "De Specialibus Legibus",
     ), 5, 3, "71fd30b794537115bef26800f6ba9c40144afb60", "aa49c1a1592c72c487b4baf216f4cb0f305c97b7"),
     "tlg025": _Treatise(_work(
@@ -319,7 +320,7 @@ def parse_philo_work(directory: Path, work_id: str) -> list[dict]:
     """
     treatise = TREATISES[work_id]
     work = treatise.work
-    has_books = work.locator is BOOK_SECTION
+    has_books = work.locator.depth == 2
     greek = _sections(directory / _greek_name(work_id), has_books)
     english = {
         (item["book"], item["section"]): item
@@ -439,7 +440,8 @@ CORPUS = Corpus(
         "(Opif. through Legat.) from First1KGreek, each Cohn–Wendland section paired "
         "with the same section of C. D. Yonge's English translation. Cited by SBL short "
         "title and section ('Opif. 26'; multi-book works by book.section: 'Leg. 1.31', "
-        "'Somn. 1.3', 'Mos. 1.65', 'Spec. 1.2'); sections Yonge's text lacks are Greek only."
+        "'Somn. 1.3', 'Mos. 1.65', 'Spec. 1.2'); where Yonge has no English for a "
+        "section it is Greek only."
     ),
     data_dir="philo",
     original_language=ORIGINAL_LANGUAGE,
@@ -455,4 +457,5 @@ CORPUS = Corpus(
     heading_label="Yonge treatise heading",
     tag=TAG,
     caveat=CAVEAT,
+    no_english_note="Yonge has no English for this section",
 )

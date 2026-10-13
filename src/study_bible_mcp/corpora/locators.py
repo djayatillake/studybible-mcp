@@ -9,7 +9,7 @@ the locator's ``key`` method), so a lookup is a plain interval-overlap query.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Protocol
 
 SortRange = tuple[int, int]
@@ -69,7 +69,9 @@ class NumberedLocator:
       (across units), or ``11-12`` (a range of top-level units).
 
     ``roman=True`` also accepts a Roman numeral at the top level ('VI 11',
-    'vi, 11'), as used for scroll columns.
+    'vi, 11'), as used for scroll columns. ``books`` caps the top level of a
+    work with a known number of books, so 'Leg. 31' is rejected rather than
+    read as book 31.
     """
 
     name: str
@@ -78,6 +80,7 @@ class NumberedLocator:
     scale: int = 1000
     separator: str = "."
     roman: bool = False
+    books: int | None = None
 
     def key(self, *parts: int) -> int:
         """Sort key of a full point, e.g. ``key(18, 116)``; raises on bad parts."""
@@ -104,6 +107,8 @@ class NumberedLocator:
             else:
                 return None
             if value >= (MAX_TOP_LEVEL + 1 if top else self.scale):
+                return None
+            if top and self.books is not None and not 1 <= value <= self.books:
                 return None
             numbers.append(value)
         return numbers
@@ -153,5 +158,10 @@ class NumberedLocator:
 
 SECTION = NumberedLocator("section", "116", depth=1)
 BOOK_SECTION = NumberedLocator("book.section", "18.116")
+
+
+def book_section(books: int) -> NumberedLocator:
+    """The book.section grammar of a work with ``books`` books (1..books)."""
+    return replace(BOOK_SECTION, example="1.1", books=books)
 CHAPTER_VERSE = NumberedLocator("chapter:verse", "1:1", separator=":")
 COLUMN_LINE = NumberedLocator("column:line", "6:11", separator=":", roman=True)
