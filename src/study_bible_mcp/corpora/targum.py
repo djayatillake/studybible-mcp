@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import quote
 
-from .base import BiblicalLink, Collection, Corpus, Work, combined_license
+from .base import BiblicalLink, Collection, Corpus, SourceTag, Work, combined_license
 from .download import fetch_verified, git_blob_sha1
 from .locators import CHAPTER_VERSE
 
@@ -42,11 +42,19 @@ ONKELOS = Collection(
 AUTHOR = "Targum Onkelos"
 # Redaction-era tag (editorial): Onkelos took its final form in the amoraic period.
 PERIOD_TAGS = "amoraic"
+TAG = SourceTag(
+    kind="Jewish Aramaic Torah rendering", date="final form c. 3rd–5th c. AD, Babylonia",
+    tier="B", edition="Torat Emet Aramaic; Metsudah English of the Hebrew",
+)
+CAVEAT = (
+    "Not Scripture: a Jewish Aramaic rendering of the Torah (final form c. 3rd–5th c. AD) "
+    "that avoids describing God bodily."
+)
 PERIODS = (PERIOD_TAGS,)
 _SEFARIA_DIRECTORY = "Onkelos/Torah/Onkelos {book}"  # One book's versions.
 _ARAMAIC_VERSION = "Onkelos {book}"  # Sefaria versionTitle and file name.
 
-# Torah book: (citation code for link notes, database book code, aliases).
+# Torah book: (citation abbreviation, database book code, aliases).
 BOOKS = {
     "Genesis": ("Gen", "Gen", ("Gen.", "Gn.", "Bereshit", "Bereshith", "Bereishit")),
     "Exodus": ("Exod", "Exo", ("Exod.", "Exo.", "Ex.", "Shemot", "Shemoth")),
@@ -328,4 +336,6 @@ CORPUS = Corpus(
     example_query="canopy",
     example_citation="Onkelos Genesis 1:2",
     aliases=("Targum", "Targums", "Tg."),
+    tag=TAG,
+    caveat=CAVEAT,
 )

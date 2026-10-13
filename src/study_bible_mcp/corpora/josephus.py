@@ -7,7 +7,9 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .base import BiblicalLink, Corpus, Work, combined_license
+from dataclasses import replace
+
+from .base import BiblicalLink, Corpus, SourceTag, Work, combined_license
 from .download import fetch_github_directory
 from .locators import BOOK_SECTION, SECTION
 
@@ -24,6 +26,14 @@ PERSEUS_BASE_URL = (
 LICENSE = "CC BY-SA 4.0"
 ORIGINAL_LANGUAGE = "Greek"
 
+# Labelling contract: a Jewish historian contemporary with the later NT
+# writings (tier A); each work carries its own composition date.
+TAG = SourceTag(
+    kind="Jewish history", date="c. AD 75–100", tier="A",
+    edition="Niese Greek, Whiston English",
+)
+CAVEAT = "Not Scripture: a Jewish historian writing c. AD 75–100; his editorial framing is his own."
+
 WORKS = {
     "tlg001": Work(
         key="antiquities",
@@ -34,6 +44,7 @@ WORKS = {
             "Ant.", "A.J.", "Antiquities of the Jews", "Antiquitates Judaicae",
             "Jewish Ant.",
         ),
+        tag=replace(TAG, date="AD 93–94"),
     ),
     "tlg002": Work(
         key="life",
@@ -41,6 +52,7 @@ WORKS = {
         reference_title="Life",
         locator=SECTION,
         aliases=("Vita", "Vit.", "The Life"),
+        tag=replace(TAG, date="c. AD 94–100"),
     ),
     "tlg003": Work(
         key="against_apion",
@@ -48,6 +60,7 @@ WORKS = {
         reference_title="Against Apion",
         locator=BOOK_SECTION,
         aliases=("C. Ap.", "Ap.", "Apion", "Ag. Ap.", "Contra Apionem"),
+        tag=replace(TAG, date="c. AD 95–100"),
     ),
     "tlg004": Work(
         key="jewish_war",
@@ -58,6 +71,7 @@ WORKS = {
             "B.J.", "J.W.", "Jewish War", "Wars of the Jews", "War of the Jews",
             "Bellum Judaicum", "Bell.",
         ),
+        tag=replace(TAG, date="c. AD 75–79"),
     ),
 }
 
@@ -408,4 +422,6 @@ CORPUS = Corpus(
     example_citation="Antiquities 18.116",
     aliases=("Flavius Josephus", "Josephus", "Jos."),
     heading_label="Whiston chapter heading",
+    tag=TAG,
+    caveat=CAVEAT,
 )

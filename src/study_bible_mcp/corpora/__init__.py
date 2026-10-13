@@ -10,7 +10,18 @@ from __future__ import annotations
 
 from importlib import import_module
 
-from .base import BiblicalLink, Collection, Corpus, Work, combined_license
+from .base import (
+    CURATED_LINK_RELATIONS,
+    LINK_RELATIONS,
+    TIERS,
+    BiblicalLink,
+    Collection,
+    Corpus,
+    SourceTag,
+    TagSection,
+    Work,
+    combined_license,
+)
 from .citations import CitationMatch, Resolution, resolve_citation
 
 # One module name per corpus, in display order.
@@ -24,8 +35,32 @@ _CORPUS_MODULES = (
 )
 
 
+# A corpus caveat is printed once per response: keep it to 1–3 sentences.
+MAX_CAVEAT_LENGTH = 320
+
+
+def validate_labels(corpus: Corpus) -> None:
+    """Require a caveat and a complete tag for every work (labelling contract L1–L2)."""
+    if not corpus.caveat.strip() or len(corpus.caveat) > MAX_CAVEAT_LENGTH:
+        raise ValueError(f"{corpus.key}: declare a caveat of 1–{MAX_CAVEAT_LENGTH} characters")
+    for work in corpus.works:
+        tag = corpus.work_tag(work)
+        if tag is None:
+            raise ValueError(f"{corpus.key}: work {work.key!r} has no tag (set Corpus.tag or Work.tag)")
+        if not all((tag.status, tag.kind, tag.date, tag.edition)):
+            raise ValueError(f"{corpus.key}: work {work.key!r} has an incomplete tag")
+        unknown = set(tag.tiers) - set(TIERS)
+        if unknown:
+            raise ValueError(f"{corpus.key}: work {work.key!r} has unknown tiers {sorted(unknown)}")
+        for section in tag.sections:
+            if work.locator.parse(section.locator) is None:
+                raise ValueError(
+                    f"{corpus.key}: tag section {section.locator!r} is not a {work.key} locator"
+                )
+
+
 def build_registry(corpora: tuple[Corpus, ...]) -> dict[str, Corpus]:
-    """Index corpora by key, rejecting duplicate keys, works, and directories."""
+    """Index corpora by key, rejecting duplicate keys, works, and directories, and unlabelled works."""
     registry: dict[str, Corpus] = {}
     directories: set[str] = set()
     for corpus in corpora:
@@ -38,6 +73,7 @@ def build_registry(corpora: tuple[Corpus, ...]) -> dict[str, Corpus]:
             raise ValueError(f"{corpus.key}: works must be non-empty with unique keys")
         if not corpus.periods:
             raise ValueError(f"{corpus.key}: declare at least one period tag")
+        validate_labels(corpus)
         directories.add(corpus.data_dir)
         registry[corpus.key] = corpus
     return registry
@@ -56,13 +92,19 @@ def all_periods() -> tuple[str, ...]:
 __all__ = [
     "BiblicalLink",
     "CORPORA",
+    "CURATED_LINK_RELATIONS",
     "CitationMatch",
     "Collection",
     "Corpus",
+    "LINK_RELATIONS",
     "Resolution",
+    "SourceTag",
+    "TIERS",
+    "TagSection",
     "Work",
     "all_periods",
     "build_registry",
     "combined_license",
     "resolve_citation",
+    "validate_labels",
 ]

@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import quote
 
-from .base import BiblicalLink, Collection, Corpus, Work, combined_license
+from .base import BiblicalLink, Collection, Corpus, SourceTag, Work, combined_license
 from .download import fetch_verified, git_blob_sha1
 from .locators import NumberedLocator
 
@@ -49,6 +49,15 @@ MISHNAH = Collection("Mishnah", ("m.",))
 AUTHOR = "Mishnah"
 PERIOD_TAGS = "tannaitic"
 PERIODS = (PERIOD_TAGS,)
+TAG = SourceTag(
+    kind="Mishnah", date="redacted c. AD 200; pre-70 attributions unverified", tier="B",
+    edition="Vilna Hebrew, Kulp English",
+)
+CAVEAT = (
+    "Not Scripture: rabbinic tradition redacted c. AD 200; attributions to pre-70 sages are "
+    "unverified. Where the NT evaluates these traditions (Mark 7; Matt 19; Heb 9–10), the "
+    "NT's judgment governs."
+)
 
 CHAPTER_MISHNAH = NumberedLocator("chapter:mishnah", "1:1", separator=":")
 
@@ -392,6 +401,8 @@ CORPUS = Corpus(
     example_query="shekels Adar",
     example_citation="Mishnah Shekalim 1:1",
     aliases=("Rabbinic",),
+    tag=TAG,
+    caveat=CAVEAT,
 )
 
 

@@ -15,7 +15,7 @@ from itertools import takewhile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .base import BiblicalLink, Corpus, Work
+from .base import BiblicalLink, Corpus, SourceTag, Work
 from .download import fetch_github_directory, fetch_verified, sha256_hex
 from .locators import COLUMN_LINE
 
@@ -64,12 +64,28 @@ WIKIMEDIA_USER_AGENT = (
 
 REQUIRED_FILES = (*ETCBC_FILES, WIKISOURCE_FILE)
 
+# Labelling contract: dates from the canon review's date ladder.
+_ETCBC_EDITION = "Abegg–Bowley–Cook Hebrew (ETCBC)"
+RULE_TAG = SourceTag(
+    kind="Qumran sectarian rule", date="c. 100 BC; Cave 1 copy c. 75 BC", tier="A",
+    edition=_ETCBC_EDITION,
+)
+CAVEAT = (
+    "Not Scripture: sectarian texts of a strict priestly movement (c. 150–50 BC). "
+    "[ ] marks modern reconstruction, never evidence; any English is the assistant's own."
+)
+
 DAMASCUS_DOCUMENT = Work(
     key="damascus_document",
     title="Damascus Document",
     reference_title="CD",
     locator=COLUMN_LINE,
     aliases=("Damascus Rule", "Zadokite Fragments", "Zadokite Work"),
+    tag=SourceTag(
+        kind="Qumran sectarian rule", date="composed 2nd–1st c. BC", tier="A",
+        edition=_ETCBC_EDITION,
+        manuscript="copies: Cairo Genizah, 10th and 11th–12th c. AD",
+    ),
 )
 COMMUNITY_RULE = Work(
     key="community_rule",
@@ -77,6 +93,7 @@ COMMUNITY_RULE = Work(
     reference_title="1QS",
     locator=COLUMN_LINE,
     aliases=("Rule of the Community", "Manual of Discipline"),
+    tag=RULE_TAG,
 )
 RULE_OF_THE_CONGREGATION = Work(
     key="rule_of_the_congregation",
@@ -84,6 +101,7 @@ RULE_OF_THE_CONGREGATION = Work(
     reference_title="1QSa",
     locator=COLUMN_LINE,
     aliases=("1Q28a", "Messianic Rule"),
+    tag=RULE_TAG,
 )
 PESHER_HABAKKUK = Work(
     key="pesher_habakkuk",
@@ -91,6 +109,10 @@ PESHER_HABAKKUK = Work(
     reference_title="1QpHab",
     locator=COLUMN_LINE,
     aliases=("Habakkuk Pesher", "Habakkuk Commentary"),
+    tag=SourceTag(
+        kind="Qumran pesher", date="Herodian-era copy, late 1st c. BC", tier="A",
+        edition="Hebrew Wikisource transcription",
+    ),
 )
 WORKS = (DAMASCUS_DOCUMENT, COMMUNITY_RULE, RULE_OF_THE_CONGREGATION, PESHER_HABAKKUK)
 
@@ -592,5 +614,7 @@ CORPUS = Corpus(
     example_citation="CD 6:11",
     aliases=("Dead Sea Scrolls", "Qumran", "DSS"),
     search_index_removals=SEARCH_INDEX_REMOVALS,
+    caveat=CAVEAT,
+    line_numbered=True,
 )
 

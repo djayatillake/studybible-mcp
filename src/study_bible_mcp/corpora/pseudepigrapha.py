@@ -9,7 +9,7 @@ import zipfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .base import BiblicalLink, Corpus, Work, combined_license
+from .base import BiblicalLink, Corpus, SourceTag, TagSection, Work, combined_license
 from .download import sha256_hex
 from .locators import CHAPTER_VERSE
 
@@ -21,12 +21,31 @@ PUBLIC_DOMAIN = "Public domain"
 WIKISOURCE_LICENSE = "CC BY-SA 4.0"
 PERIODS = ("second_temple", "hellenistic", "roman")
 
+CAVEAT = (
+    "Not Scripture: pseudepigrapha outside the 66-book canon; background only, never a "
+    "basis for doctrine. Jude 14–15 quotes 1 Enoch 1:9 without making the book Scripture."
+)
+
 ENOCH = Work(
     key="1_enoch",
     title="1 Enoch",
     reference_title="1 Enoch",
     locator=CHAPTER_VERSE,
     aliases=("1 En.", "Ethiopic Enoch", "Book of Enoch", "Ethiopic Apocalypse of Enoch"),
+    # Book dates follow the canon review's date ladder (Watchers, Parables)
+    # and the conventional dating of the other books.
+    tag=SourceTag(
+        kind="Jewish pseudepigraphon", date="c. 300 BC–1st c. AD", tier="A/B",
+        edition="Charles 1912",
+        sections=(
+            TagSection("1-36", "Book of the Watchers", "4th–3rd c. BC", "A"),
+            TagSection("37-71", "Parables", "c. 50 BC–AD 117, debated", "A/B"),
+            TagSection("72-82", "Astronomical Book", "3rd c. BC", "A"),
+            TagSection("83-90", "Dream Visions", "c. 165–160 BC", "A"),
+            TagSection("91-107", "Epistle of Enoch", "2nd c. BC", "A"),
+            TagSection("108", "appendix", "late addition, date uncertain", "A/B"),
+        ),
+    ),
 )
 EZRA = Work(
     key="4_ezra",
@@ -34,6 +53,10 @@ EZRA = Work(
     reference_title="4 Ezra",
     locator=CHAPTER_VERSE,
     aliases=("4 Ezr.", "2 Esdras", "2 Esd.", "4 Esdras", "4 Esd.", "Apocalypse of Ezra"),
+    tag=SourceTag(
+        kind="Jewish apocalypse, 2 Esd 3–14", date="c. AD 100", tier="B",
+        edition="KJV 2 Esdras, Clementine Latin",
+    ),
 )
 
 # --- 1 Enoch: R. H. Charles's translation on English Wikisource, one page per chapter.
@@ -658,4 +681,5 @@ CORPUS = Corpus(
     example_citation="1 Enoch 89:73",
     aliases=(),
     heading_label="Charles section heading",
+    caveat=CAVEAT,
 )

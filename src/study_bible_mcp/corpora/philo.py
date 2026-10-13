@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .base import BiblicalLink, Corpus, Work, combined_license
+from .base import BiblicalLink, Corpus, SourceTag, Work, combined_license
 from .download import fetch_verified, git_blob_sha1
 from .locators import BOOK_SECTION, SECTION
 
@@ -27,6 +27,14 @@ PERIODS = ("second_temple", "roman")
 # Every treatise was written in Roman Alexandria in the first half of the first
 # century CE; the tag records the period of composition.
 _PERIOD_TAGS = "second_temple,roman"
+TAG = SourceTag(
+    kind="Hellenistic Jewish philosophy", date="c. AD 20–50", tier="A",
+    edition="Cohn–Wendland Greek, Yonge English 1854–55",
+)
+CAVEAT = (
+    "Not Scripture; not Christian. Platonising allegory on the Greek Pentateuch; "
+    "his Logos is not the incarnate Son (John 1:14; Heb 1)."
+)
 
 # Cohn–Wendland volume -> year of publication (Berlin: Reimer).
 _CW_YEARS = {1: 1896, 2: 1897, 3: 1898, 4: 1902, 5: 1906, 6: 1915}
@@ -445,4 +453,6 @@ CORPUS = Corpus(
     example_citation="Opif. 26",
     aliases=("Philo of Alexandria", "Philo Judaeus", "Philo"),
     heading_label="Yonge treatise heading",
+    tag=TAG,
+    caveat=CAVEAT,
 )

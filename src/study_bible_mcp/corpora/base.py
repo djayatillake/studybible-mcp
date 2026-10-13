@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -25,6 +26,65 @@ class Collection:
         return (self.title, *self.aliases)
 
 
+# Date tiers (see the canon review's date ladder). A text's tier says how much
+# it can testify to about the first century.
+TIERS = {
+    "A": "written before or alongside the NT",
+    "B": "after the NT (to c. AD 200); first-century background only where an earlier "
+         "witness agrees",
+}
+
+
+@dataclass(frozen=True)
+class TagSection:
+    """A part of a work dated separately, e.g. 1 Enoch's Parables (37–71).
+
+    ``locator`` is text in the work's own citation grammar ('37-71'); a passage
+    takes the first section whose range contains its ``sort_start``.
+    """
+
+    locator: str
+    name: str
+    date: str
+    tier: str
+
+
+@dataclass(frozen=True)
+class SourceTag:
+    """Canon status, kind, date, tier and edition printed under every result heading.
+
+    Rendered as one line, e.g. 'Not Scripture · Jewish pseudepigraphon
+    (Parables, c. 50 BC–AD 117, debated) · tier A/B · Charles 1912'. ``tier`` is
+    a key of ``TIERS`` or 'A/B' for a text whose date straddles the NT.
+    ``manuscript`` dates the copy served when it is much later than the work
+    (the Cairo Genizah Damascus Document).
+    """
+
+    kind: str
+    date: str
+    tier: str
+    edition: str
+    status: str = "Not Scripture"
+    manuscript: str | None = None
+    sections: tuple[TagSection, ...] = ()
+
+    @property
+    def tiers(self) -> tuple[str, ...]:
+        """Every tier this tag can print, each a key of ``TIERS``."""
+        return tuple(dict.fromkeys(
+            tier for value in (self.tier, *(s.tier for s in self.sections))
+            for tier in value.split("/")
+        ))
+
+    def line(self, section: TagSection | None = None) -> str:
+        date = f"{section.name}, {section.date}" if section else self.date
+        tier = section.tier if section else self.tier
+        parts = [self.status, f"{self.kind} ({date})", f"tier {tier}", self.edition]
+        if self.manuscript:
+            parts.append(self.manuscript)
+        return " · ".join(parts)
+
+
 @dataclass(frozen=True)
 class Work:
     """One citable work and its citation grammar.
@@ -43,6 +103,8 @@ class Work:
     locator: Locator
     aliases: tuple[str, ...] = ()
     collection: Collection | None = None
+    # Overrides the corpus's tag (see ``Corpus.tag``) for this work.
+    tag: SourceTag | None = None
 
     @property
     def names(self) -> tuple[str, ...]:
@@ -56,6 +118,28 @@ class Work:
         return f"{self.collection.title} {self.reference_title}"
 
 
+# How a curated link relates a passage to the Bible: ``aligned`` (the Bible
+# backs or uses the passage, e.g. Jude 14–15 and 1 Enoch 1:9), ``echo`` (one
+# quotes, cites or expounds the other), ``shared_tradition`` (both tell the
+# same story or use the same image, with no claim of dependence), ``contrast``
+# (the Bible says otherwise), and ``translation`` (a targum verse rendering
+# the verse it translates; derived by the corpus, never curated by hand).
+LINK_RELATIONS = {
+    "aligned": "Aligned",
+    "contrast": "Contrast",
+    "echo": "Echo",
+    "shared_tradition": "Shared tradition",
+    "translation": "Translation of",
+}
+CURATED_LINK_RELATIONS = ("aligned", "echo", "shared_tradition", "contrast")
+_ECHO_NOTE = re.compile(r"\b(?:cites|quotes|expounds|explicit reference)\b", re.IGNORECASE)
+
+
+def default_link_relation(note: str) -> str:
+    """``echo`` for a note saying the text cites, quotes or expounds; else ``shared_tradition``."""
+    return "echo" if _ECHO_NOTE.search(note) else "shared_tradition"
+
+
 @dataclass(frozen=True)
 class BiblicalLink:
     """A curated editorial link from a passage to a biblical verse range.
@@ -64,6 +148,8 @@ class BiblicalLink:
     link attaches to the imported passage whose sort range contains the start
     of that locator, and the import fails if none does. ``book`` is a
     canonical book code from ``database.BOOK_ABBREV_MAP`` ('Mrk', 'Gen').
+    ``relation`` is a key of ``LINK_RELATIONS``; left empty it follows the
+    note (``default_link_relation``).
     """
 
     work_key: str
@@ -74,6 +160,13 @@ class BiblicalLink:
     end_chapter: int
     end_verse: int
     note: str
+    relation: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.relation:
+            object.__setattr__(self, "relation", default_link_relation(self.note))
+        if self.relation not in LINK_RELATIONS:
+            raise ValueError(f"Unknown link relation {self.relation!r}")
 
 
 @dataclass(frozen=True)
@@ -95,6 +188,12 @@ class Corpus:
     ``search_index_removals`` are regular expressions for printed text that is
     not part of the reading a search should match, such as a transcription's
     scribal erasures; matches are deleted from the search index only.
+
+    ``tag`` is the per-result canon/date/edition tag (a work's own ``tag``
+    overrides it); ``caveat`` is printed once per response that shows this
+    corpus (1–3 sentences). ``line_numbered`` marks passages whose original
+    text is one numbered line per row ('11 text'), so a line citation shows
+    only the cited lines and their neighbours.
     """
 
     key: str
@@ -113,12 +212,45 @@ class Corpus:
     aliases: tuple[str, ...] = ()
     heading_label: str = "Editorial heading"
     search_index_removals: tuple[str, ...] = ()
+    tag: SourceTag | None = None
+    caveat: str = ""
+    line_numbered: bool = False
 
     def work(self, key: str) -> Work:
         for work in self.works:
             if work.key == key:
                 return work
         raise KeyError(f"{self.key}: unknown work {key!r}")
+
+    def work_tag(self, work: Work) -> SourceTag | None:
+        return work.tag or self.tag
+
+    def tag_for(
+        self, work_key: str | None, sort_start: int | None,
+    ) -> tuple[SourceTag | None, TagSection | None]:
+        """The tag of a passage of ``work_key`` starting at ``sort_start``, and its dated section."""
+        try:
+            work = self.work(work_key or "")
+        except KeyError:
+            return self.tag, None
+        tag = self.work_tag(work)
+        if tag is not None and sort_start is not None:
+            for section in tag.sections:
+                bounds = work.locator.parse(section.locator)
+                if bounds and bounds[0] <= sort_start <= bounds[1]:
+                    return tag, section
+        return tag, None
+
+    def tag_line(self, work_key: str | None, sort_start: int | None) -> str | None:
+        """The rendered tag for a passage, or None if neither work nor corpus is tagged."""
+        tag, section = self.tag_for(work_key, sort_start)
+        return tag.line(section) if tag else None
+
+    def tiers(self) -> tuple[str, ...]:
+        """Every tier any of this corpus's passages can carry."""
+        return tuple(dict.fromkeys(
+            tier for work in self.works if (tag := self.work_tag(work)) for tier in tag.tiers
+        ))
 
 
 def combined_license(

@@ -16,6 +16,8 @@ from study_bible_mcp.corpora import (
     BiblicalLink,
     Collection,
     Corpus,
+    SourceTag,
+    TagSection,
     Work,
     build_registry,
     combined_license,
@@ -50,14 +52,18 @@ SECTIONS = Collection("Test Sections", ("tsec.",))
 BAVA_BATRA = ("BB", "Baba Bathra", "B. Bat.")
 
 
+TEST_TAG = SourceTag(kind="Test tradition", date="c. AD 200", tier="B", edition="Test edition")
+
+
 def _corpus(key, works, parse=lambda directory: [], links=lambda passages: [], periods=("test",),
-            original_language="Hebrew", aliases=()):
+            original_language="Hebrew", aliases=(), tag=TEST_TAG, caveat=None):
     return Corpus(
         key=key, label=key.title(), summary=f"{key} test corpus", data_dir=key,
         original_language=original_language, works=tuple(works), periods=periods,
         download=lambda client, target, force: {}, require_files=lambda directory: None,
         parse=parse, biblical_links=links, example_query="shekels",
-        example_citation="Mishnah Shekalim 1:1", aliases=aliases,
+        example_citation="Mishnah Shekalim 1:1", aliases=aliases, tag=tag,
+        caveat=f"Not Scripture: {key} test caveat." if caveat is None else caveat,
     )
 
 
@@ -271,6 +277,61 @@ def test_registry_rejects_duplicate_keys_works_and_directories():
         build_registry((duplicate_work,))
     with pytest.raises(ValueError, match="already used"):
         build_registry((rabbinic, replace(_corpus("other", QUMRAN_WORKS), data_dir="rabbinic")))
+
+
+def test_registry_requires_a_caveat_and_a_complete_tag_for_every_work():
+    untagged = _corpus("untagged", QUMRAN_WORKS, tag=None)
+    work_tagged = _corpus("work_tagged", (replace(QUMRAN_WORKS[0], tag=TEST_TAG),), tag=None)
+    bad_tier = _corpus("bad_tier", QUMRAN_WORKS, tag=replace(TEST_TAG, tier="C"))
+    bad_section = _corpus("bad_section", QUMRAN_WORKS, tag=replace(
+        TEST_TAG, sections=(TagSection("not a locator", "Part", "c. 100 BC", "A"),)
+    ))
+
+    with pytest.raises(ValueError, match="'damascus_document' has no tag"):
+        build_registry((untagged,))
+    with pytest.raises(ValueError, match="caveat"):
+        build_registry((_corpus("silent", QUMRAN_WORKS, caveat=""),))
+    with pytest.raises(ValueError, match="caveat"):
+        build_registry((_corpus("verbose", QUMRAN_WORKS, caveat="x" * 400),))
+    with pytest.raises(ValueError, match="unknown tiers"):
+        build_registry((bad_tier,))
+    with pytest.raises(ValueError, match="not a damascus_document locator"):
+        build_registry((bad_section,))
+    assert build_registry((work_tagged,))["work_tagged"].tag is None
+
+
+def test_every_registered_work_has_a_tag_and_every_corpus_a_caveat():
+    for corpus in CORPORA.values():
+        assert corpus.caveat.startswith("Not Scripture"), corpus.key
+        assert corpus.caveat.count(". ") <= 2, corpus.key
+        for work in corpus.works:
+            line = corpus.tag_line(work.key, None)
+            assert line.startswith("Not Scripture · "), (corpus.key, work.key)
+            assert " · tier " in line
+
+
+def test_tag_lines_date_sections_and_name_manuscripts():
+    enoch = CORPORA["pseudepigrapha"]
+    key = enoch.work("1_enoch").locator.parse
+
+    assert enoch.tag_line("1_enoch", key("1:9")[0]) == (
+        "Not Scripture · Jewish pseudepigraphon (Book of the Watchers, 4th–3rd c. BC) · "
+        "tier A · Charles 1912"
+    )
+    assert enoch.tag_line("1_enoch", key("71:14")[0]) == (
+        "Not Scripture · Jewish pseudepigraphon (Parables, c. 50 BC–AD 117, debated) · "
+        "tier A/B · Charles 1912"
+    )
+    assert "tier B" in enoch.tag_line("4_ezra", key("7:28")[0])
+    assert CORPORA["rabbinic"].tag_line("mishnah_sukkah", None) == (
+        "Not Scripture · Mishnah (redacted c. AD 200; pre-70 attributions unverified) · "
+        "tier B · Vilna Hebrew, Kulp English"
+    )
+    assert CORPORA["qumran"].tag_line("damascus_document", None).endswith(
+        "copies: Cairo Genizah, 10th and 11th–12th c. AD"
+    )
+    assert "AD 93–94" in CORPORA["josephus"].tag_line("antiquities", None)
+    assert set(enoch.tiers()) == {"A", "B"}
 
 
 def test_every_registered_corpus_declares_a_resolvable_example_citation():
