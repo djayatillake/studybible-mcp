@@ -333,6 +333,7 @@
     "perspective": "multi-tradition",
     "access": "free to use; Tyndale House data CC BY 4.0, Bibles individually licensed",
     "search_url_template": "https://www.stepbible.org/?q=text={query}",
+    "reference_url_template": "https://www.stepbible.org/?q=reference={query}",
     "last_verified": "2026-10-12"
   },
   {

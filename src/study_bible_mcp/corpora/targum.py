@@ -47,9 +47,12 @@ ONKELOS = Collection(
 )
 AUTHOR = "Targum Onkelos"
 # Redaction-era tag (editorial): Onkelos took its final form in the amoraic period.
+# That is later than the corpora's c. AD 200 limit; Onkelos is kept as a stated
+# exception for its earlier tradition, and its tag and caveat say so.
 PERIOD_TAGS = "amoraic"
 TAG = SourceTag(
-    kind="Jewish Aramaic Torah rendering", date="final form c. 3rd–5th c. AD, Babylonia",
+    kind="Jewish Aramaic Torah rendering",
+    date="final form c. 3rd–5th c. AD, Babylonia; earlier tradition",
     tier="B",
     edition=(
         "Torat Emet Aramaic; Metsudah: English of the Hebrew Torah; "
@@ -57,8 +60,10 @@ TAG = SourceTag(
     ),
 )
 CAVEAT = (
-    "Not Scripture: a Jewish Aramaic rendering of the Torah (final form c. 3rd–5th c. AD) "
-    "that avoids describing God bodily."
+    "Not Scripture: a Jewish Aramaic rendering of the Torah that avoids describing God "
+    "bodily. Its final form (3rd–5th century AD) is later than these sources' limit of "
+    "about AD 200: it is kept as a stated exception for its earlier tradition, so treat a "
+    "reading as first-century only where an earlier witness agrees."
 )
 PERIODS = (PERIOD_TAGS,)
 _SEFARIA_DIRECTORY = "Onkelos/Torah/Onkelos {book}"  # One book's versions.

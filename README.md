@@ -708,9 +708,11 @@ preserved in** note. Every witness keeps the dataset's raw support label.
 **Critical judgments** contain only conclusions that carry a source citation.
 Uncited dataset summaries appear separately as an **Unsourced dataset summary
 (not verified against published text-critical scholarship)**. Theological
-interpretations, named-author claims, translation decisions, and NT quotation
-alignment also stay in their own sections, and sections with nothing
-catalogued are omitted. Verses where the witnesses agree with the MT but the
+interpretations, named-author claims, and NT quotation alignment also stay in
+their own sections, and sections with nothing catalogued are omitted. The
+dataset's Heiser Literal Translation (HLT) renderings and rationales stay in the
+database but are not printed: the HLT is the owner's own unpublished
+translation. Verses where the witnesses agree with the MT but the
 reading or rendering is contested (for example the divine-council language of
 Psalm 82:6) appear as **Translation and interpretation notes**, never as
 variants. A verse can have both: at Job 38:7, Daniel 4:17 and 7:13, and Psalm
@@ -724,7 +726,7 @@ variant schema, the tool asks you to run `python scripts/upgrade_database.py`.
 
 #### `list_research_sources`
 
-List curated, freely accessible research repositories to consult before a general web search: primary-text libraries (Sefaria, CCEL, Perseus, the Internet Archive), open-access journals (Tyndale Bulletin, Themelios, the Journal of Hebrew Scriptures, HTS), Dead Sea Scrolls and Septuagint resources, and Heiser's own sites. Each entry states its coverage, perspective (Jewish, Catholic, Reformed, evangelical, academic/critical, multi-tradition, single-author) and access or licence terms. Filter by `topic` (coverage tag or name, matched loosely) and `perspective`; pass `query` to get a ready-to-open search link for every source that supports one. The list is a set of places to look, not endorsements.
+List curated, freely accessible research repositories to consult before a general web search: primary-text libraries (Sefaria, CCEL, Perseus, the Internet Archive), open-access journals (Tyndale Bulletin, Themelios, the Journal of Hebrew Scriptures, HTS), Dead Sea Scrolls and Septuagint resources, and Heiser's own sites. Each entry states its coverage, perspective (Jewish, Catholic, Reformed, evangelical, academic/critical, multi-tradition, single-author) and access or licence terms. Filter by `topic` (coverage tag or name, matched loosely) and `perspective`; pass `query` to get a ready-to-open search link for every source that supports one (STEP Bible's link opens the passage when the query is a Bible reference). With no filter the list starts with a mix: Tyndale Bulletin (evangelical), STEP Bible (reference), Sefaria (Jewish) and Bible Odyssey (academic). The list is a set of places to look, not endorsements.
 
 The catalogue lives in [`src/study_bible_mcp/research_sources.json`](src/study_bible_mcp/research_sources.json). It is a directory of repositories, not a per-passage or per-scholar index.
 
@@ -1151,7 +1153,10 @@ English or Greek book, or a manifest-listed file is missing or truncated).
 
 The ancient sources are texts written by about AD 200 that witness the Second
 Temple world: Josephus, Targum Onkelos, four Qumran texts (CD, 1QS, 1QSa,
-1QpHab), Philo, 1 Enoch, 4 Ezra and the Mishnah. Sources later than c. AD 200
+1QpHab), Philo, 1 Enoch, 4 Ezra and the Mishnah. Targum Onkelos is the one
+stated exception: its final form is c. 3rd–5th c. AD, and it is kept for its
+earlier tradition as the standard Torah targum; its tag gives the final-form
+date and its caveat states the exception. Sources later than c. AD 200
 (Targum Pseudo-Jonathan with Etheridge's English, the Tosefta, the Babylonian
 Talmud and Leviticus Rabbah) were removed: they are too far from the New
 Testament to witness its world without an earlier source.
@@ -1185,7 +1190,8 @@ Every passage is labelled so that the agent never mistakes it for Scripture:
 
 - **Tag.** Each corpus (or work) declares a `SourceTag` in the registry: canon
   status, kind, composition date, date tier (A: written before or alongside the
-  NT; B: after the NT, to c. AD 200), edition, and, where the copy is much
+  NT; B: after the NT, to c. AD 200, with Targum Onkelos's later final form the
+  stated exception), edition, and, where the copy is much
   later than the work, the manuscript date. 1 Enoch is dated book by book.
   The registry refuses a corpus with an untagged work.
 - **Caveat.** Each corpus declares a 1–3 sentence caveat, printed once per

@@ -170,10 +170,9 @@ async def test_job_38_7_shows_the_lxx_angels_apart_from_the_mt(fresh_db, server_
     assert "The textual evidence at this verse is in the variant record above." in notes
     assert "Witnesses agreeing with this text" not in notes
     assert "### Text (Masoretic Text)" not in notes  # shown once, in the variant
-    # The interpretation notes themselves are unchanged.
-    assert "the sons of God (the heavenly host) shouted for joy" in _section(
-        notes, "### Translation decisions"
-    )
+    # The notes keep their attributed layers; the HLT rendering is not printed.
+    assert "### Translation decisions" not in notes
+    assert "the sons of God (the heavenly host) shouted for joy" not in notes
     assert "Heiser uses Job 38:7" in _section(notes, "### Author-specific claims")
     assert "synonymous parallelism" in _section(notes, "### Theological interpretations")
 
