@@ -25,6 +25,7 @@ Results are returned as Markdown text. Where a tool produces a diagram it is
 emitted as a Mermaid code block within that text.
 """
 
+import html
 import json
 import re
 import unicodedata
@@ -36,7 +37,14 @@ from mcp.types import Tool, ToolAnnotations
 
 from .corpora import CORPORA, LINK_RELATIONS, TIERS, all_periods
 from .database import HEBREW_PREFIX_LETTERS, format_biblical_range, strip_editorial_signs
-from .parsers.biblical_versions import APOCRYPHA_PLURAL_NAMES, VERSE_MAPPING_CREDIT
+from .parsers.biblical_versions import APOCRYPHA_PLURAL_NAMES
+from .published_text import (
+    aquifer_rendering,
+    aquifer_title,
+    clean_aquifer_items,
+    fix_ancient_row,
+    safe_cut,
+)
 
 
 def _parse_json_field(value, default=None):
@@ -52,10 +60,15 @@ def _parse_json_field(value, default=None):
 
 
 def _truncate(text: str, limit: int, suffix: str = "\n\n*[Truncated]*") -> str:
-    """Truncate text to limit characters, appending suffix if truncated."""
+    """Truncate text to limit characters, appending suffix if truncated.
+
+    A cut that would separate a published text's correction note from the
+    text it corrects moves to the end of the note.
+    """
     if len(text) <= limit:
         return text
-    return text[:limit] + suffix
+    cut = safe_cut(text, limit)
+    return text if cut >= len(text) else text[:cut] + suffix
 
 
 RESEARCH_SOURCES_DEFAULT_LIMIT = 4
@@ -87,8 +100,8 @@ Returns:
 - The word in its original script (e.g. ἀγάπη, אֱלֹהִים)
 - Transliteration and pronunciation
 - Strong's number
-- Brief and full definitions (LSJ for Greek, BDB for Hebrew, plus Abbott-Smith
-  for NT Greek where available)
+- Definitions: Abbott-Smith for NT Greek (with LSJ's classical senses), LSJ
+  for other Greek, BDB for Hebrew
 - Etymology, semantic range, and related words
 - Occurrence counts and representative passages
 
@@ -127,7 +140,7 @@ Returns, for each verse in canonical order:
 - Optional grammatical parsing for each word
 
 And once for the passage:
-- Genre-specific interpretive background for the passage's literary type
+- The passage's genre (interpretive guidance with include_genre)
 - Availability notes for related data (cross-references, Torah weave partners,
   and NT/OT LXX-quotation variants) where the verses have such records
 
@@ -155,6 +168,10 @@ form, is needed.""",
                 "include_morphology": {
                     "type": "boolean",
                     "description": "Include grammatical parsing for each word (and, for a passage, the word-by-word list). Default: false"
+                },
+                "include_genre": {
+                    "type": "boolean",
+                    "description": "Append genre interpretive guidance. Default: false"
                 }
             },
             "required": ["reference"]
@@ -170,7 +187,7 @@ form, is needed.""",
         ),
         description="""Compare the Masoretic Text (MT) and Septuagint (LXX) side by side for an Old Testament or Septuagint verse, range, or chapter. Not for the New Testament. Returns at most ten verses per call and names the verse to continue from.
 
-Rows are grouped by canonical MT/English reference and keep each edition's own reference, so Hebrew/Greek versification differences stay explicit (Psalm 82:6 = Greek Psa.81.6). MT: Westminster Leningrad Codex with STEPBible word glosses (not a translation). LXX: Rahlfs, with Brenton's English only where Brenton translated the same recension. Brenton translated his own Greek, not Rahlfs: where it differs the row warns and shows his Greek, and his English should be quoted as a rendering of that text; most Apocrypha rows carry the KJV Apocrypha instead. LXX-only verses (e.g. the Prayer of Azariah) need numbering='lxx'. Sources, licences, and the TVTMS verse-mapping credit are listed once at the end.""",
+Rows are grouped by canonical MT/English reference and keep each edition's own reference, so Hebrew/Greek versification differences stay explicit (Psalm 82:6 = Greek Psa.81.6). MT: Westminster Leningrad Codex with STEPBible word glosses (not a translation). LXX: Rahlfs, with Brenton's English only where Brenton translated the same recension. Brenton translated his own Greek, not Rahlfs: where it differs the row warns and shows his Greek, and his English should be quoted as a rendering of that text; most Apocrypha rows carry the KJV Apocrypha instead. LXX-only verses (e.g. the Prayer of Azariah) need numbering='lxx'. One sources line (licences, verse-mapping credit) ends the output.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -327,8 +344,7 @@ by wording, use search_ancient_sources.""",
 
 Returns the matching lexicon entries ranked by relevance — typically several
 distinct original-language words that an English term covers (e.g. "love" →
-agapē, phileō, erōs), each with its Strong's number, definition, and semantic
-range.
+agapē, agapaō, phileō), each with its Strong's number and brief definition.
 
 Relevant for identifying which original-language terms lie behind an English
 word or a biblical concept, and for distinguishing between near-synonyms.""",
@@ -346,7 +362,7 @@ word or a biblical concept, and for distinguishing between near-synonyms.""",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Maximum results to return. Default: 4"
+                    "description": "Maximum results (1-20). Default: 4"
                 }
             },
             "required": ["query"]
@@ -478,7 +494,7 @@ long-tail is wanted.""",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Cap on rows returned (not a target). Default 4. The returned count may be smaller when the verse has fewer rows above the noise floor. Values of 20–30 combined with `source='tsk'` or `min_strength=0` return the long tail."
+                    "description": "Cap on rows returned (not a target), 1-50. Default 4. The returned count may be smaller when the verse has fewer rows above the noise floor. Values of 20–30 combined with `source='tsk'` or `min_strength=0` return the long tail."
                 },
                 "min_strength": {
                     "type": "integer",
@@ -575,7 +591,7 @@ carries across occurrences.""",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Maximum verses to return. Default: 4"
+                    "description": "Maximum verses (1-50). Default: 4"
                 }
             },
             "required": ["strongs"]
@@ -616,11 +632,11 @@ the cross-reference tradition.""",
             "properties": {
                 "reference": {
                     "type": "string",
-                    "description": "Bible reference to find similar passages for (e.g., 'John 3:16', 'Daniel 7:13')"
+                    "description": "Bible verse (e.g., 'John 3:16', 'Daniel 7:13'); a range or chapter uses its first verse"
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Number of similar passages to return. Default: 4"
+                    "description": "Number of similar passages (1-20). Default: 4"
                 }
             },
             "required": ["reference"]
@@ -801,7 +817,9 @@ Returns combined commentary from:
 Relevant for published commentary on a specific verse, difficult passages,
 translation and cultural background, and chapter-level overviews of themes and
 context. The content is published scholarship, quoted as-is with source
-attribution. For journal articles, see `list_research_sources`.""",
+attribution. A chapter or verse range returns the Tyndale notes and lists the
+verses with translator notes, for per-verse calls. For journal articles, see
+`list_research_sources`.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -811,7 +829,7 @@ attribution. For journal articles, see `list_research_sources`.""",
                 },
                 "chapter_only": {
                     "type": "boolean",
-                    "description": "If true, return all notes for the chapter. Default: false (verse-specific)"
+                    "description": "If true, return the notes for the reference's whole chapter. Default: false"
                 }
             },
             "required": ["reference"]
@@ -833,13 +851,21 @@ Relevant for background on a biblical topic, historical or cultural context, a
 detailed article on a person, place, or concept, or a published definition of a
 theological term.
 
-Returns the full dictionary article with cross-references.""",
+Long articles come a page at a time; the truncation note says how to read on.""",
         inputSchema={
             "type": "object",
             "properties": {
                 "topic": {
                     "type": "string",
                     "description": "Topic to look up (e.g., 'Abraham', 'covenant', 'baptism', 'Pharisees')"
+                },
+                "section": {
+                    "type": "string",
+                    "description": "Heading of one section to read (a truncated article lists them)"
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Character offset to continue a truncated article from"
                 }
             },
             "required": ["topic"]
@@ -856,15 +882,16 @@ Contains 200+ carefully defined theological and biblical terms with:
 - Cross-references to related terms
 - Translation guidance
 
-Relevant for a precise definition of a theological term (agape, atonement,
-justification, and similar), how a concept is used across Scripture, a
-translation-oriented explanation, or cross-references to related concepts.""",
+Relevant for a precise definition of a key biblical term (grace, covenant,
+righteousness, Son of Man, and similar), how a concept is used across
+Scripture, or a translation-oriented explanation. Titles are English; an
+unmatched term gets the closest entries' titles.""",
         inputSchema={
             "type": "object",
             "properties": {
                 "term": {
                     "type": "string",
-                    "description": "Theological term to look up (e.g., 'agape', 'atonement', 'covenant', 'grace')"
+                    "description": "Key term to look up (e.g., 'grace', 'covenant', 'righteousness', 'Son of Man')"
                 }
             },
             "required": ["term"]
@@ -898,19 +925,13 @@ Relevant to passages involving:
 - Any passage where modern Western assumptions might obscure the ANE meaning
 - Needing the interpretive methodology (derivation hierarchy, confidence calibration)
 
-13 dimensions: cosmology_worldview, religious_practices, social_structure, legal_covenant,
-political_imperial, economic_life, literary_conventions, warfare_military,
-daily_life_material_culture, death_afterlife, gender_family, education_literacy,
-ane_methodology
-
-9 periods: patriarchal, exodus_conquest, judges_early_monarchy, united_monarchy,
-divided_monarchy, assyrian_babylonian, persian, hellenistic, roman
+The 13 dimensions and 9 periods are the `dimension` and `period` values.
 
 With no arguments, returns the available dimensions and periods. With a
-reference alone, returns all ANE context matching that passage. The dimension
-and period parameters narrow the result set. The dimension 'ane_methodology'
-returns the derivation hierarchy, confidence calibration, and methodological
-limits that apply to ANE parallels generally.""",
+reference, returns the best matches (direct chapter matches first, `limit`
+default 4). The dimension and period parameters narrow the result set. The
+dimension 'ane_methodology' returns the derivation hierarchy, confidence
+calibration, and methodological limits that apply to ANE parallels generally.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -943,6 +964,10 @@ limits that apply to ANE parallels generally.""",
                     "description": "Output detail level. 'brief' = title + summary + significance for all entries. 'standard' (default) = full detail for direct chapter matches, brief for broad/whole-book matches. 'full' = full detail for all entries.",
                     "enum": ["brief", "standard", "full"],
                     "default": "standard"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum entries (1-30). Default: 4"
                 }
             }
         }
@@ -991,7 +1016,7 @@ Query by verse reference, theme key, and/or author. For other authors, see
             "properties": {
                 "reference": {
                     "type": "string",
-                    "description": "Bible reference (e.g., 'Psalm 82:1', 'Genesis 6:2', 'Acts 26:18', 'John 8:44')"
+                    "description": "Bible verse or chapter (e.g., 'Psalm 82:1', 'Psalm 82', 'Genesis 6:2', 'John 8:44')"
                 },
                 "theme": {
                     "type": "string",
@@ -1003,7 +1028,7 @@ Query by verse reference, theme key, and/or author. For other authors, see
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Maximum entries to return. Default: 4"
+                    "description": "Maximum entries (1-20). Default: 4"
                 }
             }
         }
@@ -1027,7 +1052,7 @@ WHAT IT RETURNS:
 - Horizontal partner cells (same row, same subdivision, different column)
 - Vertical partner cells (same column, same subdivision, different row)
 - Sibling cells (same row and column, adjacent subdivisions)
-- A short explanation of what each direction of pairing means under Kline's method
+- With explain=true, Kline's guide to reading each direction of pairing
 
 The output is a set of structural pointers — verse ranges and their pairing
 direction — not pre-written interpretation. The text of the partner cells is
@@ -1044,6 +1069,10 @@ Only Torah books (Genesis through Deuteronomy) have weave data. Source: Moshe Kl
                 "reference": {
                     "type": "string",
                     "description": "Bible reference in Genesis–Deuteronomy (e.g., 'Genesis 6:1', 'Exodus 14:21', 'Leviticus 19:18')"
+                },
+                "explain": {
+                    "type": "boolean",
+                    "description": "Append Kline's full reading guide. Default: false"
                 }
             },
             "required": ["reference"]
@@ -1110,7 +1139,7 @@ alignment.""",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": f"Maximum sources to return. Default: {RESEARCH_SOURCES_DEFAULT_LIMIT}"
+                    "description": f"Maximum sources (1-{RESEARCH_SOURCES_MAX_LIMIT}). Default: {RESEARCH_SOURCES_DEFAULT_LIMIT}"
                 }
             }
         }
@@ -1329,52 +1358,112 @@ def format_research_sources(
     return "\n".join(lines)
 
 
+# word_study: definitions are cut at a sentence boundary near this length.
+LEXICON_DEFINITION_LIMIT = 2000
+# Glosses taken from a classical LSJ entry when Abbott-Smith covers the NT sense.
+LSJ_GLOSS_COUNT = 8
+_INVISIBLE_MARKS = re.compile("[\u200e\u200f\u202a-\u202e]")
+_BOLD = re.compile(r"\*\*([^*]+)\*\*")
+
+
+def clean_lexicon_text(text: str | None) -> str:
+    """Lexicon text with HTML entities decoded and direction marks removed.
+
+    BDB and LSJ arrive with '&#x200E;' after Hebrew words and '&amp;', '&gt;',
+    '&apos;', '&#8212;' in the prose; double-escaped entities are decoded too.
+    """
+    if not text:
+        return ""
+    for _ in range(2):
+        decoded = html.unescape(text)
+        if decoded == text:
+            break
+        text = decoded
+    return _INVISIBLE_MARKS.sub("", text)
+
+
+def cut_at_sentence(text: str, limit: int, suffix: str) -> str:
+    """``text`` cut to at most ``limit`` characters at a sentence end, with ``suffix``."""
+    if len(text) <= limit:
+        return text
+    head = text[:limit]
+    cut = max(head.rfind(mark) for mark in (". ", ".\n", "; ", "\n"))
+    if cut < limit // 2:
+        cut = head.rfind(" ")
+    return head[: cut + 1].rstrip() + suffix
+
+
+def lsj_glosses(full_definition: str, count: int = LSJ_GLOSS_COUNT) -> str:
+    """The English senses an LSJ entry prints in bold ('trust, faith, persuasion, ...').
+
+    Sense numbers ('**__2**') and the Greek headword are skipped. An entry with
+    no bold senses gives its first sentence instead.
+    """
+    glosses: list[str] = []
+    for match in _BOLD.finditer(full_definition):
+        text = match.group(1).strip()
+        if text.startswith("__") or re.search(r"[\u0370-\u03ff\u1f00-\u1fff]", text):
+            continue
+        for part in re.split(r"[,;]", text):
+            part = part.strip(" .:—-")
+            if part and part.lower() not in (gloss.lower() for gloss in glosses):
+                glosses.append(part)
+    if glosses:
+        more = ", …" if len(glosses) > count else ""
+        return ", ".join(glosses[:count]) + more
+    return cut_at_sentence(full_definition, 200, " …")
+
+
 def format_lexicon_entry(entry: dict) -> str:
     """Format a lexicon entry for display.
 
     Shows separate sections for brief and full definitions when both exist.
-    Greek entries with TFLSJ data show "Full LSJ Definition".
-    Hebrew entries with BDB data show "Full BDB Definition".
+    A Greek word with an Abbott-Smith (NT) entry shows that entry, with the
+    classical LSJ entry reduced to its glosses; other Greek entries show the
+    "Full LSJ Definition", Hebrew entries the "Full BDB Definition". Text is
+    cleaned of HTML entities and cut at a sentence boundary.
     """
     lines = []
 
     # Header
     lines.append(f"## {entry['strongs']} - {entry['word']}")
     lines.append(f"**Transliteration**: {entry['transliteration']}")
-    if entry.get('pronunciation'):
+    if entry.get('pronunciation') and entry['pronunciation'] != entry['transliteration']:
         lines.append(f"**Pronunciation**: {entry['pronunciation']}")
     lines.append(f"**Language**: {entry['language'].title()}")
     lines.append("")
 
-    short_def = entry.get('short_definition', '')
-    full_def = entry.get('full_definition', '')
+    short_def = clean_lexicon_text(entry.get('short_definition'))
+    full_def = clean_lexicon_text(entry.get('full_definition'))
+    abbott_def = clean_lexicon_text(entry.get('abbott_smith_def'))
+    syn_text = clean_lexicon_text(entry.get('synonyms'))
+    nt_focused = bool(abbott_def) and entry.get('language') == 'greek'
+
+    def definition(text: str, source: str) -> str:
+        return cut_at_sentence(
+            text, LEXICON_DEFINITION_LIMIT,
+            f"\n\n*[Definition cut — the full entry is in {source}]*",
+        )
 
     if short_def and full_def and short_def != full_def:
-        # Show both brief and full definitions
         lines.append("### Brief Definition")
         lines.append(short_def)
         lines.append("")
-
-        # Label based on language
-        if entry.get('language') == 'greek':
-            label = "Full LSJ Definition"
-        elif entry.get('language') == 'hebrew':
-            label = "Full BDB Definition"
-        else:
-            label = "Full Definition"
-
-        lines.append(f"### {label}")
-        lines.append(_truncate(full_def, 3000, "\n\n*[Definition truncated — full entry available in the lexicon]*"))
-        lines.append("")
-    elif full_def:
+        # An NT word's sense comes from Abbott-Smith below, LSJ's as glosses.
+        if not nt_focused:
+            source = {"greek": "LSJ", "hebrew": "BDB"}.get(entry.get('language'))
+            lines.append(f"### Full {source} Definition" if source else "### Full Definition")
+            lines.append(definition(full_def, source or "the lexicon"))
+            lines.append("")
+    elif full_def and not nt_focused:
         lines.append("### Definition")
-        lines.append(_truncate(full_def, 3000, "\n\n*[Definition truncated]*"))
+        lines.append(definition(full_def, "the lexicon"))
         lines.append("")
     elif short_def:
         lines.append("### Definition")
         lines.append(short_def)
         lines.append("")
-    else:
+    elif not nt_focused:
         lines.append("### Definition")
         lines.append("No definition available.")
         lines.append("")
@@ -1382,7 +1471,7 @@ def format_lexicon_entry(entry: dict) -> str:
     # Etymology
     if entry.get('etymology'):
         lines.append("### Etymology")
-        lines.append(entry['etymology'])
+        lines.append(clean_lexicon_text(entry['etymology']))
         lines.append("")
 
     # Semantic range
@@ -1392,9 +1481,15 @@ def format_lexicon_entry(entry: dict) -> str:
         lines.append(", ".join(domains))
         lines.append("")
 
-    # Usage count
-    if entry.get('usage_count'):
-        lines.append(f"**Usage**: Occurs {entry['usage_count']} times in the Bible")
+    # Usage: one line (for a Greek word the Bible count is its NT count)
+    usage = entry.get('usage_count')
+    nt_count = entry.get('nt_occurrences')
+    if nt_count and (not usage or usage == nt_count):
+        lines.append(f"**Usage**: Occurs {nt_count} times in the New Testament")
+        lines.append("")
+    elif usage:
+        nt_note = f" ({nt_count} in the New Testament)" if nt_count else ""
+        lines.append(f"**Usage**: Occurs {usage} times in the Bible{nt_note}")
         lines.append("")
 
     # Related words
@@ -1408,11 +1503,18 @@ def format_lexicon_entry(entry: dict) -> str:
                 lines.append(f"- {r}")
         lines.append("")
 
-    # Abbott-Smith definition (NT-focused)
-    abbott_def = entry.get('abbott_smith_def')
+    # Abbott-Smith definition (NT-focused). Its synonym note is printed once,
+    # under Synonyms, when the entry also carries it separately.
     if abbott_def:
+        if syn_text and syn_text in abbott_def:
+            abbott_def = abbott_def.replace(f"**Synonyms**: {syn_text}", "").replace(syn_text, "")
+            abbott_def = re.sub(r"[ \t]{2,}", " ", abbott_def).strip()
         lines.append("### Abbott-Smith Definition (NT-Focused)")
-        lines.append(_truncate(abbott_def, 3000, "\n\n*[Definition truncated — full entry available in Abbott-Smith]*"))
+        lines.append(definition(abbott_def, "Abbott-Smith"))
+        lines.append("")
+    if nt_focused and full_def:
+        lines.append("### LSJ Senses (Classical Greek)")
+        lines.append(lsj_glosses(full_def))
         lines.append("")
 
     # LXX / Hebrew equivalents
@@ -1425,16 +1527,9 @@ def format_lexicon_entry(entry: dict) -> str:
         lines.append("")
 
     # Synonyms
-    syn_text = entry.get('synonyms')
     if syn_text:
         lines.append("### Synonyms")
         lines.append(syn_text)
-        lines.append("")
-
-    # NT occurrences
-    nt_count = entry.get('nt_occurrences')
-    if nt_count:
-        lines.append(f"**NT Usage**: Occurs {nt_count} times in the New Testament")
         lines.append("")
 
     return "\n".join(lines)
@@ -1548,6 +1643,16 @@ def format_verse(
 
 
 _SHORT_ENGLISH_LABELS = {"MT": "word glosses", "LXX": "Brenton"}
+# The verse-mapping credit (VERSE_MAPPING_CREDIT) in the one-line sources.
+VERSE_MAPPING_SHORT_CREDIT = (
+    "OpenScriptorium lxx-morph, partly from TVTMS, CC BY 4.0, STEPBible.org / "
+    "Tyndale House Cambridge"
+)
+# Shown when Brenton's English appears and no row's Greek differs; the full
+# BRENTON_TRANSLATION_NOTE accompanies a row whose Greek differs.
+BRENTON_SHORT_NOTE = (
+    "Brenton's English renders his own Greek edition (chiefly Vaticanus), not the Rahlfs text shown."
+)
 
 
 def format_biblical_version_comparison(
@@ -1562,10 +1667,12 @@ def format_biblical_version_comparison(
 
     Rows sharing a canonical (MT/English) reference are grouped under one
     header; LXX-only rows (no canonical reference) are grouped by their
-    edition reference. Each row names its version, edition, and edition
-    reference; licence, source, translation labels, verse-mapping credit, the
-    Brenton and KJV Apocrypha caveats, and the canon note for Apocrypha rows
-    (marked "(Apocrypha)") appear once in a closing Sources block.
+    edition reference. Each row names its version, edition, edition reference,
+    and English label. One closing Sources line gives each edition's licence
+    and source and the verse-mapping credit; then, once each, a one-line
+    Brenton note (the full caveat only when a row's Greek differs from his),
+    the KJV Apocrypha caveat, and the canon note for Apocrypha rows (marked
+    "(Apocrypha)").
     """
     title = f"## Biblical Version Comparison: {reference}"
     if numbering == "lxx":
@@ -1575,22 +1682,18 @@ def format_biblical_version_comparison(
         lines.extend([f"*{note}*", ""])
     current_group: str | None = None
     sources: dict[tuple[str, str], dict] = {}
-    english_labels: dict[tuple[str, str], dict[str, None]] = {}
     apocrypha: dict[str, None] = {}
     brenton_note = ""
     kjv_note = ""
     brenton_greek_url = ""
+    greek_differs = False
     for row in rows:
         canonical = row.get("canonical_reference")
         group = canonical or f"{row['edition_reference']} (LXX-only, no MT counterpart)"
         if group != current_group:
             current_group = group
             lines.extend([f"### {group}", ""])
-        edition_key = (row["version"], row["edition"])
-        sources.setdefault(edition_key, row)
-        labels = english_labels.setdefault(edition_key, {})
-        if row.get("translation") and row.get("translation_label"):
-            labels[row["translation_label"]] = None
+        sources.setdefault((row["version"], row["edition"]), row)
 
         header = f"#### {row['version']} {row['edition']} · {row['edition_reference']}"
         if row.get("mapping_method") and row["mapping_method"] != "identity":
@@ -1602,6 +1705,7 @@ def format_biblical_version_comparison(
         if include_original:
             lines.append(f"**{row['language']}:** {row['text']}")
         if row.get("brenton_greek_differs"):
+            greek_differs = True
             lines.append(
                 "> **Warning: Brenton's English below translates a different Greek text.** "
                 f"His own Greek differs from the Rahlfs text here: {row['brenton_greek_difference']}"
@@ -1640,16 +1744,22 @@ def format_biblical_version_comparison(
                     lines.append(f"- **{surface}**{f' ({details})' if details else ''}{gloss}")
         lines.append("")
 
-    lines.extend(["---", "**Sources**"])
+    # One sources line: each edition's licence and source, the verse-mapping
+    # credit, and (where Brenton's English is shown) what his English renders.
+    # Editions sharing a licence and source (Rahlfs and its Sinaiticus
+    # recension) are named together; row labels already name each English.
+    by_source: dict[tuple[str, str], list[str]] = {}
     for (version, edition), row in sources.items():
-        english = "; ".join(english_labels[(version, edition)]) or "none"
-        lines.append(
-            f"- {version} {edition} ({row['language']}): {row['license']}. "
-            f"English: {english}. {row['source_url']}"
-        )
+        by_source.setdefault((row["license"], row["source_url"]), []).append(f"{version} {edition}")
+    parts = [
+        f"{' and '.join(names)} ({license_}) {url}" for (license_, url), names in by_source.items()
+    ]
     if brenton_greek_url:
-        lines.append(f"- Brenton's Greek: public domain. {brenton_greek_url}")
-    lines.append(f"- Verse mapping: {VERSE_MAPPING_CREDIT}")
+        parts.append(f"Brenton's Greek (public domain) {brenton_greek_url}")
+    parts.append(f"verse mapping: {VERSE_MAPPING_SHORT_CREDIT}")
+    lines.extend(["---", f"*Sources: {' · '.join(parts)}.*"])
+    if brenton_note and not greek_differs:
+        lines.append(f"*{BRENTON_SHORT_NOTE}*")
     if apocrypha:
         names = list(apocrypha)
         listed = names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}"
@@ -1658,7 +1768,7 @@ def format_biblical_version_comparison(
             f"\n*Apocrypha: {listed} {verb} not in the Protestant canon "
             "(cf. Westminster Confession 1.3); background only.*"
         )
-    if brenton_note:
+    if brenton_note and greek_differs:
         lines.append(f"\n*Brenton's English: {brenton_note}*")
     if kjv_note:
         lines.append(f"\n*KJV Apocrypha English: {kjv_note}*")
@@ -1717,16 +1827,13 @@ def _fold_with_positions(text: str) -> tuple[str, list[int]]:
 _HEBREW_WORD = re.compile(r"[\u05d0-\u05ea]+")
 
 
-def _match_excerpt(text: str, query: str, limit: int) -> str:
-    """Return up to ``limit`` characters of ``text`` around the first query match.
+def _match_start(text: str, query: str, limit: int) -> int | None:
+    """Where an excerpt of ``limit`` characters around the first query match starts.
 
     Matching folds like the search index and accepts a word stem (``build``
     finds ``building``) and, for a Hebrew/Aramaic word, one or two attached
-    prefix letters (``הון`` finds ``ובהון``). Without a match the excerpt starts
-    at the beginning. Ellipses mark text cut at either end.
+    prefix letters (``הון`` finds ``ובהון``). None when nothing matches.
     """
-    if len(text) <= limit:
-        return text
     folded, folded_positions = _fold_with_positions(text)
     positions = []
     for word in re.findall(r"\w+", _fold_with_positions(query)[0]):
@@ -1738,8 +1845,34 @@ def _match_excerpt(text: str, query: str, limit: int) -> str:
         found = re.search(pattern, folded)
         if found:
             positions.append(folded_positions[found.start()])
-    start = max(0, min(positions) - limit // 5) if positions else 0
-    if start:
+    return max(0, min(positions) - limit // 5) if positions else None
+
+
+def _aligned_start(start: int, source: str, target: str) -> int:
+    """The point of ``target`` at the same proportion as ``start`` in ``source``, at a sentence start.
+
+    A bilingual passage's two excerpts then cover roughly the same text when
+    only one of them matched the query (an English query never matches the
+    Hebrew). The point moves back to just after a nearby sentence end.
+    """
+    point = round(start * len(target) / max(len(source), 1))
+    sentence = max(target.rfind(mark, max(0, point - 80), point) for mark in (". ", ": ", "; ", "· "))
+    return sentence + 2 if sentence >= 0 else point
+
+
+def _match_excerpt(text: str, query: str, limit: int, fallback_start: int = 0) -> str:
+    """Return up to ``limit`` characters of ``text`` around the first query match.
+
+    Without a match the excerpt starts at ``fallback_start`` (the beginning
+    unless aligned with the other language's excerpt). Ellipses mark text cut
+    at either end.
+    """
+    if len(text) <= limit:
+        return text
+    start = _match_start(text, query, limit)
+    if start is None:
+        start = min(fallback_start, max(0, len(text) - limit))
+    if start and not text[start - 1].isspace():
         space = text.find(" ", start)
         start = space + 1 if 0 <= space < start + 40 else start
     end = min(len(text), start + limit)
@@ -1804,8 +1937,8 @@ def _line_window(row: dict, window: tuple[int, int] | None) -> tuple[str, str | 
     )
 
 
-def _excerpt(text: str, query: str, limit: int, note_cut: bool) -> str:
-    excerpt = _match_excerpt(text, query, limit)
+def _excerpt(text: str, query: str, limit: int, note_cut: bool, fallback_start: int = 0) -> str:
+    excerpt = _match_excerpt(text, query, limit, fallback_start)
     if note_cut and len(text) > limit:
         excerpt += f" *[excerpt of {len(text):,} characters; full_text=true shows more]*"
     return excerpt
@@ -1824,6 +1957,7 @@ def _ancient_passage_lines(
     window: tuple[int, int] | None = None,
 ) -> tuple[list[str], tuple[str, ...]]:
     """One passage: heading, tag, editorial heading, excerpts, ⚠ notes and typed links."""
+    row = fix_ancient_row(row)
     registered = CORPORA.get(row.get("corpus") or corpus or "")
     language = row.get("original_language") or (
         registered.original_language if registered else "Original-language"
@@ -1835,11 +1969,24 @@ def _ancient_passage_lines(
         lines.append(f"*{label} (editorial): {row['editorial_heading']}*")
     original_query = query if _ORIGINAL_SCRIPT.search(query) else ""
     if row.get("text"):
-        lines.extend(["", _excerpt(row["text"], query, english_limit, note_cut)])
+        english = row["text"]
+        original = limit = None
         if row.get("original_text") and include_original:
             original, _ = _line_window(row, window)
             limit = original_limit * 2 if original_query else original_limit
-            lines.extend(["", f"**{language}:** {_excerpt(original, original_query, limit, note_cut)}"])
+        # The language that matched the query sets where the other's excerpt starts.
+        english_start = _match_start(english, query, english_limit)
+        original_start = None
+        if original and original_query:
+            original_start = _match_start(original, original_query, limit)
+        if original and original_start is None and english_start:
+            original_start = _aligned_start(english_start, english, original)
+        elif original_start and english_start is None:
+            english_start = _aligned_start(original_start, original, english)
+        lines.extend(["", _excerpt(english, query, english_limit, note_cut, english_start or 0)])
+        if original:
+            excerpt = _excerpt(original, original_query, limit, note_cut, original_start or 0)
+            lines.extend(["", f"**{language}:** {excerpt}"])
     elif row.get("original_text"):
         # Without English the original is the passage: centre it on the match.
         original, shown = _line_window(row, window)
@@ -1911,6 +2058,7 @@ def format_ancient_source_results(
     period: str | None = None,
     match: str = "all",
     prefix_match: bool = False,
+    variants: dict[str, list[str]] | None = None,
 ) -> str:
     """Format primary-source results compactly, with caveats and provenance listed once.
 
@@ -1918,7 +2066,8 @@ def format_ancient_source_results(
     English around the first match, a shorter original-language excerpt (a
     longer, match-centred one when the query is in Greek or Hebrew script),
     editorial ⚠ notes and typed biblical links. Without English, the original
-    is the excerpt. Results stop at the response budget.
+    is the excerpt. Results stop at the response budget. ``variants`` maps a
+    search term to the other spellings searched with it ('Melchisedec').
     """
     filters = [f"corpus={corpus}"]
     if biblical_reference:
@@ -1934,13 +2083,18 @@ def format_ancient_source_results(
             "letters (ו ב ה ל מ כ ש), which can also match a different word (קדש finds מקדש).*",
             "",
         ])
+    excerpt_query = query
+    if variants:
+        listed = "; ".join(f"{term}: {', '.join(found)}" for term, found in variants.items())
+        lines.extend([f"*Spelling variants also searched ({listed}).*", ""])
+        excerpt_query = " ".join([query, *(word for found in variants.values() for word in found)])
     default_corpus = None if corpus == "all" else corpus
     tiers: set[str] = set()
     seen_notes: set = set()
     shown: list[dict] = []
     for row in rows:
         block, row_tiers = _ancient_passage_lines(
-            row, default_corpus, query, include_original=True,
+            row, default_corpus, excerpt_query, include_original=True,
             english_limit=ANCIENT_ENGLISH_EXCERPT, original_limit=ANCIENT_ORIGINAL_EXCERPT,
             seen_notes=seen_notes,
         )
@@ -2311,6 +2465,7 @@ def format_study_notes(notes: list[dict]) -> str:
     """Format study notes grouped by source type."""
     if not notes:
         return "No study notes available for this reference.\n"
+    notes = clean_aquifer_items(notes)
 
     lines = []
 
@@ -2344,10 +2499,102 @@ def format_study_notes(notes: list[dict]) -> str:
     return "\n".join(lines)
 
 
+#: A chapter or passage of study notes is cut, at a note boundary, near this size.
+STUDY_NOTES_PASSAGE_BUDGET = 10_000
+_TRANSLATOR_NOTE_LABELS = {
+    "translation_notes_sil": "SIL",
+    "translation_notes_uw": "unfoldingWord",
+}
+
+
+def _aquifer_chapter_verse(ref: str) -> tuple[int, int]:
+    """(chapter, verse) of an Aquifer reference such as '45008019'."""
+    return int(ref[2:5]), int(ref[5:8])
+
+
+def _verse_list(pairs: set[tuple[int, int]]) -> str:
+    """'8:1–17, 19–39; 9:1' for a set of (chapter, verse) pairs."""
+    by_chapter: dict[int, list[int]] = {}
+    for chapter, verse in sorted(pairs):
+        by_chapter.setdefault(chapter, []).append(verse)
+    parts = []
+    for chapter, verses in by_chapter.items():
+        runs = [[verses[0], verses[0]]]
+        for verse in verses[1:]:
+            if verse == runs[-1][1] + 1:
+                runs[-1][1] = verse
+            else:
+                runs.append([verse, verse])
+        listed = ", ".join(str(a) if a == b else f"{a}–{b}" for a, b in runs)
+        parts.append(f"{chapter}:{listed}")
+    return "; ".join(parts)
+
+
+def format_passage_study_notes(
+    label: str,
+    notes: list[dict],
+    book_name: str,
+    span: tuple[tuple[int, int], tuple[int, int]],
+    budget: int = STUDY_NOTES_PASSAGE_BUDGET,
+) -> str:
+    """Study notes for a chapter or passage: Tyndale in full, translator notes as a verse list.
+
+    The SIL and unfoldingWord translator notes run to tens of kilobytes a
+    chapter, so they are listed by verse for a per-verse call. Tyndale notes
+    stop at a note boundary near ``budget`` with the reference that continues
+    them. ``span`` is the ((chapter, verse), (chapter, verse)) range shown.
+    """
+    (first, last) = span
+    tyndale = [note for note in notes if note.get("resource_type") == "study_notes"]
+    lines = [f"## Study Notes: {label}", ""]
+    shown, size, omitted = [], 0, None
+    for note in tyndale:
+        note_size = len(note.get("title") or "") + min(len(note.get("content_plain") or ""), 2000) + 8
+        if shown and size + note_size > budget:
+            omitted = note
+            break
+        shown.append(note)
+        size += note_size
+    if shown:
+        lines.append(format_study_notes(shown).rstrip())
+        lines.append("")
+    if omitted:
+        chapter, verse = max(_aquifer_chapter_verse(omitted["start_ref"]), first)
+        end = f"{last[1]}" if chapter == last[0] else f"{last[0]}:{last[1]}"
+        lines.extend([
+            f"*Tyndale notes continue: call again with reference='{book_name} {chapter}:{verse}-{end}'.*",
+            "",
+        ])
+
+    translator: dict[str, set[tuple[int, int]]] = {}
+    for note in notes:
+        source = _TRANSLATOR_NOTE_LABELS.get(note.get("resource_type"))
+        if not source or not note.get("start_ref"):
+            continue
+        start = _aquifer_chapter_verse(note["start_ref"])
+        end = _aquifer_chapter_verse(note.get("end_ref") or note["start_ref"])
+        verses = (
+            {(start[0], verse) for verse in range(start[1], end[1] + 1)}
+            if start[0] == end[0] else {start, end}
+        )
+        translator.setdefault(source, set()).update(v for v in verses if first <= v <= last)
+    translator = {source: verses for source, verses in translator.items() if verses}
+    if translator:
+        listed = "; ".join(f"{source} on {_verse_list(verses)}" for source, verses in translator.items())
+        example = min(min(verses) for verses in translator.values())
+        lines.extend([
+            "### Translator Notes (by verse)",
+            f"*{listed}. Not shown for a passage: call get_study_notes with one verse "
+            f"(e.g. reference='{book_name} {example[0]}:{example[1]}') for its notes.*",
+        ])
+    return "\n".join(lines).rstrip()
+
+
 def _format_content_items(items: list[dict], limit: int, truncation_note: str, empty_msg: str) -> str:
     """Format a list of content items (articles, terms) with title + truncated body."""
     if not items:
         return empty_msg
+    items = clean_aquifer_items(items)
 
     lines = []
     for item in items:
@@ -2361,13 +2608,119 @@ def _format_content_items(items: list[dict], limit: int, truncation_note: str, e
     return "\n".join(lines)
 
 
-def format_dictionary_article(articles: list[dict]) -> str:
-    """Format Bible dictionary articles."""
-    return _format_content_items(
-        articles, 4000,
-        "\n\n*[Article truncated — full text available in the Tyndale Bible Dictionary]*",
-        "No dictionary article found for this topic.\n",
+# get_bible_dictionary shows a long article a page at a time (context economy),
+# naming at most this many of the sections still to come.
+DICTIONARY_PAGE = 4000
+DICTIONARY_POINTER_SECTIONS = 8
+
+
+def _page_end(text: str, start: int, limit: int, stop: int) -> int:
+    """Where a page of ``text`` from ``start`` ends: ``stop`` if it fits, else a line or word break."""
+    end = start + limit
+    if end >= stop:
+        return stop
+    floor = start + limit * 3 // 4
+    for separator in ("\n", " "):
+        index = text.rfind(separator, floor, end)
+        if index > start:
+            end = index
+            break
+    return min(safe_cut(text, end), len(text))
+
+
+def _article_sections(text: str, headings: list[tuple[int, str]]) -> list[tuple[int, str, int]]:
+    """(level, heading, position) of each section heading (h2 and below) on its own line, in order."""
+    sections = []
+    position = 0
+    for level, heading in headings:
+        found = re.compile(rf"(?m)^{re.escape(heading)}$").search(text, position)
+        if found:
+            if level > 1:
+                sections.append((level, heading, found.start()))
+            position = found.end()
+    return sections
+
+
+def _find_section(sections: list[tuple[int, str, int]], name: str) -> int | None:
+    """Index of the section headed ``name`` (case-insensitive; else the first containing it)."""
+    wanted = name.strip().casefold()
+    for matches in (lambda h: h.casefold() == wanted, lambda h: wanted in h.casefold()):
+        for index, (_, heading, _) in enumerate(sections):
+            if matches(heading):
+                return index
+    return None
+
+
+def _dictionary_page(item: dict, section: str | None, offset: int) -> tuple[bool, list[str]]:
+    """One article's page: (whether the section or offset was found, its lines).
+
+    The page runs from ``offset`` (or the named section's heading) for up to
+    ``DICTIONARY_PAGE`` characters; a section page stops at the next heading
+    of the same or a higher level. Anything left is announced with the
+    ``offset`` to continue from and the headings of the sections still to come.
+    """
+    title = aquifer_title(item) or "Untitled"
+    text, headings = aquifer_rendering(item)
+    sections = _article_sections(text, headings)
+    lines = [f"## {title}", ""]
+    start, stop, heading = offset, len(text), None
+    if section:
+        index = _find_section(sections, section)
+        if index is None:
+            names = "; ".join(name for _, name, _ in sections) or "none (read on with offset)"
+            lines.extend([f'*[No section matching "{section}". Sections: {names}.]*', ""])
+            return False, lines
+        level, heading, start = sections[index]
+        stop = next((pos for lvl, _, pos in sections[index + 1:] if lvl <= level), len(text))
+    elif start >= len(text) and start:
+        lines.extend([
+            f"*[Offset {start:,} is past the end of this article ({len(text):,} characters).]*", "",
+        ])
+        return False, lines
+    end = _page_end(text, start, DICTIONARY_PAGE, stop)
+    # A page cut just after a heading leaves the heading for the next page.
+    end = next(
+        (pos for _, name, pos in sections
+         if start < pos < end and not text[pos + len(name):end].strip()),
+        end,
     )
+    if start:
+        lines.extend([f"*[From character {start:,} of {len(text):,}.]*", ""])
+    if text[start:end].strip():
+        lines.append(text[start:end].strip())
+    if end < len(text):
+        rest = [name for _, name, pos in sections if pos >= end]
+        names = "; ".join(rest[:DICTIONARY_POINTER_SECTIONS])
+        if len(rest) > DICTIONARY_POINTER_SECTIONS:
+            names += f" (and {len(rest) - DICTIONARY_POINTER_SECTIONS} more)"
+        lead = (
+            f'End of section "{heading}"; {len(text) - end:,} more characters in the article'
+            if heading and end == stop else f"Truncated — {len(text) - end:,} more characters"
+        )
+        lines.extend([
+            "",
+            f'*[{lead}. Call get_bible_dictionary again with topic="{title}" and offset={end}'
+            + (f", or section= one of: {names}" if names else "") + ".]*",
+        ])
+    lines.append("")
+    return True, lines
+
+
+def format_dictionary_article(articles: list[dict], section: str | None = None, offset: int = 0) -> str:
+    """Format Bible dictionary articles, a page each, from ``offset`` or the named ``section``.
+
+    With a section or offset, articles that lack it (another article of the
+    same title) are left out unless none has it.
+    """
+    if not articles:
+        return "No dictionary article found for this topic.\n"
+    pages = [_dictionary_page(item, section, max(0, offset)) for item in articles]
+    if section or offset:
+        found = [lines for hit, lines in pages if hit]
+        chosen = found or [lines for _, lines in pages]
+    else:
+        chosen = [lines for _, lines in pages]
+    return "\n".join(line for lines in chosen for line in lines)
 
 
 def format_key_terms(terms: list[dict]) -> str:
@@ -3013,16 +3366,26 @@ def _format_partner_line(cell: dict, book_full: str) -> str:
     )
 
 
+# The one-line pointer printed instead of _TORAH_WEAVE_DIRECTIONAL_DOC.
+_TORAH_WEAVE_POINTER = (
+    "*Partner text: `lookup_verse` on each range. Kline's dataset does not label "
+    "column themes. Full reading guide: explain=true.*"
+)
+
+
 def format_torah_weave(
     reference: str,
     matches: list[dict],
     unit_cells_by_unit: dict[int, list[dict]],
+    explain: bool = False,
 ) -> str:
     """Format Torah Weave match(es) for a reference.
 
     matches: list of cells (joined with unit metadata) returned by
         get_torah_weave_cells_for_reference.
     unit_cells_by_unit: map of unit_id → all cells in that unit.
+    explain: append the full guide to reading each pairing direction; otherwise
+        a one-line pointer (each partner heading already says what it means).
     """
     if not matches:
         return (
@@ -3122,6 +3485,6 @@ def format_torah_weave(
             lines.append("")
 
     lines.append("\n---\n")
-    lines.append(_TORAH_WEAVE_DIRECTIONAL_DOC)
+    lines.append(_TORAH_WEAVE_DIRECTIONAL_DOC if explain else _TORAH_WEAVE_POINTER)
     lines.append("")
     return "\n".join(lines)

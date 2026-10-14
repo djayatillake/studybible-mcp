@@ -8,6 +8,13 @@ import pytest
 
 import study_bible_mcp.server as server
 from study_bible_mcp.database import StudyBibleDB, create_schema, expand_single_chapter_reference
+from study_bible_mcp.hermeneutics import (
+    GENRE_GUIDELINES,
+    Genre,
+    format_genre_guidance,
+    get_genre,
+    get_genre_from_reference,
+)
 
 
 def _verse_row(reference, book, chapter, verse):
@@ -128,7 +135,7 @@ async def test_english_verse_stored_as_two_rows_returns_both(lookup_db):
 
 async def test_passage_hints_are_emitted_once(lookup_db):
     output = await _lookup("Psalm 40:6-8")
-    assert output.count("## Genre:") == 1
+    assert output.count("*Genre: ") == 1
     assert output.count("NT↔OT LXX-form quotation") == 1
     assert "Psalm 40:6 quoted in **Hebrews 10:5-7**" in output
     assert output.count("get_cross_references") == 1
@@ -282,3 +289,40 @@ async def test_psalm_superscription_is_labelled(lookup_db):
     assert "## Psa.40 superscription (Hebrew Psa.40.1)" in output
     assert "Psa.40.0(40.1)" not in output
     assert _verse_headings(output) == ["Psa.40.1(40.2)", "Psa.40.2(40.3)"]
+
+
+async def test_genre_is_one_line_unless_guidance_is_requested(lookup_db):
+    output = await _lookup("John 3:16")
+    assert "*Genre: Gospels. Interpretive guidance: include_genre=true.*" in output
+    assert "Interpretive Approach" not in output and "## Genre:" not in output
+    guided = await _lookup("John 3:16", include_genre=True)
+    assert "## Genre: Gospels" in guided and "### Interpretive Approach:" in guided
+    assert "*Genre: " not in guided
+    assert len(output) < len(guided) - 500
+
+
+def test_every_genre_has_guidelines():
+    assert set(Genre.__args__) == set(GENRE_GUIDELINES)
+
+
+@pytest.mark.parametrize(("book", "chapter", "genre"), [
+    ("Deu", 5, "law"),
+    ("Deu", 32, "poetry"),       # Song of Moses
+    ("Deu", 33, "poetry"),       # Blessing of Moses
+    ("Exo", 14, "ot_narrative"),
+    ("Exo", 15, "poetry"),       # Song of the Sea
+    ("Jdg", 5, "poetry"),        # Song of Deborah
+    ("2Sa", 22, "psalm"),        # = Psalm 18
+    ("Sng", 2, "love_poetry"),
+    ("Sng", None, "love_poetry"),
+    ("Job", 3, "wisdom"),
+])
+def test_genre_by_book_and_chapter(book, chapter, genre):
+    assert get_genre(book, chapter) == genre
+
+
+def test_genre_from_reference_uses_the_chapter():
+    assert get_genre_from_reference("Deuteronomy 32:8") == "poetry"
+    assert get_genre_from_reference("Deu.33.2") == "poetry"
+    assert get_genre_from_reference("Deuteronomy 6:4") == "law"
+    assert format_genre_guidance("love_poetry").startswith("## Genre: Love Poetry (Song of Songs)")
