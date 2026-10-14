@@ -6,7 +6,8 @@ These encode rules reviewers otherwise enforce by hand:
 - tool descriptions and schemas, which are sent to the model in every session,
   stay within a budget, so growth is a deliberate, visible change;
 - list-returning tools default to a small number of results;
-- the full-database smoke runner has a case for every tool.
+- the full-database smoke runner has a case for every tool;
+- requirements.txt, which the Docker image installs, matches uv.lock.
 """
 
 from __future__ import annotations
@@ -14,6 +15,8 @@ from __future__ import annotations
 import ast
 import importlib.util
 import json
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -168,3 +171,29 @@ def test_every_tracked_json_file_parses():
         except (OSError, ValueError) as error:
             failures.append(f"{path.relative_to(ROOT)}: {error}")
     assert not failures, "Unparseable JSON:\n" + "\n".join(failures)
+
+
+# The Docker image installs requirements.txt, exported from uv.lock by this command.
+REQUIREMENTS_EXPORT = "uv export --frozen --no-dev --extra sse --no-emit-project"
+
+
+def _requirement_lines(text: str) -> list[str]:
+    # Comments (the generated header and "# via" annotations) are not compared.
+    lines = (line.strip() for line in text.splitlines())
+    return [line for line in lines if line and not line.startswith("#")]
+
+
+def test_requirements_txt_matches_the_lock():
+    uv = os.environ.get("UV") or shutil.which("uv")
+    if not uv:
+        pytest.skip("uv is unavailable, so the lock cannot be exported")
+    export = subprocess.run(
+        [uv, *REQUIREMENTS_EXPORT.split()[1:], "--offline"],
+        cwd=ROOT, capture_output=True, text=True,
+    )
+    assert export.returncode == 0, export.stderr
+    committed = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+    assert _requirement_lines(committed) == _requirement_lines(export.stdout), (
+        "requirements.txt differs from uv.lock. After changing dependencies in "
+        f"pyproject.toml, run `uv lock`, then `{REQUIREMENTS_EXPORT} -o requirements.txt`."
+    )
