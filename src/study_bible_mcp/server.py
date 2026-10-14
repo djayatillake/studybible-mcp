@@ -34,6 +34,7 @@ from .database import (
     INTERPRETIVE_CASE_KEYS,
     StudyBibleDB,
     expand_single_chapter_reference,
+    merge_english_verses,
 )
 from .hermeneutics import (
     format_genre_guidance,
@@ -77,6 +78,7 @@ from .tools import (
     mermaid_person_timeline,
     mermaid_place_network,
     verse_english,
+    verse_reference,
 )
 
 # Purple book with gold cross icon (32x32 PNG, base64 encoded)
@@ -209,7 +211,7 @@ async def handle_word_study(args: dict[str, Any]) -> list[TextContent]:
     if verses:
         result += f"\n\n## Example Passages{bsb_label(verses)}\n"
         for v in verses:
-            result += f"\n**{v['reference']}**: {verse_english(v)}\n"
+            result += f"\n**{verse_reference(v)}**: {verse_english(v)}\n"
 
     return text(result)
 
@@ -284,10 +286,15 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
 
     first, last = bounds[start_chapter]
     if not first <= start_verse <= last:
-        return text(
-            f"{book_name} {start_chapter} has no verse {start_verse} "
-            f"(verses {first}–{last})."
-        )
+        message = f"{book_name} {start_chapter} has no verse {start_verse} (verses {first}–{last})."
+        # 3 John 1:15 in Greek-numbered editions is part of the BSB's 1:14.
+        english = await db.english_verse_of_greek(book, start_chapter, start_verse)
+        if english:
+            message += (
+                f" The Greek text's {start_chapter}:{start_verse} is counted with "
+                f"{book_name} {english[0]}:{english[1]} here."
+            )
+        return text(message)
     if (end_chapter, end_verse) < (start_chapter, start_verse):
         return text(f"Invalid range '{reference}': the end comes before the start.")
 
@@ -300,7 +307,11 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
         )
         end_verse = chapter_end
 
-    rows = await db.get_passage(book, start_chapter, start_verse, end_chapter, end_verse)
+    # One block per English verse: a verse stored as several rows (two Hebrew
+    # superscription verses, a Greek fragment) shows its BSB text once.
+    rows = merge_english_verses(
+        await db.get_passage(book, start_chapter, start_verse, end_chapter, end_verse)
+    )
     if not rows:
         return text(f"No verse text on file for {reference}.")
 
@@ -1103,7 +1114,7 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
 
     if verses:
         for v in verses:
-            result += f"**{v['reference']}**: {verse_english(v)}\n\n"
+            result += f"**{verse_reference(v)}**: {verse_english(v)}\n\n"
     else:
         result += "No verses found with this Strong's number in the database.\n"
 
@@ -1170,7 +1181,9 @@ async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent
 
         # Show passage text (truncated if very long): the BSB when loaded
         if "preview_verses" in passage:
-            passage_text = " ".join(verse_english(v) for v in passage["preview_verses"])
+            passage_text = " ".join(
+                verse_english(v) for v in merge_english_verses(passage["preview_verses"])
+            )
         else:
             passage_text = passage["text_combined"]
         passage_text = _truncate(passage_text, 500, "...")

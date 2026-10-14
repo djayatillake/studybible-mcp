@@ -139,6 +139,100 @@ _HEBREW_NUMBERING_RE = re.compile(r"\((\d+)\.(\d+)\)$")
 # edition's verse with its KJV/English number in brackets ('Mat.17.15[17.14]')
 # or another numbering in braces ('Jhn.7.53{8.1}').
 _SPLIT_REFERENCE_RE = re.compile(r"^([^.]+)\.(\d+)\.(\d+)([(\[{])(\d+)\.(\d+)[)\]}]$")
+
+
+def _source_number(row: dict) -> tuple[str | None, str]:
+    """A `verses` row's own numbering: ('Hebrew' | 'Greek' | None, 'chapter.verse').
+
+    None marks a plain reference, numbered alike in English.
+    """
+    match = _SPLIT_REFERENCE_RE.match(row["reference"])
+    if not match:
+        return None, ".".join(row["reference"].split(".")[1:])
+    _, chapter, verse, bracket, other_chapter, other_verse = match.groups()
+    if bracket == "(":
+        return "Hebrew", f"{other_chapter}.{other_verse}"
+    return "Greek", f"{chapter}.{verse}"
+
+
+def _join_numbers(numbers: list[str]) -> str:
+    """'51.1', '51.2' -> '51.1–2'; '20.42', '21.1' -> '20.42, 21.1'."""
+    if len(numbers) > 1 and len({number.split(".")[0] for number in numbers}) == 1:
+        verses = [int(number.split(".")[1]) for number in numbers]
+        if verses == list(range(verses[0], verses[0] + len(verses))):
+            return f"{numbers[0]}–{verses[-1]}"
+    return ", ".join(numbers)
+
+
+def verse_label(rows: list[dict]) -> str:
+    """Heading for an English verse made of ``rows`` (one or more `verses` rows).
+
+    The English (BSB) reference comes first, then any other numbering of the
+    Hebrew or Greek text it shows: 'Psa.51 superscription (Hebrew Psa.51.1–2)',
+    '2Co.13.14 (Greek 2Co.13.13)', '3Jn.1.14 (Greek 3Jn.1.14–15)'. A single
+    English(Hebrew) row keeps its reference ('Psa.40.6(40.7)').
+    """
+    first = rows[0]
+    english = first.get("english_reference") or f"{first['book']}.{first['chapter']}.{first['verse']}"
+    book, chapter, verse = english.split(".")
+    numbered = [_source_number(row) for row in rows]
+    language = next((kind for kind, _ in numbered if kind), None)
+    numbers = list(dict.fromkeys(number for _, number in numbered))
+    if verse == "0":
+        label = f"{book}.{chapter} superscription"
+        return f"{label} (Hebrew {book}.{_join_numbers(numbers)})" if language else label
+    if len(rows) == 1 and language == "Hebrew":
+        return first["reference"]
+    if language is None or numbers == [f"{chapter}.{verse}"]:
+        return english
+    return f"{english} ({language} {book}.{_join_numbers(numbers)})"
+
+
+def merge_english_verses(rows: list[dict]) -> list[dict]:
+    """Merge consecutive rows of one English verse into one row.
+
+    Rows carrying ``english_reference`` (see ``StudyBibleDB.attach_bsb_text``)
+    that share it, such as a Psalm's two Hebrew superscription verses or a
+    Greek fragment the English counts with the next verse, become one row:
+    the row carrying the BSB text, with every row's original text and words
+    in order and a ``label`` naming their numbering. Other rows pass through.
+    """
+    merged: list[dict] = []
+    group: list[dict] = []
+
+    def flush() -> None:
+        if not group:
+            return
+        if len(group) == 1:
+            merged.append(group[0])
+        else:
+            base = dict(next((row for row in group if row.get("text_bsb")), group[0]))
+            base["text_original"] = " ".join(
+                row["text_original"] for row in group if row.get("text_original")
+            ) or None
+            base["text_english"] = " ".join(row["text_english"] for row in group if row.get("text_english"))
+            words: list = []
+            for row in group:
+                value = row.get("word_data")
+                try:
+                    words += json.loads(value) if isinstance(value, str) else (value or [])
+                except json.JSONDecodeError:
+                    pass
+            base["word_data"] = json.dumps(words, ensure_ascii=False)
+            base["label"] = verse_label(group)
+            base["references"] = [row["reference"] for row in group]
+            merged.append(base)
+        group.clear()
+
+    for row in rows:
+        key = row.get("english_reference")
+        if group and (key is None or key != group[0].get("english_reference")):
+            flush()
+        group.append(row)
+        if key is None:
+            flush()
+    flush()
+    return merged
 # Verse rows fetched for a similar-passage preview: ample for the 500
 # characters find_similar_passages shows.
 PASSAGE_PREVIEW_VERSES = 30
@@ -472,6 +566,7 @@ class StudyBibleDB:
         self._vec_loaded = False
         self._vec_error: str | None = None
         self._has_bsb: bool | None = None
+        self._moved_verses: dict[str, tuple[int, int, int]] | None = None
 
     async def connect(self):
         """Open database connection."""
@@ -645,28 +740,30 @@ class StudyBibleDB:
         return reference
 
     async def get_verse(self, reference: str) -> dict | None:
-        """Get a verse by reference.
+        """Get a verse by its English reference.
 
-        Matches the reference exactly, then by book, chapter and (English)
-        verse number, so a row stored with split numbering such as
-        ``Gen.32.1(32.2)`` is found. There is no substring match: a verse
-        missing from the table returns None, not a neighbour ('Jhn.3.1' must
-        not return 'Jhn.3.16'). The row carries ``text_bsb`` (see
-        ``attach_bsb_text``).
+        Matches book, chapter and English verse number, so a row stored with
+        split numbering such as ``Gen.32.1(32.2)`` or ``2Co.13.13[13.14]`` (BSB
+        2 Cor 13:14) is found; any other reference must match a row exactly.
+        There is no substring match: a verse missing from the table returns
+        None, not a neighbour ('Jhn.3.1' must not return 'Jhn.3.16'). The row
+        carries ``text_bsb`` (see ``attach_bsb_text``); with the BSB loaded, an
+        English verse stored as several rows is returned as one merged row
+        (see ``merge_english_verses``).
         """
         normalized = self._normalize_reference(reference)
-        verse = await self._fetchone("SELECT * FROM verses WHERE reference = ?", (normalized,))
-        if not verse:
-            parts = normalized.split(".")
-            if len(parts) != 3 or not (parts[1].isdecimal() and parts[2].isdecimal()):
-                return None
-            verse = await self._fetchone(
-                "SELECT * FROM verses WHERE book = ? AND chapter = ? AND verse = ? ORDER BY id LIMIT 1",
-                (parts[0], int(parts[1]), int(parts[2])),
+        parts = normalized.split(".")
+        rows: list[dict] = []
+        if len(parts) == 3 and parts[1].isdecimal() and parts[2].isdecimal():
+            chapter, verse = int(parts[1]), int(parts[2])
+            rows = await self.get_passage(parts[0], chapter, verse, chapter, verse)
+        if not rows:
+            rows = await self.attach_bsb_text(
+                await self._fetchall("SELECT * FROM verses WHERE reference = ?", (normalized,))
             )
-        if verse:
-            await self.attach_bsb_text([verse])
-        return verse
+        if not rows:
+            return None
+        return merge_english_verses(rows)[0]
 
     async def get_verses_with_strongs(self, strongs: str, limit: int = 4) -> list[dict]:
         """Find verses containing a specific Strong's number.
@@ -699,62 +796,151 @@ class StudyBibleDB:
             rows += await self._fetchall(f"{sql} ({','.join('?' * len(chunk))})", chunk)
         return rows
 
+    async def _moved_nt_verses(self) -> dict[str, tuple[int, int, int]]:
+        """NT rows whose English (BSB) verse is not their Greek one.
+
+        Returns ``{reference: (english chapter, english verse, id)}``, cached;
+        empty without the BSB. A row such as ``2Co.13.13[13.14]`` carries the
+        Greek edition's verse with the KJV's number in brackets; the BSB
+        follows the KJV there (2 Cor 13:14) but keeps the Greek order of Phil
+        1:16-17, which the KJV swaps. A row's English verse is:
+
+        - for a whole Greek verse (no plain row shares its number): the
+          bracketed verse, unless the BSB lacks it, or the BSB has the Greek
+          verse and the two rows swap numbers (Phil 1:16-17);
+        - for a fragment of a Greek verse that has its own row: the bracketed
+          verse only if no other row is that English verse ('2Co.13.12[13.13]',
+          the BSB's 13:13), else the Greek verse it belongs to.
+        """
+        if self._moved_verses is not None:
+            return self._moved_verses
+        self._moved_verses = {}
+        if not await self.has_bsb_text():
+            return self._moved_verses
+        split: dict[str, tuple[int, str, str]] = {}
+        for row in await self._fetchall(
+            "SELECT id, reference FROM verses WHERE reference LIKE '%[%' ORDER BY id"
+        ):
+            match = _SPLIT_REFERENCE_RE.match(row["reference"])
+            if match and match.group(4) == "[":
+                book, chapter, verse, _, other_chapter, other_verse = match.groups()
+                split[row["reference"]] = (
+                    row["id"], f"{book}.{chapter}.{verse}", f"{book}.{other_chapter}.{other_verse}"
+                )
+        if not split:
+            return self._moved_verses
+        numbers = {ref for _, greek, kjv in split.values() for ref in (greek, kjv)}
+        plain = {
+            row["reference"]
+            for row in await self._fetch_in("SELECT reference FROM verses WHERE reference IN", numbers)
+        }
+        in_bsb = {
+            row["reference"]
+            for row in await self._fetch_in("SELECT reference FROM bsb_verses WHERE reference IN", numbers)
+        }
+        swapped = {greek: kjv for _, greek, kjv in split.values()}
+        english: dict[str, str] = {}
+        for ref, (_, greek, kjv) in split.items():
+            if greek in plain:
+                continue
+            if greek not in in_bsb and kjv in in_bsb:
+                english[ref] = kjv
+            elif swapped.get(kjv) == greek or kjv not in in_bsb:
+                english[ref] = greek
+            else:
+                english[ref] = kjv
+        taken = plain | set(english.values())
+        for ref, (_, greek, kjv) in split.items():
+            if greek in plain:
+                english[ref] = kjv if kjv in in_bsb and kjv not in taken else greek
+        for ref, target in english.items():
+            row_id, greek, _ = split[ref]
+            if target != greek:
+                _, chapter, verse = target.split(".")
+                self._moved_verses[ref] = (int(chapter), int(verse), row_id)
+        return self._moved_verses
+
+    async def english_verse_of_greek(self, book: str, chapter: int, verse: int) -> tuple[int, int] | None:
+        """The BSB (chapter, verse) of a Greek verse the BSB numbers differently, else None."""
+        for ref, (english_chapter, english_verse, _) in (await self._moved_nt_verses()).items():
+            match = _SPLIT_REFERENCE_RE.match(ref)
+            if match.group(1) == book and (int(match.group(2)), int(match.group(3))) == (chapter, verse):
+                return english_chapter, english_verse
+        return None
+
+    async def _bsb_carriers(self, english_refs: set[str]) -> dict[str, str]:
+        """For each English verse, the reference of the row that carries its BSB text.
+
+        That is the plain row with the verse's reference, else the verse's
+        first row (by id): one row per verse, so a verse stored as several rows
+        (Psalm 51's two Hebrew superscription verses) shows its text once.
+        """
+        carriers = {
+            row["reference"]: row["reference"]
+            for row in await self._fetch_in("SELECT reference FROM verses WHERE reference IN", english_refs)
+        }
+        moved = await self._moved_nt_verses()
+        chapters: dict[tuple[str, int], set[str]] = {}
+        for ref in english_refs - carriers.keys():
+            book, chapter, _ = ref.split(".")
+            chapters.setdefault((book, int(chapter)), set()).add(ref)
+        for (book, chapter), refs in chapters.items():
+            first: dict[str, tuple[int, str]] = {}
+            rows = await self._fetchall(
+                "SELECT id, reference, verse FROM verses WHERE book = ? AND chapter = ?", (book, chapter)
+            )
+            candidates = [
+                (row["id"], row["reference"], f"{book}.{chapter}.{row['verse']}")
+                for row in rows if row["reference"] not in moved
+            ]
+            candidates += [
+                (row_id, ref, f"{book}.{moved_chapter}.{verse}")
+                for ref, (moved_chapter, verse, row_id) in moved.items()
+                if ref.split(".")[0] == book and moved_chapter == chapter
+            ]
+            for row_id, reference, english_ref in candidates:
+                if english_ref in refs and (english_ref not in first or row_id < first[english_ref][0]):
+                    first[english_ref] = (row_id, reference)
+            carriers.update({english_ref: reference for english_ref, (_, reference) in first.items()})
+        return carriers
+
     async def attach_bsb_text(self, rows: list[dict]) -> list[dict]:
-        """Set ``text_bsb`` on each `verses` row: its Berean Standard Bible text, or None.
+        """Give each `verses` row its English (BSB) verse, text, and label.
 
-        Rows are left without the key when the database has no BSB, so callers
-        show the STEPBible gloss (``text_english``) as before. A row matches the
-        BSB verse with the same reference. A split-numbered row matches by its
-        English book, chapter and verse ('Gen.32.1(32.2)' -> 'Gen.32.1'),
-        except that:
+        Rows are left unchanged when the database has no BSB, so callers show
+        the STEPBible gloss (``text_english``) as before. Otherwise each row
+        gets:
 
-        - a row sharing its English verse with a plain-reference row gets None,
-          because the plain row carries that verse's BSB text
-          ('1Sa.20.42(21.1)' beside '1Sa.20.42', 'Mat.17.15[17.14]' beside
-          'Mat.17.15');
-        - an NT row whose bracketed English verse has no row of its own is
-          that verse ('2Co.13.13[13.14]' -> '2Co.13.14').
-
-        None also marks verses the BSB omits: the textual-variant verses
-        (Matt 17:21, Acts 8:37, ...) and the Psalm superscriptions.
+        - ``chapter`` and ``verse``: its English verse. OT columns already hold
+          it ('Gen.32.1(32.2)' is English 32:1); an NT row the BSB numbers
+          differently gets its BSB verse (``_moved_nt_verses``:
+          '2Co.13.13[13.14]' is 2 Cor 13:14);
+        - ``english_reference``: that verse's reference;
+        - ``text_bsb``: the verse's BSB text on the one row that carries it
+          (``_bsb_carriers``), None on the verse's other rows ('1Sa.20.42(21.1)'
+          beside '1Sa.20.42') and for verses the BSB omits (Matt 17:21, Acts
+          8:37, ...);
+        - ``label``: its heading (``verse_label``).
         """
         if not rows or not await self.has_bsb_text():
             return rows
-        wanted: dict[int, str] = {}
-        split: dict[int, re.Match] = {}
-        for index, row in enumerate(rows):
-            match = _SPLIT_REFERENCE_RE.match(row["reference"])
-            if match:
-                split[index] = match
-            else:
-                wanted[index] = row["reference"]
-        if split:
-            english = {index: ".".join(match.group(1, 2, 3)) for index, match in split.items()}
-            plain = {
-                row["reference"]
-                for row in await self._fetch_in(
-                    "SELECT reference FROM verses WHERE reference IN", english.values()
-                )
-            }
-            for index, match in split.items():
-                if english[index] in plain:
-                    continue
-                book, _, _, bracket, chapter, verse = match.groups()
-                if bracket == "[" and not await self._fetchone(
-                    "SELECT 1 FROM verses WHERE book = ? AND chapter = ? AND verse = ? LIMIT 1",
-                    (book, int(chapter), int(verse)),
-                ):
-                    wanted[index] = f"{book}.{chapter}.{verse}"
-                else:
-                    wanted[index] = english[index]
+        moved = await self._moved_nt_verses()
+        for row in rows:
+            if row["reference"] in moved:
+                row["chapter"], row["verse"], _ = moved[row["reference"]]
+            row["english_reference"] = f"{row['book']}.{row['chapter']}.{row['verse']}"
+        english_refs = {row["english_reference"] for row in rows}
+        carriers = await self._bsb_carriers(english_refs)
         texts = {
             row["reference"]: row["text"]
             for row in await self._fetch_in(
-                "SELECT reference, text FROM bsb_verses WHERE reference IN", wanted.values()
+                "SELECT reference, text FROM bsb_verses WHERE reference IN", english_refs
             )
         }
-        for index, row in enumerate(rows):
-            row["text_bsb"] = texts.get(wanted.get(index))
+        for row in rows:
+            carried = carriers.get(row["english_reference"]) == row["reference"]
+            row["text_bsb"] = texts.get(row["english_reference"]) if carried else None
+            row["label"] = verse_label([row])
         return rows
 
     # "Luke 19", "Luke 19:1-3", "Luke 19:45-20:2", "Psalm 23-24", "Luk.19.1".
@@ -803,12 +989,27 @@ class StudyBibleDB:
 
     async def get_chapter_verse_bounds(self, book: str) -> dict[int, tuple[int, int]]:
         """Map each chapter of ``book`` to its (first, last) English verse number."""
-        rows = await self._fetchall(
-            """SELECT chapter, MIN(verse) AS first, MAX(verse) AS last
-               FROM verses WHERE book = ? GROUP BY chapter""",
-            (book,),
-        )
-        return {row["chapter"]: (row["first"], row["last"]) for row in rows}
+        moved = {
+            ref: position for ref, position in (await self._moved_nt_verses()).items()
+            if ref.split(".")[0] == book
+        }
+        if not moved:
+            rows = await self._fetchall(
+                """SELECT chapter, MIN(verse) AS first, MAX(verse) AS last
+                   FROM verses WHERE book = ? GROUP BY chapter""",
+                (book,),
+            )
+            return {row["chapter"]: (row["first"], row["last"]) for row in rows}
+        bounds: dict[int, tuple[int, int]] = {}
+        for row in await self._fetchall(
+            "SELECT reference, chapter, verse FROM verses WHERE book = ?", (book,)
+        ):
+            chapter, verse = moved[row["reference"]][:2] if row["reference"] in moved else (
+                row["chapter"], row["verse"]
+            )
+            first, last = bounds.get(chapter, (verse, verse))
+            bounds[chapter] = (min(first, verse), max(last, verse))
+        return dict(sorted(bounds.items()))
 
     async def get_passage(
         self,
@@ -822,21 +1023,40 @@ class StudyBibleDB:
 
         Matches the ``book``/``chapter``/``verse`` columns (English numbering)
         rather than ``reference`` strings, so OT rows whose reference carries
-        English(Hebrew) split numbering such as ``Psa.40.6(40.7)`` are found.
-        A verse stored as several rows (e.g. ``1Ch.12.4`` and
-        ``1Ch.12.4(12.5)``) returns every row, in source order. Rows carry
-        ``text_bsb`` (see ``attach_bsb_text``).
+        English(Hebrew) split numbering such as ``Psa.40.6(40.7)`` are found,
+        and NT rows the BSB numbers differently by their BSB verse
+        (``2Co.13.13[13.14]`` is 2 Cor 13:14). A verse stored as several rows
+        (e.g. ``1Ch.12.4`` and ``1Ch.12.4(12.5)``) returns every row, in
+        source order. Rows carry ``text_bsb`` (see ``attach_bsb_text``).
         """
-        return await self.attach_bsb_text(await self._fetchall(
+        moved = {
+            ref: position for ref, position in (await self._moved_nt_verses()).items()
+            if ref.split(".")[0] == book
+        }
+        margin = 1 if moved else 0
+        rows = await self._fetchall(
             """SELECT * FROM verses
                WHERE book = ?
                  AND chapter BETWEEN ? AND ?
                  AND (chapter > ? OR verse >= ?)
                  AND (chapter < ? OR verse <= ?)
                ORDER BY chapter, verse, id""",
-            (book, start_chapter, end_chapter, start_chapter, start_verse,
-             end_chapter, end_verse),
-        ))
+            (book, start_chapter - margin, end_chapter + margin,
+             start_chapter - margin, start_verse if not margin else 0,
+             end_chapter + margin, end_verse if not margin else 9999),
+        )
+        if moved:
+            def position(row: dict) -> tuple[int, int]:
+                if row["reference"] in moved:
+                    return moved[row["reference"]][:2]
+                return row["chapter"], row["verse"]
+
+            rows = sorted(
+                (row for row in rows
+                 if (start_chapter, start_verse) <= position(row) <= (end_chapter, end_verse)),
+                key=lambda row: (*position(row), row["id"]),
+            )
+        return await self.attach_bsb_text(rows)
 
     async def get_lxx_quote_hints_for_passage(
         self,

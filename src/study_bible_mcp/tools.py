@@ -1442,7 +1442,11 @@ def _verse_heading(verse: dict) -> str:
 
     STEPBible stores superscriptions as English verse 0 with the Hebrew verse
     in parentheses ('Psa.82.0(82.1)'), which reads oddly next to 'Psa.82.1'.
+    Rows with the BSB loaded carry their heading as ``label`` (see
+    ``database.verse_label``).
     """
+    if verse.get("label"):
+        return verse["label"]
     reference = verse["reference"]
     if verse.get("verse") != 0:
         return reference
@@ -1471,6 +1475,11 @@ def verse_english(verse: dict) -> str:
     if verse["text_bsb"]:
         return verse["text_bsb"]
     return f"{GLOSS_MARK} {gloss}".rstrip()
+
+
+def verse_reference(verse: dict) -> str:
+    """A verse row's reference as shown: English first (see ``_verse_heading``)."""
+    return _verse_heading(verse)
 
 
 def bsb_label(verses: list[dict]) -> str:

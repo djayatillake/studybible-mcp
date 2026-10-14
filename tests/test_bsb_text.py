@@ -56,6 +56,13 @@ VERSES = [
     # A Psalm superscription (English verse 0); the BSB has no verse 0.
     ("Psa.23.0(23.1)", "Psa", 23, 0, "a psalm of/ David"),
     ("Psa.23.1", "Psa", 23, 1, "Yahweh [is] shepherd/ my"),
+    # A superscription of two Hebrew verses, both English verse 0.
+    ("Psa.51.0(51.1)", "Psa", 51, 0, "to the choirmaster a psalm of/ David"),
+    ("Psa.51.0(51.2)", "Psa", 51, 0, "when came to him Nathan"),
+    ("Psa.51.1(51.3)", "Psa", 51, 1, "show favor to/ me O God"),
+    # Greek 3 John 1:15 is the end of the BSB's 1:14, which has no 1:15.
+    ("3Jn.1.14", "3Jn", 1, 14, "I hope however soon you to see"),
+    ("3Jn.1.15[1.14]", "3Jn", 1, 15, "Peace to you."),
 ]
 
 BSB_ROWS = [
@@ -70,6 +77,9 @@ BSB_ROWS = [
     ("2Co.13.13", "All the saints send greetings (BSB test text)."),
     ("2Co.13.14", "The grace of the Lord be with you (BSB test text)."),
     ("Psa.23.1", "The LORD is my shepherd (BSB test text)."),
+    ("Psa.51.0", "For the choirmaster. When Nathan came to him (BSB test text)."),
+    ("Psa.51.1", "Have mercy on me, O God (BSB test text)."),
+    ("3Jn.1.14", "I hope to see you soon. Peace to you (BSB test text)."),
 ]
 
 EXPECTED_BSB = {
@@ -84,10 +94,15 @@ EXPECTED_BSB = {
     "Php.1.16[1.17]": "Php.1.16",
     "Php.1.17[1.16]": "Php.1.17",
     "2Co.13.12": "2Co.13.12",
-    "2Co.13.12[13.13]": None,
+    "2Co.13.12[13.13]": "2Co.13.13",
     "2Co.13.13[13.14]": "2Co.13.14",
     "Psa.23.0(23.1)": None,
     "Psa.23.1": "Psa.23.1",
+    "Psa.51.0(51.1)": "Psa.51.0",
+    "Psa.51.0(51.2)": None,
+    "Psa.51.1(51.3)": "Psa.51.1",
+    "3Jn.1.14": "3Jn.1.14",
+    "3Jn.1.15[1.14]": None,
 }
 
 
@@ -151,8 +166,12 @@ async def test_passage_is_labelled_once_and_marks_glosses(mapped_db):
     output = await _lookup("Matthew 17:14-21")
     assert output.startswith("# Matthew 17:14-21 (BSB)\n")
     assert output.count("(BSB)") == 1
-    assert "## Mat.17.15[17.14]\n\n[gloss] and saying;\n" in output
-    assert "## Mat.17.15\n\nLord, have mercy on my son, he said (BSB test text).\n" in output
+    # The Greek fragment of 17:15 is shown with the rest of 17:15, under its BSB text.
+    assert (
+        "## Mat.17.15\n\nLord, have mercy on my son, he said (BSB test text).\n\n"
+        "### Original Text\noriginal Mat.17.15[17.14] original Mat.17.15\n"
+    ) in output
+    assert "and saying;" not in output
     assert "## Mat.17.21\n\n[gloss] this kind not goes out\n" in output
 
 
@@ -161,13 +180,55 @@ async def test_split_numbered_rows(mapped_db):
         "## Gen.32.1(32.2) (BSB)\n\nJacob went on his way (BSB test text).\n"
     )
     two_rows = await _lookup("1 Samuel 20:42")
-    assert two_rows.startswith("## 1Sa.20.42 (BSB)\n\nJonathan said")
-    assert "## 1Sa.20.42(21.1)\n\n[gloss] and/ he arose and/ he went\n" in two_rows
-    corinthians = await _lookup("2 Corinthians 13:12-13")
-    assert "## 2Co.13.13[13.14]\n\nThe grace of the Lord be with you (BSB test text).\n" in corinthians
-    assert "## 2Co.13.12[13.13]\n\n[gloss] [13] Greet you the saints all.\n" in corinthians
+    assert two_rows.startswith(
+        "## 1Sa.20.42 (Hebrew 1Sa.20.42, 21.1) (BSB)\n\nJonathan said, Go in peace; "
+        "and David departed (BSB test text).\n\n### Original Text\n"
+        "original 1Sa.20.42 original 1Sa.20.42(21.1)\n"
+    )
+    assert "[gloss]" not in two_rows
     psalm = await _lookup("Psalm 23")
     assert "## Psa.23 superscription (Hebrew Psa.23.1)\n\n[gloss] a psalm of/ David\n" in psalm
+
+
+async def test_nt_verses_resolve_by_their_bsb_numbers(mapped_db):
+    corinthians = await _lookup("2 Corinthians 13:12-13")
+    assert "## 2Co.13.12\n\nGreet one another (BSB test text).\n" in corinthians
+    assert "## 2Co.13.13 (Greek 2Co.13.12)\n\nAll the saints send greetings (BSB test text).\n" in corinthians
+    assert "[gloss]" not in corinthians and "grace" not in corinthians
+    assert (await _lookup("2 Corinthians 13:14")).startswith(
+        "## 2Co.13.14 (Greek 2Co.13.13) (BSB)\n\nThe grace of the Lord be with you (BSB test text).\n"
+    )
+    john = await _lookup("3 John 1:14-15")
+    assert "## 3Jn.1.14 (Greek 3Jn.1.14–15)\n\nI hope to see you soon. Peace to you (BSB test text).\n" in john
+    assert "original 3Jn.1.14 original 3Jn.1.15[1.14]" in john
+    assert "[gloss]" not in john and "## 3Jn.1.15" not in john
+    assert await _lookup("3 John 1:15") == (
+        "3 John 1 has no verse 15 (verses 14–14). "
+        "The Greek text's 1:15 is counted with 3 John 1:14 here."
+    )
+    verse = await mapped_db.get_verse("2 Corinthians 13:14")
+    assert (verse["reference"], verse["label"]) == ("2Co.13.13[13.14]", "2Co.13.14 (Greek 2Co.13.13)")
+
+
+async def test_labels_put_the_english_reference_first(mapped_db):
+    rows = await mapped_db.attach_bsb_text(
+        await mapped_db._fetchall("SELECT * FROM verses WHERE book IN ('Php', '2Co', 'Gen') ORDER BY id")
+    )
+    assert [row["label"] for row in rows] == [
+        "Gen.32.1(32.2)", "Php.1.16", "Php.1.17", "2Co.13.12",
+        "2Co.13.13 (Greek 2Co.13.12)", "2Co.13.14 (Greek 2Co.13.13)",
+    ]
+
+
+async def test_a_two_verse_superscription_shows_its_heading_once(mapped_db):
+    psalm = await _lookup("Psalm 51:0")
+    assert psalm.startswith(
+        "## Psa.51 superscription (Hebrew Psa.51.1–2) (BSB)\n\n"
+        "For the choirmaster. When Nathan came to him (BSB test text).\n\n"
+        "### Original Text\noriginal Psa.51.0(51.1) original Psa.51.0(51.2)\n"
+    )
+    assert psalm.count("When Nathan came") == 1
+    assert "[gloss]" not in psalm
 
 
 async def test_a_psalm_superscription_shows_the_bsb_heading(tmp_path, monkeypatch):
