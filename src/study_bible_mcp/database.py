@@ -4,6 +4,7 @@ Database layer for the Study Bible MCP server.
 Uses SQLite with async access via aiosqlite.
 """
 
+import difflib
 import json
 import logging
 import re
@@ -476,6 +477,26 @@ def strip_editorial_signs(text: str) -> str:
     return _EDITORIAL_SIGNS.sub("", text)
 
 
+# Spelling of names varies between translations (Melchizedek, Josephus's
+# Melchisedec, Philo's Melchisedek). Words sharing a loose spelling key are
+# searched together; the key folds these letter alternations.
+_SPELLING_FOLDS = (("ph", "f"), ("ch", "c"), ("ae", "e"), ("oe", "e"), ("k", "c"),
+                   ("q", "c"), ("z", "s"), ("y", "i"), ("j", "i"))
+# First letters an index word may start with for each first letter of a key.
+_SPELLING_FIRST_LETTERS = {"c": "ckq", "s": "sz", "f": "fp", "i": "iyj", "e": "eao"}
+_MIN_VARIANT_LETTERS = 5
+_MAX_SPELLING_VARIANTS = 4
+
+
+def spelling_key(word: str) -> str:
+    """A loose key under which spelling variants of a Latin-script name coincide."""
+    key = word.lower()
+    for old, new in _SPELLING_FOLDS:
+        key = key.replace(old, new)
+    key = re.sub(r"(.)\1+", r"\1", key)
+    return key[:-1] if len(key) > 4 and key.endswith("h") else key
+
+
 def hebrew_prefix_variants(word: str) -> list[str]:
     """A Hebrew/Aramaic word without one, then two, leading prefix letters.
 
@@ -782,14 +803,24 @@ class StudyBibleDB:
         number also matches its suffixed forms; a suffixed number matches only
         itself. Rows carry ``text_bsb`` (see ``attach_bsb_text``).
         """
+        where, patterns = self._strongs_word_data_filter(strongs)
+        return await self.attach_bsb_text(await self._fetchall(
+            f"SELECT * FROM verses WHERE {where} LIMIT ?", (*patterns, limit)
+        ))
+
+    async def count_verses_with_strongs(self, strongs: str) -> int:
+        """How many verses ``get_verses_with_strongs`` could return without a limit."""
+        where, patterns = self._strongs_word_data_filter(strongs)
+        row = await self._fetchone(f"SELECT COUNT(*) AS n FROM verses WHERE {where}", patterns)
+        return row["n"] if row else 0
+
+    def _strongs_word_data_filter(self, strongs: str) -> tuple[str, list[str]]:
+        """SQL condition on verses.word_data, and its LIKE patterns, for a Strong's number."""
         strongs = self._normalize_strongs(strongs)
         patterns = [f'%"{strongs}"%']
         if re.fullmatch(r"[GH]\d{4}", strongs):
             patterns.append(f'%"{strongs}_"%')
-        where = " OR ".join("word_data LIKE ?" for _ in patterns)
-        return await self.attach_bsb_text(await self._fetchall(
-            f"SELECT * FROM verses WHERE {where} LIMIT ?", (*patterns, limit)
-        ))
+        return " OR ".join("word_data LIKE ?" for _ in patterns), patterns
 
     async def has_bsb_text(self) -> bool:
         """True when the bsb_verses table exists and has rows (checked once per instance)."""
@@ -1893,6 +1924,31 @@ class StudyBibleDB:
             ORDER BY resource_type, start_ref
         """, (book, chapter))
 
+    async def get_study_notes_in_span(
+        self, book: str, start_chapter: int, start_verse: int, end_chapter: int, end_verse: int
+    ) -> list[dict]:
+        """Study and translation notes overlapping a verse span, in verse order per source.
+
+        A short note (at most six verses) that starts earlier in the span's first
+        chapter and runs into the span (Romans 8:19-21 for 'Romans 8:20-22') is
+        included; a longer section overview is not, so a continuation call
+        ('Mark 13:32-37') does not repeat the overview of Mark 13:1-37.
+        """
+        book_num = self._BOOK_ABBR_TO_NUM.get(book)
+        if not book_num:
+            return []
+        chapter_start = f"{book_num}{start_chapter:03d}000"
+        low = f"{book_num}{start_chapter:03d}{start_verse:03d}"
+        high = f"{book_num}{end_chapter:03d}{end_verse:03d}"
+        return await self._fetchall("""
+            SELECT * FROM aquifer_content
+            WHERE resource_type IN ('study_notes', 'translation_notes_uw', 'translation_notes_sil')
+              AND start_ref BETWEEN ? AND ?
+              AND COALESCE(end_ref, start_ref) >= ?
+              AND (start_ref >= ? OR CAST(end_ref AS INTEGER) - CAST(start_ref AS INTEGER) <= 5)
+            ORDER BY resource_type, start_ref, end_ref
+        """, (chapter_start, high, low, low))
+
     async def _search_aquifer_by_type(self, resource_type: str, query: str) -> list[dict]:
         """Search aquifer_content by type — exact title match then LIKE fallback."""
         exact = await self._fetchall(
@@ -1918,9 +1974,84 @@ class StudyBibleDB:
         """Search the Bible dictionary by title or content."""
         return await self._search_aquifer_by_type("dictionary", topic)
 
-    async def get_key_terms(self, term: str) -> list[dict]:
-        """Search FIA Key Terms by title or content."""
-        return await self._search_aquifer_by_type("key_terms", term)
+    # Key-term rows with no text: the Aquifer export's audio-only duplicates.
+    _KEY_TERM_TEXT = "TRIM(COALESCE(content_plain, '')) NOT IN ('', 'Audio Content')"
+
+    async def find_key_terms(self, term: str, limit: int = 2) -> dict:
+        """FIA Key Terms whose title matches ``term``, exactly or nearly.
+
+        Titles are matched case-insensitively: an exact title first; otherwise
+        near titles (one a prefix of the other, 'righteous' -> 'righteousness';
+        a title containing the term as a word; or a close spelling). Entries
+        that only mention the term in their text are never returned as matches,
+        and audio-only stubs ('Audio Content') are skipped.
+
+        Returns ``{"entries": [...] (at most ``limit``), "match": "exact" |
+        "near" | None, "other_titles": [further matching titles],
+        "mentions": [up to 4 titles whose entries mention the term most, when
+        no title matched]}``.
+        """
+        titles = [
+            row["title"] for row in await self._fetchall(
+                f"""SELECT DISTINCT title FROM aquifer_content
+                    WHERE resource_type = 'key_terms' AND {self._KEY_TERM_TEXT}
+                    ORDER BY LOWER(title)"""
+            )
+        ]
+        wanted = " ".join(re.findall(r"\w+", term.lower()))
+        result: dict = {"entries": [], "match": None, "other_titles": [], "mentions": []}
+        if not wanted:
+            return result
+
+        def key(title: str) -> str:
+            return " ".join(re.findall(r"\w+", title.lower()))
+
+        def closeness(title: str) -> float:
+            return difflib.SequenceMatcher(None, key(title), wanted).ratio()
+
+        def near(title: str) -> bool:
+            shorter, longer = sorted((key(title), wanted), key=len)
+            return (
+                (len(shorter) >= 4 and longer.startswith(shorter) and len(longer) - len(shorter) <= 4)
+                or (len(wanted) >= 4 and re.search(rf"\b{re.escape(wanted)}\b", key(title)) is not None)
+                or closeness(title) >= 0.85
+            )
+
+        exact = [title for title in titles if key(title) == wanted]
+        nearby = sorted(
+            (title for title in titles if title not in exact and near(title)),
+            key=lambda title: -closeness(title),
+        )
+        matched = exact or nearby
+        if matched:
+            shown = matched[:limit]
+            rows = await self._fetch_in(
+                f"""SELECT * FROM aquifer_content
+                    WHERE resource_type = 'key_terms' AND {self._KEY_TERM_TEXT} AND title IN""",
+                shown,
+            )
+            rows.sort(key=lambda row: (shown.index(row["title"]), row["content_id"]))
+            result.update(
+                entries=rows,
+                match="exact" if exact else "near",
+                other_titles=[title for title in (exact + nearby) if title not in shown],
+            )
+            return result
+
+        # No title matched: name the entries that mention the term most often.
+        mentions = await self._fetchall(
+            f"""SELECT title,
+                       (LENGTH(LOWER(content_plain))
+                        - LENGTH(REPLACE(LOWER(content_plain), ?, ''))) / LENGTH(?) AS hits
+                FROM aquifer_content
+                WHERE resource_type = 'key_terms' AND {self._KEY_TERM_TEXT}
+                  AND LOWER(content_plain) LIKE ?
+                ORDER BY hits DESC, LENGTH(title), title
+                LIMIT 4""",
+            (wanted, wanted, f"%{wanted}%"),
+        )
+        result["mentions"] = [row["title"] for row in mentions]
+        return result
 
     async def search_aquifer_content(
         self,
@@ -2275,12 +2406,37 @@ class StudyBibleDB:
             return bool(rows)
         return await self._table_has_rows("theology_content")
 
+    async def get_theology_authors(self) -> list[str]:
+        """The author keys that have scholarship entries, alphabetically."""
+        rows = await self._fetchall(
+            "SELECT DISTINCT source_author FROM theology_content ORDER BY source_author"
+        )
+        return [row["source_author"] for row in rows]
+
+    async def theology_theme_exists(self, theme_key: str) -> bool:
+        """True when ``theme_key`` names a theology theme."""
+        return bool(await self._fetchone(
+            "SELECT 1 FROM theology_themes WHERE theme_key = ?", (theme_key,)
+        ))
+
     async def get_theology_context_by_reference(
         self, reference: str, author: str | None = None, limit: int = 4
     ) -> list[dict]:
-        """Get scholarship entries relevant to a verse reference, optionally filtered by author."""
+        """Get scholarship entries relevant to a verse or chapter, optionally filtered by author.
+
+        A verse returns the entries indexed to it, else those indexed to its
+        chapter; a chapter reference ('Psalm 82') returns the chapter's entries.
+        """
         normalized = self._normalize_reference(reference)
         parts = normalized.split(".")
+        if len(parts) != 3:
+            # Not a verse: read it as a chapter ('Psalm 82', 'Rom 3'), which
+            # skips the exact-verse query and ranks the chapter's entries.
+            parsed = self.parse_passage_reference(reference)
+            if not parsed or parsed["start_verse"] is not None:
+                return []
+            normalized = None
+            parts = [parsed["book"], str(parsed["start_chapter"])]
         book = parts[0] if parts else ""
         chapter = int(parts[1]) if len(parts) > 1 else None
 
@@ -2314,7 +2470,7 @@ class StudyBibleDB:
             "MIN(CASE vi.relevance WHEN 'primary' THEN 0 ELSE 1 END * 1000"
             " + COALESCE(vi.verse, 0)) AS match_rank"
         )
-        exact = await self._fetchall(
+        exact = normalized and await self._fetchall(
             f"""SELECT tc.*, vi.reference AS matched_ref, vi.relevance, {best_match},
                       GROUP_CONCAT(DISTINCT tt.theme_key) AS themes
                FROM theology_content tc
@@ -2624,6 +2780,7 @@ class StudyBibleDB:
                     terms.append(term)
         result: dict[str, Any] = {
             "status": "ok", "rows": [], "terms": terms, "match": None, "prefix_match": False,
+            "variants": {},
         }
         if not terms:
             result["status"] = "invalid_query"
@@ -2684,15 +2841,19 @@ class StudyBibleDB:
 
         exact = "{text original_text_folded}"
         widened = "{text original_text_folded original_prefix_variants}"
+        variants = await self._ancient_spelling_variants(terms)
+        result["variants"] = variants
+        # A term matches itself or any spelling variant of it.
+        term_queries = [
+            "(" + " OR ".join(f'"{word}"' for word in [term, *variants.get(term, ())]) + ")"
+            for term in terms
+        ]
         stages = [(exact, "all", " AND "), (exact, "any", " OR ")]
         if any(_HEBREW_WORD.fullmatch(term) for term in terms):
             stages += [(widened, "all", " AND "), (widened, "any", " OR ")]
-        rows: list[dict] = []
-        for columns, match, operator in stages:
-            if match == "any" and len(terms) == 1:
-                continue
-            terms_query = operator.join(f'"{term}"' for term in terms)
-            rows = await self._fetchall(
+
+        async def search(match_query: str, size: int) -> list[dict]:
+            return await self._fetchall(
                 f"""SELECT p.*, bm25(ancient_source_passages_fts) AS rank
                     FROM ancient_source_passages_fts
                     JOIN ancient_source_passages p
@@ -2700,8 +2861,19 @@ class StudyBibleDB:
                     WHERE {' AND '.join(where)}
                     ORDER BY rank, p.corpus, p.work_title, p.sort_start
                     LIMIT ?""",
-                [f"{columns} : ({terms_query})", *params, limit],
+                [match_query, *params, size],
             )
+
+        rows: list[dict] = []
+        for columns, match, operator in stages:
+            if match == "any" and len(terms) == 1:
+                continue
+            rows = await search(f"{columns} : ({operator.join(term_queries)})", limit)
+            if rows and match == "all" and columns == exact and len(terms) > 1:
+                # Passages with the words as a phrase ('son of man') come first.
+                phrase = await search(f'{columns} : ("{" ".join(terms)}")', limit)
+                phrase_ids = {row["id"] for row in phrase}
+                rows = (phrase + [row for row in rows if row["id"] not in phrase_ids])[:limit]
             if rows:
                 result["match"] = match
                 result["prefix_match"] = columns == widened
@@ -2711,6 +2883,48 @@ class StudyBibleDB:
             return result
         result["rows"] = await self._attach_ancient_annotations(rows)
         return result
+
+    async def ancient_corpus_has_english(self, corpus: str) -> bool:
+        """True when some passage of ``corpus`` has English text to search."""
+        return bool(await self._fetchone(
+            "SELECT 1 FROM ancient_source_passages WHERE corpus = ? AND text != '' LIMIT 1",
+            (corpus,),
+        ))
+
+    async def _ancient_spelling_variants(self, terms: list[str]) -> dict[str, list[str]]:
+        """Index words spelled like each Latin-script search term ('melchizedek' ->
+        ['melchisedec', 'melchisedek']), read from the full-text index's vocabulary."""
+        variants: dict[str, list[str]] = {}
+        wanted = [
+            term for term in terms
+            if len(term) >= _MIN_VARIANT_LETTERS and re.fullmatch(r"[a-z]+", term)
+        ]
+        if not wanted:
+            return variants
+        try:
+            await self.conn.execute(
+                "CREATE VIRTUAL TABLE IF NOT EXISTS temp.ancient_search_vocab "
+                "USING fts5vocab(main, 'ancient_source_passages_fts', 'row')"
+            )
+        except Exception:
+            return variants
+        for term in wanted:
+            key = spelling_key(term)
+            if len(key) < _MIN_VARIANT_LETTERS - 1:
+                continue
+            found = []
+            for letter in _SPELLING_FIRST_LETTERS.get(key[0], key[0]):
+                rows = await self._fetchall(
+                    "SELECT term FROM temp.ancient_search_vocab WHERE term >= ? AND term < ?",
+                    (letter, chr(ord(letter) + 1)),
+                )
+                found += [
+                    row["term"] for row in rows
+                    if row["term"] != term and spelling_key(row["term"]) == key
+                ]
+            if found:
+                variants[term] = sorted(found)[:_MAX_SPELLING_VARIANTS]
+        return variants
 
     async def lookup_ancient_passages(
         self,

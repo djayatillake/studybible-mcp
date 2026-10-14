@@ -109,18 +109,26 @@ def _section(output: str, heading: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-async def test_word_study_by_strongs_returns_entry_and_five_example_passages(db):
+async def test_word_study_by_strongs_returns_entry_and_four_example_passages(db):
     output = await call("word_study", strongs="G26")
     assert output.startswith("## G0026 - ἀγάπη")
     assert "**Transliteration**: agapē" in output
-    assert "### Full LSJ Definition\nLove, esteem, affection" in output
+    # An NT word shows Abbott-Smith; the classical LSJ entry is reduced to its senses.
+    assert "Abbott-Smith test entry for agapē." in output
+    assert "Full LSJ Definition" not in output
+    assert "### LSJ Senses (Classical Greek)\nLove, esteem, affection" in output
     assert "### Semantic Range\nlove, affection" in output
     assert "- G0025 ἀγαπάω - to love" in output
-    assert "Abbott-Smith test entry for agapē." in output
-    # 21 verses carry G0026; the entry shows only the first five.
+    # 21 verses carry G0026; the entry shows only the first four.
     assert re.findall(r"^\*\*(1Jn\.4\.\d+)\*\*", output, re.MULTILINE) == [
-        f"1Jn.4.{v}" for v in range(1, 6)
+        f"1Jn.4.{v}" for v in range(1, 5)
     ]
+
+
+async def test_word_study_greek_without_abbott_smith_keeps_the_full_lsj(db):
+    output = await call("word_study", strongs="G5368")
+    assert "### Full LSJ Definition\nTo be a friend to, to be fond of." in output
+    assert "LSJ Senses" not in output
 
 
 async def test_word_study_by_word_uses_the_language_argument(db):
@@ -490,11 +498,15 @@ def _verse_hits(output: str) -> list[str]:
 async def test_search_by_strongs_default_cap_is_four(db):
     output = await call("search_by_strongs", strongs="G26")
     assert output.startswith("## Verses with G26 (ἀγάπη - agapē)\n\n*love, goodwill*")
-    # 21 verses carry G0026.
+    # 21 verses carry G0026, and the output says so.
+    assert "*Showing 4 of 21 verses; raise limit (at most 50) to see more.*" in output
     assert _verse_hits(output) == [f"1Jn.4.{v}" for v in range(1, 5)]
     assert "**1Jn.4.1**: Beloved, love is from God (test text 1 John 4:1)." in output
     more = await call("search_by_strongs", strongs="G0026", limit=20)
     assert _verse_hits(more) == [f"1Jn.4.{v}" for v in range(1, 21)]
+    assert "*Showing 20 of 21 verses;" in more
+    every = await call("search_by_strongs", strongs="G0026", limit=21)
+    assert len(_verse_hits(every)) == 21 and "*Showing" not in every
 
 
 async def test_search_by_strongs_known_word_without_verses(db):
@@ -560,15 +572,34 @@ async def test_similar_passages_limit_argument(vector_db):
 
 
 async def test_similar_passages_without_an_embedding_or_verse(vector_db):
-    for reference in ("Genesis 22:1", "Obadiah 1:5"):
-        output = await call("find_similar_passages", reference=reference)
-        assert output.startswith(f"No similar passages found for {reference}.")
+    assert await call("find_similar_passages", reference="Genesis 22:1") == (
+        "Genesis 22:1 has no pre-computed embedding, so similar passages cannot be "
+        "ranked from it. Try a neighbouring verse."
+    )
+    assert await call("find_similar_passages", reference="Obadiah 1:5") == (
+        "Obadiah 1:5 is not in the verse table: check the book, chapter, and verse numbers."
+    )
+    assert await call("find_similar_passages", reference="not a verse") == (
+        "Could not read 'not a verse' as a verse reference. "
+        "Use 'Book chapter:verse', e.g. 'John 3:16' or 'Daniel 7:13'."
+    )
 
 
 async def test_similar_passages_do_not_borrow_another_verse(vector_db):
     # John 3:1 is not in the fixture; John 3:16 (which has an embedding) must not stand in.
     output = await call("find_similar_passages", reference="John 3:1")
-    assert output.startswith("No similar passages found for John 3:1.")
+    assert output.startswith("John 3:1 is not in the verse table")
+
+
+async def test_similar_passages_say_a_range_uses_its_first_verse(vector_db):
+    output = await call("find_similar_passages", reference="John 3:16-17")
+    assert output.startswith("## Passages Similar to John 3:16\n\n")
+    assert (
+        "*Similarity is computed from one verse: John 3:16, the first verse of "
+        "'John 3:16-17'. Call again with another verse to search from it.*"
+    ) in output
+    single = await call("find_similar_passages", reference="John 3:16")
+    assert "Similarity is computed from one verse" not in single
 
 
 async def test_similar_passages_require_a_reference(db):
@@ -824,8 +855,42 @@ async def test_study_notes_for_a_verse_include_covering_ranges(db):
 
 async def test_study_notes_for_a_chapter(db):
     output = await call("get_study_notes", reference="John 3")
-    for text in ("Nicodemus came to Jesus by night", "God's love for the world", "Lifted up"):
+    assert output.startswith("## Study Notes: John 3\n\n### Tyndale Study Notes")
+    for text in ("Nicodemus came to Jesus by night", "God's love for the world"):
         assert text in output
+    # Translator notes are listed by verse for a per-verse call, not shown
+    # (the fixture's John 3 ends at verse 17, so the 3:14-18 note lists 14-17).
+    assert "Lifted up" not in output
+    assert (
+        "*unfoldingWord on 3:14–17. Not shown for a passage: call get_study_notes "
+        "with one verse (e.g. reference='John 3:14') for its notes.*"
+    ) in output
+
+
+async def test_study_notes_for_a_long_chapter_stop_near_the_budget(db):
+    from study_bible_mcp.tools import STUDY_NOTES_PASSAGE_BUDGET
+
+    output = await call("get_study_notes", reference="Romans 8")
+    assert len(output) < STUDY_NOTES_PASSAGE_BUDGET + 1500
+    shown = re.findall(r"^\*\*Romans 8:(\d+)\*\*$", output, re.MULTILINE)
+    assert shown == [str(v) for v in range(1, len(shown) + 1)] and len(shown) < 12
+    resume = len(shown) + 1
+    # No verse table rows for Romans 8: the chapter ends at its last note (8:21).
+    assert f"*Tyndale notes continue: call again with reference='Romans 8:{resume}-21'.*" in output
+    assert "*SIL on 8:1–3, 5; unfoldingWord on 8:19–21." in output
+    rest = await call("get_study_notes", reference=f"Romans 8:{resume}-21")
+    assert rest.startswith(f"## Study Notes: Romans 8:{resume}-21\n\n### Tyndale Study Notes")
+    assert re.findall(r"^\*\*Romans 8:(\d+)\*\*$", rest, re.MULTILINE) == [
+        str(v) for v in range(resume, 13)
+    ]
+    assert "continue" not in rest
+    assert "*unfoldingWord on 8:19–21." in rest and "SIL" not in rest
+
+
+async def test_study_notes_for_a_verse_range_include_a_short_note_that_starts_before_it(db):
+    output = await call("get_study_notes", reference="Romans 8:20-22")
+    assert "### Tyndale Study Notes" not in output  # no Tyndale note touches 8:20-22
+    assert "*unfoldingWord on 8:20–21." in output
 
 
 async def test_study_notes_graceful_messages(db):
@@ -855,7 +920,10 @@ async def test_bible_dictionary_caps_matches_and_truncates_articles(db):
     output = await call("get_bible_dictionary", topic="jubilee")
     assert len(re.findall(r"^## Jubilee note \d+$", output, re.MULTILINE)) == 10  # of 12
     long_article = await call("get_bible_dictionary", topic="Tabernacle")
-    assert "*[Article truncated — full text available in the Tyndale Bible Dictionary]*" in long_article
+    assert re.search(
+        r'\*\[Truncated — 2,152 more characters\. Call get_bible_dictionary again with '
+        r'topic="Tabernacle" and offset=3997\.\]\*', long_article
+    )
     assert len(long_article) < 4300
 
 
@@ -866,15 +934,39 @@ async def test_bible_dictionary_graceful_messages(db):
     assert await call("get_bible_dictionary", topic="") == "Please provide a topic to look up."
 
 
-async def test_key_terms_by_title_and_text(db):
+async def test_key_terms_by_title(db):
     output = await call("get_key_terms", term="atonement")
     assert output.startswith("## Atonement\n\nAtonement is the reconciling of God and people")
-    assert (await call("get_key_terms", term="undeserved")).startswith("## Grace\n")
+    # The audio-only duplicate of Grace is not shown.
+    grace = await call("get_key_terms", term="grace")
+    assert grace == "## Grace\n\nGrace is God's undeserved favour (test key term)."
+
+
+async def test_key_terms_exact_title_lists_related_titles(db):
+    output = await call("get_key_terms", term="Spirit")
+    assert output.startswith("## spirit\n")
+    assert "The Holy Spirit is the Spirit of God" not in output
+    assert output.endswith("*Related key terms: 'Holy Spirit'.*")
+
+
+async def test_key_terms_near_title(db):
+    output = await call("get_key_terms", term="graces")
+    assert output.startswith("*No key term is titled 'graces'; showing the nearest.*\n\n## Grace\n")
+
+
+async def test_key_terms_without_a_title_match_list_titles_only(db):
+    # A word found only in an entry's text names that entry; it is not shown.
+    assert await call("get_key_terms", term="undeserved") == (
+        "No key term found for 'undeserved'. Key terms whose entries mention it most: 'Grace'."
+    )
 
 
 async def test_key_terms_graceful_messages(db):
     # A dictionary title is not a key term.
-    assert await call("get_key_terms", term="Covenant") == "No key term found for 'Covenant'."
+    assert await call("get_key_terms", term="Covenant") == (
+        "No key term found for 'Covenant'. Key terms are English titles such as 'grace', "
+        "'covenant', or 'Son of Man'; for a Greek or Hebrew word use word_study."
+    )
     assert await call("get_key_terms", term="") == "Please provide a term to look up."
 
 
@@ -921,9 +1013,25 @@ async def test_ane_context_dimension_and_period_filters(db):
     assert re.findall(r"^### (.+)$", combined, re.MULTILINE) == ["Three-tier cosmos"]
 
 
-async def test_ane_context_caps_results_at_thirty(db):
+async def test_ane_context_limit_defaults_to_four_and_reports_the_total(db):
     output = await call("get_ane_context", reference="Leviticus 16:1", detail_level="brief")
-    assert len(re.findall(r"^### Levitical filler \d+$", output, re.MULTILINE)) == 30  # of 32
+    assert re.findall(r"^### Levitical filler (\d+)$", output, re.MULTILINE) == ["01", "02", "03", "04"]
+    assert (
+        "*Showing 4 of 32 entries, direct chapter matches first; raise limit (at most 30) "
+        "or set dimension/period for more.*"
+    ) in output
+    more = await call("get_ane_context", reference="Leviticus 16:1", detail_level="brief", limit=30)
+    assert len(re.findall(r"^### Levitical filler \d+$", more, re.MULTILINE)) == 30  # of 32
+    assert "*Showing 30 of 32 entries" in more
+
+
+async def test_ane_context_puts_direct_matches_first(db):
+    output = await call("get_ane_context", reference="Genesis 15:6", limit=2)
+    assert re.findall(r"^### (.+)$", output, re.MULTILINE) == [
+        "Covenant-cutting ritual", "Smoking firepot theophany",
+    ]
+    assert "*Showing 2 of 3 entries, direct chapter matches first;" in output
+    assert "# General ANE Reading Frame" not in output
 
 
 async def test_ane_context_without_a_match(db):
@@ -983,6 +1091,19 @@ async def test_torah_weave_subdivided_cell_has_siblings(db):
     assert "*(none — this cell has no row partner)*" in output
 
 
+async def test_torah_weave_reading_guide_only_on_request(db):
+    output = await call("get_torah_weave", reference="Genesis 1:1")
+    assert "### How to read Torah Weave partners" not in output
+    assert output.rstrip().endswith(
+        "*Partner text: `lookup_verse` on each range. Kline's dataset does not label "
+        "column themes. Full reading guide: explain=true.*"
+    )
+    explained = await call("get_torah_weave", reference="Genesis 1:1", explain=True)
+    assert "### How to read Torah Weave partners" in explained
+    assert "Full reading guide: explain=true" not in explained
+    assert len(output) < len(explained) - 1000
+
+
 async def test_torah_weave_graceful_messages(db):
     assert await call("get_torah_weave", reference="Matthew 5:1") == (
         "Torah Weave data covers Genesis–Deuteronomy only; Matthew 5:1 is outside it."
@@ -1039,3 +1160,61 @@ async def test_empty_database_gives_a_clear_message(empty_db, tool, arguments, e
         )
     else:
         assert output.startswith(expected)
+
+
+# ---------------------------------------------------------------------------
+# Shared limit validation and lexicon rendering
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(("value", "expected"), [(1, 1), (20, 20), ("7", 7), (3.0, 3)])
+def test_bounded_limit_accepts_whole_numbers_in_range(value, expected):
+    assert server.bounded_limit(value, 20) == expected
+
+
+@pytest.mark.parametrize("value", [0, -1, 21, "many", "", 2.5, True, None, [4]])
+def test_bounded_limit_rejects_other_values(value):
+    with pytest.raises(server.ToolInputError, match=r"^'limit' must be an integer from 1 to 20\.$"):
+        server.bounded_limit(value, 20)
+
+
+def test_search_lexicon_example_names_only_new_testament_words():
+    tool = next(tool for tool in server.TOOLS if tool.name == "search_lexicon")
+    assert "erōs" not in tool.description and "agapē, agapaō, phileō" in tool.description
+
+
+def test_lexicon_entry_is_cleaned_and_compact():
+    from study_bible_mcp.tools import LEXICON_DEFINITION_LIMIT, format_lexicon_entry
+
+    synonyms = "SYN.: φιλία, friendship (test synonym note)."
+    entry = {
+        "strongs": "G9998", "word": "ἀγάπη", "transliteration": "agapē", "pronunciation": "agapē",
+        "language": "greek", "short_definition": "love &amp; esteem",
+        "full_definition": (
+            "** ἀγάπ-η**, ἡ, **love,** [LXX] **__2** **brotherly love, charity,** [NT] "
+            "**__II** **love-feast,** [NT] **alms** &#8212; Isis &gt; title"
+        ),
+        "abbott_smith_def": (
+            "[NT: 116x] Of divine love&#x200E;. " + "Sentence of commentary. " * 120
+            + f"**Synonyms**: {synonyms}"
+        ),
+        "synonyms": synonyms,
+        "usage_count": 116, "nt_occurrences": 116,
+    }
+    output = format_lexicon_entry(entry)
+    assert "&amp;" not in output and "&#" not in output and "\u200e" not in output
+    assert "### Brief Definition\nlove & esteem" in output
+    assert "**Pronunciation**" not in output  # same as the transliteration
+    # The Synonyms paragraph prints once, under its own heading.
+    assert output.count("friendship (test synonym note)") == 1
+    assert "### Synonyms\nSYN.: φιλία, friendship (test synonym note)." in output
+    # One usage line, not a Bible count and an equal NT count.
+    assert output.count("Occurs 116 times") == 1
+    assert "**Usage**: Occurs 116 times in the New Testament" in output
+    # The classical LSJ entry is reduced to its glosses beside Abbott-Smith.
+    assert "### LSJ Senses (Classical Greek)\nlove, brotherly love, charity, love-feast, alms" in output
+    assert "Full LSJ Definition" not in output
+    # A long definition is cut at a sentence end.
+    abbott = output[output.index("### Abbott-Smith"):output.index("### LSJ Senses")]
+    assert len(abbott) < LEXICON_DEFINITION_LIMIT + 200
+    assert "Sentence of commentary.\n\n*[Definition cut — the full entry is in Abbott-Smith]*" in abbott
