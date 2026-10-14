@@ -36,6 +36,7 @@ from .database import (
     StudyBibleDB,
     expand_single_chapter_reference,
     fold_ancient_search_text,
+    merge_english_verses,
 )
 from .hermeneutics import (
     format_genre_guidance,
@@ -83,6 +84,7 @@ from .tools import (
     mermaid_place_network,
     strongs_verse_note,
     verse_english,
+    verse_reference,
 )
 
 # Purple book with gold cross icon (32x32 PNG, base64 encoded)
@@ -271,7 +273,7 @@ async def handle_word_study(args: dict[str, Any]) -> list[TextContent]:
     if verses:
         result += f"\n\n## Example Passages{bsb_label(verses)}\n"
         for v in verses:
-            result += f"\n**{v['reference']}**: {verse_english(v)}\n"
+            result += f"\n**{verse_reference(v)}**: {verse_english(v)}\n"
 
     return text(result)
 
@@ -346,10 +348,15 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
 
     first, last = bounds[start_chapter]
     if not first <= start_verse <= last:
-        return text(
-            f"{book_name} {start_chapter} has no verse {start_verse} "
-            f"(verses {first}–{last})."
-        )
+        message = f"{book_name} {start_chapter} has no verse {start_verse} (verses {first}–{last})."
+        # 3 John 1:15 in Greek-numbered editions is part of the BSB's 1:14.
+        english = await db.english_verse_of_greek(book, start_chapter, start_verse)
+        if english:
+            message += (
+                f" The Greek text's {start_chapter}:{start_verse} is counted with "
+                f"{book_name} {english[0]}:{english[1]} here."
+            )
+        return text(message)
     if (end_chapter, end_verse) < (start_chapter, start_verse):
         return text(f"Invalid range '{reference}': the end comes before the start.")
 
@@ -362,7 +369,11 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
         )
         end_verse = chapter_end
 
-    rows = await db.get_passage(book, start_chapter, start_verse, end_chapter, end_verse)
+    # One block per English verse: a verse stored as several rows (two Hebrew
+    # superscription verses, a Greek fragment) shows its BSB text once.
+    rows = merge_english_verses(
+        await db.get_passage(book, start_chapter, start_verse, end_chapter, end_verse)
+    )
     if not rows:
         return text(f"No verse text on file for {reference}.")
 
@@ -1254,7 +1265,7 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
 
     if verses:
         for v in verses:
-            result += f"**{v['reference']}**: {verse_english(v)}{strongs_verse_note(v, strongs)}\n\n"
+            result += f"**{verse_reference(v)}**: {verse_english(v)}{strongs_verse_note(v, strongs)}\n\n"
     else:
         result += "No verses found with this Strong's number in the database.\n"
 
@@ -1349,7 +1360,9 @@ async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent
 
         # Show passage text (truncated if very long): the BSB when loaded
         if "preview_verses" in passage:
-            passage_text = " ".join(verse_english(v) for v in passage["preview_verses"])
+            passage_text = " ".join(
+                verse_english(v) for v in merge_english_verses(passage["preview_verses"])
+            )
         else:
             passage_text = passage["text_combined"]
         passage_text = _truncate(passage_text, 500, "...")
@@ -1704,21 +1717,14 @@ async def handle_people_in_passage(args: dict[str, Any]) -> list[TextContent]:
     if not reference:
         return text("Please provide a Bible reference (e.g., 'Romans 8' or 'Genesis 22:1').")
 
-    # Determine if this is a chapter or verse reference
-    ref_stripped = reference.strip()
-    has_verse = ":" in ref_stripped
-
-    if has_verse:
-        # Verse-level: normalize and query
-        normalized = db._normalize_reference(ref_stripped)
-        entities = await db.graph_get_verse_entities(normalized)
-    else:
-        # Chapter-level: parse book (including multi-word names) and chapter
-        parsed = _parse_single_chapter(ref_stripped)
-        if parsed:
-            entities = await db.graph_get_chapter_entities(*parsed)
-        else:
-            return text(f"Could not parse reference: {reference}. Use 'Romans 8' or 'Genesis 22:1' format.")
+    # A verse, verse range, chapter, or chapter range ('Psalm 23-24').
+    parsed = StudyBibleDB.parse_passage_reference(reference.strip())
+    if not parsed:
+        return text(f"Could not parse reference: {reference}. Use 'Romans 8' or 'Genesis 22:1' format.")
+    entities = await db.graph_get_passage_entities(
+        parsed["book"], parsed["start_chapter"], parsed["start_verse"],
+        parsed["end_chapter"], parsed["end_verse"],
+    )
 
     result = format_passage_entities(reference, entities)
     return text(result)
@@ -1824,6 +1830,16 @@ async def handle_graph_enriched_search(args: dict[str, Any]) -> list[TextContent
     reference = args.get("reference", "")
     if not reference:
         return text("Please provide a verse reference (e.g., 'Genesis 22:1').")
+    parsed = db.parse_passage_reference(reference)
+    if parsed and (
+        parsed["start_verse"] is None
+        or (parsed["start_chapter"], parsed["start_verse"]) != (parsed["end_chapter"], parsed["end_verse"])
+    ):
+        return text(
+            f"graph_enriched_search takes a single verse (e.g. '{parsed['book_name']} "
+            f"{parsed['start_chapter']}:{parsed['start_verse'] or 1}'). For the people, places, "
+            f"and events of {reference} use people_in_passage (reference='{reference}')."
+        )
 
     # Get the verse text
     verse = await db.get_verse(reference)
@@ -1893,6 +1909,14 @@ async def handle_get_theology_context(args: dict[str, Any]) -> list[TextContent]
     return text(result)
 
 
+_TORAH_BOOKS = ("Gen", "Exo", "Lev", "Num", "Deu")
+
+
+def _torah_unit_line(unit: dict) -> str:
+    cells = ", ".join(f"{cell['cell_label']} {cell['verse_range']}" for cell in unit["cells"])
+    return f'- Unit {unit["id"]} · "{unit["title"]}" ({unit["verses"]}); cells: {cells}'
+
+
 async def handle_get_torah_weave(args: dict[str, Any]) -> list[TextContent]:
     """Handle get_torah_weave tool — Moshe Kline's Woven Torah structural partners."""
     reference = args.get("reference", "")
@@ -1906,22 +1930,75 @@ async def handle_get_torah_weave(args: dict[str, Any]) -> list[TextContent]:
             "'python scripts/import_torah_weave.py' to import it."
         )
 
-    matches = await db.get_torah_weave_cells_for_reference(reference)
-    if not matches:
+    parsed = db.parse_passage_reference(reference)
+    if parsed is None:
         return text(
-            f"No Torah Weave unit contains {reference}. "
-            "Torah Weave data covers Genesis–Deuteronomy only."
+            f"Could not read '{reference}' as a Bible reference. Give a verse such as "
+            "'Leviticus 19:18', or a chapter such as 'Leviticus 19'."
         )
+    book = parsed["book"]
+    if book not in _TORAH_BOOKS:
+        return text(f"Torah Weave data covers Genesis–Deuteronomy only; {reference} is outside it.")
+    start_chapter, end_chapter = parsed["start_chapter"], parsed["end_chapter"]
+    start_verse, end_verse = parsed["start_verse"], parsed["end_verse"]
+    single = start_verse is not None and (start_chapter, start_verse) == (end_chapter, end_verse)
+    if single:
+        matches = await db.get_torah_weave_cells_for_reference(reference)
+        if matches:
+            # Fetch full cell sets for each unique unit (needed to compute partners)
+            unit_ids = {m["unit_id"] for m in matches}
+            unit_cells_by_unit: dict[int, list[dict]] = {}
+            for unit_id in unit_ids:
+                unit_cells_by_unit[unit_id] = await db.get_torah_weave_unit_cells(unit_id)
+            return text(format_torah_weave(
+                reference, matches, unit_cells_by_unit, explain=bool(args.get("explain", False))
+            ))
 
-    # Fetch full cell sets for each unique unit (needed to compute partners)
-    unit_ids = {m["unit_id"] for m in matches}
-    unit_cells_by_unit: dict[int, list[dict]] = {}
-    for unit_id in unit_ids:
-        unit_cells_by_unit[unit_id] = await db.get_torah_weave_unit_cells(unit_id)
+    # No cell: say whether the verse exists, and which unit (if any) holds it.
+    bounds = await db.get_chapter_verse_bounds(book)
+    if bounds:
+        for chapter in (start_chapter, end_chapter):
+            if chapter not in bounds:
+                return text(
+                    f"{parsed['book_name']} has no chapter {chapter} "
+                    f"(chapters {min(bounds)}–{max(bounds)})."
+                )
+        first, last = bounds[start_chapter]
+        if start_verse is not None and not first <= start_verse <= last:
+            return text(
+                f"{parsed['book_name']} {start_chapter} has no verse {start_verse} "
+                f"(verses {first}–{last})."
+            )
 
-    result = format_torah_weave(
-        reference, matches, unit_cells_by_unit, explain=bool(args.get("explain", False))
+    start = (start_chapter, start_verse if start_verse is not None else bounds.get(start_chapter, (1, 1))[0])
+    end = (end_chapter, end_verse if end_verse is not None else bounds.get(end_chapter, (1, 999))[1])
+    units = await db.get_torah_weave_units_in_passage(book, start, end)
+    if single:
+        if not units:
+            return text(f"No Torah Weave unit in Kline's dataset contains {reference}.")
+        return text(
+            f"{reference} is in the unit below, but Kline's cell map assigns it to no cell, "
+            "so it has no weave partners. The unit's cells (verse ranges in English "
+            "numbering) can be looked up one verse at a time:\n\n"
+            + "\n".join(_torah_unit_line(unit) for unit in units)
+        )
+    if not units:
+        return text(f"No Torah Weave unit in Kline's dataset falls within {reference}.")
+    result = f"## Torah Weave units in {reference}\n\n" + "\n".join(
+        _torah_unit_line(unit) for unit in units
     )
+    # Suggest the first verse of the passage that sits in a cell.
+    example = next((
+        max(start, (cell["chapter_start"], cell["verse_start"]))
+        for unit in units for cell in unit["cells"]
+        if (cell["chapter_start"], cell["verse_start"]) <= end
+        and start <= (cell["chapter_end"], cell["verse_end"])
+    ), None)
+    if example:
+        result += (
+            "\n\nWeave partners are per cell: pass one verse (e.g. reference='"
+            f"{parsed['book_name']} {example[0]}:{example[1]}') for its cell and partners."
+        )
     return text(result)
 
 

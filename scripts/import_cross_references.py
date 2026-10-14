@@ -7,6 +7,8 @@ the `type` column distinguishing provenance:
 * CH  — Harrison & Romhild's curated dataset (~82k pairs).
         Source xlsx: data/cross_references/CH-CrossReference.xlsx
         relevance = Orig*2 + Circ  (range 0..3)
+        Its Hebrew verse numbers are renumbered to English with the
+        `verses` table, so run scripts/build_database.py first.
 
 * TSK — Treasury of Scripture Knowledge via openbible.info (~340k pairs).
         Source tsv: data/cross_references/cross_references.txt
@@ -26,8 +28,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from study_bible_mcp.parsers.cross_references import (  # noqa: E402
+    EnglishNumbering,
     parse_ch_xlsx,
     parse_tsk_tsv,
+    renumber_pairs,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -81,9 +85,14 @@ def import_ch(conn: sqlite3.Connection) -> int:
         return 0
 
     print(f"[CH] importing from {CH_PATH.name} ...")
+    references = [ref for (ref,) in conn.execute("SELECT reference FROM verses ORDER BY id")]
+    if not references:
+        print("[CH] the verses table is empty (run scripts/build_database.py) — skipping")
+        return 0
+    numbering = EnglishNumbering(references)
     batch: list[tuple[str, str, str, int]] = []
     total = 0
-    for source, target, relevance in parse_ch_xlsx(CH_PATH):
+    for source, target, relevance in renumber_pairs(parse_ch_xlsx(CH_PATH), numbering.from_hebrew):
         batch.append((source, target, "ch", relevance))
         if len(batch) >= BATCH_SIZE:
             bulk_insert(conn, batch)
@@ -106,7 +115,7 @@ def import_tsk(conn: sqlite3.Connection) -> int:
     print(f"[TSK] importing from {TSK_PATH.name} ...")
     batch: list[tuple[str, str, str, int]] = []
     total = 0
-    for source, target, relevance in parse_tsk_tsv(TSK_PATH):
+    for source, target, relevance in renumber_pairs(parse_tsk_tsv(TSK_PATH), lambda ref: ref):
         batch.append((source, target, "tsk", relevance))
         if len(batch) >= BATCH_SIZE:
             bulk_insert(conn, batch)

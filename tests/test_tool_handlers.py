@@ -1107,11 +1107,16 @@ async def test_torah_weave_reading_guide_only_on_request(db):
 
 
 async def test_torah_weave_graceful_messages(db):
-    for reference in ("Matthew 5:1", "Exodus 3:1", "Genesis"):
-        assert await call("get_torah_weave", reference=reference) == (
-            f"No Torah Weave unit contains {reference}. "
-            "Torah Weave data covers Genesis–Deuteronomy only."
-        )
+    assert await call("get_torah_weave", reference="Matthew 5:1") == (
+        "Torah Weave data covers Genesis–Deuteronomy only; Matthew 5:1 is outside it."
+    )
+    assert await call("get_torah_weave", reference="Exodus 3:1") == (
+        "No Torah Weave unit in Kline's dataset contains Exodus 3:1."
+    )
+    assert await call("get_torah_weave", reference="Genesis") == (
+        "Could not read 'Genesis' as a Bible reference. Give a verse such as "
+        "'Leviticus 19:18', or a chapter such as 'Leviticus 19'."
+    )
     assert (
         await call("get_torah_weave", reference="")
         == "Please provide a Bible reference in Genesis–Deuteronomy."
