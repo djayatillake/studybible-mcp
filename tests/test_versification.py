@@ -250,7 +250,7 @@ def test_a_run_of_verses_one_behind_brenton_is_realigned():
 
 
 def test_another_english_version_vetoes_a_move_brentons_english_does_not_share():
-    # Brenton's Greek is a verse out from his English (as in his Psalm 12).
+    # Brenton's Greek is a verse out from his English (as eBible's Psalm 12 was, uncorrected).
     verses = [SIRACH_1_1, SIRACH_1_2, SIRACH_1_3]
     rahlfs = list(zip(("12:1", "12:2", "12:3"), verses))
     greek = {"12:1": SIRACH_PROLOGUE, **dict(zip(("12:2", "12:3", "12:4"), verses))}

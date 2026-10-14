@@ -4,7 +4,7 @@
 compare_biblical_versions shows Brenton's English beside the Rahlfs Septuagint
 and flags "Brenton's Greek differs" where the Greek his English translates
 differs from Rahlfs. Both come from eBible's Brenton USFM files at import time
-(study_bible_mcp.parsers.biblical_versions), and three faults put the wrong
+(study_bible_mcp.parsers.biblical_versions), and four faults put the wrong
 text beside some verses:
 
 * eBible's Greek repeats a few verses by mistake (Numbers 34:10 is a copy of
@@ -14,6 +14,10 @@ text beside some verses:
 * Where Brenton numbers a passage differently, a Rahlfs verse whose own
   number went to another verse kept that verse's English and Greek
   (4 Maccabees 8:1 showed 8:2's), instead of the Brenton verse that holds it.
+* eBible's Greek Psalm 12 lacks the marker of verse 2, so its verses 2-6
+  were numbered one behind Brenton's English (now corrected before parsing,
+  BRENTON_USFM_CORRECTIONS), and Psalm 13:4 (Greek 12:5) was compared with
+  Greek one verse out.
 * Section headings with a level number (\\s1) were read as verse text.
 
 The rows that differ from a fresh import of the pinned sources are updated

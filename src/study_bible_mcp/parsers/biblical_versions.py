@@ -313,6 +313,45 @@ def _usfm_verses(content: str) -> dict[str, list[str]]:
     return verses
 
 
+# Corrections to eBible's Brenton USFM (the pinned files), applied before it
+# is parsed: the book, why, and each (text as eBible has it, corrected text).
+# A correction applies only where every one of its texts occurs exactly once;
+# a file with none of them (a corrected upstream file, the other language) is
+# left alone, and a file with only some of them is an error.
+BRENTON_USFM_CORRECTIONS: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = (
+    (
+        "PSA",
+        "eBible's Greek Psalm 12 (20-PSAgrcbrent.usfm) lacks the marker of verse 2: its "
+        "words stand in a paragraph of verse 1, the title, so verses 3-5 are numbered 2-4 "
+        "and verse 6 is split between 5 and 6. Brenton's English and Rahlfs number the "
+        "Psalm 1-6, with 'I will sing to the Lord' in verse 6.",
+        (
+            ("\\p Ἕως πότε Κύριε ἐπιλήσῃ μου,", "\\p\n\\v 2 Ἕως πότε Κύριε ἐπιλήσῃ μου,"),
+            ("\\v 2 Ἕως τίνος θήσομαι", "\\v 3 Ἕως τίνος θήσομαι"),
+            ("\\v 3 Ἐπίβλεψον, εἰσάκουσόν μου", "\\v 4 Ἐπίβλεψον, εἰσάκουσόν μου"),
+            ("\\v 4 μή ποτε εἴποι", "\\v 5 μή ποτε εἴποι"),
+            ("\\v 5 Ἐγὼ δὲ ἐπὶ τῷ ἐλέει σου ἤλπισα", "\\v 6 Ἐγὼ δὲ ἐπὶ τῷ ἐλέει σου ἤλπισα"),
+            ("\\v 6 Ἄσω τῷ Κυρίῳ τῷ εὐεργετήσαντί με", "Ἄσω τῷ Κυρίῳ τῷ εὐεργετήσαντί με"),
+        ),
+    ),
+)
+
+
+def correct_brenton_usfm(book: str, content: str) -> str:
+    """Apply BRENTON_USFM_CORRECTIONS for ``book`` to one USFM file's content."""
+    for code, reason, replacements in BRENTON_USFM_CORRECTIONS:
+        if code != book:
+            continue
+        counts = [content.count(old) for old, _ in replacements]
+        if not any(counts):
+            continue
+        if counts != [1] * len(replacements):
+            raise ValueError(f"{book} USFM no longer matches its correction ({reason})")
+        for old, new in replacements:
+            content = content.replace(old, new)
+    return content
+
+
 def parse_brenton_usfm(directory: Path) -> dict[tuple[str, str], str]:
     """Read eBible's Brenton USFM files into (book code, chapter:verse) text.
 
@@ -320,7 +359,8 @@ def parse_brenton_usfm(directory: Path) -> dict[tuple[str, str], str]:
     marker, across paragraph and poetry markers (\\p, \\q1, \\m, \\nb, ...),
     wherever in a line the markers stand. Headings, titles, introductions,
     notes and cross-references are left out; character markup (\\add, \\nd,
-    \\+it, \\w ...|lemma\\w*) keeps its words.
+    \\+it, \\w ...|lemma\\w*) keeps its words. Known errors in eBible's
+    files are corrected first (BRENTON_USFM_CORRECTIONS).
     """
     translations: dict[tuple[str, str], str] = {}
     for path in sorted(directory.glob("*.usfm")):
@@ -329,7 +369,7 @@ def parse_brenton_usfm(directory: Path) -> dict[tuple[str, str], str]:
         if not id_match:
             continue
         book = id_match.group(1)
-        for reference, pieces in _usfm_verses(content).items():
+        for reference, pieces in _usfm_verses(correct_brenton_usfm(book, content)).items():
             translations[(book, reference)] = re.sub(r"\s+", " ", "".join(pieces)).strip()
     return translations
 
@@ -912,8 +952,9 @@ def align_brenton_keys(
     rarity, so refrains (Daniel 3's "bless the Lord") do not make verses
     match. ``reference_english`` (another English version of a Rahlfs verse:
     the BSB of its MT verse) vetoes a move whose English is further from it
-    than the English of the verse's own number: Brenton's Greek Psalm 12 is a
-    verse out from his English, which is not.
+    than the English of the verse's own number, where Brenton's Greek is a
+    verse out from his English, which is not (eBible's Greek Psalm 12 was,
+    until BRENTON_USFM_CORRECTIONS restored its verse 2).
     """
     reference_english = reference_english or {}
     rahlfs_words = {ref: frozenset(normalize_greek_text(text)) for ref, text in rahlfs}

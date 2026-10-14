@@ -313,6 +313,81 @@ def test_usfm_character_markup_keeps_its_words(tmp_path):
     }
 
 
+# eBible's Greek Psalm 12 as pinned: verse 2 has no marker (see BRENTON_USFM_CORRECTIONS).
+EBIBLE_GREEK_PSALM_12 = (
+    "\\c 12  \n\\d\n\\v 1 Εἰς τὸ τέλος, ψαλμὸς τῷ Δαυίδ.  \n"
+    "\\p Ἕως πότε Κύριε ἐπιλήσῃ μου, εἰς τέλος; ἕως πότε ἀποστρέψεις τὸ πρόσωπόν σου ἀπʼ ἐμοῦ;  \n"
+    "\\v 2 Ἕως τίνος θήσομαι βουλὰς ἐν ψυχῇ μου, ὀδύνας ἐν καρδίᾳ μου ἡμέρας; "
+    "ἕως πότε ὑψωθήσεται ὁ ἐχθρός μου ἐπʼ ἐμέ;  \n"
+    "\\v 3 Ἐπίβλεψον, εἰσάκουσόν μου, Κύριε ὁ Θεός μου· φώτισον τοὺς ὀφθαλμούς μου, "
+    "μή ποτε ὑπνώσω εἰς θάνατον·  \n"
+    "\\v 4 μή ποτε εἴποι ὁ ἐχθρός μου, ἴσχυσα πρὸς αὐτόν· οἱ θλίβοντές με ἀγαλλιάσονται ἐὰν σαλευθῶ.   \n"
+    "\\p\n\\v 5 Ἐγὼ δὲ ἐπὶ τῷ ἐλέει σου ἤλπισα· ἀγαλλιάσεται ἡ καρδία μου ἐν τῷ σωτηρίῳ σου.  \n"
+    "\\v 6 Ἄσω τῷ Κυρίῳ τῷ εὐεργετήσαντί με, καὶ ψαλῶ τῷ ὀνόματι Κυρίου τοῦ ὑψίστου.   \n"
+)
+
+
+def test_ebibles_greek_psalm_12_gets_back_its_verse_2(tmp_path):
+    (tmp_path / "20-PSAgrcbrent.usfm").write_text(
+        f"\\id PSA - Brenton Greek Text\n{EBIBLE_GREEK_PSALM_12}", encoding="utf-8"
+    )
+    verses = {reference: text for (_, reference), text in parse_brenton_usfm(tmp_path).items()}
+    assert {reference: text.split()[0] for reference, text in verses.items()} == {
+        "12:1": "Εἰς", "12:2": "Ἕως", "12:3": "Ἕως", "12:4": "Ἐπίβλεψον,", "12:5": "μή", "12:6": "Ἐγὼ",
+    }
+    assert verses["12:2"].endswith("ἀπʼ ἐμοῦ;")
+    assert verses["12:6"].endswith("ἐν τῷ σωτηρίῳ σου. Ἄσω τῷ Κυρίῳ τῷ εὐεργετήσαντί με, καὶ ψαλῶ "
+                                   "τῷ ὀνόματι Κυρίου τοῦ ὑψίστου.")
+
+
+def test_psalm_12_is_compared_verse_by_verse_with_its_corrected_greek(tmp_path):
+    greek_dir = tmp_path / "greek"
+    greek_dir.mkdir()
+    (greek_dir / "20-PSAgrcbrent.usfm").write_text(
+        f"\\id PSA - Brenton Greek Text\n{EBIBLE_GREEK_PSALM_12}", encoding="utf-8"
+    )
+    rahlfs = {
+        "12:1": "εἰς τὸ τέλος ψαλμὸς τῷ Δαυιδ",
+        "12:2": "ἕως πότε κύριε ἐπιλήσῃ μου εἰς τέλος ἕως πότε ἀποστρέψεις τὸ πρόσωπόν σου ἀπ᾿ ἐμοῦ",
+        "12:3": "ἕως τίνος θήσομαι βουλὰς ἐν ψυχῇ μου ὀδύνας ἐν καρδίᾳ μου ἡμέρας ἕως πότε "
+                "ὑψωθήσεται ὁ ἐχθρός μου ἐπ᾿ ἐμέ",
+        "12:4": "ἐπίβλεψον εἰσάκουσόν μου κύριε ὁ θεός μου φώτισον τοὺς ὀφθαλμούς μου μήποτε "
+                "ὑπνώσω εἰς θάνατον",
+        "12:5": "μήποτε εἴπῃ ὁ ἐχθρός μου ἴσχυσα πρὸς αὐτόν οἱ θλίβοντές με ἀγαλλιάσονται ἐὰν σαλευθῶ",
+        "12:6": "ἐγὼ δὲ ἐπὶ τῷ ἐλέει σου ἤλπισα ἀγαλλιάσεται ἡ καρδία μου ἐπὶ τῷ σωτηρίῳ σου ᾄσω "
+                "τῷ κυρίῳ τῷ εὐεργετήσαντί με καὶ ψαλῶ τῷ ὀνόματι κυρίου τοῦ ὑψίστου",
+    }
+    morphology_dir = tmp_path / "morphology"
+    morphology_dir.mkdir()
+    (morphology_dir / "psalms-lxx.json").write_text(json.dumps(
+        [{"ref": f"Ps {ref}", "words": _words(text)} for ref, text in rahlfs.items()]
+    ), encoding="utf-8")
+    english = {("PSA", ref): f"Brenton's English of {ref}." for ref in rahlfs}
+
+    rows = {
+        row["edition_reference"]: row
+        for row in (dict(zip(LXX_ROW_FIELDS, values)) for values in iter_lxx_rows(
+            morphology_dir, {}, english, parse_brenton_usfm(greek_dir)
+        ))
+    }
+    assert {ref: row["brenton_greek_differs"] for ref, row in rows.items()} == {
+        "Psa.12.1": 0, "Psa.12.2": 0, "Psa.12.3": 0, "Psa.12.4": 0, "Psa.12.5": 1, "Psa.12.6": 1,
+    }
+    assert rows["Psa.12.5"]["brenton_greek_difference"] == "Brenton's Greek reads εἴποι for εἴπῃ"
+    assert rows["Psa.12.6"]["brenton_greek_difference"] == "Brenton's Greek reads ἐν for ἐπὶ"
+
+
+def test_a_usfm_correction_applies_only_to_the_text_it_was_written_for():
+    # A file that is already right (or another book or language) is left alone.
+    assert biblical_versions_module.correct_brenton_usfm("PSA", "\\c 12\n\\v 1 For the end.\n") == (
+        "\\c 12\n\\v 1 For the end.\n"
+    )
+    assert biblical_versions_module.correct_brenton_usfm("GEN", EBIBLE_GREEK_PSALM_12) == EBIBLE_GREEK_PSALM_12
+    # A file holding only part of the text it corrects has changed: stop.
+    with pytest.raises(ValueError, match="no longer matches"):
+        biblical_versions_module.correct_brenton_usfm("PSA", EBIBLE_GREEK_PSALM_12.replace("\\v 4 μή", "\\v 5 μή"))
+
+
 def test_brenton_is_attached_only_to_its_own_recension(tmp_path):
     morphology_dir = tmp_path / "morphology"
     morphology_dir.mkdir()
