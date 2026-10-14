@@ -4,6 +4,7 @@ import pytest
 
 from study_bible_mcp.corpora import editorial_notes
 
+
 # Fixture corpora are imported without the committed notes file, whose
 # citations target the real texts (test_ancient_labelling checks the file).
 @pytest.fixture(autouse=True)

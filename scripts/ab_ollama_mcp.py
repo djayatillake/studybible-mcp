@@ -13,11 +13,16 @@ Usage:
 
 The MCP server is the remote SSE endpoint the repo already uses.
 """
-import asyncio, json, os, sys, time, contextlib
+import asyncio
+import contextlib
+import json
+import os
+import sys
+import time
 
+import ollama
 from mcp import ClientSession
 from mcp.client.sse import sse_client
-import ollama
 
 SSE_URL = os.environ.get("SSE_URL", "https://studybible-mcp.fly.dev/sse")
 

@@ -5,10 +5,8 @@ Tests _parse_key_ref_books_chapters() and _refine_broad_entries() in server.py.
 """
 
 import json
-import pytest
 
 from study_bible_mcp.server import _parse_key_ref_books_chapters, _refine_broad_entries
-
 
 # ---------------------------------------------------------------------------
 # _parse_key_ref_books_chapters

@@ -12,8 +12,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
-from study_bible_mcp.database import INTERPRETIVE_CASE_KEYS, create_schema
 from import_heiser_content import import_textual_variant_record
+
+from study_bible_mcp.database import INTERPRETIVE_CASE_KEYS, create_schema
 
 
 def _table_exists(conn: sqlite3.Connection, table: str) -> bool:

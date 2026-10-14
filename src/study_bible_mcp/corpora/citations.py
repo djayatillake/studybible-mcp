@@ -6,7 +6,7 @@ import re
 import unicodedata
 from collections.abc import Iterable
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import cache
 
 from .base import Corpus, Work
 from .locators import SortRange
@@ -44,7 +44,7 @@ class Resolution:
     candidates: tuple[CitationMatch, ...] = ()
 
 
-@lru_cache(maxsize=None)
+@cache
 def _name_regex(name: str) -> re.Pattern[str]:
     """Match a name ignoring case, punctuation, dashes and spacing ('A.J.' ~ 'AJ', 'Tg. Onq.' ~ 'Tg Onq')."""
     tokens = re.findall(r"[^\W_]+", name.lower())

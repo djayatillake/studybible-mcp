@@ -10,12 +10,14 @@ every dataset. CI checks what it can. The rest is in the pull-request checklist.
 ```bash
 uv sync --extra dev --extra sse
 uv run pytest -q
+uv run ruff check src tests scripts
 ```
 
 The suite takes about ten seconds. Every test builds its own temporary database.
 No test touches the network or the production database. CI runs it on Python
-3.10 and 3.11 for every pull request. CI also builds the Docker image and reports
-`ruff` findings, which are advisory for now.
+3.10 and 3.11 for every pull request. CI also builds the Docker image and runs
+`ruff`, which must pass; `uv run ruff check --fix src tests scripts` fixes most
+findings.
 
 `tests/test_contracts.py` checks the rules below that can be checked
 automatically: tool annotations, the tool-description budget, default result

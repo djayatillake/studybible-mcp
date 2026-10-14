@@ -15,8 +15,8 @@ Each entity file contains structured data including:
 """
 
 import json
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 
 def parse_acai_entities(filepath: Path, entity_type: str) -> Iterator[dict]:
@@ -29,7 +29,7 @@ def parse_acai_entities(filepath: Path, entity_type: str) -> Iterator[dict]:
     Yields:
         Dicts ready for database insertion into acai_entities table.
     """
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         data = json.load(f)
 
     # Handle both single entity and array formats

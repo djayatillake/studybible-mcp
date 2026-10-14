@@ -74,8 +74,14 @@ target-version = ["py310", "py311", "py312"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
 ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Scripts put src/ and scripts/ on sys.path before importing the project.
+"scripts/*" = ["E402"]
 
 [tool.mypy]
 python_version = "3.10"

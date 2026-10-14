@@ -6,9 +6,8 @@ entry dicts with book mappings ready for database insertion.
 """
 
 import json
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
-
 
 # Map period keys to display labels
 PERIOD_LABELS = {
@@ -35,7 +34,7 @@ def parse_ane_context_file(filepath: Path) -> Iterator[dict]:
         entry_dict has all fields for ane_entries table.
         book_mappings_list is a list of dicts with entry_id, book, chapter_start, chapter_end.
     """
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         data = json.load(f)
 
     dimension = data.get("dimension", "")

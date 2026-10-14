@@ -17,8 +17,8 @@ Example: Aaron@Exo.4.14-Heb=H0175	High Priest living at the time of Egypt and Wi
 
 import json
 import re
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 
 def parse_tipnr(filepath: Path) -> Iterator[dict]:
@@ -35,7 +35,7 @@ def parse_tipnr(filepath: Path) -> Iterator[dict]:
     # The TIPNR file primarily contains persons
     current_section = "person"
 
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         for line in f:
             line = line.rstrip('\n\r')
 

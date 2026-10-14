@@ -42,7 +42,7 @@ jobs:
           print(len(TOOLS), 'tools registered')"
 
   lint:
-    name: Lint (advisory)
+    name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -53,11 +53,9 @@ jobs:
           enable-cache: true
       - name: Install
         run: uv sync --locked --extra dev
-      - name: Ruff (reported, not yet enforced)
-        run: |
-          if ! uv run ruff check --statistics src tests scripts; then
-            echo "::warning::ruff reported issues; lint is advisory until the existing code is cleaned up"
-          fi
+      - name: Ruff
+        # Fix most findings with: uv run ruff check --fix src tests scripts
+        run: uv run ruff check --output-format github src tests scripts
 
   docker:
     name: Docker image builds

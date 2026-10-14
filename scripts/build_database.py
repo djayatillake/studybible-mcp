@@ -9,29 +9,30 @@ This script:
 4. Creates indexes for fast lookups
 """
 
-import json
 import sqlite3
 import sys
 from pathlib import Path
 
 import click
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from study_bible_mcp.database import create_schema
-from study_bible_mcp.parsers.lexicon import (
-    parse_greek_lexicon, parse_hebrew_lexicon,
-    parse_tflsj_lexicon, parse_bdb_lexicon,
-    parse_abbott_smith,
-)
-from study_bible_mcp.parsers.tagged_text import parse_tagnt, parse_tahot, parse_morphology_codes
-from study_bible_mcp.parsers.proper_names import parse_tipnr
-from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
 from study_bible_mcp.corpora import CORPORA
+from study_bible_mcp.database import create_schema
 from study_bible_mcp.parsers.ancient_sources import import_available_corpora
+from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
+from study_bible_mcp.parsers.lexicon import (
+    parse_abbott_smith,
+    parse_bdb_lexicon,
+    parse_greek_lexicon,
+    parse_hebrew_lexicon,
+    parse_tflsj_lexicon,
+)
+from study_bible_mcp.parsers.proper_names import parse_tipnr
+from study_bible_mcp.parsers.tagged_text import parse_morphology_codes, parse_tagnt, parse_tahot
 
 console = Console()
 
@@ -100,7 +101,7 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
             console.print(f"[yellow]Removing existing database: {db_path}[/yellow]")
             db_path.unlink()
         else:
-            console.print(f"[yellow]Database exists. Use --rebuild to recreate.[/yellow]")
+            console.print("[yellow]Database exists. Use --rebuild to recreate.[/yellow]")
             return True
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -550,7 +551,6 @@ def build_passages(conn: sqlite3.Connection):
         return
 
     passages = []
-    current_passage_start = None
     current_passage_verses = []
     current_book = None
 
@@ -562,7 +562,6 @@ def build_passages(conn: sqlite3.Connection):
             if current_passage_verses:
                 passages.append(build_passage_entry(current_passage_verses, None))
             current_passage_verses = []
-            current_passage_start = None
 
         current_book = book
 

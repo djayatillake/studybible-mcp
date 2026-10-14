@@ -5,6 +5,7 @@ Uses SQLite with async access via aiosqlite.
 """
 
 import json
+import logging
 import re
 import sqlite3
 import struct
@@ -14,7 +15,6 @@ from pathlib import Path
 from typing import Any
 
 import aiosqlite
-import logging
 
 from .parsers.biblical_versions import (
     BRENTON_GREEK_SOURCE_URL,
@@ -495,20 +495,20 @@ class StudyBibleDB:
         except Exception as e:
             self._vec_error = f"Failed to load sqlite-vec extension: {e}"
             logger.warning(self._vec_error)
-    
+
     async def close(self):
         """Close database connection."""
         if self.conn:
             await self.conn.close()
             self.conn = None
-    
+
     async def __aenter__(self):
         await self.connect()
         return self
-    
+
     async def __aexit__(self, *args):
         await self.close()
-    
+
     async def _fetchall(self, sql: str, params: tuple | list = ()) -> list[dict]:
         """Execute SQL and return all rows as dicts."""
         async with self.conn.execute(sql, params) as cursor:
@@ -532,7 +532,7 @@ class StudyBibleDB:
     # =========================================================================
     # Lexicon queries
     # =========================================================================
-    
+
     @staticmethod
     def _normalize_strongs(strongs: str) -> str:
         """Normalize Strong's number to match DB format (G26 -> G0026, h430g -> H0430G)."""
@@ -554,7 +554,7 @@ class StudyBibleDB:
                 "SELECT * FROM lexicon WHERE strongs = ?", (strongs[:-1],)
             )
         return entry
-    
+
     async def search_lexicon(
         self,
         query: str,
@@ -563,7 +563,7 @@ class StudyBibleDB:
     ) -> list[dict]:
         """Search lexicon by definition, transliteration, or word."""
         query_lower = f"%{query.lower()}%"
-        
+
         sql = """
             SELECT * FROM lexicon
             WHERE (
@@ -575,21 +575,21 @@ class StudyBibleDB:
             )
         """
         params = [query_lower, query_lower, query_lower, query_lower, query_lower]
-        
+
         if language:
             sql += " AND language = ?"
             params.append(language.lower())
-        
+
         sql += " ORDER BY usage_count DESC LIMIT ?"
         params.append(limit)
         return await self._fetchall(sql, params)
-    
+
     async def get_related_words(self, strongs: str) -> list[dict]:
         """Get words related to a Strong's number."""
         entry = await self.get_lexicon_entry(strongs)
         if not entry or not entry.get('related_words'):
             return []
-        
+
         try:
             related = json.loads(entry['related_words'])
             results = []
@@ -601,16 +601,16 @@ class StudyBibleDB:
             return results
         except Exception:
             return []
-    
+
     # =========================================================================
     # Verse queries
     # =========================================================================
-    
+
     def _normalize_reference(self, reference: str) -> str:
         """Normalize a Bible reference to database format."""
         # Handle common variations: "John 3:16" -> "Jhn.3.16"
         # This is a simplified version - expand as needed
-        
+
         # Parse reference like "John 3:16", "Gen. 15:6" or "1 Corinthians 13:4-7"
         match = re.match(
             r'^(\d?\s*[a-zA-Z]+(?:\s+[a-zA-Z]+)*)\.?\s*(\d+):(\d+[a-z]?)(?:-(\d+[a-z]?))?$',
@@ -622,9 +622,9 @@ class StudyBibleDB:
             book, chapter, verse_start, verse_end = match.groups()
             book_abbr = book_code(book) or book[:3].title()
             return f"{book_abbr}.{chapter}.{verse_start.lower()}"
-        
+
         return reference
-    
+
     async def get_verse(self, reference: str) -> dict | None:
         """Get a verse by reference.
 
@@ -645,7 +645,7 @@ class StudyBibleDB:
             "SELECT * FROM verses WHERE book = ? AND chapter = ? AND verse = ? ORDER BY id LIMIT 1",
             (parts[0], int(parts[1]), int(parts[2])),
         )
-    
+
     async def get_verses_with_strongs(self, strongs: str, limit: int = 20) -> list[dict]:
         """Find verses containing a specific Strong's number.
 
@@ -778,11 +778,11 @@ class StudyBibleDB:
                     hits.append({**row, "passage_side": side})
                     break
         return hits
-    
+
     # =========================================================================
     # Cross-reference queries
     # =========================================================================
-    
+
     async def get_cross_references(
         self,
         reference: str,
@@ -944,22 +944,22 @@ class StudyBibleDB:
             "SELECT * FROM thematic_references WHERE theme = ? OR theme LIKE ?",
             (theme_lower, f"%{theme_lower}%"),
         )
-    
+
     # =========================================================================
     # Name queries
     # =========================================================================
-    
+
     async def lookup_name(self, name: str, name_type: str | None = None) -> list[dict]:
         """Look up a biblical name."""
         name_pattern = f"%{name}%"
         if name_type:
             return await self._fetchall("SELECT * FROM names WHERE name LIKE ? AND type = ?", (name_pattern, name_type))
         return await self._fetchall("SELECT * FROM names WHERE name LIKE ?", (name_pattern,))
-    
+
     # =========================================================================
     # Morphology queries
     # =========================================================================
-    
+
     async def get_morphology(self, code: str, language: str = "greek") -> dict | None:
         """Get morphology parsing for a code."""
         return await self._fetchone("SELECT * FROM morphology WHERE code = ? AND language = ?", (code, language.lower()))

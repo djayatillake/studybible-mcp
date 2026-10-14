@@ -7,7 +7,6 @@ and populates graph tables for people, places, events, and their relationships.
 """
 
 import csv
-import io
 import sqlite3
 import sys
 from pathlib import Path
@@ -15,7 +14,7 @@ from pathlib import Path
 import click
 import httpx
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -49,7 +48,7 @@ def download_csv(filename: str, data_dir: Path) -> Path:
 
 def parse_csv(filepath: Path) -> list[dict]:
     """Parse a CSV file into a list of dicts."""
-    with open(filepath, "r", encoding="utf-8-sig") as f:
+    with open(filepath, encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         return list(reader)
 

@@ -36,12 +36,13 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
-from study_bible_mcp.database import create_schema
-from study_bible_mcp.corpora import CORPORA
-from study_bible_mcp.parsers.ancient_sources import import_available_corpora, missing_corpora
-from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
 from import_heiser_content import import_nt_ot_lxx_quote_hints, import_textual_variants
 from migrate_textual_variants import migrate
+
+from study_bible_mcp.corpora import CORPORA
+from study_bible_mcp.database import create_schema
+from study_bible_mcp.parsers.ancient_sources import import_available_corpora, missing_corpora
+from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
 
 
 def _download_sources(data_dir: Path) -> None:

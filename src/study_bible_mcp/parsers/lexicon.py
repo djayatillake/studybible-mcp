@@ -19,33 +19,33 @@ Tab-separated formats share columns:
 import json
 import re
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 
 def parse_greek_lexicon(filepath: Path) -> Iterator[dict]:
     """
     Parse TBESG Greek lexicon file.
-    
+
     Yields dictionaries with lexicon entries.
     """
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         for line_num, line in enumerate(f, 1):
             line = line.strip()
-            
+
             # Skip empty lines and comments
             if not line or line.startswith('#') or line.startswith('$'):
                 continue
-            
+
             # Skip header line
             if line_num == 1 and 'Strong' in line:
                 continue
-            
+
             parts = line.split('\t')
-            
+
             if len(parts) < 3:
                 continue
-            
+
             try:
                 entry = parse_greek_entry(parts)
                 if entry:
@@ -104,26 +104,26 @@ def parse_greek_entry(parts: list[str]) -> dict | None:
 def parse_hebrew_lexicon(filepath: Path) -> Iterator[dict]:
     """
     Parse TBESH Hebrew lexicon file.
-    
+
     Yields dictionaries with lexicon entries.
     """
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         for line_num, line in enumerate(f, 1):
             line = line.strip()
-            
+
             # Skip empty lines and comments
             if not line or line.startswith('#') or line.startswith('$'):
                 continue
-            
+
             # Skip header line
             if line_num == 1 and 'Strong' in line:
                 continue
-            
+
             parts = line.split('\t')
-            
+
             if len(parts) < 3:
                 continue
-            
+
             try:
                 entry = parse_hebrew_entry(parts)
                 if entry:
@@ -181,13 +181,13 @@ def clean_definition(definition: str) -> str:
     """Clean up a lexicon definition."""
     if not definition:
         return ''
-    
+
     # Remove HTML tags
     definition = re.sub(r'<[^>]+>', '', definition)
-    
+
     # Clean up whitespace
     definition = ' '.join(definition.split())
-    
+
     return definition
 
 
@@ -197,7 +197,7 @@ def parse_extended_lexicon(filepath: Path, language: str) -> Iterator[dict]:
 
     These have more detailed entries with etymology, usage examples, etc.
     """
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         current_entry = None
 
         for line in f:
@@ -306,7 +306,7 @@ def parse_tflsj_lexicon(filepath: Path) -> Iterator[dict]:
       6: Short gloss/definition
       7: Full LSJ definition (HTML)
     """
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         for line_num, line in enumerate(f, 1):
             line = line.strip()
 
@@ -414,7 +414,7 @@ def parse_bdb_lexicon(filepath: Path) -> Iterator[dict]:
     The 'top' field contains the Strong's number, and 'def' contains
     the full HTML definition.
     """
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         data = json.load(f)
 
     if not isinstance(data, list):

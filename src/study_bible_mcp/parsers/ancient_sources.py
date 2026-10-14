@@ -6,8 +6,14 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-from ..corpora import CORPORA, LINK_RELATIONS, Corpus, combined_license, resolve_citation
-from ..corpora import editorial_notes
+from ..corpora import (
+    CORPORA,
+    LINK_RELATIONS,
+    Corpus,
+    combined_license,
+    editorial_notes,
+    resolve_citation,
+)
 from ..corpora.editorial_notes import EditorialLink, EditorialNote, EditorialNotes
 from ..database import (
     BOOK_ABBREV_MAP,
