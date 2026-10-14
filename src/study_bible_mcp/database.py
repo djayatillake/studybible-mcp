@@ -2234,8 +2234,17 @@ class StudyBibleDB:
             ORDER BY resource_type, start_ref, end_ref
         """, (chapter_start, high, low, low))
 
-    async def _search_aquifer_by_type(self, resource_type: str, query: str) -> list[dict]:
-        """Search aquifer_content by type — exact title match then LIKE fallback."""
+    # Articles get_bible_dictionary returns when no title is the topic itself:
+    # each is a page of up to ~4,000 characters, so "Gilboa" (no such title)
+    # once returned ten (Mount Gilboa, Saul, David, Jerusalem, ...; ~24 KB).
+    DICTIONARY_FALLBACK_LIMIT = 4
+
+    async def _search_aquifer_by_type(
+        self, resource_type: str, query: str, limit: int = DICTIONARY_FALLBACK_LIMIT
+    ) -> list[dict]:
+        """Search aquifer_content by type: every exact title match, else at most
+        ``limit`` LIKE matches, titles containing the query first ('Mount Gilboa'
+        for 'Gilboa'), then articles that only mention it, shortest title first."""
         exact = await self._fetchall(
             "SELECT * FROM aquifer_content WHERE resource_type = ? AND LOWER(title) = LOWER(?)",
             (resource_type, query),
@@ -2250,9 +2259,9 @@ class StudyBibleDB:
                  AND (LOWER(title) LIKE LOWER(?) OR LOWER(content_plain) LIKE LOWER(?))
                ORDER BY
                  CASE WHEN LOWER(title) LIKE LOWER(?) THEN 0 ELSE 1 END,
-                 LENGTH(title)
-               LIMIT 10""",
-            (resource_type, pattern, pattern, pattern),
+                 LENGTH(title), content_id
+               LIMIT ?""",
+            (resource_type, pattern, pattern, pattern, limit),
         )
 
     async def get_bible_dictionary(self, topic: str) -> list[dict]:
