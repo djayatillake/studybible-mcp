@@ -128,6 +128,8 @@ The server includes a pre-built SQLite database (~600MB) containing:
 | `acai_entities` | 6,019 | Rich entity annotations (people, places, groups, key terms) |
 | `ane_entries` | 87 | Ancient Near East cultural context entries across 12 dimensions |
 | `ane_book_mappings` | 314 | Maps ANE entries to biblical books and chapter ranges |
+| `torah_weave_units` | 86 | Moshe Kline's Torah Weave literary units (dataset version 1.1) |
+| `torah_weave_cells` | 1,019 | Their cells and subdivisions, with Hebrew-numbered verse ranges |
 | `verse_vectors` | 31,280 | OpenAI embeddings for semantic search |
 | `passage_vectors` | 5,190 | OpenAI embeddings for passage similarity |
 
@@ -1466,6 +1468,20 @@ Rich entity annotations from [BibleAquifer/ACAI](https://github.com/BibleAquifer
 
 Graph data for genealogy, events, and places from [Theographic](https://github.com/robertrouse/theographic-bible-metadata), with curated corrections and twenty added events (the binding of Isaac, the burning bush, the fall of Jerusalem ...) in [`src/study_bible_mcp/parsers/graph_curated.json`](src/study_bible_mcp/parsers/graph_curated.json). Used by the `explore_genealogy`, `explore_person_events`, `explore_place`, `find_connection`, `people_in_passage`, and `graph_enriched_search` tools.
 
+### Torah Weave
+
+`get_torah_weave` reads version 1.1 of Moshe Kline's Torah Literary Units
+dataset ([chaver.com](https://chaver.com/torah-weave/data/torah-units.json),
+CC BY 4.0; Kline, *Before Chapter and Verse: Reading the Woven Torah*, 2022):
+86 units of Genesis–Deuteronomy with 600 cells, 1,019 counting subdivisions.
+The file ships as `data/torah_weave/torah-units.json`. Its URL is unversioned,
+so it is pinned by SHA-256 (`TORAH_WEAVE_SHA256` in
+`src/study_bible_mcp/parsers/torah_weave.py`, the file retrieved on
+2026-10-14), and the import fails on any other file. Kline numbers verses like
+the Hebrew Bible (Leviticus 5:20-26 is English 6:1-7); the tool takes and shows
+English numbers. Every Torah verse is in a cell except Deuteronomy 5:30-33,
+which sit in unit 76 without one, and Exodus 20:23-26, which no unit includes.
+
 ### Ancient Near East Context
 
 87 structured entries covering 12 dimensions of ANE cultural and historical context across 9 time periods, with 314 book-chapter mappings. Data is stored in [`data/ane_context/`](data/ane_context/) as JSON files (one per dimension). Sources include Walton, Hallo, Matthews & Benjamin, Pritchard (ANET), and other standard ANE reference works.
@@ -1545,7 +1561,7 @@ The First1KGreek Philo Greek and English TEI editions are licensed under [CC BY-
 Charles's 1 Enoch (via English Wikisource) and the KJV 2 Esdras (via eBible.org) are public domain; the Latin Wikisource transcription of the Clementine 4 Esdras is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 Mishnah passages carry each version's licence: Kulp's Mishnah Yomit English is CC BY, and the Vilna Mishnah is public domain.
 Data from BibleAquifer and ACAI is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
-Torah Weave data from Moshe Kline ([chaver.com](https://www.chaver.com/)) is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Torah Weave data (version 1.1) from Moshe Kline ([chaver.com](https://www.chaver.com/)) is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 BDB, Abbott-Smith, the Treasury of Scripture Knowledge, and the works of John Owen are public domain.
 The theology and ANE entries are original summary prose written for this project — see [Data Sources](#data-sources).
 

@@ -28,6 +28,27 @@ in either order.
 
 ---
 
+## Torah Weave 1.1
+
+`get_torah_weave` now reads version 1.1 of Moshe Kline's dataset, pinned by
+SHA-256; the import fails on any other file. Version 1.0's cell maps skipped
+verses in fourteen units, so 325 verses (Genesis 44:1-17, Leviticus 19:11-19,
+Numbers 1:20-47 and 2:1-34 among them) were in a unit but in no cell, and had
+no partners. Version 1.1 fills the maps of twelve units (68 cells added, one
+removed, ten redrawn) and corrects five units' verse ranges. Every Torah verse
+now has a cell except Deuteronomy 5:30-33 (unit 76) and Exodus 20:23-26, which
+no unit includes. Kline still numbers verses like the Hebrew Bible; the tool
+still takes and shows English numbers.
+
+`scripts/repair_torah_weave.py` swaps an existing database's Torah Weave rows
+(86 units, 952 cells) for the 1.1 rows (86 units, 1,019 cells), from the
+shipped file or from a patch applied with the standard library. It refuses,
+changing nothing, unless the tables hold exactly the 1.0 rows or already the
+1.1 rows. The schema is unchanged, so the code and the database can be
+deployed in either order.
+
+---
+
 ## Editorial corrections to curated content
 
 The owner's editorial review of the curated data. Wording is attributed and
