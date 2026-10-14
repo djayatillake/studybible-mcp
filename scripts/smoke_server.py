@@ -59,7 +59,7 @@ TOOL_CASES: dict[str, tuple[dict, tuple[str, ...]]] = {
     ),
     "get_study_notes": ({"reference": "John 3:16"}, ("aquifer_content",)),
     "get_bible_dictionary": ({"topic": "covenant"}, ("aquifer_content",)),
-    "get_key_terms": ({"term": "atonement"}, ("aquifer_content",)),
+    "get_key_terms": ({"term": "grace"}, ("aquifer_content",)),
     "get_ane_context": ({"reference": "Genesis 15:1"}, ("ane_entries",)),
     "get_theology_context": ({"reference": "Psalm 82:1"}, ("theology_content",)),
     "get_torah_weave": (

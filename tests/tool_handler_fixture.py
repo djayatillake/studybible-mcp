@@ -54,7 +54,7 @@ LAMPSTAND_FILLER = [
 # --- Verses ----------------------------------------------------------------
 
 # 1 John 4:1-21 all carry G0026, for the search_by_strongs (4) and
-# word_study example-passage (5) caps.
+# word_study example-passage (4) caps.
 VERSES = [
     ("Jhn.3.16", "Jhn", 3, 16, "For God so loved the world (test text).", "οὕτως γὰρ ἠγάπησεν",
      _words("G0025", "ἠγάπησεν", "loved", "V-AAI-3S")),
@@ -253,6 +253,25 @@ AQUIFER = [
      "Atonement is the reconciling of God and people through sacrifice (test key term).", 0),
     (41, "key_terms", "Grace", None, None, None, None,
      "Grace is God's undeserved favour (test key term).", 0),
+    # The Aquifer export's audio-only duplicate of a key term.
+    (42, "key_terms", "Grace", None, None, None, None, "Audio Content", 0),
+    (43, "key_terms", "Holy Spirit", None, None, None, None,
+     "The Holy Spirit is the Spirit of God (test key term).", 0),
+    (44, "key_terms", "spirit", None, None, None, None,
+     "The spirit is the inner part of a person (test key term).", 0),
+    # Romans 8: a Tyndale note per verse, long enough that the chapter is cut,
+    # and translator notes that are listed, not shown.
+] + [
+    (500 + v, "study_notes", f"Romans 8:{v}", "Rom", f"45008{v:03d}", f"45008{v:03d}", 8,
+     f"Tyndale note on Romans 8:{v}. " + "Commentary sentence. " * 60, 0)
+    for v in range(1, 13)
+] + [
+    (600 + v, "translation_notes_sil", f"Romans 8:{v}", "Rom", f"45008{v:03d}", f"45008{v:03d}", 8,
+     f"SIL note on Romans 8:{v} (test).", 0)
+    for v in (1, 2, 3, 5)
+] + [
+    (650, "translation_notes_uw", "Romans 8:19-21", "Rom", "45008019", "45008021", 8,
+     "unfoldingWord note on Romans 8:19-21 (test).", 1),
 ] + [
     # Twelve articles matching "jubilee", for the dictionary search cap (10).
     (100 + n, "dictionary", f"Jubilee note {n:02d}", None, None, None, None,
@@ -281,7 +300,7 @@ ANE_ENTRIES = [
      "Bond service for debt (test summary).", "Detail: release in the seventh year.",
      "exodus_conquest", "Exodus & Conquest", ["Exo 21:2"], [("Gen", None, None)]),
 ] + [
-    # Thirty-two entries on Leviticus, for the get_ane_context cap (30).
+    # Thirty-two entries on Leviticus, for the get_ane_context limit (default 4, at most 30).
     (f"lev_{n:03d}", "religious_practices", "Religious Practices", f"Levitical filler {n:02d}",
      f"Synthetic Levitical entry {n:02d}.", None, "exodus_conquest", "Exodus & Conquest",
      ["Lev 16:1"], [("Lev", 1, 27)])

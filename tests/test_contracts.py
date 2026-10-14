@@ -5,7 +5,8 @@ These encode rules reviewers otherwise enforce by hand:
 - every registered tool has a handler and is annotated read-only;
 - tool descriptions and schemas, which are sent to the model in every session,
   stay within a budget, so growth is a deliberate, visible change;
-- list-returning tools default to a small number of results;
+- list-returning tools default to a small number of results, and reject a
+  limit outside 1..maximum with one clear message;
 - the full-database smoke runner has a case for every tool;
 - requirements.txt, which the Docker image installs, matches uv.lock.
 """
@@ -17,6 +18,7 @@ import importlib.util
 import json
 import os
 import shutil
+import sqlite3
 import subprocess
 import sys
 from pathlib import Path
@@ -24,6 +26,7 @@ from pathlib import Path
 import pytest
 
 import study_bible_mcp.server as server
+from study_bible_mcp.database import StudyBibleDB, create_schema
 from study_bible_mcp.tools import TOOLS
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -74,9 +77,17 @@ def test_no_single_tool_exceeds_its_budget(tool):
     )
 
 
+# Calls a handler may wrap around ``args.get("limit", N)``.
+_LIMIT_WRAPPERS = {"int", "bounded_limit"}
+
+
 def _limit_default(expr: ast.expr, handler: str):
     """The default a handler assigns to ``limit`` when the caller omits it."""
-    if isinstance(expr, ast.Call) and isinstance(expr.func, ast.Name) and expr.func.id == "int":
+    if (
+        isinstance(expr, ast.Call)
+        and isinstance(expr.func, ast.Name)
+        and expr.func.id in _LIMIT_WRAPPERS
+    ):
         return _limit_default(expr.args[0], handler)
     if (
         isinstance(expr, ast.Call)
@@ -140,6 +151,90 @@ def test_list_tools_default_to_a_small_number_of_results():
             f"{name} defaults to {default} results. List tools default to at most "
             f"{DEFAULT_LIMIT_CAP} so outputs stay small."
         )
+
+
+def _handler_limit_maxima() -> dict[str, int]:
+    """Map tool name -> the maximum its handler passes to ``bounded_limit``."""
+    tree = ast.parse(SERVER_PATH.read_text(encoding="utf-8"))
+    functions = {
+        node.name: node for node in tree.body if isinstance(node, ast.AsyncFunctionDef)
+    }
+    maxima = {}
+    for tool_name, handler in server._TOOL_HANDLERS.items():
+        for node in ast.walk(functions[handler.__name__]):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "bounded_limit"
+            ):
+                maxima[tool_name] = _value(node.args[1], handler.__name__)
+                break
+    return maxima
+
+
+# Arguments that get each list tool past its other checks to the limit check.
+_LIMIT_CASE_ARGUMENTS = {
+    "search_ancient_sources": {"query": "temple"},
+    "lookup_ancient_source": {"citation": "Antiquities 18.116"},
+    "search_lexicon": {"query": "love"},
+    "get_cross_references": {"reference": "John 3:16"},
+    "lookup_name": {"name": "David"},
+    "search_by_strongs": {"strongs": "G26"},
+    "find_similar_passages": {"reference": "John 3:16"},
+    "get_ane_context": {"reference": "Genesis 1"},
+    "get_theology_context": {"reference": "Psalm 82"},
+    "list_research_sources": {},
+}
+
+
+def test_every_list_tool_validates_its_limit_with_bounded_limit():
+    schema_limits = {
+        tool.name for tool in TOOLS if "limit" in (tool.inputSchema or {}).get("properties", {})
+    }
+    maxima = _handler_limit_maxima()
+    assert schema_limits == set(maxima), (
+        "Every tool with a 'limit' argument validates it with bounded_limit: "
+        f"missing {sorted(schema_limits - set(maxima))}"
+    )
+    assert schema_limits == set(_LIMIT_CASE_ARGUMENTS)
+    defaults = _handler_limit_defaults()
+    for name, maximum in maxima.items():
+        assert 1 <= defaults[name] <= maximum, name
+        # A bad limit is returned as text even when the handler is called directly.
+        assert hasattr(server._TOOL_HANDLERS[name], "__wrapped__"), (
+            f"{name}'s handler needs @returns_input_errors"
+        )
+
+
+@pytest.fixture
+async def empty_server_db(tmp_path, monkeypatch):
+    """An empty-schema database installed as the server's database."""
+    path = tmp_path / "empty.db"
+    conn = sqlite3.connect(path)
+    create_schema(conn)
+    conn.close()
+    database = StudyBibleDB(path)
+    await database.connect()
+    monkeypatch.setattr(server, "db", database)
+    yield database
+    await database.close()
+
+
+@pytest.mark.parametrize("tool_name", sorted(_LIMIT_CASE_ARGUMENTS))
+@pytest.mark.parametrize("bad", [0, -1, "many", 2.5, True, None, "maximum+1"])
+async def test_list_tools_reject_an_out_of_range_limit(empty_server_db, tool_name, bad):
+    maximum = _handler_limit_maxima()[tool_name]
+    limit = maximum + 1 if bad == "maximum+1" else bad
+    response = await server.call_tool(tool_name, {**_LIMIT_CASE_ARGUMENTS[tool_name], "limit": limit})
+    assert [item.text for item in response] == [f"'limit' must be an integer from 1 to {maximum}."]
+
+
+@pytest.mark.parametrize("tool_name", sorted(_LIMIT_CASE_ARGUMENTS))
+async def test_list_tools_accept_their_maximum_limit(empty_server_db, tool_name):
+    maximum = _handler_limit_maxima()[tool_name]
+    response = await server.call_tool(tool_name, {**_LIMIT_CASE_ARGUMENTS[tool_name], "limit": maximum})
+    assert "'limit' must be" not in response[0].text
+    assert not response[0].text.startswith("Error:"), response[0].text
 
 
 def test_smoke_runner_has_a_case_for_every_tool():
