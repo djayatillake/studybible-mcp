@@ -307,9 +307,9 @@ async def test_lookup_name_acai_annotations_belong_to_their_own_entry(db):
 
 
 async def test_lookup_name_acai_matches_each_entry_by_its_own_name_and_type(tmp_path, monkeypatch):
-    # The built database keys ACAI entities as 'type:Name'. The tribe of Judah
-    # has more references than the person; a place merely containing the name
-    # has no ACAI entity of its own.
+    # ACAI keys entities 'type:Name' and names them in English. The tribe of
+    # Judah and a namesake have more references than the patriarch; a place
+    # merely containing the name has no ACAI entity of its own.
     path = tmp_path / "acai.db"
     conn = sqlite3.connect(path)
     create_schema(conn)
@@ -319,8 +319,9 @@ async def test_lookup_name_acai_matches_each_entry_by_its_own_name_and_type(tmp_
     )
     conn.executemany(
         "INSERT INTO acai_entities (id, entity_type, name, roles, reference_count) VALUES (?, ?, ?, ?, ?)",
-        [("group:Judah", "group", "group:Judah", '["Tribe"]', 728),
-         ("person:Judah", "person", "person:Judah", '["Patriarch"]', 80)],
+        [("group:Judah", "group", "Judah", '["Tribe"]', 728),
+         ("person:Judah.2", "person", "Judah", '["Musician"]', 300),
+         ("person:Judah", "person", "Judah", '["Patriarch"]', 80)],
     )
     conn.commit()
     conn.close()
@@ -333,7 +334,35 @@ async def test_lookup_name_acai_matches_each_entry_by_its_own_name_and_type(tmp_
     assert "### Judah\n" in person and "### Bethlehem-judah\n" in place
     assert "**Roles**: Patriarch\n**Referenced in**: 80 verses" in person
     assert "**ACAI Annotations**" not in place
-    assert "Tribe" not in output
+    assert "Tribe" not in output and "Musician" not in output
+
+
+async def test_lookup_name_acai_matches_by_english_name_within_the_type(tmp_path, monkeypatch):
+    # No key 'place:Misgab' (ACAI numbers it Misgab.1), so the name matches.
+    # Ziph has only a person of that name, which is not taken for the place.
+    path = tmp_path / "acai.db"
+    conn = sqlite3.connect(path)
+    create_schema(conn)
+    conn.executemany(
+        "INSERT INTO names (name, type, description, refs, relationships) VALUES (?, ?, ?, '[]', '{}')",
+        [("Misgab", "place", "A place in Moab."), ("Ziph", "place", "A town in Judah.")],
+    )
+    conn.executemany(
+        "INSERT INTO acai_entities (id, entity_type, name, description, reference_count) "
+        "VALUES (?, ?, ?, ?, ?)",
+        [("place:Misgab.1", "place", "Misgab", "A fortified height in Moab.", 1),
+         ("person:Ziph", "person", "Ziph", "A descendant of Caleb.", 2)],
+    )
+    conn.commit()
+    conn.close()
+    database = await _connect(path, monkeypatch)
+    try:
+        misgab = await call("lookup_name", name="Misgab")
+        ziph = await call("lookup_name", name="Ziph")
+    finally:
+        await database.close()
+    assert "**Description**: A fortified height in Moab." in misgab
+    assert "**ACAI Annotations**" not in ziph
 
 
 # ---------------------------------------------------------------------------

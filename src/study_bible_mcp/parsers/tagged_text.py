@@ -18,6 +18,11 @@ import re
 from collections.abc import Iterator
 from pathlib import Path
 
+# A word row starts with its reference ("Mat.1.1#01=NKO", "Psa.3.0(3.1)#01=L").
+# The files also repeat column headers ("Word & Type", "Eng (Heb) Ref & Type")
+# and open with a summary table ("Types of words", "NKO / NK(O) / NK(o)").
+VERSE_REFERENCE = re.compile(r'^\w+\.\d+\.\d+')
+
 
 def extract_verse_ref(ref: str) -> str:
     """Extract base verse reference, stripping word position markers.
@@ -53,6 +58,8 @@ def parse_tagnt(filepath: Path) -> Iterator[dict]:
                 continue
 
             full_ref = parts[0].strip()
+            if not VERSE_REFERENCE.match(full_ref):
+                continue  # a column-header or summary-table row
             verse_ref = extract_verse_ref(full_ref)
 
             # New verse - yield previous if exists
@@ -153,6 +160,8 @@ def parse_tahot(filepath: Path) -> Iterator[dict]:
                 continue
 
             full_ref = parts[0].strip()
+            if not VERSE_REFERENCE.match(full_ref):
+                continue  # a column-header or summary-table row
             verse_ref = extract_verse_ref(full_ref)
 
             # New verse

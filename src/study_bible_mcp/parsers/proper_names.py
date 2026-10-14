@@ -34,6 +34,10 @@ def parse_tipnr(filepath: Path) -> Iterator[dict]:
     # Track current section for type classification
     # The TIPNR file primarily contains persons
     current_section = "person"
+    # Every record follows a marker ("========== PERSON(s)", "$========== PLACE");
+    # the notes before and after the records also have "Name@Ref" lines
+    # ("(?) indicates ... Jahdai@1Ch.2.47"), which are not entries.
+    after_marker = False
 
     with open(filepath, encoding='utf-8') as f:
         for line in f:
@@ -42,6 +46,9 @@ def parse_tipnr(filepath: Path) -> Iterator[dict]:
             # Skip empty lines
             if not line:
                 continue
+
+            starts_record = after_marker
+            after_marker = line.lstrip('$').startswith('==========')
 
             # Section markers (without $) indicate type
             # e.g., "========== PERSON(s)" marks person sections
@@ -58,7 +65,7 @@ def parse_tipnr(filepath: Path) -> Iterator[dict]:
                 continue
 
             # Skip documentation headers (start with $), comments, meta lines
-            if line.startswith(('$', '#', '*', '‖', '–', '\t')):
+            if not starts_record or line.startswith(('$', '#', '*', '‖', '–', '\t')):
                 continue
 
             # Skip lines that don't look like entries (no @ in first field)

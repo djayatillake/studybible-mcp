@@ -16,6 +16,7 @@ This script downloads the following datasets:
 
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 import click
 import httpx
@@ -296,6 +297,92 @@ def download_aquifer(data_dir: Path, force: bool = False) -> bool:
     return True
 
 
+def list_acai_files(client: httpx.Client) -> tuple[str, dict[str, list[str]]]:
+    """Return the default branch and every entity file path, by entity type.
+
+    The contents API lists at most 1,000 files in a directory, which cut people
+    and places off at Ezra.2 and Nohah; the git tree of the whole repository has
+    no such cap (past 100,000 entries GitHub flags it as truncated instead).
+    """
+    repo = client.get(f"https://api.github.com/repos/{ACAI_REPO}")
+    repo.raise_for_status()
+    branch = repo.json()["default_branch"]
+    response = client.get(
+        f"https://api.github.com/repos/{ACAI_REPO}/git/trees/{branch}", params={"recursive": "1"}
+    )
+    response.raise_for_status()
+    tree = response.json()
+    if tree.get("truncated"):
+        raise RuntimeError(f"GitHub truncated the file tree of {ACAI_REPO}")
+
+    paths: dict[str, list[str]] = {entity_type: [] for entity_type in ACAI_ENTITY_TYPES}
+    for item in tree["tree"]:
+        parts = item["path"].split("/")
+        if (
+            item["type"] == "blob"
+            and len(parts) == 3
+            and parts[0] in paths
+            and parts[1] == "json"
+            and parts[2].endswith(".json")
+        ):
+            paths[parts[0]].append(item["path"])
+    return branch, paths
+
+
+def _download_acai(client: httpx.Client, data_dir: Path, force: bool = False) -> bool:
+    """Download every ACAI entity file; False if the listing or any file failed."""
+    try:
+        branch, paths = list_acai_files(client)
+    except (httpx.HTTPError, KeyError, RuntimeError) as e:
+        console.print(f"  [red]Could not list the ACAI files: {e}[/red]")
+        return False
+
+    total_count = 0
+    total_failed = 0
+    for entity_type in ACAI_ENTITY_TYPES:
+        dest_dir = data_dir / "acai" / entity_type
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        console.print(f"\n[bold]{entity_type.title()}[/bold] ({len(paths[entity_type])} files)")
+
+        downloaded = 0
+        skipped = 0
+        failed = 0
+
+        for path in paths[entity_type]:
+            filepath = dest_dir / path.rsplit("/", 1)[1]
+            if filepath.exists() and not force:
+                skipped += 1
+                continue
+
+            url = f"https://raw.githubusercontent.com/{ACAI_REPO}/{branch}/{quote(path)}"
+            try:
+                response = client.get(url)
+            except httpx.HTTPError:
+                failed += 1
+                continue
+            if response.status_code == 200:
+                filepath.write_bytes(response.content)
+                downloaded += 1
+            else:
+                failed += 1
+
+        total_count += downloaded + skipped
+        total_failed += failed
+        parts = []
+        if downloaded:
+            parts.append(f"[green]{downloaded} downloaded[/green]")
+        if skipped:
+            parts.append(f"[dim]{skipped} cached[/dim]")
+        if failed:
+            parts.append(f"[red]{failed} failed[/red]")
+        if parts:
+            console.print(f"  {', '.join(parts)}")
+
+    console.print(f"\n[bold]Total ACAI files: {total_count}[/bold]")
+    return not total_failed
+
+
 def download_acai(data_dir: Path, force: bool = False) -> bool:
     """Download ACAI entity annotation files.
 
@@ -304,56 +391,8 @@ def download_acai(data_dir: Path, force: bool = False) -> bool:
     console.print("\n[bold]Downloading ACAI Entity Annotations[/bold]")
 
     timeout = httpx.Timeout(120.0, connect=30.0)
-    total_count = 0
-
     with httpx.Client(timeout=timeout, follow_redirects=True) as client:
-        for entity_type in ACAI_ENTITY_TYPES:
-            dest_dir = data_dir / "acai" / entity_type
-            dest_dir.mkdir(parents=True, exist_ok=True)
-
-            console.print(f"\n[bold]{entity_type.title()}[/bold]")
-
-            downloaded = 0
-            skipped = 0
-
-            try:
-                # GitHub API to list JSON files in {entity_type}/json/
-                api_url = f"https://api.github.com/repos/{ACAI_REPO}/contents/{entity_type}/json"
-                response = client.get(api_url)
-                if response.status_code == 200:
-                    files = response.json()
-                    json_files = [f for f in files if f["name"].endswith(".json")]
-                    for file_info in json_files:
-                        filepath = dest_dir / file_info["name"]
-                        if filepath.exists() and not force:
-                            skipped += 1
-                            continue
-
-                        try:
-                            dl_url = file_info["download_url"]
-                            dl_response = client.get(dl_url)
-                            if dl_response.status_code == 200:
-                                filepath.write_bytes(dl_response.content)
-                                downloaded += 1
-                        except Exception:
-                            pass
-
-                    total_count += downloaded + skipped
-                else:
-                    console.print(f"  [yellow]Could not list {entity_type} (HTTP {response.status_code})[/yellow]")
-            except Exception as e:
-                console.print(f"  [yellow]Error listing {entity_type}: {e}[/yellow]")
-
-            parts = []
-            if downloaded:
-                parts.append(f"[green]{downloaded} downloaded[/green]")
-            if skipped:
-                parts.append(f"[dim]{skipped} cached[/dim]")
-            if parts:
-                console.print(f"  {', '.join(parts)}")
-
-    console.print(f"\n[bold]Total ACAI files: {total_count}[/bold]")
-    return True
+        return _download_acai(client, data_dir, force)
 
 
 @click.command()

@@ -1564,9 +1564,11 @@ class StudyBibleDB:
     async def get_acai_entity(self, name: str, entity_type: str | None = None) -> dict | None:
         """Get the ACAI entity for exactly this name (case-insensitive).
 
-        Matches the entity name, or with ``entity_type`` an ACAI-style key such
-        as 'person:David' or 'place:CityOfDavid', preferring an entity of that
-        type. No substring matching, so 'Ai' never returns 'Sinai'.
+        Matches the entity's English name, or with ``entity_type`` an
+        ACAI-style key such as 'person:David' or 'place:CityOfDavid'. With
+        ``entity_type`` a name match must be of that type, and the exact key
+        wins over a namesake ('person:Judah' over 'person:Judah.2'). No
+        substring matching, so 'Ai' never returns 'Sinai'.
         """
         keys = [name.lower()]
         if entity_type:
@@ -1574,10 +1576,12 @@ class StudyBibleDB:
         placeholders = ", ".join("?" for _ in keys)
         return await self._fetchone(
             f"""SELECT * FROM acai_entities
-                WHERE LOWER(name) IN ({placeholders}) OR LOWER(id) IN ({placeholders})
-                ORDER BY entity_type = ? DESC, reference_count DESC
+                WHERE LOWER(id) IN ({placeholders})
+                   OR (LOWER(name) = ? AND entity_type = COALESCE(?, entity_type))
+                ORDER BY LOWER(id) IN ({placeholders}) DESC, entity_type = ? DESC,
+                         reference_count DESC
                 LIMIT 1""",
-            (*keys, *keys, entity_type),
+            (*keys, name.lower(), entity_type, *keys, entity_type),
         )
 
     # =========================================================================

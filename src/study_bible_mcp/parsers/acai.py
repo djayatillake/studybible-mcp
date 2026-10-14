@@ -79,18 +79,19 @@ def _extract_entity(data: dict, entity_type: str) -> dict | None:
     elif not entity_id:
         return None
 
+    # ACAI files carry no top-level name or description: the English ones are
+    # localizations.eng.preferred_label and .descriptions[].description
+    eng = (data.get('localizations') or {}).get('eng') or {}
     if not name:
-        # Try to get name from localizations
-        localizations = data.get('localizations', {})
-        eng = localizations.get('eng', {})
-        name = eng.get('label', eng.get('name', str(entity_id)))
+        name = eng.get('preferred_label', eng.get('label', eng.get('name', str(entity_id))))
 
     # Description from localizations or direct field
     description = data.get('description', '')
     if not description:
-        localizations = data.get('localizations', {})
-        eng = localizations.get('eng', {})
-        description = eng.get('description', eng.get('gloss', ''))
+        descriptions = eng.get('descriptions') or [{}]
+        description = descriptions[0].get(
+            'description', eng.get('description', eng.get('gloss', ''))
+        )
 
     # Gender
     gender = data.get('gender', data.get('sex', ''))
@@ -124,7 +125,10 @@ def _extract_entity(data: dict, entity_type: str) -> dict | None:
     key_refs = references[:20] if isinstance(references, list) else []
     key_references_json = json.dumps(key_refs)
 
+    # Speeches are grouped by source text, e.g. {"wlc": [...], "SBLGNT": [...]}
     speeches = data.get('speeches', data.get('speechActs', []))
+    if isinstance(speeches, dict):
+        speeches = [s for group in speeches.values() if isinstance(group, list) for s in group]
     speeches_count = len(speeches) if isinstance(speeches, list) else 0
 
     return {
