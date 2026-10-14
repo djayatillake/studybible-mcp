@@ -550,7 +550,10 @@ location's full history by `explore_place`.""",
         description="""Explain a morphological/grammatical parsing code.
 
 For Greek: Robinson codes (e.g., 'V-AAI-3S' = Verb, Aorist, Active, Indicative, 3rd person, Singular)
-For Hebrew: Westminster/OpenScriptures codes
+For Hebrew: Westminster/OpenScriptures codes, as lookup_verse prints them:
+prefixes joined by '/' ('Hc/Vqw3ms' = consecutive "and" + Qal imperfect),
+with or without the language letter ('Vqp3ms'). Any case; a code not found
+in the given language is tried in the other.
 
 Returns full grammatical explanation including part of speech,
 person, number, tense, voice, mood, case, and gender where applicable.""",
@@ -1566,6 +1569,38 @@ def verse_english(verse: dict) -> str:
     if verse["text_bsb"]:
         return verse["text_bsb"]
     return f"{GLOSS_MARK} {gloss}".rstrip()
+
+
+def non_na_editions(verse: dict, strongs: str) -> str | None:
+    """The editions that alone have ``strongs`` in this verse, if NA28 lacks it.
+
+    TAGNT tags words found only in some Greek editions (Mark 9:29 "and
+    fasting": Tyn+Treg+TR+Byz) with their editions in the word data; the BSB,
+    following NA28, usually has no word for them. None when any occurrence of
+    the number is in NA28, or the word data has no editions.
+    """
+    match = re.fullmatch(r"([GH])0*(\d{1,5})[A-Za-z]?", strongs.strip().upper())
+    if not match:
+        return None
+    wanted = (match[1], int(match[2]))
+    editions = []
+    for word in _parse_json_field(verse.get("word_data"), []):
+        if not isinstance(word, dict):
+            continue
+        found = re.fullmatch(r"([GH])0*(\d{1,5})[A-Za-z]?", str(word.get("strongs") or ""))
+        if found and (found[1], int(found[2])) == wanted:
+            if not word.get("editions"):
+                return None
+            editions.append(word["editions"])
+    return " / ".join(dict.fromkeys(editions)) or None
+
+
+def strongs_verse_note(verse: dict, strongs: str) -> str:
+    """' *(...)*' after a search_by_strongs verse whose word is not in NA28, else ''."""
+    editions = non_na_editions(verse, strongs)
+    if not editions:
+        return ""
+    return f" *(word only in {editions} Greek, not NA28; the BSB may lack it)*"
 
 
 def bsb_label(verses: list[dict]) -> str:

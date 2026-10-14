@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from study_bible_mcp.corpora import CORPORA
 from study_bible_mcp.database import create_schema
+from study_bible_mcp.lexicon_glosses import update_brief_definitions
 from study_bible_mcp.lexicon_usage import update_usage_counts
 from study_bible_mcp.parsers.ancient_sources import import_available_corpora
 from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
@@ -167,6 +168,11 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
         # Word frequencies come from the tagged text, not the lexicon sources
         changed, counted = update_usage_counts(conn)
         console.print(f"  [green]✓[/green] Usage counts for {counted} lexicon entries")
+
+        # Brief definitions from STEPBible's glosses (TBESH/TBESG), ordered by
+        # how often each sense occurs in the tagged text
+        glossed = update_brief_definitions(conn, data_dir)
+        console.print(f"  [green]✓[/green] Brief definitions from STEPBible glosses for {glossed} entries")
 
         # Import proper names
         tipnr_path = data_dir / "TIPNR.txt"

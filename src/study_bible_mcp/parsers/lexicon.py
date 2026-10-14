@@ -22,6 +22,8 @@ import xml.etree.ElementTree as ET
 from collections.abc import Iterator
 from pathlib import Path
 
+from ..lexicon_glosses import brief_definition, gloss_row, is_grammar_label
+
 
 def parse_greek_lexicon(filepath: Path) -> Iterator[dict]:
     """
@@ -294,20 +296,27 @@ def clean_lsj_definition(html: str) -> str:
 
 
 def parse_tflsj_lexicon(filepath: Path) -> Iterator[dict]:
-    """Parse a TFLSJ (Full LSJ) Greek lexicon file.
+    """Parse a TFLSJ (Full LSJ) Greek lexicon file, one entry per Strong's number.
 
     TFLSJ has the same tab-separated column layout as TBESG:
       0: Extended Strong's number (e.g., G0026)
-      1: Extended reference
+      1: Disambiguated Strong's number and relation ("G2570H = ")
       2: Back-reference / related Strong's
       3: Greek word
       4: Transliteration
       5: Part of speech
       6: Short gloss/definition
       7: Full LSJ definition (HTML)
+
+    A number with several senses or name uses has a row for each (G2570G
+    "good", G2570H "Fair (Havens)"; G2424G "Jesus", G2424K "Joshua" with the
+    Joses article). The entry takes the word and definition of the first row
+    that is not part of a longer name or an unnamed relative ("[wife of
+    Peter]"), and combines the glosses (see ``lexicon_glosses.brief_definition``).
     """
+    group: list[list[str]] = []
     with open(filepath, encoding='utf-8') as f:
-        for line_num, line in enumerate(f, 1):
+        for line in f:
             line = line.strip()
 
             if not line or line.startswith('#') or line.startswith('$'):
@@ -321,26 +330,43 @@ def parse_tflsj_lexicon(filepath: Path) -> Iterator[dict]:
             if not re.match(r'^G\d+[a-z]?$', strongs, re.IGNORECASE):
                 continue
 
-            strongs = strongs.upper()
+            if group and group[0][0].strip().upper() != strongs.upper():
+                yield _tflsj_entry(group)
+                group = []
+            group.append(parts)
+    if group:
+        yield _tflsj_entry(group)
 
-            gloss = parts[6].strip() if len(parts) > 6 else ''
-            full_html = parts[7].strip() if len(parts) > 7 else ''
 
-            entry = {
-                'strongs': strongs,
-                'language': 'greek',
-                'word': parts[3].strip() if len(parts) > 3 else '',
-                'transliteration': parts[4].strip() if len(parts) > 4 else '',
-                'short_definition': clean_definition(gloss),
-                'full_definition': clean_lsj_definition(full_html),
-                'pronunciation': parts[4].strip() if len(parts) > 4 else '',
-                'etymology': '',
-                'usage_count': 0,
-                'semantic_domain': '[]',
-                'related_words': '[]',
-            }
+def _tflsj_entry(rows: list[list[str]]) -> dict:
+    """One lexicon entry from the TFLSJ rows of one Strong's number.
 
-            yield entry
+    The word and definition come from the first row that is not an unnamed
+    relative or part of a longer name ("[wife of Peter]", "Fair (Havens)").
+    """
+    glosses = [row for row in (gloss_row(parts, n) for n, parts in enumerate(rows)) if row]
+    main = next((row.position for row in glosses if not row.is_compound_name), 0)
+    first = rows[main]
+    if glosses:
+        short_definition = brief_definition(glosses)
+    else:
+        short_definition = clean_definition(first[6].strip() if len(first) > 6 else '')
+    full_html = next(
+        (parts[7].strip() for parts in [first, *rows] if len(parts) > 7 and parts[7].strip()), ''
+    )
+    return {
+        'strongs': first[0].strip().upper(),
+        'language': 'greek',
+        'word': first[3].strip() if len(first) > 3 else '',
+        'transliteration': first[4].strip() if len(first) > 4 else '',
+        'short_definition': short_definition,
+        'full_definition': clean_lsj_definition(full_html),
+        'pronunciation': first[4].strip() if len(first) > 4 else '',
+        'etymology': '',
+        'usage_count': 0,
+        'semantic_domain': '[]',
+        'related_words': '[]',
+    }
 
 
 # =========================================================================
@@ -387,18 +413,14 @@ def _extract_bdb_headword(html: str) -> tuple[str, str, str]:
     if translit_match:
         translit = translit_match.group(1).strip()
 
-    # Extract short gloss - first bold noun/adjective/verb definition
-    # Look for patterns like <b>father</b>, <b>noun masculine</b> <b>father</b>
+    # Extract short gloss - the first bold phrase that is not the header
+    # ("H1. ab") or a grammar label ("noun masculine plural", "verb Pi`el").
+    # build_database.py replaces it with STEPBible's gloss where TBESH has one
+    # (see lexicon_glosses); this is the fallback.
     bold_parts = re.findall(r'<b>([^<]+)</b>', html)
     for part in bold_parts:
         part = part.strip()
-        # Skip the header "H1. ab" and POS labels
-        if re.match(r'^H\d+', part):
-            continue
-        if part.lower() in ('noun', 'verb', 'adjective', 'adverb', 'preposition',
-                            'conjunction', 'particle', 'pronoun', 'interjection',
-                            'noun masculine', 'noun feminine', 'noun common',
-                            'proper name', 'proper noun'):
+        if re.match(r'^H\d+', part) or is_grammar_label(part):
             continue
         if len(part) > 2 and not part[0].isdigit():
             short_gloss = part
