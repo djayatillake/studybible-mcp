@@ -2616,9 +2616,8 @@ def format_person_choice(query: str, matches: list[dict]) -> str:
     shown = ", ".join(f"{person_label(m)} ({m['id']})" for m in rivals[:4])
     more = f", +{len(rivals) - 4} more" if len(rivals) > 4 else ""
     return renamed + (
-        f"*'{query}' could mean {len(rivals) + 1} people; showing {label} "
-        f"({chosen['id']}), the most mentioned. Others: {shown}{more}. "
-        "Pass a fuller name or an id to choose another.*\n"
+        f"*Showing {label} ({chosen['id']}), the most mentioned of {len(rivals) + 1} people "
+        f"matching '{query}'; others (pass an id to choose): {shown}{more}.*\n"
     )
 
 

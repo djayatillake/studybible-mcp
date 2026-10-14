@@ -238,12 +238,12 @@ async def test_names_resolve_to_the_person_meant(db, query, heading):
 async def test_the_choice_among_namesakes_is_stated(db):
     mary = await call("explore_person_events", person="Mary")
     assert mary.startswith("## Timeline of Mary (Mother of Jesus)")
-    assert ("*'Mary' could mean 2 people; showing Mary (Mother of Jesus) (mary_1938), the most "
-            "mentioned. Others: Mary Magdalene (mary_1943).") in mary
+    assert ("*Showing Mary (Mother of Jesus) (mary_1938), the most mentioned of 2 people matching "
+            "'Mary'; others (pass an id to choose): Mary Magdalene (mary_1943).*") in mary
     jacob = await call("explore_genealogy", person="Jacob")
-    assert "Others: Jacob (jacob_683)." in jacob
+    assert "others (pass an id to choose): Jacob (jacob_683).*" in jacob
     # Aliases are not rivals: Jesus is not Joshua, nor the Lord God
-    assert "could mean" not in await call("explore_genealogy", person="Jesus")
+    assert "the most mentioned" not in await call("explore_genealogy", person="Jesus")
     assert "*'Melchizedek' is listed as Melchisedec.*" in await call(
         "explore_genealogy", person="Melchizedek"
     )
