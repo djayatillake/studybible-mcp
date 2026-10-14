@@ -973,18 +973,26 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     if not entries:
         return text(f"No entries found for '{name}'.")
 
-    # Try to get ACAI enrichment data
-    acai_data = None
+    # ACAI enrichment, looked up by each entry's own name and type so that
+    # 'City of David' is not annotated with King David's data
     try:
         has_acai = await db.has_acai_data()
-        if has_acai:
-            acai_data = await db.get_acai_entity(name)
     except Exception:
-        pass
+        has_acai = False
+    acai_by_entry: dict[tuple, dict | None] = {}
 
     result = f"## Biblical Names: {name}\n\n"
 
     for entry in entries:
+        acai_data = None
+        if has_acai:
+            key = (entry["name"], entry.get("type"))
+            if key not in acai_by_entry:
+                try:
+                    acai_by_entry[key] = await db.get_acai_entity(*key)
+                except Exception:
+                    acai_by_entry[key] = None
+            acai_data = acai_by_entry[key]
         result += format_name_entry(entry, acai_data=acai_data)
         result += "\n---\n\n"
 
@@ -1134,6 +1142,21 @@ async def _check_aquifer_data() -> list[TextContent] | None:
     return None
 
 
+def _parse_single_chapter(reference: str) -> tuple[str, int] | None:
+    """(book code, chapter) for a whole-chapter reference such as 'Song of Solomon 2'.
+
+    None for verses, chapter ranges, and anything unparseable.
+    """
+    parsed = StudyBibleDB.parse_passage_reference(reference)
+    if (
+        not parsed
+        or parsed["start_verse"] is not None
+        or parsed["end_chapter"] != parsed["start_chapter"]
+    ):
+        return None
+    return parsed["book"], parsed["start_chapter"]
+
+
 async def handle_get_study_notes(args: dict[str, Any]) -> list[TextContent]:
     """Handle get_study_notes tool - get study notes for a verse or chapter."""
     reference = args.get("reference", "")
@@ -1146,15 +1169,14 @@ async def handle_get_study_notes(args: dict[str, Any]) -> list[TextContent]:
         return err
 
     if chapter_only or ':' not in reference.strip():
-        # Chapter-level: parse book and chapter
-        ref_stripped = reference.strip()
-        match = re.match(r'^(\d?\s*[a-zA-Z]+)\s+(\d+)$', ref_stripped)
-        if match:
-            book_str, chapter_str = match.groups()
-            dummy_ref = f"{book_str} {chapter_str}:1"
-            normalized = db._normalize_reference(dummy_ref)
-            book_abbr = normalized.split(".")[0]
-            notes = await db.get_chapter_study_notes(book_abbr, int(chapter_str))
+        # Chapter-level: with chapter_only, the chapter of any reference
+        # ('John 3:16' -> John 3); otherwise a whole-chapter reference
+        if chapter_only and (parsed := db.parse_passage_reference(reference)):
+            chapter = (parsed["book"], parsed["start_chapter"])
+        else:
+            chapter = _parse_single_chapter(reference)
+        if chapter:
+            notes = await db.get_chapter_study_notes(*chapter)
         else:
             # Try as verse reference
             notes = await db.get_study_notes(reference)
@@ -1298,11 +1320,9 @@ async def handle_get_ane_context(args: dict[str, Any]) -> list[TextContent]:
 
     # Post-query: promote/filter broad entries using key_references
     if reference and entries:
-        normalized = db._normalize_reference(reference)
-        parts = normalized.split(".")
-        book_abbr = parts[0] if parts else ""
-        chapter = int(parts[1]) if len(parts) > 1 else None
-        entries = _refine_broad_entries(entries, book_abbr, chapter)
+        parsed = db.parse_passage_reference(reference)
+        if parsed:
+            entries = _refine_broad_entries(entries, parsed["book"], parsed["start_chapter"])
 
     if not entries:
         parts = []
@@ -1405,15 +1425,10 @@ async def handle_people_in_passage(args: dict[str, Any]) -> list[TextContent]:
         normalized = db._normalize_reference(ref_stripped)
         entities = await db.graph_get_verse_entities(normalized)
     else:
-        # Chapter-level: parse book and chapter
-        match = re.match(r'^(\d?\s*[a-zA-Z]+)\s+(\d+)$', ref_stripped)
-        if match:
-            book_str, chapter_str = match.groups()
-            # Normalize the book name using the same reference normalizer
-            dummy_ref = f"{book_str} {chapter_str}:1"
-            normalized = db._normalize_reference(dummy_ref)
-            book_abbr = normalized.split(".")[0]
-            entities = await db.graph_get_chapter_entities(book_abbr, int(chapter_str))
+        # Chapter-level: parse book (including multi-word names) and chapter
+        parsed = _parse_single_chapter(ref_stripped)
+        if parsed:
+            entities = await db.graph_get_chapter_entities(*parsed)
         else:
             return text(f"Could not parse reference: {reference}. Use 'Romans 8' or 'Genesis 22:1' format.")
 

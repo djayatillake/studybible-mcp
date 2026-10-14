@@ -294,28 +294,46 @@ async def test_lookup_name_without_a_match(db):
     assert await call("lookup_name", name="") == "Please provide a name to look up."
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="format_name_entry reads entry['references'], but the names table column "
-    "is 'refs', so the key verse references are never shown",
-)
 async def test_lookup_name_shows_key_references(db):
     output = await call("lookup_name", name="David", type="person")
     assert "**Key References**: 1Sa.16.13, 2Sa.5.3" in output
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="handle_lookup_name fetches ACAI data once for the query string and attaches "
-    "it to every matched entry, so 'City of David' gets King David's roles and counts",
-)
 async def test_lookup_name_acai_annotations_belong_to_their_own_entry(db):
     output = await call("lookup_name", name="David")
     city = next(part for part in output.split("\n---\n") if "### City of David" in part)
     assert "**Roles**" not in city
     assert "**Referenced in**" not in city
+
+
+async def test_lookup_name_acai_matches_each_entry_by_its_own_name_and_type(tmp_path, monkeypatch):
+    # The built database keys ACAI entities as 'type:Name'. The tribe of Judah
+    # has more references than the person; a place merely containing the name
+    # has no ACAI entity of its own.
+    path = tmp_path / "acai.db"
+    conn = sqlite3.connect(path)
+    create_schema(conn)
+    conn.executemany(
+        "INSERT INTO names (name, type, description, refs, relationships) VALUES (?, ?, ?, '[]', '{}')",
+        [("Judah", "person", "Fourth son of Jacob."), ("Bethlehem-judah", "place", "Town in Judah.")],
+    )
+    conn.executemany(
+        "INSERT INTO acai_entities (id, entity_type, name, roles, reference_count) VALUES (?, ?, ?, ?, ?)",
+        [("group:Judah", "group", "group:Judah", '["Tribe"]', 728),
+         ("person:Judah", "person", "person:Judah", '["Patriarch"]', 80)],
+    )
+    conn.commit()
+    conn.close()
+    database = await _connect(path, monkeypatch)
+    try:
+        output = await call("lookup_name", name="Judah")
+    finally:
+        await database.close()
+    person, place = output.split("\n---\n")[:2]
+    assert "### Judah\n" in person and "### Bethlehem-judah\n" in place
+    assert "**Roles**: Patriarch\n**Referenced in**: 80 verses" in person
+    assert "**ACAI Annotations**" not in place
+    assert "Tribe" not in output
 
 
 # ---------------------------------------------------------------------------
@@ -432,6 +450,12 @@ async def test_similar_passages_without_an_embedding_or_verse(vector_db):
         assert output.startswith(f"No similar passages found for {reference}.")
 
 
+async def test_similar_passages_do_not_borrow_another_verse(vector_db):
+    # John 3:1 is not in the fixture; John 3:16 (which has an embedding) must not stand in.
+    output = await call("find_similar_passages", reference="John 3:1")
+    assert output.startswith("No similar passages found for John 3:1.")
+
+
 async def test_similar_passages_require_a_reference(db):
     assert (
         await call("find_similar_passages", reference="")
@@ -485,12 +509,6 @@ async def test_genealogy_graceful_messages(db):
     assert await call("explore_genealogy", person="") == "Please provide a person's name."
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="mermaid_genealogy links each ancestor to the first two people one generation "
-    "down instead of to their own child, so it draws Abraham and Sarah as parents of Rebekah",
-)
 async def test_genealogy_diagram_draws_only_real_parent_edges(db):
     output = await call("explore_genealogy", person="Hezron", direction="ancestors")
     names = {person_id: name for person_id, name, *_ in GRAPH_PEOPLE}
@@ -502,6 +520,16 @@ async def test_genealogy_diagram_draws_only_real_parent_edges(db):
     drawn = set(re.findall(r"^\s*(\w+)(?:\[\"[^\"]*\"\])? -->\|(?:father|mother)\| (\w+)", output, re.MULTILINE))
     assert drawn, "diagram has no parent edges"
     assert drawn <= real, sorted(drawn - real)
+
+
+async def test_genealogy_diagram_draws_every_parent_edge_in_range(db):
+    output = await call("explore_genealogy", person="Hezron", direction="ancestors")
+    drawn = set(re.findall(r"^\s*(\w+)(?:\[\"[^\"]*\"\])? -->\|(?:father|mother)\| (\w+)", output, re.MULTILINE))
+    # Five generations up: Terah (sixth) is out of range.
+    assert drawn == {
+        ("Perez", "Hezron"), ("Judah", "Perez"), ("Jacob", "Judah"), ("Isaac", "Jacob"),
+        ("Rebekah", "Jacob"), ("Abraham", "Isaac"), ("Sarah", "Isaac"),
+    }
 
 
 async def test_people_in_passage_chapter_and_verse(db):
@@ -533,13 +561,6 @@ async def test_people_in_passage_graceful_messages(db):
     assert (await call("people_in_passage", reference="")).startswith("Please provide a Bible reference")
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="the chapter-reference regex in handle_people_in_passage and "
-    "handle_get_study_notes accepts one-word book names only, so 'Song of Solomon 2' "
-    "is rejected or finds nothing although 'Song of Solomon 2:1' works",
-)
 @pytest.mark.parametrize(
     ("tool", "expected"),
     [("people_in_passage", "- **Sharon**"), ("get_study_notes", "The rose of Sharon")],
@@ -547,6 +568,12 @@ async def test_people_in_passage_graceful_messages(db):
 async def test_chapter_references_with_multi_word_book_names(db, tool, expected):
     assert expected in await call(tool, reference="Song of Solomon 2:1")
     assert expected in await call(tool, reference="Song of Solomon 2")
+
+
+async def test_chapter_references_with_numbered_book_names(db):
+    assert "God is love (test note)." in await call("get_study_notes", reference="1 John 4")
+    whole_chapter = await call("get_study_notes", reference="1 John 4:7", chapter_only=True)
+    assert "God is love (test note)." in whole_chapter
 
 
 async def test_person_events_in_chronological_order_with_places(db):
@@ -591,14 +618,14 @@ async def test_explore_place_graceful_messages(db):
     assert await call("explore_place", place="") == "Please provide a place name."
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="graph_find_place matches LIKE '%name%' with no exact-match preference "
-    "(unlike graph_find_person), so 'Ai' resolves to 'Mount Sinai'",
-)
 async def test_explore_place_prefers_the_exact_name(db):
     output = await call("explore_place", place="Ai")
+    assert output.startswith("## Ai\n"), output.splitlines()[0]
+
+
+async def test_explore_place_prefers_a_prefix_match_to_a_substring(db):
+    # Haran, Moriah, Zoar, Sharon and Mount Sinai contain "a"; only Ai starts with it.
+    output = await call("explore_place", place="a")
     assert output.startswith("## Ai\n"), output.splitlines()[0]
 
 
@@ -652,16 +679,16 @@ async def test_graph_enriched_search_graceful_messages(db):
     )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="StudyBibleDB.get_verse falls back to LIKE '%Jhn.3.1%', so a verse missing "
-    "from the table borrows the text of John 3:16 (the same fallback feeds "
-    "find_similar_passages)",
-)
 async def test_graph_enriched_search_does_not_borrow_another_verse(db):
     output = await call("graph_enriched_search", reference="John 3:1")
     assert "For God so loved the world" not in output
+
+
+async def test_graph_enriched_search_finds_a_verse_stored_with_split_numbering(db):
+    # The fixture row is 'Gen.32.1(32.2)': English 32:1, Hebrew 32:2.
+    output = await call("graph_enriched_search", reference="Genesis 32:1")
+    assert output.startswith("## Genesis 32:1\n\nJacob went on his way (test text).")
+    assert "Jacob went on his way" not in await call("graph_enriched_search", reference="Genesis 32:2")
 
 
 # ---------------------------------------------------------------------------
@@ -695,12 +722,6 @@ async def test_study_notes_graceful_messages(db):
     assert (await call("get_study_notes", reference="")).startswith("Please provide a Bible reference")
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="handle_get_study_notes ignores chapter_only=True when the reference has a "
-    "verse: the chapter regex fails on 'John 3:16' and it falls back to verse notes",
-)
 async def test_study_notes_chapter_only_returns_the_whole_chapter(db):
     output = await call("get_study_notes", reference="John 3:16", chapter_only=True)
     assert "Nicodemus came to Jesus by night" in output
@@ -801,15 +822,23 @@ async def test_ane_context_without_a_match(db):
     )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="get_ane_context splits an unparsed reference on '.' and calls int() on the "
-    "piece, so 'Gen. 15:6' raises ValueError and the tool returns 'Error: invalid literal'",
-)
 async def test_ane_context_abbreviation_with_a_period(db):
     output = await call("get_ane_context", reference="Gen. 15:6")
     assert output.startswith("## Ancient Near East Context") or output.startswith("No ANE context")
+
+
+async def test_ane_context_reads_abbreviations_and_chapter_references(db):
+    for reference in ("Gen. 15:6", "Genesis 15", "Gen.15.6"):
+        output = await call("get_ane_context", reference=reference)
+        assert "### Covenant-cutting ritual" in _section(output, "# Directly Relevant to This Passage")
+    assert (
+        await call("get_ane_context", reference="Gen. fifteen")
+        == "No ANE context entries found for reference=Gen. fifteen."
+    )
+    # Verse tools normalize the period form too.
+    output = await call("graph_enriched_search", reference="Gen. 22:1")
+    assert "After these things God tested Abraham (test text)." in output
+    assert "**Abraham**" in output
 
 
 # ---------------------------------------------------------------------------
