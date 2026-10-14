@@ -332,3 +332,26 @@ def test_repair_refuses_sources_the_corrections_no_longer_match(stale_db, monkey
     with pytest.raises(SystemExit, match="no entity place:Ramah.4"):
         _run(monkeypatch, path, "--data-dir", data_dir)
     assert _table(path) == before
+
+
+def test_gilgals_get_their_own_text_and_elishas_gets_none():
+    corrections = json.loads(
+        (SCRIPTS.parent / "src" / "study_bible_mcp" / "parsers" / "graph_curated.json").read_text("utf-8")
+    )["acai"]
+    jericho = (
+        "A town close to Jericho where the Israelites first camped after crossing the Jordan "
+        "River and set up twelve stones as a monument; it later became the location of a "
+        "cultic center."
+    )
+    entities = {
+        "place:Gilgal.2": {"id": "place:Gilgal.2", "name": "Gilgal (near Shechem)",
+                           "description": "A location close to Shechem and the Oak of Moreh."},
+        "place:Gilgal.3": {"id": "place:Gilgal.3", "name": "Gilgal (near Jericho)",
+                           "description": jericho},
+    }
+    fixed = apply_acai_corrections(entities, corrections)
+    assert fixed["place:Gilgal.2"]["name"] == "Gilgal (near Jericho)"
+    assert fixed["place:Gilgal.2"]["description"] == jericho
+    assert fixed["place:Gilgal.3"]["name"] == "Gilgal"
+    assert fixed["place:Gilgal.3"]["description"] is None
+    assert apply_acai_corrections(fixed, corrections) == fixed

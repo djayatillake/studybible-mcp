@@ -229,6 +229,17 @@
     {"id": "person:Jonah", "field": "roles", "from": ["Disciple"], "to": [],
      "reason": "ACAI's second entity for Peter's father (Matt 16:17), as person:John.4."},
     {"id": "person:Aiah.2", "field": "roles", "from": ["Royal Family Member", "Concubine"], "to": [],
-     "reason": "His daughter Rizpah's roles (person:Rizpah: Member of the Royal Family, Concubine). Aiah is named only as Rizpah's father (2 Sam 3:7; 21:8-11)."}
+     "reason": "His daughter Rizpah's roles (person:Rizpah: Member of the Royal Family, Concubine). Aiah is named only as Rizpah's father (2 Sam 3:7; 21:8-11)."},
+    {"id": "place:Gilgal.2", "field": "name", "from": "Gilgal (near Shechem)", "to": "Gilgal (near Jericho)",
+     "source": "place:Gilgal.3",
+     "reason": "ACAI's two main Gilgals carry each other's text, like the Ramahs. This is TIPNR's Gilgal@Deu.11.30, the Jericho Gilgal of Josh 4-5 and 1 Sam 11-15 (38 references), labelled from its first reference, Deut 11:30 ('near the oaks of Moreh'). place:Gilgal.3 has this town's label."},
+    {"id": "place:Gilgal.2", "field": "description", "from": "A location close to Shechem and the Oak of Moreh.",
+     "to": "A town close to Jericho where the Israelites first camped after crossing the Jordan River and set up twelve stones as a monument; it later became the location of a cultic center.", "source": "place:Gilgal.3",
+     "reason": "As its name: the Jericho Gilgal (Josh 4:19-20; 5:9-10)."},
+    {"id": "place:Gilgal.3", "field": "name", "from": "Gilgal (near Jericho)", "to": "Gilgal",
+     "reason": "This is TIPNR's Gilgal@2Ki.2.1, the Gilgal Elijah and Elisha set out from (2 Kgs 2:1; 4:38), not the Jericho Gilgal whose label it carries. ACAI has no label for it, so it keeps the bare name (owner's decision, 2026-10-14)."},
+    {"id": "place:Gilgal.3", "field": "description", "from": "A town close to Jericho where the Israelites first camped after crossing the Jordan River and set up twelve stones as a monument; it later became the location of a cultic center.",
+     "to": null,
+     "reason": "The Jericho Gilgal's description belongs to place:Gilgal.2, where it now is. ACAI has no description of Elisha's Gilgal, so none is shown rather than one being written (owner's decision, 2026-10-14)."}
   ]
 }
