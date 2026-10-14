@@ -20,6 +20,7 @@ from ..database import (
     ancient_search_index_text,
     ancient_search_prefix_variants,
 )
+from ..published_text import fix_ancient_row
 
 _BOOK_CODES = frozenset(BOOK_ABBREV_MAP.values())
 
@@ -208,7 +209,8 @@ def import_corpus(
     """
     corpus = CORPORA[key]
     corpus.require_files(directory)
-    rows = [_passage(corpus, dict(raw)) for raw in corpus.parse(directory)]
+    # Listed transcription slips (published_text_corrections.json) are fixed here too.
+    rows = [fix_ancient_row(_passage(corpus, dict(raw))) for raw in corpus.parse(directory)]
     if not rows:
         raise ValueError(f"{key}: the parser produced no passages from {directory}")
     if notes is None:
