@@ -93,22 +93,20 @@ def stored_acai_rows(conn: sqlite3.Connection) -> list[list]:
 
 
 def parse_acai(acai_dir: Path) -> list[list]:
-    """The rows a fresh build imports, in its order (a later duplicate id wins)."""
-    from study_bible_mcp.parsers.acai import parse_acai_entities
+    """The rows a fresh build imports, in its order (a later duplicate id wins),
+    with the curated corrections of graph_curated.json applied."""
+    from study_bible_mcp.parsers.acai import apply_acai_corrections, parse_acai_dir
+    from study_bible_mcp.parsers.theographic import load_curated
 
-    rows: dict[str, list] = {}
     for entity_type in ACAI_TYPES:
-        files = sorted((acai_dir / entity_type).glob("*.json"))
-        if len(files) == GITHUB_LISTING_CAP:
+        if len(list((acai_dir / entity_type).glob("*.json"))) == GITHUB_LISTING_CAP:
             print(
                 f"WARNING: {acai_dir / entity_type} has exactly {GITHUB_LISTING_CAP} files, the old "
                 "downloader's cap; run scripts/download_stepbible.py --aquifer to fetch the rest",
                 file=sys.stderr,
             )
-        for path in files:
-            for entity in parse_acai_entities(path, entity_type):
-                rows[entity["id"]] = [entity.get(column) for column in ACAI_COLUMNS]
-    return list(rows.values())
+    entities = apply_acai_corrections(parse_acai_dir(acai_dir), load_curated()["acai"])
+    return [[entity.get(column) for column in ACAI_COLUMNS] for entity in entities.values()]
 
 
 def names_changes(conn: sqlite3.Connection, tipnr: Path) -> tuple[list[list], list[list]]:

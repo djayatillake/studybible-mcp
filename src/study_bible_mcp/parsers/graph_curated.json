@@ -1,5 +1,5 @@
 {
-  "_about": "Curated corrections and additions to the people/places/events graph (Theographic Bible Metadata) and to TIPNR name relationships. The build (scripts/import_theographic.py, scripts/build_database.py) applies them, and scripts/repair_theographic_graph.py brings an existing database into line. Each correction names the source value it replaces ('from'); if the source changes, the build stops so the correction can be reviewed. Event years are astronomical (-585 is 586 BC); people's years count BC directly (-1758 is 1758 BC).",
+  "_about": "Curated corrections and additions to the people/places/events graph (Theographic Bible Metadata), to TIPNR name relationships, and to ACAI annotations attached to the wrong entity ('acai': 'to' is the value ACAI gives the entity named in 'source', checked at build). The build (scripts/import_theographic.py, scripts/build_database.py) applies them, and scripts/repair_theographic_graph.py and scripts/repair_acai_corrections.py bring an existing database into line. Each correction names the source value it replaces ('from'); if the source changes, the build stops so the correction can be reviewed. Event years are astronomical (-585 is 586 BC); people's years count BC directly (-1758 is 1758 BC).",
   "theographic": {
     "people": [
       {"id": "rachel_2386", "field": "birth_year", "from": -1755, "to": null,
@@ -194,5 +194,41 @@
     {"entry": "Alphaeus@Mat.10.3", "field": "children", "from": ["James", "Joses", "Matthew"],
      "to": ["James", "Joses", "Matthew (if Levi's father Alphaeus, Mark 2:14, is the same man)"],
      "reason": "Mark 2:14 and Matt 10:3 may name two different men called Alphaeus."}
+  ],
+  "acai": [
+    {"id": "place:Ramah.2", "field": "name", "from": "Ramah (of the Negev)", "to": "Ramah (of Benjamin)",
+     "source": "place:Ramah.4",
+     "reason": "ACAI's Ramahs carry each other's labels. This is TIPNR's Ramah@Jos.18.25, Benjamin's (Josh 18:25; Judg 4:5; 1 Kgs 15:17; Jer 31:15; Matt 2:18; at er-Ram), labelled from its key reference Josh 19:8, the Ramah of the Negev, which TIPNR files under it. place:Ramah.4 has this town's label."},
+    {"id": "place:Ramah.2", "field": "description",
+     "from": "A town in the territory of Simeon; also known as Ramoth-Negev.",
+     "to": "A town in the territory of Benjamin, northwest of Jerusalem, where the prophetess Deborah would judge Israel (Judges 4:5).",
+     "source": "place:Ramah.4",
+     "reason": "As its name: Benjamin's Ramah (Judg 4:5; Jer 31:15), not Simeon's Ramah of the Negev (Josh 19:8), which is ACAI's place:Ramoth."},
+    {"id": "place:Ramah.3", "field": "name", "from": "Ramah (of Naphtali)", "to": "Ramah (of Asher)",
+     "source": "place:Ramah.6",
+     "reason": "This is TIPNR's Ramah@Jos.19.29, the Ramah of Asher (its one reference, and its coordinates near Tyre), labelled as the Ramah of Naphtali (Josh 19:36), which is place:Ramah.4. place:Ramah.6, which has no references, has Asher's label."},
+    {"id": "place:Ramah.3", "field": "description", "from": "A fortified town in the territory of Naphtali.",
+     "to": "A town in the territory of Asher.", "source": "place:Ramah.6",
+     "reason": "As its name: Asher's Ramah (Josh 19:29)."},
+    {"id": "place:Ramah.4", "field": "name", "from": "Ramah (of Benjamin)", "to": "Ramah (of Naphtali)",
+     "source": "place:Ramah.3",
+     "reason": "This is TIPNR's Ramah@Jos.19.36, the fortified town of Naphtali (its one reference, and its coordinates at er-Rameh in Galilee), labelled as Benjamin's Ramah, which is place:Ramah.2. place:Ramah.3 has Naphtali's label."},
+    {"id": "place:Ramah.4", "field": "description", "from": "A town in the territory of Benjamin, northwest of Jerusalem, where the prophetess Deborah would judge Israel (Judges 4:5).",
+     "to": "A fortified town in the territory of Naphtali.", "source": "place:Ramah.3",
+     "reason": "As its name: Naphtali's Ramah, among its fortified towns (Josh 19:35-36)."},
+    {"id": "person:Judah.4", "field": "referred_to_as",
+     "from": ["Juda", "Judas", "David", "Judahite"], "to": ["Juda", "Judas", "Judahite"],
+     "reason": "David is not a name of the patriarch Judah. At 2 Chr 25:28 the Hebrew has 'the city of Judah' and the ESV 'the city of David'; TIPNR lists that rendering under Judah, and ACAI took it for an alternate label."},
+    {"id": "person:Jehoiakim", "field": "referred_to_as",
+     "from": ["Zedekiah", "Eliakim"], "to": ["Eliakim"],
+     "reason": "Zedekiah was Jehoiakim's brother (1 Chr 3:15), not another name for him. At Jer 27:1 the Hebrew has 'Jehoiakim' and the ESV 'Zedekiah' (as 27:3, 12); TIPNR lists that rendering under Jehoiakim, and ACAI took it for an alternate label."},
+    {"id": "person:John.3", "field": "roles", "from": ["Disciple"], "to": [],
+     "reason": "The John of Acts 4:6 was of the high-priestly family, on the council that tried Peter and John (Acts 4:5-7), not a disciple. (His two attributed speeches, Acts 4:7 and 4:16-17, are the council's, which ACAI attributes to each named member, Alexander and Caiaphas too; they stay.)"},
+    {"id": "person:John.4", "field": "roles", "from": ["Disciple"], "to": [],
+     "reason": "Peter and Andrew's father is named only as their father (Matt 16:17; John 1:42; 21:15-17); nothing makes him a disciple."},
+    {"id": "person:Jonah", "field": "roles", "from": ["Disciple"], "to": [],
+     "reason": "ACAI's second entity for Peter's father (Matt 16:17), as person:John.4."},
+    {"id": "person:Aiah.2", "field": "roles", "from": ["Royal Family Member", "Concubine"], "to": [],
+     "reason": "His daughter Rizpah's roles (person:Rizpah: Member of the Royal Family, Concubine). Aiah is named only as Rizpah's father (2 Sam 3:7; 21:8-11)."}
   ]
 }
