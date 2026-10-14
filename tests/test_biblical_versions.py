@@ -11,18 +11,18 @@ import httpx
 import pytest
 
 from study_bible_mcp import server
-from study_bible_mcp.parsers import biblical_versions as biblical_versions_module
 from study_bible_mcp.database import StudyBibleDB, create_schema, parse_passage_reference
+from study_bible_mcp.parsers import biblical_versions as biblical_versions_module
 from study_bible_mcp.parsers.biblical_versions import (
-    BRENTON_BOOK_CODES,
     APOCRYPHA_BOOK_NAMES,
+    BRENTON_BOOK_CODES,
     BRENTON_TRANSLATION_NOTE,
     KJV_APOCRYPHA_NOTE,
     KJV_APOCRYPHA_TRANSLATION_LABEL,
     LXX_BOOK_CODES,
+    LXX_SOURCE_BOOKS,
     LXX_TRANSLATION_LABEL,
     MT_BOOK_CODES,
-    LXX_SOURCE_BOOKS,
     REQUIRED_BRENTON_BOOKS,
     REQUIRED_BRENTON_GREEK_BOOKS,
     apocrypha_name,
@@ -34,7 +34,6 @@ from study_bible_mcp.parsers.biblical_versions import (
     parse_brenton_usfm,
 )
 from study_bible_mcp.tools import format_biblical_version_comparison
-
 
 PROVENANCE_FIELDS = {
     "version",

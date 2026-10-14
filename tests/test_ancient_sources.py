@@ -5,12 +5,11 @@ from pathlib import Path
 import pytest
 
 from study_bible_mcp import server
-from study_bible_mcp.database import StudyBibleDB, create_schema
 from study_bible_mcp.corpora import CORPORA, josephus
 from study_bible_mcp.corpora.josephus import parse_josephus_work
+from study_bible_mcp.database import StudyBibleDB, create_schema
 from study_bible_mcp.parsers.ancient_sources import import_josephus
 from study_bible_mcp.tools import format_ancient_source_results
-
 
 TEI_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 <TEI xmlns="http://www.tei-c.org/ns/1.0">

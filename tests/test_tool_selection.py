@@ -12,10 +12,7 @@ import math
 import re
 from collections import Counter
 
-import pytest
-
 from study_bible_mcp.tools import TOOLS
-
 
 # ---------------------------------------------------------------------------
 # Lightweight keyword scorer – simulates how an LLM matches a query to tools

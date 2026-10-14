@@ -17,9 +17,8 @@ This module provides a generic parser that works for all resource types.
 
 import json
 import re
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
-
 
 # Book number to 3-letter abbreviation mapping (BBCCCVVV format uses 2-digit book numbers)
 _BOOK_NUM_TO_ABBR = {
@@ -115,7 +114,7 @@ def parse_aquifer_content_file(
     Yields:
         Dicts ready for database insertion into aquifer_content table.
     """
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         data = json.load(f)
 
     # Handle both array and object formats

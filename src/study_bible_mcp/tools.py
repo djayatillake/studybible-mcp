@@ -528,7 +528,7 @@ location's full history by `explore_place`.""",
 For Greek: Robinson codes (e.g., 'V-AAI-3S' = Verb, Aorist, Active, Indicative, 3rd person, Singular)
 For Hebrew: Westminster/OpenScriptures codes
 
-Returns full grammatical explanation including part of speech, 
+Returns full grammatical explanation including part of speech,
 person, number, tense, voice, mood, case, and gender where applicable.""",
         inputSchema={
             "type": "object",
@@ -1454,17 +1454,17 @@ def format_verse(
 ) -> str:
     """Format a verse for display; ``include_words`` controls the word list."""
     lines = []
-    
+
     lines.append(f"## {_verse_heading(verse)}")
     lines.append("")
     lines.append(verse.get('text_english', 'No English text available.'))
     lines.append("")
-    
+
     if include_original and verse.get('text_original'):
         lines.append("### Original Text")
         lines.append(verse['text_original'])
         lines.append("")
-    
+
     words = _parse_json_field(verse.get('word_data'))
     if words and include_original and include_words:
         lines.append("### Word Analysis")
@@ -1475,7 +1475,7 @@ def format_verse(
                     word_line += f" [{w['morph']}]"
                 lines.append(word_line)
         lines.append("")
-    
+
     return "\n".join(lines)
 
 

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import re
 import xml.etree.ElementTree as ET
+from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
-
-from dataclasses import replace
 
 from .base import BiblicalLink, Corpus, SourceTag, Work, combined_license
 from .download import fetch_github_directory

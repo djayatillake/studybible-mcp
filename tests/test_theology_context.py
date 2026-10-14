@@ -6,7 +6,6 @@ import pytest
 
 from study_bible_mcp.database import StudyBibleDB, create_schema
 
-
 # (id, title, [(reference, verse, relevance)], [theme keys])
 ENTRIES = [
     (1, "Supporting entry", [("Psa.82.6", 6, "supporting")], ["divine_council"]),

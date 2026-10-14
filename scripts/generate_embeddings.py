@@ -24,7 +24,7 @@ from pathlib import Path
 
 import click
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
 console = Console()
 
@@ -50,7 +50,7 @@ def load_sqlite_vec(conn: sqlite3.Connection):
             try:
                 conn.enable_load_extension(True)
                 conn.load_extension(ext_name)
-                console.print(f"  [green]✓[/green] Loaded sqlite-vec extension")
+                console.print("  [green]✓[/green] Loaded sqlite-vec extension")
                 return True
             except sqlite3.OperationalError:
                 continue
@@ -58,7 +58,7 @@ def load_sqlite_vec(conn: sqlite3.Connection):
         # Try loading from common paths
         import sqlite_vec
         sqlite_vec.load(conn)
-        console.print(f"  [green]✓[/green] Loaded sqlite-vec via Python package")
+        console.print("  [green]✓[/green] Loaded sqlite-vec via Python package")
         return True
 
     except Exception as e:

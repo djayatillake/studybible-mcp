@@ -9,6 +9,7 @@ Supports stdio, SSE, and Streamable HTTP transports for local and remote deploym
 import asyncio
 import contextlib
 import difflib
+import json
 import logging
 import os
 import re
@@ -27,8 +28,6 @@ from mcp.types import (
     Tool,
 )
 
-import json
-
 from .corpora import CORPORA, all_periods, resolve_citation
 from .database import (
     BOOK_ABBREV_MAP,
@@ -36,30 +35,50 @@ from .database import (
     StudyBibleDB,
     expand_single_chapter_reference,
 )
+from .hermeneutics import (
+    format_genre_guidance,
+    get_genre,
+    get_genre_from_reference,
+)
+from .tools import (
+    ANCIENT_LINE_CONTEXT,
+    ANCIENT_LOOKUP_DEFAULT,
+    ANCIENT_LOOKUP_LIMIT,
+    RESEARCH_SOURCES_DEFAULT_LIMIT,
+    RESEARCH_SOURCES_MAX_LIMIT,
+    TOOLS,
+    _truncate,
+    find_research_sources,
+    format_ancient_source_lookup,
+    format_ancient_source_results,
+    format_ane_context,
+    format_ane_dimensions,
+    format_biblical_version_comparison,
+    format_connection_path,
+    format_dictionary_article,
+    format_enriched_verse,
+    format_genealogy,
+    format_key_terms,
+    format_lexicon_entry,
+    format_name_entry,
+    format_passage_entities,
+    format_person_events,
+    format_place_history,
+    format_research_sources,
+    format_study_notes,
+    format_textual_variant_cases,
+    format_theology_context,
+    format_theology_themes,
+    format_torah_weave,
+    format_verse,
+    mermaid_connection_path,
+    mermaid_genealogy,
+    mermaid_person_timeline,
+    mermaid_place_network,
+)
 
 # Purple book with gold cross icon (32x32 PNG, base64 encoded)
 ICON_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAtklEQVR42mNgGOmAEZtgQ9TV/7SwrGGZNiNeB9DKYnwOYcGl6MajG1S1VENOA6s4E4yxounvfw0NDZpYjm4mckgz0drnhMxmIdew5bO3M9w+twfOr5veS5Y5TAOdDUcdMOAOYCE2wWEDqkYueNVEpnpSxwHIqR3ZcmziqMBzNA1QJwqwFTLocT5aEI06YNQBow6gaUGEDUAqGk/qhwCu1iutWsY4+wW0bJYT1S+gZUgMqq7ZKAAA/oE/8EmGTpMAAAAASUVORK5CYII="
-from .tools import (
-    ANCIENT_LINE_CONTEXT, ANCIENT_LOOKUP_DEFAULT, ANCIENT_LOOKUP_LIMIT, TOOLS, _truncate, format_lexicon_entry, format_verse, format_name_entry,
-    format_genealogy, format_person_events, format_place_history,
-    format_passage_entities, format_connection_path,
-    format_enriched_verse, format_biblical_version_comparison,
-    format_ancient_source_results, format_ancient_source_lookup, format_textual_variant_cases,
-    mermaid_genealogy, mermaid_connection_path, mermaid_person_timeline,
-    mermaid_place_network,
-    format_study_notes, format_dictionary_article, format_key_terms,
-    format_ane_context, format_ane_dimensions,
-    format_theology_context, format_theology_themes,
-    format_torah_weave,
-    RESEARCH_SOURCES_DEFAULT_LIMIT, RESEARCH_SOURCES_MAX_LIMIT,
-    find_research_sources, format_research_sources,
-)
-from .hermeneutics import (
-    get_genre,
-    get_genre_from_reference,
-    format_genre_guidance,
-    get_reasoning_pattern,
-)
 
 # Configure logging
 logging.basicConfig(
@@ -425,7 +444,7 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
             else "with the quoting or quoted verse as the reference"
         )
         result += (
-            f"\n\n---\n*NT↔OT LXX-form quotation: " + "; ".join(cues) + ". "
+            "\n\n---\n*NT↔OT LXX-form quotation: " + "; ".join(cues) + ". "
             f"Separated manuscript evidence and attributed analysis via "
             f"`get_textual_variant` {target}.*"
         )
@@ -1835,8 +1854,8 @@ ROOT_DESCRIPTION = (
 
 def _make_shared_routes():
     """Create route handler functions and routes shared by SSE and HTTP transports."""
-    from starlette.routing import Route
     from starlette.responses import JSONResponse, Response
+    from starlette.routing import Route
 
     async def health_check(request):
         """Health check endpoint for load balancers and monitoring."""
@@ -1883,13 +1902,13 @@ def _make_shared_routes():
 async def run_sse_server(host: str, port: int):
     """Run the MCP server with SSE transport only (legacy)."""
     try:
+        import uvicorn
         from mcp.server.sse import SseServerTransport
         from starlette.applications import Starlette
-        from starlette.routing import Route
-        from starlette.responses import JSONResponse
         from starlette.middleware import Middleware
         from starlette.middleware.cors import CORSMiddleware
-        import uvicorn
+        from starlette.responses import JSONResponse
+        from starlette.routing import Route
     except ImportError:
         logger.error(
             "SSE transport requires additional dependencies. "
@@ -1952,15 +1971,16 @@ async def run_http_server(host: str, port: int):
     Serves Streamable HTTP at /mcp and SSE at /sse for backwards compatibility.
     """
     try:
+        from collections.abc import AsyncIterator
+
+        import uvicorn
         from mcp.server.sse import SseServerTransport
         from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
         from starlette.applications import Starlette
-        from starlette.routing import Route, Mount
-        from starlette.responses import JSONResponse
         from starlette.middleware import Middleware
         from starlette.middleware.cors import CORSMiddleware
-        from collections.abc import AsyncIterator
-        import uvicorn
+        from starlette.responses import JSONResponse
+        from starlette.routing import Mount, Route
     except ImportError:
         logger.error(
             "HTTP transport requires additional dependencies. "

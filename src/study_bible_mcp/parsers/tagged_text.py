@@ -15,8 +15,8 @@ These files contain morphologically tagged text with:
 
 import json
 import re
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 
 def extract_verse_ref(ref: str) -> str:
@@ -40,7 +40,7 @@ def parse_tagnt(filepath: Path) -> Iterator[dict]:
     current_verse_ref = None
     word_data = []
 
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         for line in f:
             line = line.strip()
 
@@ -140,7 +140,7 @@ def parse_tahot(filepath: Path) -> Iterator[dict]:
     current_verse_ref = None
     word_data = []
 
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         for line in f:
             line = line.strip()
 
@@ -278,14 +278,14 @@ def normalize_strongs(strongs: str) -> str:
     """Normalize a Strong's number."""
     if not strongs:
         return ''
-    
+
     # Handle multiple Strong's (e.g., "G1234/G5678")
     strongs = strongs.split('/')[0]
     strongs = strongs.split(',')[0]
-    
+
     # Remove any non-standard prefixes
     strongs = strongs.strip()
-    
+
     # Ensure proper format
     match = re.match(r'^([GH])(\d+)([a-z])?', strongs, re.IGNORECASE)
     if match:
@@ -293,31 +293,31 @@ def normalize_strongs(strongs: str) -> str:
         number = match.group(2)
         suffix = match.group(3) or ''
         return f"{prefix}{number}{suffix}"
-    
+
     return strongs
 
 
 def parse_morphology_codes(filepath: Path, language: str) -> Iterator[dict]:
     """
     Parse morphology expansion files (TEGMC or TEHMC).
-    
+
     Returns dictionaries mapping codes to their full descriptions.
     """
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         for line in f:
             line = line.strip()
-            
+
             if not line or line.startswith('#'):
                 continue
-            
+
             parts = line.split('\t')
-            
+
             if len(parts) < 2:
                 continue
-            
+
             code = parts[0].strip()
             parsing = parts[1].strip() if len(parts) > 1 else ''
-            
+
             entry = parse_morph_code(code, parsing, language)
             if entry:
                 yield entry
@@ -327,7 +327,7 @@ def parse_morph_code(code: str, parsing: str, language: str) -> dict | None:
     """Parse a single morphology code."""
     if not code:
         return None
-    
+
     entry = {
         'code': code,
         'language': language,
@@ -341,25 +341,25 @@ def parse_morph_code(code: str, parsing: str, language: str) -> dict | None:
         'case_value': '',
         'gender': '',
     }
-    
+
     # Parse Greek Robinson codes (e.g., V-AAI-3S, N-GSF)
     if language == 'greek':
         entry = parse_robinson_code(code, parsing, entry)
-    
+
     # Parse Hebrew codes
     elif language == 'hebrew':
         entry = parse_hebrew_morph(code, parsing, entry)
-    
+
     return entry
 
 
 def parse_robinson_code(code: str, parsing: str, entry: dict) -> dict:
     """Parse a Greek Robinson morphology code."""
     parts = code.split('-')
-    
+
     if not parts:
         return entry
-    
+
     # Part of speech is first character(s)
     pos_map = {
         'V': 'Verb',
@@ -373,56 +373,56 @@ def parse_robinson_code(code: str, parsing: str, entry: dict) -> dict:
         'I': 'Interjection',
         'X': 'Particle',
     }
-    
+
     pos = parts[0]
     entry['part_of_speech'] = pos_map.get(pos[0], pos)
-    
+
     # For verbs: Tense-Voice-Mood-Person-Number
     if pos.startswith('V') and len(parts) > 1:
         verb_part = parts[1] if len(parts) > 1 else ''
-        
-        tense_map = {'P': 'Present', 'I': 'Imperfect', 'F': 'Future', 
+
+        tense_map = {'P': 'Present', 'I': 'Imperfect', 'F': 'Future',
                      'A': 'Aorist', 'R': 'Perfect', 'L': 'Pluperfect'}
-        voice_map = {'A': 'Active', 'M': 'Middle', 'P': 'Passive', 
-                     'E': 'Middle/Passive', 'D': 'Middle Deponent', 
+        voice_map = {'A': 'Active', 'M': 'Middle', 'P': 'Passive',
+                     'E': 'Middle/Passive', 'D': 'Middle Deponent',
                      'O': 'Passive Deponent', 'N': 'Middle/Passive Deponent'}
         mood_map = {'I': 'Indicative', 'S': 'Subjunctive', 'O': 'Optative',
                     'M': 'Imperative', 'N': 'Infinitive', 'P': 'Participle'}
-        
+
         if len(verb_part) >= 1:
             entry['tense'] = tense_map.get(verb_part[0], '')
         if len(verb_part) >= 2:
             entry['voice'] = voice_map.get(verb_part[1], '')
         if len(verb_part) >= 3:
             entry['mood'] = mood_map.get(verb_part[2], '')
-        
+
         # Person-Number
         if len(parts) > 2:
             pn = parts[2]
             person_map = {'1': '1st', '2': '2nd', '3': '3rd'}
             number_map = {'S': 'Singular', 'P': 'Plural'}
-            
+
             if len(pn) >= 1:
                 entry['person'] = person_map.get(pn[0], '')
             if len(pn) >= 2:
                 entry['number'] = number_map.get(pn[1], '')
-    
+
     # For nouns/adjectives: Case-Number-Gender
     elif pos.startswith(('N', 'A')) and len(parts) > 1:
         cng = parts[1]
-        
+
         case_map = {'N': 'Nominative', 'G': 'Genitive', 'D': 'Dative',
                     'A': 'Accusative', 'V': 'Vocative'}
         number_map = {'S': 'Singular', 'P': 'Plural'}
         gender_map = {'M': 'Masculine', 'F': 'Feminine', 'N': 'Neuter'}
-        
+
         if len(cng) >= 1:
             entry['case_value'] = case_map.get(cng[0], '')
         if len(cng) >= 2:
             entry['number'] = number_map.get(cng[1], '')
         if len(cng) >= 3:
             entry['gender'] = gender_map.get(cng[2], '')
-    
+
     return entry
 
 
@@ -430,7 +430,7 @@ def parse_hebrew_morph(code: str, parsing: str, entry: dict) -> dict:
     """Parse a Hebrew morphology code."""
     # Hebrew morphology is more complex
     # Simplified parsing here - expand as needed
-    
+
     pos_map = {
         'A': 'Adjective',
         'C': 'Conjunction',
@@ -442,8 +442,8 @@ def parse_hebrew_morph(code: str, parsing: str, entry: dict) -> dict:
         'T': 'Particle',
         'V': 'Verb',
     }
-    
+
     if code:
         entry['part_of_speech'] = pos_map.get(code[0], code[0])
-    
+
     return entry

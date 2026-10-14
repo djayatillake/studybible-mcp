@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from study_bible_mcp.database import link_theology_theme, upsert_theology_content
-from study_bible_mcp.parsers.heiser import parse_themes_file, parse_heiser_content_file
+from study_bible_mcp.parsers.heiser import parse_heiser_content_file, parse_themes_file
 
 
 def get_db_path() -> Path:

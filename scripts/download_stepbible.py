@@ -381,7 +381,7 @@ def main(force: bool, data_dir: str | None, aquifer: bool):
 
     if success:
         console.print("\n[bold green]✓ Download complete![/bold green]")
-        console.print(f"\nNext step: Run [bold]python scripts/build_database.py[/bold]")
+        console.print("\nNext step: Run [bold]python scripts/build_database.py[/bold]")
     else:
         console.print("\n[yellow]Some files failed. Check the URLs or download manually.[/yellow]")
         sys.exit(1)

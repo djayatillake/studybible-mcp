@@ -14,7 +14,6 @@ import click
 import httpx
 from rich.console import Console
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LXX_COMMIT = "c91f6b1e8fb3ba37df701e6ae31f675ace71a2b2"
 LXX_API = "https://api.github.com/repos/OpenScriptorium/lxx-morph/contents"

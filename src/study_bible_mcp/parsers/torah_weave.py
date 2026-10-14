@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 # Torah books only — the weave data covers Genesis through Deuteronomy
 BOOK_NAME_TO_ABBREV = {
@@ -90,7 +90,7 @@ def parse_torah_weave_file(filepath: Path) -> Iterator[tuple[dict, list[dict]]]:
     Each unit_dict has fields for torah_weave_units.
     Each cell in cells_list has fields for torah_weave_cells.
     """
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         data = json.load(f)
 
     for unit_data in data.get("units", []):

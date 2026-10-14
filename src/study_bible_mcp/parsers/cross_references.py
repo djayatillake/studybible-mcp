@@ -18,8 +18,8 @@ using our internal `Book.Chapter.Verse` reference format (e.g. "Gen.1.1"):
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 # Canonical book ordinal (CH numeric codes) → our internal abbrev.
 CH_BOOKS = {
@@ -110,7 +110,7 @@ def parse_tsk_tsv(filepath: Path) -> Iterator[tuple[str, str, int]]:
     multi-verse targets (e.g. "Ps.1.1-Ps.1.3") — for those we keep the
     starting verse only, which mirrors how MCP clients ask for refs.
     """
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         first = f.readline()
         if not first.startswith("From Verse\tTo Verse\tVotes"):
             raise ValueError(

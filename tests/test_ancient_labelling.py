@@ -24,7 +24,6 @@ from study_bible_mcp.database import (
 from study_bible_mcp.parsers.ancient_sources import import_corpus
 from study_bible_mcp.tools import ANCIENT_RESPONSE_BUDGET
 
-
 # --- Biblical references in notes and links
 
 

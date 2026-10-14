@@ -32,7 +32,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from study_bible_mcp.tools import load_research_sources, research_search_url
 
-
 LINK_CHECK_SAMPLE_QUERY = "Psalm 82"
 LINK_CHECK_CONCURRENCY = 8
 LINK_CHECK_TIMEOUT = 20.0

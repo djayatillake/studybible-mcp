@@ -18,14 +18,12 @@ import re
 import sys
 from pathlib import Path
 
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+import study_bible_mcp.server as server_module
 from study_bible_mcp.corpora import CORPORA
 from study_bible_mcp.database import StudyBibleDB
 from study_bible_mcp.tools import TOOLS
-import study_bible_mcp.server as server_module
-
 
 # tool name -> (arguments, tables that must have rows for the tool to run)
 TOOL_CASES: dict[str, tuple[dict, tuple[str, ...]]] = {

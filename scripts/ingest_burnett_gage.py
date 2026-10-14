@@ -29,7 +29,6 @@ import sqlite3
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "db" / "study_bible.db"
 XLSX_PATH = ROOT / "data" / "bradley_gage_john_rev.xlsx"

@@ -14,10 +14,9 @@ import sqlite3
 import unicodedata
 import zlib
 from collections import Counter
-from functools import lru_cache
+from collections.abc import Iterator
+from functools import cache
 from pathlib import Path
-from typing import Iterator
-
 
 LXX_COMMIT = "c91f6b1e8fb3ba37df701e6ae31f675ace71a2b2"
 LXX_SOURCE_URL = f"https://github.com/OpenScriptorium/lxx-morph/tree/{LXX_COMMIT}"
@@ -326,7 +325,7 @@ def _greek_letters(word: str) -> str:
     return "".join(ch for ch in word if unicodedata.category(ch) in ("Ll", "Lu")).casefold()
 
 
-@lru_cache(maxsize=None)
+@cache
 def normalize_greek_word(word: str) -> tuple[str, ...]:
     """Reduce one printed Greek word to comparable spelling-neutral forms.
 
