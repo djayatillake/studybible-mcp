@@ -61,7 +61,9 @@ separately from the code.
        `src/study_bible_mcp/corpora/editorial_notes.json`.
    - Pseudepigrapha are paired with aligned biblical passages.
    - The ancient-source corpora cover texts up to about AD 200 that witness the
-     Second Temple world. Later material was left out deliberately, so open an
+     Second Temple world. Targum Onkelos (final form c. 3rd–5th c. AD) is the
+     one stated exception, kept for its earlier tradition and labelled with its
+     final-form date. Later material was left out deliberately, so open an
      issue before proposing it.
 3. **Data provenance.**
    - Pin downloads to a commit or revision and verify checksums. The build must

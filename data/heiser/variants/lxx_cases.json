@@ -44,14 +44,19 @@
       "variant_original": "θυσίαν καὶ προσφορὰν οὐκ ἠθέλησας, σῶμα δὲ κατηρτίσω μοι· ὁλοκαύτωμα καὶ περὶ ἁμαρτίας οὐκ ᾔτησας.",
       "variant_significance": "major_NT_quotation",
       "heiser_analysis": null,
-      "scholarly_consensus": "No Qumran fragment preserves this verse, so the LXX/MT divergence cannot be directly arbitrated by DSS. The LXX \"body\" is widely viewed as either a synecdochic paraphrase of \"ears\" (the part for the whole — God prepared a body for the psalmist to serve him with) or a different Hebrew Vorlage. Either way pre-Christian (LXX Psalter c. 150 BC). Hebrews 10:5-7 quotes the LXX form verbatim and applies \"a body you have prepared for me\" to Christ's incarnation.",
+      "scholarly_consensus": "No Qumran fragment preserves this verse, so the LXX/MT divergence cannot be directly arbitrated by DSS. The Rahlfs edition in our database prints ὠτία δὲ κατηρτίσω μοι (\"ears you prepared for me\"), agreeing with the MT's \"ears\"; σῶμα (\"a body\") is the reading of the major LXX codices (Vaticanus, Sinaiticus, Alexandrinus) and of Brenton's text. The \"body\" reading is variously explained as a synecdochic paraphrase of \"ears\" (the part for the whole — God prepared a body for the psalmist to serve him with), an inner-Greek change, or a different Hebrew Vorlage; the LXX Psalter is dated c. 150 BC. Hebrews 10:5-7 follows the σῶμα reading but is not verbatim: it has ὁλοκαυτώματα and οὐκ εὐδόκησας (\"you took no delight\") where the LXX has ὁλοκαύτωμα and οὐκ ᾔτησας (\"you did not require\"). Hebrews applies \"a body you prepared for me\" to Christ's incarnation.",
       "preferred_for_hlt": "Sacrifice and offering you did not desire, but a body you prepared for me; whole-burnt-offering and sin offering you did not require.",
       "hlt_rationale": "Hebrews 10:5-7 quotes this verse in its LXX form and applies \"a body you prepared for me\" to the incarnation of Christ. The apostolic writer's use of the LXX reading validates it as the authoritative form for Christian Scripture. HLT follows the LXX form in the body text; the MT \"ears you dug for me\" is footnoted as the alternative Hebrew tradition.",
       "witnesses": [
         {
-          "manuscript": "LXX",
-          "manuscript_date": "~150 BCE",
+          "manuscript": "LXX codices Vaticanus, Sinaiticus, Alexandrinus (σῶμα)",
+          "manuscript_date": "~4th-5th c. CE",
           "reading_support": "supports_variant"
+        },
+        {
+          "manuscript": "LXX, Rahlfs edition (ὠτία)",
+          "manuscript_date": "~150 BCE",
+          "reading_support": "supports_mt"
         },
         {
           "manuscript": "Masoretic Text",

@@ -175,7 +175,7 @@ flowchart TD
     Classify -->|"Second Temple or Roman Jewish history"| AncientSources
     AncientSources["`**search_ancient_sources**
     Returns: passages from texts to c. AD 200
-    (Josephus, Onkelos, Qumran, Philo,
+    (Josephus, Onkelos (later final form), Qumran, Philo,
     1 Enoch, 4 Ezra, Mishnah), each tagged
     Not Scripture with date and tier, ⚠ notes,
     typed links, caveats and sources once`"]
@@ -337,7 +337,9 @@ User question → `lookup_verse` → `get_study_notes` →
 User question → `search_ancient_sources` → `lookup_ancient_source` (to read a cited passage in full) → `lookup_verse` (for an explicitly linked biblical passage) → response
 
 The ancient sources are limited to texts written by about AD 200 (later
-targums, the Tosefta, the Talmud and Leviticus Rabbah were removed). None is
+targums, the Tosefta, the Talmud and Leviticus Rabbah were removed), with one
+stated exception: Targum Onkelos, final form c. 3rd–5th c. AD, kept for its
+earlier tradition and labelled with its final-form date. None is
 Scripture, and every result says so where it is used: an italic tag under the
 heading (canon status, date, tier A or B, edition), any `⚠` editorial note on
 the passage (emendation, interpolation, reconstruction, contrast, caution,

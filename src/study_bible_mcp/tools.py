@@ -36,7 +36,12 @@ from urllib.parse import quote_plus
 from mcp.types import Tool, ToolAnnotations
 
 from .corpora import CORPORA, LINK_RELATIONS, TIERS, all_periods
-from .database import HEBREW_PREFIX_LETTERS, format_biblical_range, strip_editorial_signs
+from .database import (
+    HEBREW_PREFIX_LETTERS,
+    format_biblical_range,
+    parse_biblical_range,
+    strip_editorial_signs,
+)
 from .parsers.biblical_versions import APOCRYPHA_PLURAL_NAMES
 from .published_text import (
     aquifer_rendering,
@@ -72,6 +77,10 @@ def _truncate(text: str, limit: int, suffix: str = "\n\n*[Truncated]*") -> str:
 
 
 RESEARCH_SOURCES_DEFAULT_LIMIT = 4
+# With no topic or perspective, these lead the list so the default is a mix: an
+# evangelical journal, a Bible reference tool, Jewish primary texts, and an
+# academic site. The rest follow in catalogue order.
+RESEARCH_SOURCES_DEFAULT_MIX = ("tyndale_bulletin", "step_bible", "sefaria", "bible_odyssey")
 RESEARCH_SOURCES_MAX_LIMIT = 10
 
 # lookup_ancient_source: passages per citation (default and maximum), excerpt
@@ -238,7 +247,7 @@ Rows are grouped by canonical MT/English reference and keep each edition's own r
         ),
         description="""Find an ancient source passage by searching its words: Jewish texts of the
 Second Temple world to c. AD 200 (Josephus on Herod, the temple, John the
-Baptist and the Jewish revolt; Targum Onkelos; the Qumran rules; Philo;
+Baptist and the Jewish revolt; Targum Onkelos, final form later; the Qumran rules; Philo;
 1 Enoch and 4 Ezra; the Mishnah). None is Scripture: each result carries a
 canon, date and edition tag, and each corpus's caveat and the sources are
 printed once at the end.
@@ -1092,7 +1101,6 @@ WHAT IT RETURNS for a given verse reference:
 - Unsourced dataset summary: uncited editorial summaries, labelled as not verified against published text-critical scholarship
 - Theological interpretations: explicitly labelled interpretations, never presented as manuscript evidence
 - Author-specific claims: named-author arguments, separate from critical judgments
-- Translation decisions: a translation's selected reading and rationale
 - NT quotation alignment: separately catalogued links showing which form (an LXX form or the MT) an NT quotation follows
 - Translation and interpretation notes: how a contested verse is read or rendered (e.g. divine-council language at Psalm 82:6); shown separately, after any manuscript variant at the verse, never as one
 
@@ -1270,8 +1278,15 @@ def load_research_sources() -> tuple[dict, ...]:
 
 
 def research_search_url(source: dict, query: str) -> str | None:
-    """Fill a source's search template with the URL-encoded query, if it has one."""
+    """Fill a source's search template with the URL-encoded query, if it has one.
+
+    A source with a ``reference_url_template`` (STEP Bible's passage view) uses
+    it when the query is a Bible reference, so 'Deuteronomy 32:8' opens the
+    passage rather than a word search for it.
+    """
     template = source.get("search_url_template")
+    if source.get("reference_url_template") and parse_biblical_range(query) is not None:
+        template = source["reference_url_template"]
     if not template:
         return None
     return template.replace("{query}", quote_plus(query.strip()))
@@ -1301,10 +1316,13 @@ def _topic_score(source: dict, topic: str) -> int:
 def find_research_sources(topic: str | None = None, perspective: str | None = None) -> list[dict]:
     """Filter the catalogue by perspective and loosely by topic, strongest topic matches first."""
     sources = list(load_research_sources())
+    normalised = _normalise_topic(topic or "")
+    if not normalised and not (perspective and perspective.strip()):
+        lead = [s for key in RESEARCH_SOURCES_DEFAULT_MIX for s in sources if s["key"] == key]
+        return lead + [s for s in sources if s["key"] not in RESEARCH_SOURCES_DEFAULT_MIX]
     if perspective and perspective.strip():
         wanted = perspective.strip().lower()
         sources = [s for s in sources if wanted in s["perspective"].lower()]
-    normalised = _normalise_topic(topic or "")
     if normalised:
         scored = [(_topic_score(s, normalised), s) for s in sources]
         scored = [pair for pair in scored if pair[0]]
@@ -2208,6 +2226,11 @@ def _format_witness(witness: dict, note: str = "") -> list[str]:
 _NOT_PRESERVED_SUFFIX = re.compile(r"\s*\(none preserved\)\s*$", re.IGNORECASE)
 
 
+# Translations whose decisions stay in the database but are never printed: the
+# HLT is the owner's own unpublished translation, not a published authority.
+WITHHELD_TRANSLATIONS = frozenset({"Heiser Literal Translation (HLT)"})
+
+
 def _format_interpretation_sections(case: dict) -> list[str]:
     """Format a case's attributed layers, omitting any section with no rows."""
     lines: list[str] = []
@@ -2229,7 +2252,10 @@ def _format_interpretation_sections(case: dict) -> list[str]:
         for summary in summaries:
             lines.append(f"- {summary['judgment']}")
 
-    decisions = case.get("translation_decisions") or []
+    decisions = [
+        decision for decision in case.get("translation_decisions") or []
+        if decision.get("translation") not in WITHHELD_TRANSLATIONS
+    ]
     if decisions:
         lines.extend(["", "### Translation decisions"])
         for decision in decisions:

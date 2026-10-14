@@ -27,11 +27,12 @@ class Collection:
 
 
 # Date tiers (see the canon review's date ladder). A text's tier says how much
-# it can testify to about the first century.
+# it can testify to about the first century. Targum Onkelos, whose final form is
+# later than c. AD 200, is kept in tier B as a stated exception (corpora/targum.py).
 TIERS = {
     "A": "written before or alongside the NT",
-    "B": "after the NT (to c. AD 200); first-century background only where an earlier "
-         "witness agrees",
+    "B": "after the NT (to c. AD 200; one stated exception, Targum Onkelos, has a later "
+         "final form); first-century background only where an earlier witness agrees",
 }
 
 
