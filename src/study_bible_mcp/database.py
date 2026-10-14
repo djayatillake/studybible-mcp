@@ -561,7 +561,11 @@ class StudyBibleDB:
         language: str | None = None,
         limit: int = 4
     ) -> list[dict]:
-        """Search lexicon by definition, transliteration, or word."""
+        """Search lexicon by definition, transliteration, or word.
+
+        Entries whose gloss, word, or transliteration matches come before those
+        matching only in a long definition; then the most frequent words first.
+        """
         query_lower = f"%{query.lower()}%"
 
         sql = """
@@ -580,8 +584,14 @@ class StudyBibleDB:
             sql += " AND language = ?"
             params.append(language.lower())
 
-        sql += " ORDER BY usage_count DESC LIMIT ?"
-        params.append(limit)
+        sql += """
+            ORDER BY
+                CASE WHEN LOWER(short_definition) LIKE ? OR LOWER(word) LIKE ?
+                          OR LOWER(transliteration) LIKE ? THEN 0 ELSE 1 END,
+                usage_count DESC, strongs
+            LIMIT ?
+        """
+        params.extend([query_lower, query_lower, query_lower, limit])
         return await self._fetchall(sql, params)
 
     async def get_related_words(self, strongs: str) -> list[dict]:
