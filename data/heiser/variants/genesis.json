@@ -32,7 +32,7 @@
       "witnesses": [
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
         {"manuscript": "LXX, critical text (Rahlfs: οἱ υἱοὶ τοῦ θεοῦ)", "manuscript_date": "~250 BCE", "reading_support": "supports_mt"},
-        {"manuscript": "Some LXX manuscripts, including Codex Alexandrinus (first hand)", "manuscript_date": "~5th c. CE", "reading_support": "supports_variant"}
+        {"manuscript": "Some LXX manuscripts, including Codex Alexandrinus", "manuscript_date": "~5th c. CE", "reading_support": "supports_variant"}
       ]
     },
     {

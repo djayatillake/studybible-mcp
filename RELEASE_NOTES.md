@@ -33,7 +33,7 @@ calibrated; arguments stay with their authors.
 - **Genesis 6:2.** A new `LXX_manuscript_variant` case (minor_textual: the
   Hebrew and the critical Greek agree; the variant is confined to some Greek
   manuscripts) records οἱ ἄγγελοι τοῦ θεοῦ in some LXX manuscripts, including
-  Codex Alexandrinus (first hand), against Rahlfs's οἱ υἱοὶ τοῦ θεοῦ, and
+  Codex Alexandrinus, against Rahlfs's οἱ υἱοὶ τοῦ θεοῦ, and
   cites Philo (Gig. 6; Deus 1) and Josephus (Ant. 1.73) as non-canonical
   evidence of interpretation, not witnesses.
 - **Factual corrections.** The Sethite reading is Christian (Julius
