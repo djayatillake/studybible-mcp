@@ -845,7 +845,7 @@ async def handle_search_lexicon(args: dict[str, Any]) -> list[TextContent]:
     """Handle search_lexicon tool - search across lexicon entries."""
     query = args.get("query", "")
     language = args.get("language")  # None means both
-    limit = args.get("limit", 10)
+    limit = args.get("limit", 4)
 
     if not query:
         return text("Please provide a search query.")
@@ -884,7 +884,7 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
     theme = args.get("theme")
     source_filter = args.get("source")
     limit_raw = args.get("limit")
-    limit = int(limit_raw) if limit_raw is not None else 8
+    limit = int(limit_raw) if limit_raw is not None else 4
     min_strength_raw = args.get("min_strength")
     min_strength = int(min_strength_raw) if min_strength_raw is not None else None
 
@@ -986,8 +986,14 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
 
     if not name:
         return text("Please provide a name to look up.")
+    try:
+        limit = int(args.get("limit", 4))
+    except (TypeError, ValueError):
+        return text("'limit' must be an integer from 1 to 20.")
+    if not 1 <= limit <= 20:
+        return text("'limit' must be an integer from 1 to 20.")
 
-    entries = await db.lookup_name(name, name_type=name_type)
+    entries = await db.lookup_name(name, name_type=name_type, limit=limit)
 
     if not entries:
         return text(f"No entries found for '{name}'.")
@@ -1001,6 +1007,12 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     acai_by_entry: dict[tuple, dict | None] = {}
 
     result = f"## Biblical Names: {name}\n\n"
+    total = entries[0]["match_count"]
+    if total > len(entries):
+        result += (
+            f"*Showing {len(entries)} of {total} matching names; set type or raise "
+            "limit (at most 20) to see more.*\n\n"
+        )
 
     for entry in entries:
         acai_data = None
@@ -1058,7 +1070,7 @@ async def handle_parse_morphology(args: dict[str, Any]) -> list[TextContent]:
 async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
     """Handle search_by_strongs tool - find all verses with a Strong's number."""
     strongs = args.get("strongs", "")
-    limit = args.get("limit", 20)
+    limit = args.get("limit", 4)
 
     if not strongs:
         return text("Please provide a Strong's number (e.g., 'G26' or 'H3068').")
@@ -1086,7 +1098,7 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
 async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent]:
     """Handle find_similar_passages tool - find semantically similar passages."""
     reference = args.get("reference", "")
-    limit = args.get("limit", 10)
+    limit = args.get("limit", 4)
 
     if not reference:
         return text("Please provide a verse reference (e.g., 'John 3:16').")
@@ -1588,7 +1600,7 @@ async def handle_get_theology_context(args: dict[str, Any]) -> list[TextContent]
 
     reference = args.get("reference")
     theme = args.get("theme")
-    limit = args.get("limit", 10)
+    limit = args.get("limit", 4)
 
     # If neither provided, list themes
     if not reference and not theme:

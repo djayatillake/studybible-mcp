@@ -35,15 +35,6 @@ PER_TOOL_BUDGET = 7_500
 
 # List-returning tools default to at most this many results.
 DEFAULT_LIMIT_CAP = 4
-# Tools that predate the cap, with their current defaults. Tightening one means
-# lowering it here; adding a tool here needs a reason in the pull request.
-LEGACY_LIMIT_DEFAULTS = {
-    "search_lexicon": 10,
-    "get_cross_references": 8,
-    "search_by_strongs": 20,
-    "find_similar_passages": 10,
-    "get_theology_context": 10,
-}
 
 
 def _tool_size(tool) -> int:
@@ -142,19 +133,9 @@ def test_list_tools_default_to_a_small_number_of_results():
         f"recognisably: {sorted(schema_limits - set(defaults))}"
     )
     for name, default in sorted(defaults.items()):
-        cap = LEGACY_LIMIT_DEFAULTS.get(name, DEFAULT_LIMIT_CAP)
-        assert default <= cap, (
-            f"{name} defaults to {default} results; the cap is {cap}. List tools "
-            f"default to at most {DEFAULT_LIMIT_CAP} so outputs stay small."
-        )
-
-
-def test_legacy_limit_exceptions_are_still_needed():
-    defaults = _handler_limit_defaults()
-    for name, recorded in LEGACY_LIMIT_DEFAULTS.items():
-        assert defaults.get(name) == recorded, (
-            f"{name} now defaults to {defaults.get(name)}; update or remove its "
-            "LEGACY_LIMIT_DEFAULTS entry so the exception list stays accurate."
+        assert default <= DEFAULT_LIMIT_CAP, (
+            f"{name} defaults to {default} results. List tools default to at most "
+            f"{DEFAULT_LIMIT_CAP} so outputs stay small."
         )
 
 

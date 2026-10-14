@@ -1,9 +1,11 @@
-"""Ordering of get_theology_context results by verse reference."""
+"""Ordering of get_theology_context results by verse reference and by theme."""
 
+import re
 import sqlite3
 
 import pytest
 
+import study_bible_mcp.server as server
 from study_bible_mcp.database import StudyBibleDB, create_schema
 
 # (id, title, [(reference, verse, relevance)], [theme keys])
@@ -71,3 +73,40 @@ async def test_chapter_fallback_uses_each_entrys_best_match(theology_db):
     mixed = next(row for row in rows if row["id"] == 5)
     assert (mixed["matched_ref"], mixed["relevance"]) == ("Psa.82.8", "primary")
     assert [row["id"] for row in rows].index(5) < [row["id"] for row in rows].index(6)
+
+
+async def test_theme_results_alternate_between_authors(tmp_path, monkeypatch):
+    # Alphabetical author order would fill the default four with one scholar.
+    db_path = tmp_path / "themes.db"
+    conn = sqlite3.connect(db_path)
+    create_schema(conn)
+    conn.execute(
+        "INSERT INTO theology_themes (theme_key, theme_label, description) "
+        "VALUES ('atonement_models', 'Atonement models', 'Models')"
+    )
+    for content_id, author in [(1, "stott"), (2, "stott"), (3, "stott"), (4, "synthesis"), (5, "synthesis")]:
+        conn.execute(
+            """INSERT INTO theology_content
+               (id, source_work, source_author, source_type, title, content_summary)
+               VALUES (?, 'Work', ?, 'book', ?, 'summary')""",
+            (content_id, author, f"Entry {content_id}"),
+        )
+        conn.execute(
+            "INSERT INTO theology_theme_index (theme_key, content_id) VALUES ('atonement_models', ?)",
+            (content_id,),
+        )
+    conn.commit()
+    conn.close()
+    db = StudyBibleDB(db_path)
+    await db.connect()
+    monkeypatch.setattr(server, "db", db)
+    try:
+        async def titles(**arguments):
+            output = (await server.call_tool("get_theology_context", arguments))[0].text
+            return re.findall(r"^### Entry (\d)$", output, re.MULTILINE)
+
+        assert await titles(theme="atonement_models") == ["1", "4", "2", "5"]
+        assert await titles(theme="atonement_models", limit=10) == ["1", "4", "2", "5", "3"]
+        assert await titles(theme="atonement_models", author="stott") == ["1", "2", "3"]
+    finally:
+        await db.close()

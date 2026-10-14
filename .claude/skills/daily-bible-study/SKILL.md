@@ -99,7 +99,7 @@ then call them (batch independent calls in parallel):
 - **`lookup_verse`** (per passage) — for the original Greek/Hebrew + Strong's to quote
   in callouts. (Its smooth gloss is poor — use `pull_bsb.py` text for the body.)
 - **`word_study`** — `strongs=` for each key term (≈2 per passage; see voice below).
-- **`get_cross_references`** — for each load-bearing verse (default cap 8 is fine).
+- **`get_cross_references`** — for each load-bearing verse (default cap 4 is fine).
 - **`get_study_notes`** — chapter-level Tyndale + translation notes. **Gotcha:** a
   whole-chapter call can exceed the token limit and spill to a file; pull just the
   Tyndale layer with `awk '/^### Translation Notes/{exit}{print}' <file>`.
