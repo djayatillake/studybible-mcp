@@ -2,6 +2,25 @@
 
 ---
 
+## BSB text: pinned to the publisher's file
+
+The verse tools' BSB text now comes from the publisher's `bsb.txt`, pinned by
+SHA-256. The deployed table had been built from an older, messier copy, so
+`scripts/repair_bsb_verses.py` updates it in place (537 verses changed, 116 rows
+added):
+
+- 524 verses lose stray spaces around closing quotes, brackets and dashes.
+- 5 Song of Songs verses lose speaker headings ("The Bride", "The Friends")
+  that had leaked into the text.
+- 8 verses take the current edition's wording or punctuation: Exodus 26:37,
+  Numbers 25:8 ("the tent"), Mark 12:29, Luke 5:24, John 6:42, Acts 22:2
+  ("quiet"), 2 Timothy 1:15 and Jude 11.
+- The 116 Psalm headings, which the file prints at the start of verse 1, become
+  verse 0 rows: a Psalm's superscription shows its BSB heading instead of a
+  STEPBible gloss, and verse 1 is the verse alone.
+
+---
+
 ## Textual variants: Greek evidence at four divine-council verses
 
 Reported in #4. The interpretation notes at these verses listed Greek
