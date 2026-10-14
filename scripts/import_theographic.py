@@ -6,7 +6,6 @@ Downloads CSV files from https://github.com/robertrouse/theographic-bible-metada
 and populates graph tables for people, places, events, and their relationships.
 """
 
-import csv
 import sqlite3
 import sys
 from pathlib import Path
@@ -17,6 +16,8 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from study_bible_mcp.parsers.theographic import TABLE_COLUMNS, build_graph  # noqa: E402
 
 console = Console()
 
@@ -46,351 +47,32 @@ def download_csv(filename: str, data_dir: Path) -> Path:
     return dest
 
 
-def parse_csv(filepath: Path) -> list[dict]:
-    """Parse a CSV file into a list of dicts."""
-    with open(filepath, encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        return list(reader)
+def ensure_graph_columns(conn: sqlite3.Connection) -> None:
+    """Add the graph_people columns that databases built before them lack."""
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(graph_people)")}
+    for column in ("display_title", "surname"):
+        if column not in columns:
+            conn.execute(f"ALTER TABLE graph_people ADD COLUMN {column} TEXT")
 
 
-def split_field(value: str) -> list[str]:
-    """Split a comma-separated field into a list, filtering empties."""
-    if not value or not value.strip():
-        return []
-    return [v.strip() for v in value.split(",") if v.strip()]
+def import_graph(conn: sqlite3.Connection, csv_dir: Path) -> dict[str, int]:
+    """Replace every graph table's rows with those built from the CSVs in csv_dir.
 
-
-def safe_int(value: str) -> int | None:
-    """Convert string to int, returning None on failure."""
-    if not value or not value.strip():
-        return None
-    try:
-        return int(float(value))
-    except (ValueError, TypeError):
-        return None
-
-
-def safe_float(value: str) -> float | None:
-    """Convert string to float, returning None on failure."""
-    if not value or not value.strip():
-        return None
-    try:
-        return float(value)
-    except (ValueError, TypeError):
-        return None
-
-
-def import_people(conn: sqlite3.Connection, filepath: Path) -> int:
-    """Import people from People.csv."""
-    rows = parse_csv(filepath)
-    count = 0
-    batch = []
-
-    for row in rows:
-        person_id = row.get("personLookup", "").strip()
-        if not person_id:
-            continue
-
-        name = row.get("name", "").strip() or row.get("displayTitle", "").strip()
-        if not name:
-            continue
-
-        batch.append((
-            person_id,
-            name,
-            row.get("alsoCalled", "").strip() or None,
-            row.get("gender", "").strip() or None,
-            safe_int(row.get("birthYear", "")),
-            safe_int(row.get("deathYear", "")),
-            row.get("birthPlace", "").strip() or None,
-            row.get("deathPlace", "").strip() or None,
-            row.get("dictText", "").strip() or None,
-        ))
-        count += 1
-
-    if batch:
-        conn.executemany("""
-            INSERT OR REPLACE INTO graph_people
-            (id, name, also_called, gender, birth_year, death_year,
-             birth_place_id, death_place_id, description)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, batch)
-        conn.commit()
-
-    return count
-
-
-def import_family_edges(conn: sqlite3.Connection, filepath: Path) -> int:
-    """Import family relationships from People.csv."""
-    rows = parse_csv(filepath)
-    count = 0
-    batch = []
-
-    for row in rows:
-        person_id = row.get("personLookup", "").strip()
-        if not person_id:
-            continue
-
-        # Father relationship: father column contains father's ID
-        father = row.get("father", "").strip()
-        if father:
-            for fid in split_field(father):
-                batch.append((fid, person_id, "father_of"))
-                count += 1
-
-        # Mother relationship
-        mother = row.get("mother", "").strip()
-        if mother:
-            for mid in split_field(mother):
-                batch.append((mid, person_id, "mother_of"))
-                count += 1
-
-        # Partner relationships
-        for partner_id in split_field(row.get("partners", "")):
-            batch.append((person_id, partner_id, "partner_of"))
-            count += 1
-
-        # Sibling relationships
-        for sibling_id in split_field(row.get("siblings", "")):
-            # Only add one direction to avoid duplicates
-            if person_id < sibling_id:
-                batch.append((person_id, sibling_id, "sibling_of"))
-                count += 1
-
-        if len(batch) >= 1000:
-            conn.executemany("""
-                INSERT OR IGNORE INTO graph_family_edges
-                (from_person_id, to_person_id, relationship_type)
-                VALUES (?, ?, ?)
-            """, batch)
-            conn.commit()
-            batch = []
-
-    if batch:
-        conn.executemany("""
-            INSERT OR IGNORE INTO graph_family_edges
-            (from_person_id, to_person_id, relationship_type)
-            VALUES (?, ?, ?)
-        """, batch)
-        conn.commit()
-
-    return count
-
-
-def import_places(conn: sqlite3.Connection, filepath: Path) -> int:
-    """Import places from Places.csv."""
-    rows = parse_csv(filepath)
-    count = 0
-    batch = []
-
-    for row in rows:
-        place_id = row.get("placeLookup", "").strip()
-        if not place_id:
-            continue
-
-        name = row.get("displayTitle", "").strip() or row.get("kjvName", "").strip()
-        if not name:
-            continue
-
-        # Prefer openBible coords, fall back to recogito
-        lat = safe_float(row.get("openBibleLat", "")) or safe_float(row.get("latitude", ""))
-        lon = safe_float(row.get("openBibleLong", "")) or safe_float(row.get("longitude", ""))
-
-        batch.append((
-            place_id,
-            name,
-            lat,
-            lon,
-            row.get("featureType", "").strip() or None,
-        ))
-        count += 1
-
-    if batch:
-        conn.executemany("""
-            INSERT OR REPLACE INTO graph_places
-            (id, name, latitude, longitude, feature_type)
-            VALUES (?, ?, ?, ?, ?)
-        """, batch)
-        conn.commit()
-
-    return count
-
-
-def import_events(conn: sqlite3.Connection, filepath: Path) -> int:
-    """Import events from Events.csv."""
-    rows = parse_csv(filepath)
-    count = 0
-    batch = []
-
-    for row in rows:
-        event_id = row.get("eventID", "").strip()
-        if not event_id:
-            continue
-
-        title = row.get("title", "").strip()
-        if not title:
-            continue
-
-        batch.append((
-            event_id,
-            title,
-            safe_int(row.get("startDate", "")),
-            row.get("duration", "").strip() or None,
-            safe_float(row.get("sortKey", "")),
-        ))
-        count += 1
-
-    if batch:
-        conn.executemany("""
-            INSERT OR REPLACE INTO graph_events
-            (id, title, start_year, duration, sort_key)
-            VALUES (?, ?, ?, ?, ?)
-        """, batch)
-        conn.commit()
-
-    return count
-
-
-def import_event_edges(conn: sqlite3.Connection, filepath: Path) -> tuple[int, int]:
-    """Import event-person and event-place edges from Events.csv."""
-    rows = parse_csv(filepath)
-    person_count = 0
-    place_count = 0
-    person_batch = []
-    place_batch = []
-
-    for row in rows:
-        event_id = row.get("eventID", "").strip()
-        if not event_id:
-            continue
-
-        # Person-event edges
-        for person_id in split_field(row.get("participants", "")):
-            person_batch.append((person_id, event_id))
-            person_count += 1
-
-        # Event-place edges
-        for place_id in split_field(row.get("locations", "")):
-            place_batch.append((event_id, place_id))
-            place_count += 1
-
-        if len(person_batch) >= 1000:
-            conn.executemany(
-                "INSERT OR IGNORE INTO graph_person_event_edges (person_id, event_id) VALUES (?, ?)",
-                person_batch
-            )
-            conn.commit()
-            person_batch = []
-
-        if len(place_batch) >= 1000:
-            conn.executemany(
-                "INSERT OR IGNORE INTO graph_event_place_edges (event_id, place_id) VALUES (?, ?)",
-                place_batch
-            )
-            conn.commit()
-            place_batch = []
-
-    if person_batch:
+    build_graph applies the curated corrections and supplementary events of
+    src/study_bible_mcp/parsers/graph_curated.json and computes each event's
+    chronological sort_key. Returns the rows written per table.
+    """
+    tables = build_graph(csv_dir)
+    ensure_graph_columns(conn)
+    for table, rows in tables.items():
+        columns = TABLE_COLUMNS[table]
+        conn.execute(f"DELETE FROM {table}")
         conn.executemany(
-            "INSERT OR IGNORE INTO graph_person_event_edges (person_id, event_id) VALUES (?, ?)",
-            person_batch
+            f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join('?' for _ in columns)})",
+            rows,
         )
-        conn.commit()
-
-    if place_batch:
-        conn.executemany(
-            "INSERT OR IGNORE INTO graph_event_place_edges (event_id, place_id) VALUES (?, ?)",
-            place_batch
-        )
-        conn.commit()
-
-    return person_count, place_count
-
-
-def import_verse_mentions(
-    conn: sqlite3.Connection,
-    people_path: Path,
-    events_path: Path,
-    places_path: Path,
-) -> int:
-    """Build verse-entity mention links from all CSV sources."""
-    count = 0
-    batch = []
-
-    # Person mentions from People.csv
-    for row in parse_csv(people_path):
-        person_id = row.get("personLookup", "").strip()
-        if not person_id:
-            continue
-        for verse_ref in split_field(row.get("verses", "")):
-            batch.append((verse_ref, "person", person_id))
-            count += 1
-
-    # Event mentions from Events.csv
-    for row in parse_csv(events_path):
-        event_id = row.get("eventID", "").strip()
-        if not event_id:
-            continue
-        for verse_ref in split_field(row.get("verses", "")):
-            batch.append((verse_ref, "event", event_id))
-            count += 1
-
-    # Place mentions from Places.csv
-    for row in parse_csv(places_path):
-        place_id = row.get("placeLookup", "").strip()
-        if not place_id:
-            continue
-        for verse_ref in split_field(row.get("verses", "")):
-            batch.append((verse_ref, "place", place_id))
-            count += 1
-
-    # Batch insert
-    chunk_size = 5000
-    for i in range(0, len(batch), chunk_size):
-        chunk = batch[i:i + chunk_size]
-        conn.executemany("""
-            INSERT OR IGNORE INTO graph_verse_mentions
-            (verse_ref, entity_type, entity_id)
-            VALUES (?, ?, ?)
-        """, chunk)
-        conn.commit()
-
-    return count
-
-
-def import_people_groups(conn: sqlite3.Connection, filepath: Path) -> int:
-    """Import people groups and membership edges."""
-    rows = parse_csv(filepath)
-    count = 0
-    group_batch = []
-    member_batch = []
-
-    for row in rows:
-        group_name = row.get("groupName", "").strip()
-        if not group_name:
-            continue
-
-        members_str = row.get("members", "").strip()
-        group_batch.append((group_name, members_str))
-
-        for member_id in split_field(members_str):
-            member_batch.append((member_id, group_name))
-            count += 1
-
-    if group_batch:
-        conn.executemany(
-            "INSERT OR REPLACE INTO graph_people_groups (name, members) VALUES (?, ?)",
-            group_batch
-        )
-
-    if member_batch:
-        conn.executemany(
-            "INSERT OR IGNORE INTO graph_person_group_edges (person_id, group_name) VALUES (?, ?)",
-            member_batch
-        )
-
     conn.commit()
-    return count
+    return {table: len(rows) for table, rows in tables.items()}
 
 
 def show_graph_stats(conn: sqlite3.Connection):
@@ -454,43 +136,18 @@ def main(db_path: str | None, data_dir: str | None, skip_download: bool):
     conn = sqlite3.connect(db_file)
 
     try:
-        people_path = csv_dir / "People.csv"
-        places_path = csv_dir / "Places.csv"
-        events_path = csv_dir / "Events.csv"
-        groups_path = csv_dir / "PeopleGroups.csv"
-
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             console=console,
         ) as progress:
-            task = progress.add_task("Importing people...", total=None)
-            count = import_people(conn, people_path)
-            progress.update(task, description=f"[green]✓[/green] Imported {count} people")
-
-            task = progress.add_task("Importing family relationships...", total=None)
-            count = import_family_edges(conn, people_path)
-            progress.update(task, description=f"[green]✓[/green] Imported {count} family edges")
-
-            task = progress.add_task("Importing places...", total=None)
-            count = import_places(conn, places_path)
-            progress.update(task, description=f"[green]✓[/green] Imported {count} places")
-
-            task = progress.add_task("Importing events...", total=None)
-            count = import_events(conn, events_path)
-            progress.update(task, description=f"[green]✓[/green] Imported {count} events")
-
-            task = progress.add_task("Importing event edges...", total=None)
-            person_edges, place_edges = import_event_edges(conn, events_path)
-            progress.update(task, description=f"[green]✓[/green] Imported {person_edges} person-event + {place_edges} event-place edges")
-
-            task = progress.add_task("Building verse mentions...", total=None)
-            count = import_verse_mentions(conn, people_path, events_path, places_path)
-            progress.update(task, description=f"[green]✓[/green] Built {count} verse-entity mentions")
-
-            task = progress.add_task("Importing people groups...", total=None)
-            count = import_people_groups(conn, groups_path)
-            progress.update(task, description=f"[green]✓[/green] Imported {count} group memberships")
+            task = progress.add_task("Importing people, places and events...", total=None)
+            counts = import_graph(conn, csv_dir)
+            progress.update(
+                task,
+                description="[green]✓[/green] Imported "
+                + ", ".join(f"{count} {table}" for table, count in counts.items()),
+            )
 
         # Optimize
         console.print("\nOptimizing...")

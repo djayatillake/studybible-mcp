@@ -77,7 +77,7 @@ flowchart TD
 
     ExploreEvents["`**explore_person_events**
     Returns: chronological
-    timeline + Mermaid diagram`"]
+    events, dates, passages`"]
     ExploreEvents --> Respond
 
     FindConnection["`**find_connection**

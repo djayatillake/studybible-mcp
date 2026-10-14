@@ -49,6 +49,7 @@ from .tools import (
     TOOLS,
     _truncate,
     bsb_label,
+    eponym_ids,
     find_research_sources,
     format_ancient_source_lookup,
     format_ancient_source_results,
@@ -63,6 +64,7 @@ from .tools import (
     format_lexicon_entry,
     format_name_entry,
     format_passage_entities,
+    format_person_choice,
     format_person_events,
     format_place_history,
     format_research_sources,
@@ -72,10 +74,11 @@ from .tools import (
     format_theology_themes,
     format_torah_weave,
     format_verse,
+    is_nation_mention,
     mermaid_connection_path,
     mermaid_genealogy,
-    mermaid_person_timeline,
     mermaid_place_network,
+    person_label,
     verse_english,
 )
 
@@ -1030,9 +1033,10 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     result = f"## Biblical Names: {name}\n\n"
     total = entries[0]["match_count"]
     if total > len(entries):
+        how = "raise limit" if name_type else "set type or raise limit"
         result += (
-            f"*Showing {len(entries)} of {total} matching names; set type or raise "
-            "limit (at most 20) to see more.*\n\n"
+            f"*Showing {len(entries)} of {total} matching names; {how} "
+            "(at most 20) to see more.*\n\n"
         )
 
     for entry, acai_data in zip(entries, acai):
@@ -1408,6 +1412,35 @@ async def _check_graph_data() -> list[TextContent] | None:
     return None
 
 
+# explore_genealogy walks at most this many generations each way
+MAX_GENERATIONS = 40
+
+
+async def _resolve_person(name: str) -> tuple[dict | None, str]:
+    """The graph person a name most likely means, and a note naming the others."""
+    matches = await db.graph_find_person(name)
+    if not matches:
+        return None, ""
+    return matches[0], format_person_choice(name, matches)
+
+
+async def _nation_mentions(entities: dict, reference: str) -> set[str]:
+    """The tagged eponyms (Israel, Judah, Moab ...) that here mean a nation or tribe.
+
+    Outside the chapters where Scripture speaks of the ancestor himself (see
+    is_nation_mention), an eponym counts as the nation unless one of his
+    relatives who is not an eponym is mentioned too, as in Ruth 4:12 ('Perez,
+    whom Tamar bore to Judah').
+    """
+    people = {p.get("entity_id") for p in entities.get("people", [])}
+    candidates = [pid for pid in people if pid and is_nation_mention(pid, reference)]
+    if not candidates:
+        return set()
+    relatives = await db.graph_relatives(candidates)
+    eponyms = eponym_ids()
+    return {pid for pid in candidates if not ((relatives[pid] - eponyms) & people)}
+
+
 async def handle_explore_genealogy(args: dict[str, Any]) -> list[TextContent]:
     """Handle explore_genealogy tool - trace family tree."""
     if err := await _check_graph_data():
@@ -1415,48 +1448,39 @@ async def handle_explore_genealogy(args: dict[str, Any]) -> list[TextContent]:
 
     person_name = args.get("person", "")
     direction = args.get("direction", "both")
-    generations = args.get("generations", 5)
 
     if not person_name:
         return text("Please provide a person's name.")
+    if direction not in ("ancestors", "descendants", "both"):
+        return text("'direction' must be 'ancestors', 'descendants' or 'both'.")
+    try:
+        generations = int(args.get("generations", 5))
+    except (TypeError, ValueError):
+        return text(f"'generations' must be an integer from 1 to {MAX_GENERATIONS}.")
+    if generations < 1:
+        return text(f"'generations' must be an integer from 1 to {MAX_GENERATIONS}.")
+    capped = generations > MAX_GENERATIONS
+    generations = min(generations, MAX_GENERATIONS)
 
-    matches = await db.graph_find_person(person_name)
-    if not matches:
+    person, note = await _resolve_person(person_name)
+    if person is None:
         return text(f"No person found matching '{person_name}' in the Theographic database.")
+    if capped:
+        note += f"*Showing {MAX_GENERATIONS} generations, the most this tool traces.*\n"
 
-    person = matches[0]
-    ancestors = []
-    descendants = []
-
+    ancestors = descendants = None
     if direction in ("ancestors", "both"):
-        ancestors = await db.graph_get_ancestors(person["id"], generations)
-
+        ancestors = await db.graph_lineage(person["id"], "ancestors", generations)
     if direction in ("descendants", "both"):
-        descendants = await db.graph_get_descendants(person["id"], generations)
-
-    result = format_genealogy(person["name"], ancestors, descendants)
-
-    # Add immediate family context
+        descendants = await db.graph_lineage(person["id"], "descendants", generations)
     family = await db.graph_get_family(person["id"])
-    family_lines = []
-    if family["partners"]:
-        names = ", ".join(p["name"] for p in family["partners"])
-        family_lines.append(f"**Spouse(s)**: {names}")
-    if family["siblings"]:
-        names = ", ".join(p["name"] for p in family["siblings"])
-        family_lines.append(f"**Siblings**: {names}")
 
-    if family_lines:
-        result += "\n### Immediate Family\n" + "\n".join(family_lines) + "\n"
-
-    if person.get("description"):
-        result += f"\n### About\n{person['description']}\n"
-
-    # Append Mermaid diagram
-    diagram = mermaid_genealogy(person["name"], ancestors, descendants, family)
+    result = format_genealogy(person, ancestors, descendants, family, generations, note)
+    diagram = mermaid_genealogy(person, [ancestors, descendants], family)
     if diagram:
-        result += f"\n### Family Tree Diagram\n{diagram}\n"
-
+        result += f"\n\n### Family Tree Diagram\n{diagram}\n"
+    elif any(lineage and lineage["people"] for lineage in (ancestors, descendants)):
+        result += "\n*No diagram: too many people to draw; ask for fewer generations for one.*\n"
     return text(result)
 
 
@@ -1485,7 +1509,7 @@ async def handle_people_in_passage(args: dict[str, Any]) -> list[TextContent]:
         else:
             return text(f"Could not parse reference: {reference}. Use 'Romans 8' or 'Genesis 22:1' format.")
 
-    result = format_passage_entities(reference, entities)
+    result = format_passage_entities(reference, entities, await _nation_mentions(entities, reference))
     return text(result)
 
 
@@ -1498,28 +1522,15 @@ async def handle_explore_person_events(args: dict[str, Any]) -> list[TextContent
     if not person_name:
         return text("Please provide a person's name.")
 
-    matches = await db.graph_find_person(person_name)
-    if not matches:
+    person, note = await _resolve_person(person_name)
+    if person is None:
         return text(f"No person found matching '{person_name}' in the Theographic database.")
 
-    person = matches[0]
     events = await db.graph_get_person_events(person["id"])
-
-    # Get places for each event
-    event_places = {}
-    for evt in events:
-        places = await db.graph_get_event_places(evt["id"])
-        if places:
-            event_places[evt["id"]] = places
-
-    result = format_person_events(person["name"], events, event_places)
-
-    # Append Mermaid timeline
-    diagram = mermaid_person_timeline(person["name"], events, event_places)
-    if diagram:
-        result += f"\n### Timeline Diagram\n{diagram}\n"
-
-    return text(result)
+    event_ids = [evt["id"] for evt in events]
+    event_places = await db.graph_get_events_places(event_ids)
+    event_verses = await db.graph_get_event_verses(event_ids)
+    return text(format_person_events(person, events, event_places, event_verses, note))
 
 
 async def handle_explore_place(args: dict[str, Any]) -> list[TextContent]:
@@ -1536,10 +1547,23 @@ async def handle_explore_place(args: dict[str, Any]) -> list[TextContent]:
         return text(f"No place found matching '{place_name}' in the Theographic database.")
 
     place = matches[0]
+    namesakes = [m for m in matches[1:] if m["name"].casefold() == place["name"].casefold()]
+    note = ""
+    if namesakes:
+        def count(n: int, noun: str) -> str:
+            return f"{n} {noun}{'s' if n != 1 else ''}"
+
+        others = ", ".join(
+            f"{m['id']} ({count(m['event_count'], 'event')}, {count(m['verse_count'], 'verse')})"
+            for m in namesakes[:4]
+        )
+        note = (f"*{len(namesakes) + 1} places are called {place['name']}; showing {place['id']}. "
+                f"Others: {others}. Pass an id to choose another.*\n")
     events = await db.graph_get_place_events(place["id"])
     people = await db.graph_get_place_people(place["id"])
+    event_verses = await db.graph_get_event_verses([evt["id"] for evt in events])
 
-    result = format_place_history(place, events, people)
+    result = format_place_history(place, events, people, event_verses, note)
 
     # Append Mermaid place network
     diagram = mermaid_place_network(place, events, people)
@@ -1559,22 +1583,25 @@ async def handle_find_connection(args: dict[str, Any]) -> list[TextContent]:
     if not name1 or not name2:
         return text("Please provide both person1 and person2 names.")
 
-    matches1 = await db.graph_find_person(name1)
-    matches2 = await db.graph_find_person(name2)
+    person1, note1 = await _resolve_person(name1)
+    person2, note2 = await _resolve_person(name2)
 
-    if not matches1:
+    if person1 is None:
         return text(f"No person found matching '{name1}'.")
-    if not matches2:
+    if person2 is None:
         return text(f"No person found matching '{name2}'.")
 
-    person1 = matches1[0]
-    person2 = matches2[0]
+    label1, label2 = person_label(person1), person_label(person2)
+    if person1["id"] == person2["id"]:
+        return text(
+            f"## Connection: {label1} → {label2}\n\n"
+            f"'{name1}' and '{name2}' are the same person: {label1}.\n"
+        )
 
     path = await db.graph_find_path(person1["id"], person2["id"])
-    result = format_connection_path(person1["name"], person2["name"], path)
+    result = format_connection_path(label1, label2, path, note1 + note2)
 
-    # Append Mermaid path diagram
-    diagram = mermaid_connection_path(person1["name"], person2["name"], path)
+    diagram = mermaid_connection_path(label1, label2, path)
     if diagram:
         result += f"\n### Relationship Diagram\n{diagram}\n"
 
@@ -1595,15 +1622,14 @@ async def handle_graph_enriched_search(args: dict[str, Any]) -> list[TextContent
     normalized = db._normalize_reference(reference)
     entities = await db.graph_get_verse_entities(normalized)
 
-    # Build family data for each person mentioned
+    # Family of each person mentioned, by the person's own id
     family_data = {}
     for p in entities.get("people", []):
-        name = p.get("entity_name", p.get("entity_id"))
-        person_matches = await db.graph_find_person(name)
-        if person_matches:
-            family_data[name] = await db.graph_get_family(person_matches[0]["id"])
+        if p.get("entity_id") and p["entity_id"] not in family_data:
+            family_data[p["entity_id"]] = await db.graph_get_family(p["entity_id"])
 
-    result = format_enriched_verse(reference, verse, entities, family_data)
+    nations = await _nation_mentions(entities, reference)
+    result = format_enriched_verse(reference, verse, entities, family_data, nations)
     return text(result)
 
 

@@ -15,6 +15,7 @@ Each entity file contains structured data including:
 """
 
 import json
+import re
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -121,7 +122,8 @@ def _extract_entity(data: dict, entity_type: str) -> dict | None:
         variants = []
         for label in referred_to_as:
             label = str(label).strip()
-            if label[:1].isupper() and label.lower() != name.lower() and label not in variants:
+            if (label[:1].isupper() and is_name_label(label)
+                    and label.lower() != name.lower() and label not in variants):
                 variants.append(label)
         referred_to_as_json = json.dumps(variants)
     else:
@@ -168,6 +170,12 @@ def _extract_entity(data: dict, entity_type: str) -> dict | None:
         'speeches_count': speeches_count,
         'tipnr_keys': json.dumps(tipnr_keys),
     }
+
+
+def is_name_label(label: str) -> bool:
+    """Whether an ACAI alternate label is a name, not a textual note such as
+    'Ketiv. Qere' (written and read forms differ) or 'Geruth like.them'."""
+    return not re.search(r"\b(?:ketiv|qere)\b|\w\.\w", label, re.IGNORECASE)
 
 
 def _get_relationship_id(data: dict, key: str) -> str | None:

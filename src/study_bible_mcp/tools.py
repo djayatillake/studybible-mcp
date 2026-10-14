@@ -35,8 +35,17 @@ from urllib.parse import quote_plus
 from mcp.types import Tool, ToolAnnotations
 
 from .corpora import CORPORA, LINK_RELATIONS, TIERS, all_periods
-from .database import HEBREW_PREFIX_LETTERS, format_biblical_range, strip_editorial_signs
+from .database import (
+    BOOK_DISPLAY_NAMES,
+    HEBREW_PREFIX_LETTERS,
+    format_biblical_range,
+    parse_passage_reference,
+    strip_editorial_signs,
+)
+from .parsers.acai import is_name_label
 from .parsers.biblical_versions import APOCRYPHA_PLURAL_NAMES, VERSE_MAPPING_CREDIT
+from .parsers.theographic import BOOKS as GRAPH_BOOKS
+from .parsers.theographic import verse_position
 
 
 def _parse_json_field(value, default=None):
@@ -492,9 +501,10 @@ long-tail is wanted.""",
         annotations=ToolAnnotations(title="Lookup Name", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
         description="""Look up general information about a biblical person, place, or thing by name — Abraham, David, Bethlehem, and so on.
 
-Covers 4,000+ biblical persons and 1,000+ places. Returns the entry's original-language
-name, description, key verse references, ACAI annotations where available (variant
-names, roles, reference and speech counts), and its immediate relationships:
+Covers 3,000+ people, 1,000+ places and 100+ other names (deities, festivals,
+months). Returns the entry's original-language name, description, key verse
+references, ACAI annotations where available (variant names, roles, reference
+and speech counts), and its immediate relationships:
 
 - **Parents** — one generation back (e.g. David → Jesse)
 - **Children** — one generation forward (e.g. Abraham → Isaac)
@@ -522,7 +532,7 @@ location's full history by `explore_place`.""",
                     "minimum": 1,
                     "maximum": 20,
                     "default": 4,
-                    "description": "Maximum entries; exact name matches come first. Default: 4"
+                    "description": "Maximum entries; exact name matches come first, best known first. Default: 4"
                 }
             },
             "required": ["name"]
@@ -631,9 +641,9 @@ the cross-reference tradition.""",
         annotations=ToolAnnotations(title="Explore Genealogy", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
         description="""Trace a genealogy: a biblical person's ancestors and/or descendants across multiple generations of lineage.
 
-Traverses genealogical data covering 1,100+ biblical persons. Returns a family
-tree with generation numbers and relationship types, plus a Mermaid diagram of
-the tree.
+Traverses the parent links of 2,000 biblical persons. Returns a family tree
+listing each relative once, generation by generation, with whose parent or
+child they are, plus a Mermaid diagram of the tree (up to 40 people).
 
 Covers questions such as tracing the line from Abraham to David, a person's
 tribal ancestry, the Messianic lineage, or how a figure connects into a known
@@ -653,7 +663,7 @@ immediate family without the traversal.""",
                 },
                 "generations": {
                     "type": "integer",
-                    "description": "Maximum generations to trace. Default: 5"
+                    "description": "Generations to trace, 1 to 40. Default: 5"
                 }
             },
             "required": ["person"]
@@ -665,8 +675,9 @@ immediate family without the traversal.""",
         description="""List the people, places, and events mentioned in a Bible passage.
 
 Returns the entities recorded for a chapter or verse in the Theographic Bible
-Metadata — for example, Genesis 22 returns Abraham, Isaac, the angel of the LORD,
-and Moriah; Acts 15 returns Paul, Barnabas, James, Jerusalem, and Antioch.
+Metadata — for example, Genesis 22 returns Abraham, Isaac, God, and Moriah;
+Acts 15 returns Paul, Barnabas, James, Jerusalem, and Antioch. Nations tagged
+under their ancestor's name (Israel, Judah, Moab) are listed apart.
 
 Relevant for establishing the cast and setting of a narrative passage. Related
 tools: `graph_enriched_search` is verse-level only but adds the verse text and
@@ -687,9 +698,9 @@ family relationships for each person found.""",
         annotations=ToolAnnotations(title="Explore Person Events", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
         description="""Retrieve the recorded events of a biblical person's life in chronological order.
 
-Returns each event with its location and date where known, plus a Mermaid
-timeline diagram. Moses returns birth, burning bush, exodus, Sinai, and death on
-Nebo; Paul returns conversion, missionary journeys, imprisonment, and Rome.
+Returns each event once, with its approximate date where known, places, and
+passage. Moses returns birth, burning bush, exodus, Sinai, and death on Nebo;
+Paul returns conversion, missionary journeys, imprisonment, and Rome.
 
 This is the only tool covering event sequence and dating for a person. Related
 tools: `lookup_name` for identity and relationships, `explore_genealogy` for
@@ -736,9 +747,10 @@ basic place info and immediate connections only.""",
         description="""Trace the shortest family relationship path between two biblical people.
 
 Walks parent, child, sibling, and spouse relationships in the biblical
-genealogies to find a connecting path, and returns it as a Mermaid flowchart.
-Ruth and David return Ruth → Obed → Jesse → David; Abraham and Moses trace
-through Levi. Where no family connection exists, that is reported.
+genealogies, preferring lines of descent, and returns the path (with a Mermaid
+flowchart when it has at most 12 steps). Ruth and David return Ruth → Obed →
+Jesse → David; Abraham and Moses trace through Levi. Where no family
+connection exists, that is reported.
 
 Relevant for questions about how two named figures relate. Related tool:
 `explore_genealogy` returns one person's ancestors or descendants rather than a
@@ -2204,18 +2216,31 @@ def format_textual_variant_cases(
     return "\n".join(lines).rstrip()
 
 
+_TIPNR_LINK_RE = re.compile(r"([A-Za-z][\w'-]*)@[\w.]+(?:-\w+)?(?:=[A-Z]\d+[A-Za-z]?)?")
+_TIPNR_NUMBERED_RE = re.compile(r"\b([A-Za-z][\w'-]*?)_(\d+)(=\s*)?")
+
+
+def humanize_tipnr(text: str) -> str:
+    """TIPNR's internal names made readable: 'father_of_Barnabas' -> 'father of
+    Barnabas', 'Ai_2= near Heshbon (Heshbon@Num.21.25-Jer=H2809)' -> 'Ai (2), near
+    Heshbon (Heshbon)'."""
+    text = _TIPNR_LINK_RE.sub(r"\1", text)
+    text = _TIPNR_NUMBERED_RE.sub(lambda m: f"{m[1]} ({m[2]})" + (", " if m[3] else ""), text)
+    return re.sub(r"(?<=\w)_(?=\w)", " ", text)
+
+
 def format_name_entry(entry: dict, acai_data: dict | None = None) -> str:
     """Format a name entry for display, optionally enriched with ACAI data."""
     lines = []
 
-    lines.append(f"### {entry['name']}")
+    lines.append(f"### {humanize_tipnr(entry['name'])}")
     if entry.get('name_original'):
         lines.append(f"**Original**: {entry['name_original']}")
     lines.append(f"**Type**: {entry.get('type', 'Unknown').title()}")
     lines.append("")
 
     if entry.get('description'):
-        lines.append(entry['description'])
+        lines.append(humanize_tipnr(entry['description']))
         lines.append("")
 
     # ACAI enrichment
@@ -2226,9 +2251,10 @@ def format_name_entry(entry: dict, acai_data: dict | None = None) -> str:
             acai_parts.append(f"**Description**: {acai_data['description']}")
 
         # Variant names, other than the entry's own
+        own = {entry['name'].lower(), humanize_tipnr(entry['name']).lower()}
         variants = [
             v for v in _parse_json_field(acai_data.get('referred_to_as')) or []
-            if str(v).lower() != entry['name'].lower()
+            if str(v).lower() not in own and is_name_label(str(v))
         ]
         if variants:
             acai_parts.append(f"**Also known as**: {', '.join(str(v) for v in variants[:5])}")
@@ -2254,7 +2280,8 @@ def format_name_entry(entry: dict, acai_data: dict | None = None) -> str:
         lines.append("**Relationships**:")
         for key, value in rels.items():
             if value:
-                lines.append(f"- {key.title()}: {value}")
+                names = value if isinstance(value, list) else [value]
+                lines.append(f"- {key.title()}: {', '.join(humanize_tipnr(str(n)) for n in names)}")
         lines.append("")
 
     # The names table stores these in the 'refs' column.
@@ -2499,65 +2526,244 @@ def format_ane_dimensions(dimensions: list[dict]) -> str:
 # Graph formatting functions
 # =========================================================================
 
+# Above this many people a family-tree diagram is left out (the list has them all).
+MERMAID_MAX_NODES = 40
+# A connection path longer than this is listed without a diagram.
+MERMAID_MAX_PATH = 12
+DATE_NOTE = (
+    "*Dates are approximate (c.), from the Theographic chronology (Ussher-based); "
+    "undated events are placed in Scripture order.*"
+)
+_DEITIES = frozenset({"god_1324", "holy_spirit_7400"})
+
+
+@lru_cache(maxsize=1)
+def _graph_curated() -> dict:
+    """The runtime parts of graph_curated.json: edge notes and eponyms."""
+    with open(Path(__file__).parent / "parsers" / "graph_curated.json", encoding="utf-8") as f:
+        theo = json.load(f)["theographic"]
+    notes = {(n["from"], n["to"], n["type"]): n for n in theo["family_edge_notes"]}
+    return {"edge_notes": notes, "eponyms": theo["eponyms"]}
+
+
+def edge_note(parent_id: str, child_id: str, relationship: str, short: bool = False) -> str | None:
+    """A curated caveat on a parent link, if any: the note ('legal father: Jesus was
+    conceived by the Holy Spirit ...') or, with short, its label ('legal father')."""
+    note = _graph_curated()["edge_notes"].get((parent_id, child_id, relationship))
+    return (note["label"] if short else note["note"]) if note else None
+
+
+def eponym_ids() -> frozenset[str]:
+    """People whose name is also a nation or tribe's (Israel, Judah, Moab ...)."""
+    return frozenset(_graph_curated()["eponyms"]["people"])
+
+
 def format_year(year: int | None) -> str:
-    """Format a year as BC/AD."""
+    """Format a person's birth or death year (negative is BC) as 'c. 1085 BC'."""
     if year is None:
         return "unknown"
-    if year < 0:
-        return f"{abs(year)} BC"
-    return f"AD {year}"
+    return f"c. {abs(year)} BC" if year < 0 else f"c. AD {year}"
 
 
-def _render_family_list(people: list[dict], heading: str, lines: list[str]) -> None:
-    """Render a list of ancestors or descendants into lines."""
-    if people and len(people) > 1:
-        lines.append(f"### {heading}")
-        for p in people:
-            if p["generation"] == 0:
+def format_event_year(year: int | None) -> str:
+    """Format an event year, which Theographic counts astronomically (0 = 1 BC)."""
+    if year is None:
+        return ""
+    return f"c. {1 - year} BC" if year <= 0 else f"c. AD {year}"
+
+
+def _book_label(code: str) -> str:
+    """'1Sam' -> '1 Sam'."""
+    return re.sub(r"^(\d)", r"\1 ", code)
+
+
+def scripture_span(refs: list[str]) -> str:
+    """Where an event is told: 'Gen 22:1–19', or 'Matt 21:1–11; also Mark, Luke, John'."""
+    positions = sorted(p for p in map(verse_position, refs) if p)
+    if not positions:
+        return ""
+    book = positions[0][0]
+    own = [p for p in positions if p[0] == book]
+    (_, c1, v1), (_, c2, v2) = own[0], own[-1]
+    span = f"{_book_label(GRAPH_BOOKS[book])} {c1}:{v1}"
+    if (c1, v1) != (c2, v2):
+        span += f"–{v2}" if c1 == c2 else f"–{c2}:{v2}"
+    others = sorted({p[0] for p in positions} - {book})
+    if others:
+        names = [_book_label(GRAPH_BOOKS[b]) for b in others[:3]]
+        span += "; also " + ", ".join(names) + (" and others" if len(others) > 3 else "")
+    return span
+
+
+def person_label(person: dict | None, fallback: str = "") -> str:
+    """'Mary (Mother of Jesus)' where Theographic gives a title, else the name."""
+    if not person:
+        return fallback
+    return person.get("display_title") or person.get("name") or fallback
+
+
+def format_person_choice(query: str, matches: list[dict]) -> str:
+    """A note saying which of several people a name was taken to mean, or ''."""
+    chosen = matches[0]
+    label = person_label(chosen)
+    renamed = ""
+    if chosen.get("match_tier") == 3 and query.strip().casefold() not in label.casefold():
+        renamed = f"*'{query}' is listed as {label}.*\n"
+    worst = max(chosen.get("match_tier", 9), 2)
+    rivals = [m for m in matches[1:] if m.get("match_tier", 9) <= worst]
+    if not rivals:
+        return renamed
+    shown = ", ".join(f"{person_label(m)} ({m['id']})" for m in rivals[:4])
+    more = f", +{len(rivals) - 4} more" if len(rivals) > 4 else ""
+    return renamed + (
+        f"*'{query}' could mean {len(rivals) + 1} people; showing {label} "
+        f"({chosen['id']}), the most mentioned. Others: {shown}{more}. "
+        "Pass a fuller name or an id to choose another.*\n"
+    )
+
+
+def _child_word(person: dict) -> str:
+    gender = (person.get("gender") or "").lower()
+    return {"male": "son", "female": "daughter"}.get(gender, "child")
+
+
+def _join_names(names: list[str]) -> str:
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def _lineage_lines(
+    focal: dict, lineage: dict, direction: str, names: dict[str, str]
+) -> list[str]:
+    """One line per generation, each relative with the relatives it links to."""
+    up = direction == "ancestors"
+    links: dict[str, list[tuple[str, str]]] = {}
+    for parent, child, relationship in lineage["edges"]:
+        relative, other = (parent, child) if up else (child, parent)
+        links.setdefault(relative, []).append((other, relationship))
+    by_generation: dict[int, list[str]] = {}
+    for person in lineage["people"]:
+        words: dict[str, list[str]] = {}
+        notes = []
+        for other, relationship in links.get(person["id"], []):
+            if other not in names:
                 continue
-            indent = "  " * p["generation"]
-            rel = p["relationship"].replace("_of", "").title()
-            year_str = f" ({format_year(p.get('birth_year'))})" if p.get("birth_year") else ""
-            lines.append(f"{indent}- **{p['name']}** ({rel}){year_str}")
+            word = relationship[:-3] if up else _child_word(person)
+            words.setdefault(word, []).append(names[other])
+            parent, child = (person["id"], other) if up else (other, person["id"])
+            note = edge_note(parent, child, relationship)
+            if note:
+                notes.append(note)
+        parts = [f"{word} of {_join_names(of)}" for word, of in words.items()]
+        if person.get("birth_year") is not None:
+            parts.append(f"b. {format_year(person['birth_year'])}")
+        parts += notes
+        detail = f" ({'; '.join(parts)})" if parts else ""
+        by_generation.setdefault(person["generation"], []).append(f"**{names[person['id']]}**{detail}")
+    return [f"- Generation {gen}: " + "; ".join(entries) for gen, entries in sorted(by_generation.items())]
+
+
+def format_genealogy(
+    person: dict,
+    ancestors: dict | None,
+    descendants: dict | None,
+    family: dict | None = None,
+    generations: int = 5,
+    note: str = "",
+) -> str:
+    """A person's ancestors and/or descendants, one line per generation.
+
+    ``ancestors``/``descendants`` are graph_lineage results (or None when not
+    asked for); each relative appears once, with the relatives it is a parent
+    or child of, so pedigree collapse and namesakes stay unambiguous.
+    """
+    title = person_label(person)
+    lines = [f"## Genealogy of {title}\n"]
+    if note:
+        lines.append(note)
+    names = {person["id"]: person["name"]}
+    for lineage in (ancestors, descendants):
+        for relative in (lineage or {}).get("people", []):
+            names[relative["id"]] = relative["name"]
+    found = False
+    for heading, direction, lineage in (("Ancestors", "ancestors", ancestors),
+                                        ("Descendants", "descendants", descendants)):
+        if not lineage or not lineage["people"]:
+            continue
+        found = True
+        deepest = max(p["generation"] for p in lineage["people"])
+        lines.append(f"### {heading} ({deepest} generation{'s' if deepest != 1 else ''})")
+        lines.extend(_lineage_lines(person, lineage, direction, names))
+        if lineage.get("truncated"):
+            lines.append(f"- *(cut off at {len(lineage['people'])} people; ask for fewer generations)*")
         lines.append("")
+    if not found:
+        asked = " or ".join(h.lower() for h, lineage in (("Parents", ancestors), ("Children", descendants))
+                            if lineage is not None)
+        lines.append(f"No {asked} are recorded for {title} in the Theographic database.\n")
+    if any(p.get("birth_year") is not None for lineage in (ancestors, descendants)
+           for p in (lineage or {}).get("people", [])):
+        lines.append("*Birth years are approximate (Theographic chronology).*\n")
 
-
-def format_genealogy(person_name: str, ancestors: list[dict], descendants: list[dict]) -> str:
-    """Format a genealogy tree for display."""
-    lines = [f"## Genealogy of {person_name}\n"]
-
-    _render_family_list(ancestors, "Ancestors", lines)
-    _render_family_list(descendants, "Descendants", lines)
-
-    if len(ancestors) <= 1 and len(descendants) <= 1:
-        lines.append("No genealogical data found in the Theographic database.\n")
-
+    family_lines = []
+    if family and family.get("partners"):
+        family_lines.append("**Spouse(s)**: " + ", ".join(person_label(p) for p in family["partners"]))
+    if family and family.get("siblings"):
+        family_lines.append("**Siblings**: " + ", ".join(person_label(p) for p in family["siblings"]))
+    if family_lines:
+        lines.append("### Immediate Family")
+        lines.extend(family_lines)
+        lines.append("")
+    lines.append(f"*For a dictionary article on {person['name']}, use get_bible_dictionary.*")
     return "\n".join(lines)
 
 
-def format_person_events(person_name: str, events: list[dict], event_places: dict[str, list[dict]]) -> str:
-    """Format a person's event timeline."""
-    lines = [f"## Timeline of {person_name}\n"]
+def _event_line(event: dict, places: list[dict] | None, verses: list[str] | None) -> str:
+    year = format_event_year(event.get("start_year"))
+    line = f"- **{event['title']}**" + (f" ({year})" if year else "")
+    details = []
+    if places:
+        shown = ", ".join(p["name"] for p in places[:3])
+        details.append(shown + (f" +{len(places) - 3} more" if len(places) > 3 else ""))
+    span = scripture_span(verses or [])
+    if span:
+        details.append(span)
+    return line + (" — " + "; ".join(details) if details else "")
 
+
+def format_person_events(
+    person: dict | str,
+    events: list[dict],
+    event_places: dict[str, list[dict]],
+    event_verses: dict[str, list[str]] | None = None,
+    note: str = "",
+) -> str:
+    """A person's events in chronological order, each once: date, places, passage."""
+    title = person_label(person) if isinstance(person, dict) else person
+    lines = [f"## Timeline of {title}\n"]
+    if note:
+        lines.append(note)
     if not events:
         lines.append("No events found in the Theographic database.\n")
         return "\n".join(lines)
-
-    for evt in events:
-        year_str = f" ({format_year(evt.get('start_year'))})" if evt.get("start_year") else ""
-        lines.append(f"- **{evt['title']}**{year_str}")
-        places = event_places.get(evt["id"], [])
-        if places:
-            place_names = ", ".join(p["name"] for p in places)
-            lines.append(f"  Location: {place_names}")
+    lines.append(DATE_NOTE + "\n")
+    event_verses = event_verses or {}
+    for event in events:
+        lines.append(_event_line(event, event_places.get(event["id"]), event_verses.get(event["id"])))
     lines.append("")
-
     return "\n".join(lines)
 
 
-def format_place_history(place: dict, events: list[dict], people: dict) -> str:
+def format_place_history(
+    place: dict,
+    events: list[dict],
+    people: dict,
+    event_verses: dict[str, list[str]] | None = None,
+    note: str = "",
+) -> str:
     """Format a place's biblical history."""
     lines = [f"## {place['name']}\n"]
+    if note:
+        lines.append(note)
 
     if place.get("feature_type"):
         lines.append(f"**Type**: {place['feature_type']}")
@@ -2567,9 +2773,10 @@ def format_place_history(place: dict, events: list[dict], people: dict) -> str:
 
     if events:
         lines.append("### Events at this location")
-        for evt in events:
-            year_str = f" ({format_year(evt.get('start_year'))})" if evt.get("start_year") else ""
-            lines.append(f"- **{evt['title']}**{year_str}")
+        lines.append(DATE_NOTE)
+        event_verses = event_verses or {}
+        for event in events:
+            lines.append(_event_line(event, None, event_verses.get(event["id"])))
         lines.append("")
 
     born = people.get("born_here", [])
@@ -2578,13 +2785,13 @@ def format_place_history(place: dict, events: list[dict], people: dict) -> str:
     if born:
         lines.append("### Born here")
         for p in born:
-            lines.append(f"- {p['name']}")
+            lines.append(f"- {person_label(p)}")
         lines.append("")
 
     if died:
         lines.append("### Died here")
         for p in died:
-            lines.append(f"- {p['name']}")
+            lines.append(f"- {person_label(p)}")
         lines.append("")
 
     if not events and not born and not died:
@@ -2593,62 +2800,166 @@ def format_place_history(place: dict, events: list[dict], people: dict) -> str:
     return "\n".join(lines)
 
 
-def format_passage_entities(reference: str, entities: dict) -> str:
+def _graph_scope(reference: str) -> tuple[str, int, int] | None:
+    """(Theographic book code, first chapter, last chapter) of a passage reference."""
+    parsed = parse_passage_reference(reference or "")
+    if not parsed or not parsed[1] or parsed[1] not in BOOK_DISPLAY_NAMES:
+        return None
+    return BOOK_DISPLAY_NAMES[parsed[1]].replace(" ", ""), parsed[2][0], parsed[3][0]
+
+
+def is_nation_mention(entity_id: str, reference: str) -> bool:
+    """Whether a tagged eponym (Israel, Judah, Moab ...) here means the people named after them."""
+    eponyms = _graph_curated()["eponyms"]
+    if entity_id not in eponyms["people"]:
+        return False
+    scope = _graph_scope(reference)
+    if scope is None:
+        return False
+    book, first, last = scope
+    person_scope = set(eponyms["person_scope"])
+    return book not in person_scope and not any(
+        f"{book}.{chapter}" in person_scope for chapter in range(first, last + 1)
+    )
+
+
+def _split_people(
+    people: list[dict], reference: str, nations: set[str] | None = None
+) -> tuple[list[dict], list[dict]]:
+    """People mentioned in a passage, without repeats, and the eponyms that mean nations.
+
+    ``nations`` (from the server, which also checks for the eponym's family
+    in the passage) overrides the reference-only test of is_nation_mention.
+    """
+    seen = set()
+    persons, nation_rows = [], []
+    for p in people:
+        entity_id = p.get("entity_id")
+        if entity_id in seen:
+            continue
+        seen.add(entity_id)
+        is_nation = entity_id in nations if nations is not None else is_nation_mention(entity_id, reference)
+        (nation_rows if is_nation else persons).append(p)
+    return persons, nation_rows
+
+
+def _entity_names(entities: list[dict]) -> list[str]:
+    """Names to list, with namesakes told apart by their id."""
+    names = [e.get("entity_name") or e.get("entity_id", "unknown") for e in entities]
+    repeated = {n for n in names if names.count(n) > 1}
+    return [f"{n} ({e.get('entity_id')})" if n in repeated else n for n, e in zip(names, entities)]
+
+
+def format_passage_entities(reference: str, entities: dict, nations: set[str] | None = None) -> str:
     """Format entities found in a passage."""
     lines = [f"## Entities in {reference}\n"]
 
-    people = entities.get("people", [])
+    people, nations = _split_people(entities.get("people", []), reference, nations)
     places = entities.get("places", [])
     events = entities.get("events", [])
 
     if people:
         lines.append("### People")
-        for p in people:
-            lines.append(f"- **{p.get('entity_name', p.get('entity_id', 'unknown'))}**")
+        lines.extend(f"- **{name}**" for name in _entity_names(people))
+        lines.append("")
+
+    if nations:
+        lines.append("### Nations and tribes")
+        lines.append("*(tagged in the source as their ancestor)*")
+        lines.extend(f"- **{_graph_curated()['eponyms']['people'][n['entity_id']]}**" for n in nations)
         lines.append("")
 
     if places:
         lines.append("### Places")
-        for p in places:
-            lines.append(f"- **{p.get('entity_name', p.get('entity_id', 'unknown'))}**")
+        lines.extend(f"- **{name}**" for name in _entity_names(places))
         lines.append("")
 
     if events:
         lines.append("### Events")
-        for e in events:
-            lines.append(f"- **{e.get('entity_name', e.get('entity_id', 'unknown'))}**")
+        lines.extend(f"- **{name}**" for name in _entity_names(events))
         lines.append("")
 
-    if not people and not places and not events:
+    if not people and not nations and not places and not events:
         lines.append("No entities found for this passage in the Theographic database.\n")
 
     return "\n".join(lines)
 
 
-def format_connection_path(person1: str, person2: str, path: list[dict]) -> str:
-    """Format a relationship path between two people."""
-    lines = [f"## Connection: {person1} → {person2}\n"]
+def _run_phrase(relationship: str, length: int) -> str:
+    each = "each " if length > 1 else ""
+    return {
+        "down": f"{each}a parent of the next",
+        "up": f"{each}a child of the next",
+        "sibling_of": "siblings",
+        "partner_of": "spouses",
+    }[relationship]
 
+
+def format_connection_path(person1: str, person2: str, path: list[dict], note: str = "") -> str:
+    """A family connection, summarised and listed as runs of the same kind of link."""
+    lines = [f"## Connection: {person1} → {person2}\n"]
+    if note:
+        lines.append(note)
     if not path:
-        lines.append("No family connection found in the Theographic database.\n")
+        lines.append("No family connection between them is recorded in the Theographic database.\n")
         return "\n".join(lines)
 
-    for step in path:
-        rel = step["relationship_type"].replace("_", " ").title()
-        lines.append(f"- {step['from_name']} → *{rel}* → {step['to_name']}")
-    lines.append("")
+    kinds = ["down" if s["relationship_type"] in ("father_of", "mother_of")
+             else "up" if s["relationship_type"] == "child_of" else s["relationship_type"]
+             for s in path]
+    def generations(n: int) -> str:
+        return f"{n} generation{'s' if n != 1 else ''}"
 
+    if set(kinds) == {"down"}:
+        summary = f"{person1} is an ancestor of {person2}, {generations(len(path))} back."
+    elif set(kinds) == {"up"}:
+        summary = f"{person1} is a descendant of {person2}, {generations(len(path))} down."
+    elif set(kinds) <= {"up", "down"} and kinds == sorted(kinds, key=lambda k: k != "up"):
+        top = path[kinds.index("down")]["from_name"]
+        summary = (f"They share the ancestor {top}: {person1} is {generations(kinds.count('up'))} "
+                   f"below, {person2} {kinds.count('down')}.")
+    else:
+        summary = f"Connected in {len(path)} steps, through marriage or siblings as well as descent."
+    lines.append(summary + "\n")
+
+    runs: list[tuple[str, list[dict]]] = []
+    for kind, step in zip(kinds, path):
+        if runs and runs[-1][0] == kind and kind in ("up", "down"):
+            runs[-1][1].append(step)
+        else:
+            runs.append((kind, [step]))
+    for kind, steps in runs:
+        names = [steps[0]["from_name"]] + [s["to_name"] for s in steps]
+        joiner = " → " if kind in ("up", "down") else " — "
+        line = f"- {joiner.join(names)} ({_run_phrase(kind, len(steps))})"
+        mothers = [s["from_name"] for s in steps[1:] if s["relationship_type"] == "mother_of"]
+        if kind == "down" and mothers:
+            line += f"; through the mother{'s' if len(mothers) > 1 else ''} {_join_names(mothers)}"
+        notes = [edge_note(s["current_id"], s["next_id"], s["relationship_type"]) if kind == "down"
+                 else edge_note(s["next_id"], s["current_id"], "father_of") if kind == "up"
+                 else None for s in steps]
+        notes = [f"{s['from_name']}/{s['to_name']}: {n}" for s, n in zip(steps, notes) if n]
+        if notes:
+            line += " — " + "; ".join(notes)
+        lines.append(line)
+    lines.append("")
     return "\n".join(lines)
 
 
-def format_enriched_verse(reference: str, verse: dict | None, entities: dict, family_data: dict[str, dict]) -> str:
+def format_enriched_verse(
+    reference: str,
+    verse: dict | None,
+    entities: dict,
+    family_data: dict[str, dict],
+    nations: set[str] | None = None,
+) -> str:
     """Format a verse with its entity context and family relationships.
 
     Args:
         reference: The verse reference string
         verse: The verse dict (or None)
         entities: Dict with 'people', 'places', 'events' lists
-        family_data: Map of person name -> family dict from graph_get_family
+        family_data: Map of person id -> family dict from graph_get_family
     """
     lines = [f"## {reference}{bsb_label([verse] if verse else [])}\n"]
 
@@ -2659,20 +2970,23 @@ def format_enriched_verse(reference: str, verse: dict | None, entities: dict, fa
             lines.append(f"**Original**: {verse['text_original']}")
             lines.append("")
 
-    people = entities.get("people", [])
+    people, nations = _split_people(entities.get("people", []), reference, nations)
     places = entities.get("places", [])
     events = entities.get("events", [])
 
     if people:
         lines.append("### People Mentioned")
-        for p in people:
-            name = p.get("entity_name", p.get("entity_id"))
+        for p, name in zip(people, _entity_names(people)):
             lines.append(f"\n**{name}**")
-            family = family_data.get(name)
-            if family:
+            family = family_data.get(p.get("entity_id"))
+            if family and p.get("entity_id") not in _DEITIES:
                 parts = []
                 if family["parents"]:
-                    parent_names = ", ".join(pr["name"] for pr in family["parents"])
+                    parent_names = ", ".join(
+                        pr["name"] + (f" ({label})" if (label := edge_note(
+                            pr["id"], p["entity_id"], pr.get("relationship_type", ""), short=True)) else "")
+                        for pr in family["parents"]
+                    )
                     parts.append(f"Parents: {parent_names}")
                 if family["partners"]:
                     partner_names = ", ".join(pr["name"] for pr in family["partners"])
@@ -2683,6 +2997,12 @@ def format_enriched_verse(reference: str, verse: dict | None, entities: dict, fa
                     parts.append(f"Children: {child_names}{suffix}")
                 if parts:
                     lines.append("  " + " | ".join(parts))
+        lines.append("")
+
+    if nations:
+        lines.append("### Nations and tribes")
+        lines.append("*(tagged in the source as their ancestor)*")
+        lines.extend(f"- **{_graph_curated()['eponyms']['people'][n['entity_id']]}**" for n in nations)
         lines.append("")
 
     if places:
@@ -2697,7 +3017,7 @@ def format_enriched_verse(reference: str, verse: dict | None, entities: dict, fa
             lines.append(f"- **{e.get('entity_name', e.get('entity_id'))}**")
         lines.append("")
 
-    if not people and not places and not events:
+    if not people and not nations and not places and not events:
         lines.append("*No entity data available for this verse in the Theographic database.*\n")
 
     return "\n".join(lines)
@@ -2708,132 +3028,78 @@ def format_enriched_verse(reference: str, verse: dict | None, entities: dict, fa
 # =========================================================================
 
 def _mermaid_id(name: str) -> str:
-    """Create a safe Mermaid node ID from a name."""
-    return name.replace(" ", "_").replace("'", "").replace("(", "").replace(")", "")
+    """Create a safe Mermaid node ID from a name or graph id."""
+    return "n_" + re.sub(r"\W", "_", name)
+
+
+def _mermaid_label(text: str) -> str:
+    return text.replace('"', "'")
 
 
 def mermaid_genealogy(
-    person_name: str,
-    ancestors: list[dict],
-    descendants: list[dict],
+    person: dict,
+    lineages: list[dict | None],
     family: dict | None = None,
 ) -> str:
-    """Generate a Mermaid flowchart for a family tree.
+    """A Mermaid family tree of the given lineages, nodes keyed by person id.
 
-    Ancestor edges follow each row's ``child_id`` (from graph_get_ancestors),
-    so only recorded parent-child links are drawn; an ancestor row without
-    one is shown in the text list but not linked in the diagram.
+    Every recorded parent link among the people drawn is an edge, so
+    namesakes stay separate and pedigree collapse shows as two edges into one
+    node. Returns '' when there is nothing to draw or more than
+    MERMAID_MAX_NODES people (the text list has them all).
     """
-    lines = ["```mermaid", "graph TD"]
-    seen_edges = set()
-    seen_nodes = set()
-    person_mid = _mermaid_id(person_name)
-
-    # Style the focal person
-    lines.append(f'    {person_mid}["{person_name}"]')
-    lines.append(f"    style {person_mid} fill:#4a90d9,color:#fff,stroke:#2a5a8a")
-    seen_nodes.add(person_mid)
-
-    # Ancestors: link each ancestor to its own child (gen 1 = parents of the
-    # focal person, gen 2 = grandparents, etc.), oldest generation first
-    if ancestors and len(ancestors) > 1:
-        names_by_id = {a["id"]: a["name"] for a in ancestors if a.get("id")}
-        for person in sorted(ancestors, key=lambda a: -a["generation"]):
-            gen = person["generation"]
-            if gen == 0:
-                continue
-            pid = _mermaid_id(person["name"])
-            rel = person["relationship"].replace("_of", "")
-            seen_nodes.add(pid)
-            if gen == 1:
-                edge_key = (pid, person_mid)
-                if edge_key not in seen_edges:
-                    seen_edges.add(edge_key)
-                    lines.append(f'    {pid}["{person["name"]}"] -->|{rel}| {person_mid}')
-            else:
-                child_name = names_by_id.get(person.get("child_id"))
-                if child_name is None:
-                    continue
-                child_id = _mermaid_id(child_name)
-                edge_key = (pid, child_id)
-                if edge_key not in seen_edges:
-                    seen_edges.add(edge_key)
-                    lines.append(f'    {pid}["{person["name"]}"] -->|{rel}| {child_id}["{child_name}"]')
-
-    # Descendants: only show generation 1 (direct children) to keep diagram clean
-    if descendants and len(descendants) > 1:
-        direct_children = [d for d in descendants if d["generation"] == 1]
-        for d in direct_children:
-            did = _mermaid_id(d["name"])
-            rel = d["relationship"].replace("_of", "")
-            edge_key = (person_mid, did)
-            if edge_key not in seen_edges:
-                seen_edges.add(edge_key)
-                lines.append(f'    {person_mid} -->|{rel}| {did}["{d["name"]}"]')
-
-    # Partners from family data
-    if family and family.get("partners"):
-        for p in family["partners"]:
-            pid = _mermaid_id(p["name"])
-            edge_key = (person_mid, pid)
-            if edge_key not in seen_edges:
-                seen_edges.add(edge_key)
-                lines.append(f'    {person_mid} -.-|spouse| {pid}["{p["name"]}"]')
-                lines.append(f"    style {pid} fill:#d9a04a,color:#fff")
-
+    names = {person["id"]: person_label(person)}
+    edges: dict[tuple, None] = {}
+    for lineage in lineages:
+        for relative in (lineage or {}).get("people", []):
+            names[relative["id"]] = relative["name"]
+        for edge in (lineage or {}).get("edges", []):
+            edges[edge] = None
+    partners = [p for p in (family or {}).get("partners", []) if p["id"] not in names]
+    if not edges and not partners:
+        return ""
+    if len(names) + len(partners) > MERMAID_MAX_NODES:
+        return ""
+    focal = _mermaid_id(person["id"])
+    lines = ["```mermaid", "graph TD", f'    {focal}["{_mermaid_label(names[person["id"]])}"]',
+             f"    style {focal} fill:#4a90d9,color:#fff,stroke:#2a5a8a"]
+    declared = {person["id"]}
+    for parent, child, relationship in edges:
+        ends = []
+        for pid in (parent, child):
+            node = _mermaid_id(pid)
+            if pid not in declared:
+                declared.add(pid)
+                node += f'["{_mermaid_label(names.get(pid, pid))}"]'
+            ends.append(node)
+        lines.append(f"    {ends[0]} -->|{relationship[:-3]}| {ends[1]}")
+    for partner in partners:
+        node = _mermaid_id(partner["id"])
+        lines.append(f'    {focal} -.-|spouse| {node}["{_mermaid_label(person_label(partner))}"]')
+        lines.append(f"    style {node} fill:#d9a04a,color:#fff")
     lines.append("```")
     return "\n".join(lines)
 
 
 def mermaid_connection_path(person1: str, person2: str, path: list[dict]) -> str:
-    """Generate a Mermaid flowchart showing the relationship path between two people."""
-    if not path:
+    """A Mermaid flowchart of a short relationship path ('' if none or too long to help)."""
+    if not path or len(path) > MERMAID_MAX_PATH:
         return ""
 
     lines = ["```mermaid", "graph LR"]
-
-    # Style start and end
-    start_id = _mermaid_id(person1)
-    end_id = _mermaid_id(person2)
+    start_id = _mermaid_id(path[0]["current_id"])
+    end_id = _mermaid_id(path[-1]["next_id"])
     lines.append(f"    style {start_id} fill:#4a90d9,color:#fff,stroke:#2a5a8a")
     lines.append(f"    style {end_id} fill:#d94a4a,color:#fff,stroke:#8a2a2a")
 
-    seen = set()
     for step in path:
-        fid = _mermaid_id(step["from_name"])
-        tid = _mermaid_id(step["to_name"])
+        fid = _mermaid_id(step["current_id"])
+        tid = _mermaid_id(step["next_id"])
         rel = step["relationship_type"].replace("_", " ")
-        edge_key = (fid, tid)
-        if edge_key not in seen:
-            seen.add(edge_key)
-            lines.append(f'    {fid}["{step["from_name"]}"] -->|{rel}| {tid}["{step["to_name"]}"]')
-
-    lines.append("```")
-    return "\n".join(lines)
-
-
-def mermaid_person_timeline(
-    person_name: str,
-    events: list[dict],
-    event_places: dict[str, list[dict]],
-) -> str:
-    """Generate a Mermaid timeline diagram for a person's life events."""
-    if not events:
-        return ""
-
-    lines = ["```mermaid", "timeline", f"    title {person_name}"]
-
-    for evt in events:
-        year = evt.get("start_year")
-        year_str = format_year(year) if year else ""
-        title = evt["title"].replace('"', "'")
-        places = event_places.get(evt["id"], [])
-
-        section_label = year_str if year_str else title[:20]
-        lines.append(f"    {section_label} : {title}")
-        if places:
-            place_names = ", ".join(p["name"] for p in places[:3])
-            lines.append(f"        : {place_names}")
+        lines.append(
+            f'    {fid}["{_mermaid_label(step["from_name"])}"] -->|{rel}| '
+            f'{tid}["{_mermaid_label(step["to_name"])}"]'
+        )
 
     lines.append("```")
     return "\n".join(lines)
@@ -2852,27 +3118,25 @@ def mermaid_place_network(
 
     lines = ["```mermaid", "graph TD"]
 
-    place_id = _mermaid_id(place["name"])
-    lines.append(f'    {place_id}["{place["name"]}"]')
+    place_id = _mermaid_id(place["id"])
+    lines.append(f'    {place_id}["{_mermaid_label(place["name"])}"]')
     lines.append(f"    style {place_id} fill:#2a8a4a,color:#fff,stroke:#1a5a2a")
 
-    # Events
-    if events:
-        for evt in events[:12]:  # limit to avoid huge diagrams
-            eid = _mermaid_id(evt["title"][:30])
-            year_str = f" ({format_year(evt.get('start_year'))})" if evt.get("start_year") else ""
-            label = evt["title"][:40] + year_str
-            lines.append(f'    {place_id} --- {eid}["{label}"]')
+    for evt in events[:12]:  # limit to avoid huge diagrams
+        eid = _mermaid_id(f"e{evt['id']}")
+        year = format_event_year(evt.get("start_year"))
+        title = evt["title"] if len(evt["title"]) <= 40 else evt["title"][:39].rsplit(" ", 1)[0] + "…"
+        label = title + (f" ({year})" if year else "")
+        lines.append(f'    {place_id} --- {eid}["{_mermaid_label(label)}"]')
 
-    # People born/died
     for p in born[:8]:
-        pid = _mermaid_id(p["name"]) + "_b"
-        lines.append(f'    {pid}["{p["name"]}"] -->|born| {place_id}')
+        pid = _mermaid_id(p["id"]) + "_b"
+        lines.append(f'    {pid}["{_mermaid_label(person_label(p))}"] -->|born| {place_id}')
         lines.append(f"    style {pid} fill:#4a90d9,color:#fff")
 
     for p in died[:8]:
-        pid = _mermaid_id(p["name"]) + "_d"
-        lines.append(f'    {place_id} -->|died| {pid}["{p["name"]}"]')
+        pid = _mermaid_id(p["id"]) + "_d"
+        lines.append(f'    {place_id} -->|died| {pid}["{_mermaid_label(person_label(p))}"]')
         lines.append(f"    style {pid} fill:#d94a4a,color:#fff")
 
     lines.append("```")

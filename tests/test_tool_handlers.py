@@ -587,30 +587,34 @@ async def test_similar_passages_require_a_reference(db):
 async def test_genealogy_ancestors_default_to_five_generations(db):
     output = await call("explore_genealogy", person="Hezron", direction="ancestors")
     assert output.startswith("## Genealogy of Hezron")
-    assert "  - **Perez** (Father)" in output
-    assert "        - **Isaac** (Father) (2066 BC)" in output
+    assert "- Generation 1: **Perez** (father of Hezron)" in output
+    assert "- Generation 4: **Isaac** (father of Jacob; b. c. 2066 BC); **Rebekah** (mother of Jacob)" in output
     for name in ("Judah", "Jacob", "Rebekah", "Abraham", "Sarah"):
         assert f"**{name}**" in output
     assert "Terah" not in output  # sixth generation
     assert "### Descendants" not in output
     assert "```mermaid\ngraph TD" in output
     deeper = await call("explore_genealogy", person="Hezron", direction="ancestors", generations=6)
-    assert "**Terah** (Father)" in deeper
+    assert "- Generation 6: **Terah** (father of Abraham)" in deeper
 
 
-async def test_genealogy_descendants_family_and_description(db):
+async def test_genealogy_descendants_family_and_dictionary_pointer(db):
     output = await call("explore_genealogy", person="Abraham", direction="descendants", generations=2)
     descendants = _section(output, "### Descendants")
-    assert "**Isaac**" in descendants and "**Jacob**" in descendants and "**Esau**" in descendants
+    assert "**Isaac** (son of Abraham; b. c. 2066 BC)" in descendants
+    assert "**Jacob** (son of Isaac" in descendants and "**Esau** (son of Isaac" in descendants
     assert "Judah" not in output
     assert "### Ancestors" not in output
     assert "**Spouse(s)**: Sarah" in output
-    assert "### About\nPatriarch called out of Ur (test description)." in output
+    # The dictionary article is get_bible_dictionary's, not repeated here
+    assert "test description" not in output
+    assert "*For a dictionary article on Abraham, use get_bible_dictionary.*" in output
 
 
 async def test_genealogy_resolves_an_alias(db):
     output = await call("explore_genealogy", person="Israel")
     assert output.startswith("## Genealogy of Jacob")
+    assert "*'Israel' is listed as Jacob.*" in output
     assert "**Siblings**: Esau" in output
 
 
@@ -620,8 +624,22 @@ async def test_genealogy_graceful_messages(db):
         == "No person found matching 'Goliath' in the Theographic database."
     )
     lone = await call("explore_genealogy", person="Melchizedek")
-    assert "No genealogical data found in the Theographic database." in lone
+    assert "No parents or children are recorded for Melchizedek in the Theographic database." in lone
+    assert "```mermaid" not in lone  # no empty diagram
     assert await call("explore_genealogy", person="") == "Please provide a person's name."
+    for generations in (0, -1, "many"):
+        assert (
+            await call("explore_genealogy", person="Abraham", generations=generations)
+            == "'generations' must be an integer from 1 to 40."
+        )
+
+
+def _drawn_parent_edges(output: str) -> set[tuple[str, str]]:
+    """(parent name, child name) of every parent edge in the diagram; nodes are n_<id>."""
+    names = {person_id: name for person_id, name, *_ in GRAPH_PEOPLE}
+    edges = re.findall(r"^\s*n_(\w+?)(?:\[\"[^\"]*\"\])? -->\|(?:father|mother)\| n_(\w+?)(?:\[|$)",
+                       output, re.MULTILINE)
+    return {(names[parent], names[child]) for parent, child in edges}
 
 
 async def test_genealogy_diagram_draws_only_real_parent_edges(db):
@@ -632,16 +650,15 @@ async def test_genealogy_diagram_draws_only_real_parent_edges(db):
         for parent, child, relation in GRAPH_FAMILY_EDGES
         if relation in ("father_of", "mother_of")
     }
-    drawn = set(re.findall(r"^\s*(\w+)(?:\[\"[^\"]*\"\])? -->\|(?:father|mother)\| (\w+)", output, re.MULTILINE))
+    drawn = _drawn_parent_edges(output)
     assert drawn, "diagram has no parent edges"
     assert drawn <= real, sorted(drawn - real)
 
 
 async def test_genealogy_diagram_draws_every_parent_edge_in_range(db):
     output = await call("explore_genealogy", person="Hezron", direction="ancestors")
-    drawn = set(re.findall(r"^\s*(\w+)(?:\[\"[^\"]*\"\])? -->\|(?:father|mother)\| (\w+)", output, re.MULTILINE))
     # Five generations up: Terah (sixth) is out of range.
-    assert drawn == {
+    assert _drawn_parent_edges(output) == {
         ("Perez", "Hezron"), ("Judah", "Perez"), ("Jacob", "Judah"), ("Isaac", "Jacob"),
         ("Rebekah", "Jacob"), ("Abraham", "Isaac"), ("Sarah", "Isaac"),
     }
@@ -697,9 +714,11 @@ async def test_person_events_in_chronological_order_with_places(db):
     assert re.findall(r"^- \*\*(.+?)\*\*", output, re.MULTILINE) == [
         "Call of Abraham", "Binding of Isaac", "Death of Abraham"
     ]
-    assert "- **Call of Abraham** (2091 BC)\n  Location: Haran" in output
-    assert "- **Binding of Isaac** (2054 BC)\n  Location: Moriah" in output
-    assert "```mermaid\ntimeline\n    title Abraham" in output
+    # Event years are astronomical: -2091 is 2092 BC
+    assert "- **Call of Abraham** (c. 2092 BC) — Haran\n" in output
+    assert "- **Binding of Isaac** (c. 2055 BC) — Moriah; Gen 22:1\n" in output
+    assert "Dates are approximate (c.), from the Theographic chronology" in output
+    assert "```mermaid" not in output  # each event once, not again as a timeline
 
 
 async def test_person_events_graceful_messages(db):
@@ -716,7 +735,8 @@ async def test_person_events_graceful_messages(db):
 async def test_explore_place_events_people_and_coordinates(db):
     output = await call("explore_place", place="Hebron")
     assert output.startswith("## Hebron\n\n**Type**: city\n**Coordinates**: 31.5326, 35.0998")
-    assert "### Events at this location\n- **Death of Abraham** (1991 BC)" in output
+    assert "### Events at this location\n*Dates are approximate" in output
+    assert "- **Death of Abraham** (c. 1992 BC)\n" in output
     assert "### Died here\n- Abraham\n- Sarah" in output
     assert "```mermaid\ngraph TD" in output
     assert "### Born here\n- Abraham" in await call("explore_place", place="Ur")
@@ -748,20 +768,18 @@ async def test_find_connection_paths_in_both_directions(db):
     output = await call("find_connection", person1="Esau", person2="Hezron")
     assert output.startswith("## Connection: Esau → Hezron")
     assert (
-        "- Esau → *Sibling Of* → Jacob\n"
-        "- Jacob → *Father Of* → Judah\n"
-        "- Judah → *Father Of* → Perez\n"
-        "- Perez → *Father Of* → Hezron"
+        "- Esau — Jacob (siblings)\n"
+        "- Jacob → Judah → Perez → Hezron (each a parent of the next)\n"
     ) in output
     assert "```mermaid\ngraph LR" in output
     upward = await call("find_connection", person1="Hezron", person2="Abraham")
-    assert "- Hezron → *Child Of* → Perez" in upward
-    assert "- Isaac → *Child Of* → Abraham" in upward
+    assert "Hezron is a descendant of Abraham, 5 generations down." in upward
+    assert "- Hezron → Perez → Judah → Jacob → Isaac → Abraham (each a child of the next)" in upward
 
 
 async def test_find_connection_graceful_messages(db):
     unrelated = await call("find_connection", person1="Abraham", person2="Melchizedek")
-    assert "No family connection found in the Theographic database." in unrelated
+    assert "No family connection between them is recorded in the Theographic database." in unrelated
     assert "```mermaid" not in unrelated
     assert (
         await call("find_connection", person1="Abraham", person2="Goliath")

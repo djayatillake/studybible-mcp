@@ -114,10 +114,12 @@ def parse_acai(acai_dir: Path) -> list[list]:
 def names_changes(conn: sqlite3.Connection, tipnr: Path) -> tuple[list[list], list[list]]:
     """Names rows the TIPNR parser no longer yields, as [id, name], and rows whose
     relationships it now reads differently, as [id, name, old, new]."""
-    from study_bible_mcp.parsers.proper_names import parse_tipnr
+    from study_bible_mcp.parsers.proper_names import apply_tipnr_corrections, parse_tipnr
+    from study_bible_mcp.parsers.theographic import load_curated
 
     expected: dict[tuple, list[str]] = defaultdict(list)
-    for e in parse_tipnr(tipnr):
+    # As build_database.py imports them, curated corrections included
+    for e in apply_tipnr_corrections(parse_tipnr(tipnr), load_curated()["tipnr"]):
         key = (e["name"], e["name_original"], e["type"], e["description"], e["references"])
         expected[key].append(e["relationships"])
     junk = []
