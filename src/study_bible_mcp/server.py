@@ -40,6 +40,7 @@ from .hermeneutics import (
     get_genre,
     get_genre_from_reference,
 )
+from .morphology import parse_fields
 from .tools import (
     ANCIENT_LINE_CONTEXT,
     ANCIENT_LOOKUP_DEFAULT,
@@ -76,6 +77,7 @@ from .tools import (
     mermaid_genealogy,
     mermaid_person_timeline,
     mermaid_place_network,
+    strongs_verse_note,
     verse_english,
 )
 
@@ -1042,41 +1044,68 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     return text(result)
 
 
+def _morphology_lines(row: dict) -> list[str]:
+    """Header lines for one code: its expansion's fields, in order."""
+    fields = parse_fields(row.get("parsing"))
+    if fields:
+        return [f"**{label}**: {value}" for label, value in fields]
+    # An expansion not in Key=Value form: the stored columns, then the text.
+    lines = []
+    for column, label in (
+        ("part_of_speech", "Part of Speech"), ("person", "Person"), ("number", "Number"),
+        ("tense", "Tense"), ("voice", "Voice"), ("mood", "Mood"), ("case_value", "Case"),
+        ("gender", "Gender"),
+    ):
+        if row.get(column):
+            lines.append(f"**{label}**: {row[column]}")
+    if row.get("parsing") and row["parsing"] != row.get("part_of_speech"):
+        lines.append(f"\n**Full Parsing**: {row['parsing']}")
+    return lines
+
+
+def _morphology_summary(row: dict) -> str:
+    """One line for a code: 'Verb; Stem: Qal (...); Person: Third; ...'."""
+    fields = parse_fields(row.get("parsing"))
+    if not fields:
+        return row.get("parsing") or row.get("part_of_speech") or ""
+    return "; ".join(
+        value if label == "Part of Speech" else f"{label}: {value}" for label, value in fields
+    )
+
+
 async def handle_parse_morphology(args: dict[str, Any]) -> list[TextContent]:
     """Handle parse_morphology tool - explain grammatical codes."""
-    code = args.get("code", "")
+    code = (args.get("code") or "").strip()
     language = args.get("language", "greek")
 
     if not code:
         return text("Please provide a morphology code to parse.")
 
-    parsing = await db.get_morphology(code, language)
-
-    if not parsing:
+    found = await db.resolve_morphology(code, language)
+    if not found:
         return text(f"Unknown morphology code: {code}")
 
-    result = f"## Morphology: {code}\n\n"
-    result += f"**Language**: {parsing['language'].title()}\n"
-    result += f"**Part of Speech**: {parsing['part_of_speech']}\n"
+    if "ambiguous" in found:
+        lines = [f"## Morphology: {code}", "", "Codes are case-sensitive, and this one fits more than one:"]
+        for segment, rows in found["ambiguous"]:
+            for row in rows:
+                lines.append(f"- '{segment}' as **{row['code']}**: {_morphology_summary(row)}")
+        return text("\n".join(lines))
 
-    if parsing.get('person'):
-        result += f"**Person**: {parsing['person']}\n"
-    if parsing.get('number'):
-        result += f"**Number**: {parsing['number']}\n"
-    if parsing.get('tense'):
-        result += f"**Tense**: {parsing['tense']}\n"
-    if parsing.get('voice'):
-        result += f"**Voice**: {parsing['voice']}\n"
-    if parsing.get('mood'):
-        result += f"**Mood**: {parsing['mood']}\n"
-    if parsing.get('case_value'):
-        result += f"**Case**: {parsing['case_value']}\n"
-    if parsing.get('gender'):
-        result += f"**Gender**: {parsing['gender']}\n"
-
-    result += f"\n**Full Parsing**: {parsing['parsing']}\n"
-
-    return text(result)
+    parts = found["parts"]
+    language_name = found["language"].title()
+    if found["language"] == "hebrew" and parts[0][1]["code"].startswith("A"):
+        language_name = "Aramaic"
+    lines = [f"## Morphology: {code}", "", f"**Language**: {language_name}"]
+    if len(parts) == 1:
+        lines += _morphology_lines(parts[0][1])
+    else:
+        joiner = "/" if found["language"] == "hebrew" else "+"
+        lines.append(f"**Parts**: {len(parts)} words joined by '{joiner}'")
+        lines.append("")
+        for number, (segment, row) in enumerate(parts, 1):
+            lines.append(f"**{number}. {segment}**: {_morphology_summary(row)}")
+    return text("\n".join(lines) + "\n")
 
 
 async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
@@ -1103,7 +1132,7 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
 
     if verses:
         for v in verses:
-            result += f"**{v['reference']}**: {verse_english(v)}\n\n"
+            result += f"**{v['reference']}**: {verse_english(v)}{strongs_verse_note(v, strongs)}\n\n"
     else:
         result += "No verses found with this Strong's number in the database.\n"
 
