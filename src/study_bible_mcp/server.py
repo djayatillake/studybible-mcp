@@ -1251,6 +1251,10 @@ async def handle_get_bible_dictionary(args: dict[str, Any]) -> list[TextContent]
 
     if not topic:
         return text("Please provide a topic to look up.")
+    try:
+        offset = max(0, int(args.get("offset") or 0))
+    except (TypeError, ValueError):
+        return text("offset must be a whole number of characters (from a truncation note).")
 
     if err := await _check_aquifer_data():
         return err
@@ -1260,7 +1264,7 @@ async def handle_get_bible_dictionary(args: dict[str, Any]) -> list[TextContent]
     if not articles:
         return text(f"No dictionary article found for '{topic}'.")
 
-    result = format_dictionary_article(articles)
+    result = format_dictionary_article(articles, section=args.get("section") or None, offset=offset)
 
     return text(result)
 

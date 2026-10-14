@@ -16,9 +16,10 @@ This module provides a generic parser that works for all resource types.
 """
 
 import json
-import re
 from collections.abc import Iterator
 from pathlib import Path
+
+from ..published_text import render_aquifer_html
 
 # Book number to 3-letter abbreviation mapping (BBCCCVVV format uses 2-digit book numbers)
 _BOOK_NUM_TO_ABBR = {
@@ -40,36 +41,15 @@ _BOOK_NUM_TO_ABBR = {
 
 
 def strip_html(html: str) -> str:
-    """Strip HTML tags and convert to plain text."""
+    """Plain text of Aquifer HTML, as the tools display it (without correction notes).
+
+    Entities are unescaped and headings, list items and footnotes kept apart
+    (``published_text.render_aquifer_html``), so the stored ``content_plain``
+    that title/text searches match reads like the displayed text.
+    """
     if not html:
         return ''
-
-    text = html
-
-    # Convert block elements to newlines
-    text = re.sub(r'<br\s*/?>', '\n', text)
-    text = re.sub(r'</p>\s*<p[^>]*>', '\n\n', text)
-    text = re.sub(r'</(div|h[1-6]|li|tr)>', '\n', text)
-
-    # Strip all remaining tags
-    text = re.sub(r'<[^>]+>', '', text)
-
-    # Decode common HTML entities
-    text = text.replace('&amp;', '&')
-    text = text.replace('&lt;', '<')
-    text = text.replace('&gt;', '>')
-    text = text.replace('&quot;', '"')
-    text = text.replace('&#39;', "'")
-    text = text.replace('&nbsp;', ' ')
-    text = text.replace('&mdash;', '—')
-    text = text.replace('&ndash;', '–')
-
-    # Clean up whitespace
-    text = re.sub(r'\n{3,}', '\n\n', text)
-    text = re.sub(r'[ \t]+', ' ', text)
-    text = text.strip()
-
-    return text
+    return render_aquifer_html(html)[0]
 
 
 def _parse_ref(ref_str: str) -> dict:
