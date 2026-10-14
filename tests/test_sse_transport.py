@@ -104,3 +104,16 @@ async def test_sse_session_takes_messages_at_its_advertised_endpoint_and_closes_
 
         await wait_for(r"event: message\r?\ndata: .*\"serverInfo\"")
         client_gone.set()
+
+
+async def test_mcp_without_a_trailing_slash_is_served_not_redirected():
+    app = server.build_http_app()
+    body = {"jsonrpc": "2.0", "id": 1, "method": "initialize",
+            "params": {"protocolVersion": "2025-03-26", "capabilities": {},
+                       "clientInfo": {"name": "test", "version": "0"}}}
+    headers = {"accept": "application/json, text/event-stream"}
+    async with app.app.router.lifespan_context(app.app), _client(app) as client:
+        for path in ("/mcp", "/mcp/"):
+            response = await client.post(path, json=body, headers=headers)
+            assert response.status_code == 200, (path, response.status_code)
+            assert '"serverInfo"' in response.text
