@@ -119,7 +119,8 @@ term's underlying vocabulary, or the semantic range behind an English rendering.
         description="""Look up the text of a Bible verse, verse range, or whole chapter, in English and in the original language.
 
 Returns, for each verse in canonical order:
-- The English verse text (STEPBible word-by-word glosses)
+- The English text: the Berean Standard Bible (BSB), or STEPBible's word
+  gloss marked [gloss] where the BSB lacks the verse
 - The original Greek/Hebrew text (optional, on by default)
 - A word-by-word breakdown with Strong's numbers and glosses (single verses;
   for a passage only when include_morphology is set)
@@ -1453,18 +1454,43 @@ def _verse_heading(verse: dict) -> str:
     return f"{label} (Hebrew {book}.{hebrew})" if hebrew else label
 
 
+# Marks STEPBible's word-by-word gloss where a response labelled BSB has no
+# BSB text for a verse.
+GLOSS_MARK = "[gloss]"
+
+
+def verse_english(verse: dict) -> str:
+    """A verse row's English line: its BSB text, else the STEPBible gloss.
+
+    Rows carry ``text_bsb`` only when the database has the BSB, and the gloss
+    is then marked; without the BSB the gloss is shown unmarked.
+    """
+    gloss = verse.get("text_english") or ""
+    if "text_bsb" not in verse:
+        return gloss
+    if verse["text_bsb"]:
+        return verse["text_bsb"]
+    return f"{GLOSS_MARK} {gloss}".rstrip()
+
+
+def bsb_label(verses: list[dict]) -> str:
+    """' (BSB)' for the heading of a response that shows any BSB text, else ''."""
+    return " (BSB)" if any(verse.get("text_bsb") for verse in verses) else ""
+
+
 def format_verse(
     verse: dict,
     include_original: bool = True,
     include_morphology: bool = False,
     include_words: bool = True,
+    heading_note: str = "",
 ) -> str:
     """Format a verse for display; ``include_words`` controls the word list."""
     lines = []
 
-    lines.append(f"## {_verse_heading(verse)}")
+    lines.append(f"## {_verse_heading(verse)}{heading_note}")
     lines.append("")
-    lines.append(verse.get('text_english', 'No English text available.'))
+    lines.append(verse_english(verse) or "No English text available.")
     lines.append("")
 
     if include_original and verse.get('text_original'):
@@ -2592,10 +2618,10 @@ def format_enriched_verse(reference: str, verse: dict | None, entities: dict, fa
         entities: Dict with 'people', 'places', 'events' lists
         family_data: Map of person name -> family dict from graph_get_family
     """
-    lines = [f"## {reference}\n"]
+    lines = [f"## {reference}{bsb_label([verse] if verse else [])}\n"]
 
     if verse:
-        lines.append(verse.get("text_english", ""))
+        lines.append(verse_english(verse))
         lines.append("")
         if verse.get("text_original"):
             lines.append(f"**Original**: {verse['text_original']}")

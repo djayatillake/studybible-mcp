@@ -48,6 +48,7 @@ from .tools import (
     RESEARCH_SOURCES_MAX_LIMIT,
     TOOLS,
     _truncate,
+    bsb_label,
     find_research_sources,
     format_ancient_source_lookup,
     format_ancient_source_results,
@@ -75,6 +76,7 @@ from .tools import (
     mermaid_genealogy,
     mermaid_person_timeline,
     mermaid_place_network,
+    verse_english,
 )
 
 # Purple book with gold cross icon (32x32 PNG, base64 encoded)
@@ -205,9 +207,9 @@ async def handle_word_study(args: dict[str, Any]) -> list[TextContent]:
     result = format_lexicon_entry(entry)
 
     if verses:
-        result += "\n\n## Example Passages\n"
+        result += f"\n\n## Example Passages{bsb_label(verses)}\n"
         for v in verses:
-            result += f"\n**{v['reference']}**: {v['text_english']}\n"
+            result += f"\n**{v['reference']}**: {verse_english(v)}\n"
 
     return text(result)
 
@@ -321,11 +323,16 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
         shown_start = verse_keys[1]
 
     # A passage omits the per-word Strong's list (most of its size) unless
-    # morphology is requested; a single verse keeps it.
+    # morphology is requested; a single verse keeps it. The BSB label goes on
+    # the response's first heading.
     include_words = single or include_morphology
+    bsb = bsb_label(rows)
     verse_text = "\n".join(
-        format_verse(row, include_original, include_morphology, include_words)
-        for row in rows
+        format_verse(
+            row, include_original, include_morphology, include_words,
+            heading_note=bsb if single and not notes and index == 0 else "",
+        )
+        for index, row in enumerate(rows)
     )
     whole_chapters = parsed["start_verse"] is None and parsed["end_verse"] is None
     if single and not notes:
@@ -337,7 +344,7 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
                 label += f"-{end_chapter}"
         else:
             label = _passage_label(book_name, shown_start, shown_end)
-        header = f"# {label}\n\n"
+        header = f"# {label}{bsb}\n\n"
         if notes:
             header += "".join(f"*{note}*\n" for note in notes) + "\n"
         result = header + verse_text
@@ -1075,12 +1082,15 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
     # Get verses
     verses = await db.get_verses_with_strongs(strongs, limit=limit)
 
-    result = f"## Verses with {strongs} ({entry['word']} - {entry['transliteration']})\n\n"
+    result = (
+        f"## Verses with {strongs} ({entry['word']} - {entry['transliteration']})"
+        f"{bsb_label(verses)}\n\n"
+    )
     result += f"*{entry['short_definition']}*\n\n"
 
     if verses:
         for v in verses:
-            result += f"**{v['reference']}**: {v['text_english']}\n\n"
+            result += f"**{v['reference']}**: {verse_english(v)}\n\n"
     else:
         result += "No verses found with this Strong's number in the database.\n"
 
@@ -1116,10 +1126,13 @@ async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent
     source_verse = await db.get_verse(reference)
     source_genre = get_genre_from_reference(reference) if source_verse else None
 
-    result = f"## Passages Similar to {reference}\n\n"
+    shown = [source_verse] if source_verse else []
+    for passage in similar:
+        shown += passage.get("preview_verses", [])
+    result = f"## Passages Similar to {reference}{bsb_label(shown)}\n\n"
 
     if source_verse:
-        result += f"**Source**: {source_verse['text_english']}\n\n"
+        result += f"**Source**: {verse_english(source_verse)}\n\n"
 
     result += "---\n\n"
     result += "⚠️ **Hermeneutical Caution**: Semantic similarity indicates shared vocabulary "
@@ -1142,8 +1155,12 @@ async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent
         if passage_genre and source_genre and passage_genre != source_genre:
             result += f"⚡ **Genre**: {passage_genre} (source is {source_genre})\n\n"
 
-        # Show passage text (truncated if very long)
-        passage_text = _truncate(passage['text_combined'], 500, "...")
+        # Show passage text (truncated if very long): the BSB when loaded
+        if "preview_verses" in passage:
+            passage_text = " ".join(verse_english(v) for v in passage["preview_verses"])
+        else:
+            passage_text = passage["text_combined"]
+        passage_text = _truncate(passage_text, 500, "...")
         result += f"{passage_text}\n\n"
 
         # Add verse count info

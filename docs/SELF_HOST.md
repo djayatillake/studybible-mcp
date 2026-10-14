@@ -32,6 +32,7 @@ This guide covers running your own instance of the Study Bible MCP server.
    python scripts/download_stepbible.py
    python scripts/download_biblical_versions.py
    python scripts/download_ancient_sources.py
+   python scripts/download_bsb.py
    ```
    The additional commands download the pinned 59-book Rahlfs morphology
    corpus, explicit MT/LXX versification mappings, public-domain Brenton English
@@ -39,7 +40,9 @@ This guide covers running your own instance of the Study Bible MCP server.
    licensed Josephus and Philo Greek/English corpora, the 1 Enoch and 4 Ezra
    pseudepigrapha, the Targum Onkelos Aramaic/English corpus, the Hebrew
    Qumran corpus, and the Mishnah from Sefaria) into
-   `data/ancient_sources/<corpus>/`.
+   `data/ancient_sources/<corpus>/`, and the public-domain Berean Standard
+   Bible text into `data/bsb/` (it refuses to run until its SHA-256 pin is
+   set; without it the verse tools show STEPBible's word glosses).
    They validate source checksums before import; the build imports each
    downloaded corpus and fails on an incomplete one.
 5. **Build the database**
