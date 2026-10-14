@@ -559,7 +559,7 @@ class StudyBibleDB:
         self,
         query: str,
         language: str | None = None,
-        limit: int = 10
+        limit: int = 4
     ) -> list[dict]:
         """Search lexicon by definition, transliteration, or word."""
         query_lower = f"%{query.lower()}%"
@@ -646,7 +646,7 @@ class StudyBibleDB:
             (parts[0], int(parts[1]), int(parts[2])),
         )
 
-    async def get_verses_with_strongs(self, strongs: str, limit: int = 20) -> list[dict]:
+    async def get_verses_with_strongs(self, strongs: str, limit: int = 4) -> list[dict]:
         """Find verses containing a specific Strong's number.
 
         Word data keeps STEPBible's one-letter sense suffix (H0430G), so a bare
@@ -787,7 +787,7 @@ class StudyBibleDB:
         self,
         reference: str,
         source_filter: str | None = None,
-        limit: int = 8,
+        limit: int = 4,
         min_strength: int | None = None,
     ) -> list[dict]:
         """Get cross-references for a verse, ordered by strength.
@@ -809,7 +809,7 @@ class StudyBibleDB:
 
         Adaptive return-volume policy: tier 1 rows are SUPPRESSED by default
         when the verse has at least 3 tier-2-or-better rows — so signal-rich
-        verses return 6–8 strong refs and signal-poor verses return only what
+        verses return up to `limit` strong refs and signal-poor verses return only what
         passes the bar (rather than padding with noise). Override by passing
         `source_filter='tsk'` (returns all TSK including tier 1) or by passing
         `min_strength` (treated as explicit "I want some long-tail too").
@@ -819,7 +819,7 @@ class StudyBibleDB:
             source_filter: 'ch' | 'tsk' | 'gage' | 'burnett' to restrict to one
                 dataset. When 'tsk', the tier-1 suppression is disabled so the
                 full TSK long-tail is available.
-            limit: max rows (cap, not target). Default 8. The actual returned
+            limit: max rows (cap, not target). Default 4. The actual returned
                 count may be less if the verse has fewer than `limit` rows
                 above the noise floor — this is intentional. Raise to 20–30
                 with `source_filter='tsk'` or `min_strength=0` for exhaustive
@@ -949,12 +949,24 @@ class StudyBibleDB:
     # Name queries
     # =========================================================================
 
-    async def lookup_name(self, name: str, name_type: str | None = None) -> list[dict]:
-        """Look up a biblical name."""
-        name_pattern = f"%{name}%"
-        if name_type:
-            return await self._fetchall("SELECT * FROM names WHERE name LIKE ? AND type = ?", (name_pattern, name_type))
-        return await self._fetchall("SELECT * FROM names WHERE name LIKE ?", (name_pattern,))
+    async def lookup_name(
+        self, name: str, name_type: str | None = None, limit: int = 4
+    ) -> list[dict]:
+        """Look up a biblical name: exact matches first, then prefix, then substring.
+
+        Matching ignores case. Each row carries ``match_count``, the number of
+        names that match before ``limit`` is applied.
+        """
+        type_filter = " AND type = ?" if name_type else ""
+        params = [f"%{name}%", *([name_type] if name_type else []), name, f"{name}%", limit]
+        return await self._fetchall(
+            f"""SELECT *, COUNT(*) OVER () AS match_count FROM names
+                WHERE name LIKE ?{type_filter}
+                ORDER BY CASE WHEN name = ? COLLATE NOCASE THEN 0
+                              WHEN name LIKE ? THEN 1 ELSE 2 END, id
+                LIMIT ?""",
+            params,
+        )
 
     # =========================================================================
     # Morphology queries
@@ -1026,7 +1038,7 @@ class StudyBibleDB:
     async def find_similar_passages(
         self,
         reference: str,
-        limit: int = 10
+        limit: int = 4
     ) -> list[dict]:
         """Find passages semantically similar to a verse reference."""
         # First, get the verse
@@ -1751,7 +1763,7 @@ class StudyBibleDB:
         return await self._table_has_rows("theology_content")
 
     async def get_theology_context_by_reference(
-        self, reference: str, author: str | None = None, limit: int = 20
+        self, reference: str, author: str | None = None, limit: int = 4
     ) -> list[dict]:
         """Get scholarship entries relevant to a verse reference, optionally filtered by author."""
         normalized = self._normalize_reference(reference)
@@ -1825,9 +1837,13 @@ class StudyBibleDB:
         ))
 
     async def get_theology_context_by_theme(
-        self, theme_key: str, author: str | None = None, limit: int = 20
+        self, theme_key: str, author: str | None = None, limit: int = 4
     ) -> list[dict]:
-        """Get scholarship entries for a given theme, optionally filtered by author."""
+        """Get scholarship entries for a given theme, optionally filtered by author.
+
+        Entries alternate between authors (each author's in id order), so a
+        small limit still shows every scholar's view of the theme.
+        """
         author_filter = ""
         params: list = [theme_key]
         if author:
@@ -1835,15 +1851,18 @@ class StudyBibleDB:
             params.append(author)
         params.append(limit)
         return await self._fetchall(
-            f"""SELECT DISTINCT tc.*, tt.theme_label, tt.description AS theme_description,
-                      GROUP_CONCAT(DISTINCT vi.reference) AS verse_refs
-               FROM theology_content tc
-               JOIN theology_theme_index tti ON tc.id = tti.content_id
-               JOIN theology_themes tt ON tti.theme_key = tt.theme_key
-               LEFT JOIN theology_verse_index vi ON tc.id = vi.content_id
-               WHERE tti.theme_key = ?{author_filter}
-               GROUP BY tc.id
-               ORDER BY tc.source_author, tc.id
+            f"""SELECT * FROM (
+                   SELECT tc.*, tt.theme_label, tt.description AS theme_description,
+                          GROUP_CONCAT(DISTINCT vi.reference) AS verse_refs
+                   FROM theology_content tc
+                   JOIN theology_theme_index tti ON tc.id = tti.content_id
+                   JOIN theology_themes tt ON tti.theme_key = tt.theme_key
+                   LEFT JOIN theology_verse_index vi ON tc.id = vi.content_id
+                   WHERE tti.theme_key = ?{author_filter}
+                   GROUP BY tc.id
+               )
+               ORDER BY ROW_NUMBER() OVER (PARTITION BY source_author ORDER BY id),
+                        source_author, id
                LIMIT ?""",
             params,
         )
