@@ -664,7 +664,7 @@ immediate family without the traversal.""",
         annotations=ToolAnnotations(title="People in Passage", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
         description="""List the people, places, and events mentioned in a Bible passage.
 
-Returns the entities recorded for a chapter or verse in the Theographic Bible
+Returns the entities recorded for a verse, range, or chapter in the Theographic Bible
 Metadata — for example, Genesis 22 returns Abraham, Isaac, the angel of the LORD,
 and Moriah; Acts 15 returns Paul, Barnabas, James, Jerusalem, and Antioch.
 
@@ -676,7 +676,7 @@ family relationships for each person found.""",
             "properties": {
                 "reference": {
                     "type": "string",
-                    "description": "Bible reference - chapter (e.g., 'Romans 8') or verse (e.g., 'Genesis 22:1')"
+                    "description": "Bible reference - chapter ('Romans 8'), verse ('Genesis 22:1'), or range ('Genesis 22:1-14', 'Psalm 23-24')"
                 }
             },
             "required": ["reference"]
@@ -1475,6 +1475,16 @@ def verse_english(verse: dict) -> str:
     if verse["text_bsb"]:
         return verse["text_bsb"]
     return f"{GLOSS_MARK} {gloss}".rstrip()
+
+
+def display_original(text: str) -> str:
+    """Original-language text without STEPBible's word markup.
+
+    TAHOT separates morphemes with '/' and escapes punctuation with '\\'
+    ('וַ/יִּקַּ֨ח', 'אֶת\\־', 'דָוִֽד\\׃'); a maqaf joins its words.
+    """
+    text = text.replace("\\׀", " ׀").replace("/", "").replace("\\", "")
+    return re.sub(r"־\s+", "־", text)
 
 
 def verse_reference(verse: dict) -> str:
@@ -2665,7 +2675,7 @@ def format_enriched_verse(reference: str, verse: dict | None, entities: dict, fa
         lines.append(verse_english(verse))
         lines.append("")
         if verse.get("text_original"):
-            lines.append(f"**Original**: {verse['text_original']}")
+            lines.append(f"**Original**: {display_original(verse['text_original'])}")
             lines.append("")
 
     people = entities.get("people", [])

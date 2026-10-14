@@ -362,6 +362,15 @@ def parse_biblical_range(reference: str) -> tuple[str, int, int, int, int] | Non
     return code, chapter, verse, end_chapter, end_verse
 
 
+def _format_chapter_range(chapter: int, verse: int, end_chapter: int, end_verse: int) -> str:
+    """'19:1-37', '1:1-2:3', or '19:3'."""
+    if (chapter, verse) == (end_chapter, end_verse):
+        return f"{chapter}:{verse}"
+    if chapter == end_chapter:
+        return f"{chapter}:{verse}-{end_verse}"
+    return f"{chapter}:{verse}-{end_chapter}:{end_verse}"
+
+
 def format_biblical_range(code: str, chapter: int, verse: int, end_chapter: int, end_verse: int) -> str:
     """Render a parsed range: 'Mark 14:62', 'Gen 6:1–4', 'Heb 9–10', 'Jude 14–15'."""
     book = BOOK_DISPLAY_NAMES.get(code, code)
@@ -567,6 +576,7 @@ class StudyBibleDB:
         self._vec_error: str | None = None
         self._has_bsb: bool | None = None
         self._moved_verses: dict[str, tuple[int, int, int]] | None = None
+        self._torah_numbering: dict[str, tuple[dict, dict]] = {}
 
     async def connect(self):
         """Open database connection."""
@@ -1755,6 +1765,48 @@ class StudyBibleDB:
 
         return result
 
+    async def graph_get_passage_entities(
+        self,
+        book: str,
+        start_chapter: int,
+        start_verse: int | None,
+        end_chapter: int,
+        end_verse: int | None,
+    ) -> dict:
+        """Entities mentioned in a verse, verse range, chapter, or chapter range.
+
+        Verse numbers are English; a None verse means the start or end of its
+        chapter. Each entity is listed once, in order of its first mention.
+        """
+        result: dict[str, list[dict]] = {"people": [], "places": [], "events": []}
+        theo_book = self._THEOGRAPHIC_BOOK_MAP.get(book, book)
+        start = (start_chapter, start_verse if start_verse is not None else 0)
+        end = (end_chapter, end_verse if end_verse is not None else _MAX_VERSE)
+        mentions: list[tuple[tuple[int, int], dict]] = []
+        for chapter in range(start_chapter, end_chapter + 1):
+            for row in await self._fetchall(
+                """SELECT vm.verse_ref, vm.entity_type, vm.entity_id,
+                          COALESCE(p.name, pl.name, e.title) as entity_name
+                   FROM graph_verse_mentions vm
+                   LEFT JOIN graph_people p ON vm.entity_type = 'person' AND p.id = vm.entity_id
+                   LEFT JOIN graph_places pl ON vm.entity_type = 'place' AND pl.id = vm.entity_id
+                   LEFT JOIN graph_events e ON vm.entity_type = 'event' AND e.id = vm.entity_id
+                   WHERE vm.verse_ref LIKE ?""",
+                (f"{theo_book}.{chapter}.%",),
+            ):
+                verse = row.pop("verse_ref").rsplit(".", 1)[-1]
+                if verse.isdecimal() and start <= (chapter, int(verse)) <= end:
+                    mentions.append(((chapter, int(verse)), row))
+        seen: set[tuple[str, str]] = set()
+        kinds = {"person": "people", "place": "places", "event": "events"}
+        for _, row in sorted(mentions, key=lambda mention: mention[0]):
+            key = (row["entity_type"], row["entity_id"])
+            if key in seen or row["entity_type"] not in kinds:
+                continue
+            seen.add(key)
+            result[kinds[row["entity_type"]]].append(row)
+        return result
+
     async def graph_has_data(self) -> bool:
         """Check if graph tables have data."""
         return await self._table_has_rows("graph_people")
@@ -2042,14 +2094,84 @@ class StudyBibleDB:
         """Check if torah_weave tables exist and have data."""
         return await self._table_has_rows("torah_weave_units")
 
+    async def _torah_hebrew_numbering(self, book: str) -> tuple[dict, dict]:
+        """(English -> Hebrew, Hebrew -> English) verse lists for a book's renumbered verses.
+
+        Kline's Torah Weave data numbers verses like the Hebrew Bible (Leviticus
+        5:20-26 is English 6:1-7, Deuteronomy 28:69 is English 29:1); the
+        `verses` table's English(Hebrew) rows pair the two. Verses absent from
+        both maps are numbered alike.
+        """
+        if book not in self._torah_numbering:
+            english_to_hebrew: dict[tuple[int, int], list[tuple[int, int]]] = {}
+            hebrew_to_english: dict[tuple[int, int], list[tuple[int, int]]] = {}
+            for row in await self._fetchall(
+                "SELECT reference FROM verses WHERE book = ? AND reference LIKE '%(%' ORDER BY id", (book,)
+            ):
+                match = _SPLIT_REFERENCE_RE.match(row["reference"])
+                if not match or match.group(4) != "(":
+                    continue
+                _, chapter, verse, _, hebrew_chapter, hebrew_verse = match.groups()
+                english = (int(chapter), int(verse))
+                hebrew = (int(hebrew_chapter), int(hebrew_verse))
+                english_to_hebrew.setdefault(english, []).append(hebrew)
+                hebrew_to_english.setdefault(hebrew, []).append(english)
+            # An English verse that also has a plain row ('Num.26.1' beside
+            # 'Num.26.1(25.19)') includes the Hebrew verse of its own number.
+            plain = {
+                row["reference"]
+                for row in await self._fetch_in(
+                    "SELECT reference FROM verses WHERE reference IN",
+                    [f"{book}.{chapter}.{verse}" for chapter, verse in english_to_hebrew],
+                )
+            }
+            for (chapter, verse), hebrew in english_to_hebrew.items():
+                if f"{book}.{chapter}.{verse}" in plain:
+                    hebrew.append((chapter, verse))
+                    hebrew_to_english.setdefault((chapter, verse), []).append((chapter, verse))
+            self._torah_numbering[book] = (english_to_hebrew, hebrew_to_english)
+        return self._torah_numbering[book]
+
+    async def _torah_english_range(
+        self, book: str, start: tuple[int, int], end: tuple[int, int]
+    ) -> tuple[int, int, int, int]:
+        """English (chapter, verse, end chapter, end verse) of a Hebrew-numbered range."""
+        _, hebrew_to_english = await self._torah_hebrew_numbering(book)
+        first = min(hebrew_to_english.get(start, [start]))
+        last = max(hebrew_to_english.get(end, [end]))
+        return (*first, *last)
+
+    async def _english_torah_cells(self, book: str, cells: list[dict]) -> list[dict]:
+        """Renumber cells' (and their units') Hebrew verse ranges in English, in place."""
+        for cell in cells:
+            c1, v1, c2, v2 = await self._torah_english_range(
+                book, (cell["chapter_start"], cell["verse_start"]), (cell["chapter_end"], cell["verse_end"])
+            )
+            cell.update(chapter_start=c1, verse_start=v1, chapter_end=c2, verse_end=v2,
+                        verse_range=_format_chapter_range(c1, v1, c2, v2))
+            if cell.get("unit_verses"):
+                cell["unit_verses"] = await self._english_unit_verses(book, cell["unit_verses"])
+        return cells
+
+    async def _english_unit_verses(self, book: str, verses: str) -> str:
+        """'Leviticus 6:1-7:38' (Hebrew numbers) -> 'Leviticus 6:8-7:38'."""
+        match = re.match(r"^(.*?)\s*(\d+):(\d+)(?:-(?:(\d+):)?(\d+))?$", verses)
+        if not match:
+            return verses
+        name, c1, v1, c2, v2 = match.groups()
+        start = (int(c1), int(v1))
+        end = (int(c2 or c1), int(v2)) if v2 else start
+        return f"{name} {_format_chapter_range(*await self._torah_english_range(book, start, end))}".strip()
+
     async def get_torah_weave_cells_for_reference(
         self, reference: str
     ) -> list[dict]:
-        """Find all Torah Weave cells that contain the given reference.
+        """Find all Torah Weave cells that contain the given (English) verse.
 
         Returns cells joined with their parent unit metadata. Multiple cells
         may match if a verse sits within both a cell and a sibling subdivision
-        in the same unit, or if units overlap at their boundaries.
+        in the same unit, or if units overlap at their boundaries. Kline's
+        Hebrew verse numbers are matched and shown in English numbering.
         """
         normalized = self._normalize_reference(reference)
         parts = normalized.split(".")
@@ -2066,34 +2188,42 @@ class StudyBibleDB:
         if book_abbr not in ("Gen", "Exo", "Lev", "Num", "Deu"):
             return []
 
-        target = chapter * 1000 + verse
-        return await self._fetchall(
-            """
-            SELECT c.*,
-                   u.id AS unit_serial,
-                   u.book_full AS unit_book_full,
-                   u.unit_number AS unit_number,
-                   u.title AS unit_title,
-                   u.verses AS unit_verses,
-                   u.verse_range AS unit_verse_range,
-                   u.format AS unit_format,
-                   u.irregular AS unit_irregular,
-                   u.is_unique AS unit_is_unique,
-                   u.cell_count AS unit_cell_count,
-                   u.type AS unit_type
-            FROM torah_weave_cells c
-            JOIN torah_weave_units u ON u.id = c.unit_id
-            WHERE c.book = ?
-              AND c.sort_start <= ?
-              AND c.sort_end >= ?
-            ORDER BY (c.sort_end - c.sort_start) ASC, c.row_num, c.column_letter
-            """,
-            (book_abbr, target, target),
-        )
+        english_to_hebrew, _ = await self._torah_hebrew_numbering(book_abbr)
+        cells: dict[int, dict] = {}
+        for hebrew_chapter, hebrew_verse in english_to_hebrew.get((chapter, verse), [(chapter, verse)]):
+            target = hebrew_chapter * 1000 + hebrew_verse
+            for cell in await self._fetchall(
+                """
+                SELECT c.*,
+                       u.id AS unit_serial,
+                       u.book_full AS unit_book_full,
+                       u.unit_number AS unit_number,
+                       u.title AS unit_title,
+                       u.verses AS unit_verses,
+                       u.verse_range AS unit_verse_range,
+                       u.format AS unit_format,
+                       u.irregular AS unit_irregular,
+                       u.is_unique AS unit_is_unique,
+                       u.cell_count AS unit_cell_count,
+                       u.type AS unit_type
+                FROM torah_weave_cells c
+                JOIN torah_weave_units u ON u.id = c.unit_id
+                WHERE c.book = ?
+                  AND c.sort_start <= ?
+                  AND c.sort_end >= ?
+                ORDER BY (c.sort_end - c.sort_start) ASC, c.row_num, c.column_letter
+                """,
+                (book_abbr, target, target),
+            ):
+                cells.setdefault(cell["id"], cell)
+        return await self._english_torah_cells(book_abbr, list(cells.values()))
 
     async def get_torah_weave_unit_cells(self, unit_id: int) -> list[dict]:
-        """Get all cells for a given unit, ordered by row then column then subdivision."""
-        return await self._fetchall(
+        """Get all cells for a given unit, ordered by row then column then subdivision.
+
+        Verse ranges are in English numbering.
+        """
+        cells = await self._fetchall(
             """
             SELECT * FROM torah_weave_cells
             WHERE unit_id = ?
@@ -2102,6 +2232,34 @@ class StudyBibleDB:
             """,
             (unit_id,),
         )
+        return await self._english_torah_cells(cells[0]["book"], cells) if cells else cells
+
+    async def get_torah_weave_units_in_passage(
+        self, book: str, start: tuple[int, int], end: tuple[int, int]
+    ) -> list[dict]:
+        """Torah Weave units overlapping an English-numbered passage, in order.
+
+        Each unit carries ``verses`` in English numbering and ``cells``: its
+        cells, as from ``get_torah_weave_unit_cells``.
+        """
+        english_to_hebrew, _ = await self._torah_hebrew_numbering(book)
+        first = min(english_to_hebrew.get(start, [start]))
+        last = max(english_to_hebrew.get(end, [end]))
+        units = []
+        for unit in await self._fetchall(
+            "SELECT * FROM torah_weave_units WHERE book = ? ORDER BY id", (book,)
+        ):
+            match = re.match(r"^(\d+):(\d+)(?:-(?:(\d+):)?(\d+))?$", unit["verse_range"].strip())
+            if not match:
+                continue
+            c1, v1, c2, v2 = match.groups()
+            unit_start = (int(c1), int(v1))
+            unit_end = (int(c2 or c1), int(v2)) if v2 else unit_start
+            if unit_start <= last and first <= unit_end:
+                unit["verses"] = await self._english_unit_verses(book, unit["verses"])
+                unit["cells"] = await self.get_torah_weave_unit_cells(unit["id"])
+                units.append(unit)
+        return units
 
     # =========================================================================
     # Theological scholarship queries (unified: Heiser, Bradley, etc.)
