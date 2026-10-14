@@ -6,7 +6,7 @@
       "mt_hebrew": "עִם עֲנָנֵי שְׁמַיָּא כְּבַר אֱנָשׁ אָתֵה הֲוָה (im ananey shemayya k-bar enash ateh hawah)",
       "variant_source": "MT_preserved",
       "variant_reading": "The 'one like a son of man' (k-bar enash) comes WITH THE CLOUDS — this is the 'Rider on the Clouds' epithet, a well-known title for Baal at Ugarit. In the Hebrew Bible, this title is used EXCLUSIVELY of Yahweh (Psalm 68:4; 68:33; 104:3; Deut 33:26; Isa 19:1). Daniel 7:13 is the ONLY exception — a human-looking figure who is NOT the Ancient of Days (the enthroned deity) yet bears a title reserved exclusively for Yahweh. This figure approaches the Ancient of Days and receives 'dominion, glory, and a kingdom' (v.14). Two divine figures sharing cosmic authority — the two-powers-in-heaven doctrine.",
-      "variant_original": "Same text; Aramaic section of Daniel",
+      "variant_original": "Same text in the MT and Theodotion; Aramaic section of Daniel; the Old Greek differs (see the LXX_OG_divergence case)",
       "variant_significance": "major_theological",
       "heiser_analysis": "Heiser identifies Daniel 7:13 as the climactic two-powers text. The 'thrones' in v.9 are PLURAL — one for the Ancient of Days, another for the Son of Man. The Son of Man bears a Yahweh-only title (cloud rider) yet is distinct from the enthroned deity. This passage, combined with the Angel of YHWH as 'man of war,' formed the basis for Judaism's two-powers-in-heaven doctrine. The 'holy ones of the Most High' who share the kingdom (v.25) are divine council members; 'the people of the holy ones' (v.27) are the human believers who inherit through them. Jesus explicitly claims this title for himself (Mark 14:62), combining Daniel 7:13 with Psalm 110:1.",
       "scholarly_consensus": "The Son of Man in Daniel 7 bearing a divine title while being distinct from the Ancient of Days is universally recognized as a 'two powers' text. It was central to early Christology.",
@@ -14,8 +14,29 @@
       "hlt_rationale": "The HLT notes the divine significance of the cloud-rider title and identifies the Son of Man as a Yahweh figure / the pre-incarnate Christ. The study note explains the Ugaritic background and the two-thrones imagery.",
       "witnesses": [
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
-        {"manuscript": "LXX (Theodotion)", "manuscript_date": "~150 CE", "reading_support": "supports_variant"},
-        {"manuscript": "LXX (OG)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+        {"manuscript": "LXX (Theodotion)", "manuscript_date": "~150 CE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Dan.7.13",
+      "mt_reading": "I saw in the night visions, and behold, with the clouds of heaven there came one like a son of man",
+      "mt_hebrew": "עִם עֲנָנֵי שְׁמַיָּא כְּבַר אֱנָשׁ אָתֵה הֲוָה (im ananey shemayya k-bar enash ateh hawah)",
+      "variant_source": "LXX_OG_divergence",
+      "variant_reading": "I was watching in the night vision, and behold, upon the clouds of heaven one like a son of man was coming",
+      "variant_original": "ἐθεώρουν ἐν ὁράματι τῆς νυκτὸς καὶ ἰδοὺ ἐπὶ τῶν νεφελῶν τοῦ οὐρανοῦ ὡς υἱὸς ἀνθρώπου ἤρχετο",
+      "variant_significance": "major_NT_quotation",
+      "heiser_analysis": null,
+      "scholarly_consensus": "The MT's עִם and Theodotion's μετά both mean 'with'; the Old Greek has ἐπί ('upon'). The NT citations above divide the same way. Mark 13:26 and Luke 21:27 have ἐν ('in'), agreeing with neither. The Old Greek differs again later in the verse: where the MT and Theodotion have him come to the Ancient of Days (ἕως τοῦ παλαιοῦ τῶν ἡμερῶν ἔφθασεν) and be brought before him, it reads καὶ ὡς παλαιὸς ἡμερῶν παρῆν καὶ οἱ παρεστηκότες παρῆσαν αὐτῷ ('and he was present as the Ancient of Days, and those standing by were present with him'). Some scholars take ὡς παλαιὸς as an early inner-Greek corruption of ἕως παλαιοῦ ('to the Ancient of Days'), so the reading's significance is debated.",
+      "preferred_for_hlt": null,
+      "hlt_rationale": null,
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
+        {"manuscript": "LXX (Theodotion: μετὰ τῶν νεφελῶν τοῦ οὐρανοῦ)", "manuscript_date": "~150 CE", "reading_support": "supports_mt"},
+        {"manuscript": "LXX (OG)", "manuscript_date": "~150 BCE", "reading_support": "supports_variant"},
+        {"manuscript": "Mark 14:62 (μετὰ τῶν νεφελῶν τοῦ οὐρανοῦ)", "manuscript_date": null, "reading_support": "supports_mt"},
+        {"manuscript": "Revelation 1:7 (μετὰ τῶν νεφελῶν)", "manuscript_date": null, "reading_support": "supports_mt"},
+        {"manuscript": "Matthew 24:30 (ἐπὶ τῶν νεφελῶν τοῦ οὐρανοῦ)", "manuscript_date": null, "reading_support": "supports_variant"},
+        {"manuscript": "Matthew 26:64 (ἐπὶ τῶν νεφελῶν τοῦ οὐρανοῦ)", "manuscript_date": null, "reading_support": "supports_variant"}
       ]
     },
     {
@@ -24,7 +45,7 @@
       "mt_hebrew": "בִּגְזֵרַת עִירִין פִּתְגָמָא וּמֵאמַר קַדִּישִׁין שְׁאֵלְתָא (bi-gezerat irin pitgama u-me'emar qaddishin she'elta)",
       "variant_source": "MT_preserved",
       "variant_reading": "The Watchers (irin, Aramaic) are divine council members who issue the decree. But in Dan 4:24, the same decree is called 'a decree of the Most High' — the council's decree IS Yahweh's decree. The Watchers terminology connects to 1 Enoch's Watchers tradition, where the same term refers to divine beings who watch over humanity. Daniel 4:17 is the canonical basis for the Watchers tradition that becomes prominent in 1 Enoch 1-36.",
-      "variant_original": "Same text; Watchers terminology preserved",
+      "variant_original": "Same text in the MT and Theodotion; Watchers terminology preserved in Theodotion; the Old Greek lacks the clause (see the LXX_OG_omission case)",
       "variant_significance": "major_theological",
       "heiser_analysis": "Heiser identifies Daniel 4 as a key text connecting canonical Scripture to the Watchers tradition. The irin ('watchers') are divine council members whose decree is simultaneously the decree of the Most High. The ambiguous plural of Dan 4:26 (shallitin shemayya — 'heaven rules' or 'the heavenly ones rule') can refer either to corporate personification or council authority. The term 'watcher' in 1 Enoch for the divine beings who transgressed in Genesis 6 draws on this Danielic usage.",
       "scholarly_consensus": "The Watchers of Daniel 4 are universally recognized as divine beings. Their connection to the Watchers tradition in 1 Enoch is well established in Second Temple studies.",
@@ -33,6 +54,24 @@
       "witnesses": [
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
         {"manuscript": "LXX (Theodotion)", "manuscript_date": "~150 CE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Dan.4.17",
+      "mt_reading": "The sentence is by the decree of the watchers, the decision by the word of the holy ones",
+      "mt_hebrew": "בִּגְזֵרַת עִירִין פִּתְגָמָא וּמֵאמַר קַדִּישִׁין שְׁאֵלְתָא (bi-gezerat irin pitgama u-me'emar qaddishin she'elta)",
+      "variant_source": "LXX_OG_omission",
+      "variant_reading": "The Old Greek has no equivalent for this clause. Its verse reads: 'until he knows that the Lord of heaven has authority over all things in heaven and on earth, and does among them whatever he wishes.'",
+      "variant_original": "ἕως ἂν γνῷ τὸν κύριον τοῦ οὐρανοῦ ἐξουσίαν ἔχειν πάντων τῶν ἐν τῷ οὐρανῷ καὶ τῶν ἐπὶ τῆς γῆς καὶ ὅσα ἂν θέλῃ ποιεῖ ἐν αὐτοῖς",
+      "variant_significance": "major_textual",
+      "heiser_analysis": null,
+      "scholarly_consensus": "Theodotion keeps the clause and transliterates 'watcher' as ιρ; the Old Greek has no equivalent for it. Elsewhere in the chapter (4:13 and 4:23; Aramaic 4:10 and 4:20), where Theodotion has ιρ and 'holy one', the Old Greek has ἄγγελος ('angel'). The Watchers terminology is preserved in Theodotion, not in the Old Greek. Verse numbers are English; this verse is Aramaic 4:14.",
+      "preferred_for_hlt": null,
+      "hlt_rationale": null,
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
+        {"manuscript": "LXX (Theodotion: διὰ συγκρίματος ιρ ὁ λόγος καὶ ῥῆμα ἁγίων τὸ ἐπερώτημα)", "manuscript_date": "~150 CE", "reading_support": "supports_mt"},
+        {"manuscript": "LXX (OG)", "manuscript_date": "~150 BCE", "reading_support": "omits"}
       ]
     }
   ]

@@ -233,6 +233,66 @@
       "divergence_type": "absent_in_mt",
       "divergence_note": "LXX includes a second Cainan between Arphaxad and Shelah; MT lacks. Luke's genealogy of Jesus follows the LXX chronology.",
       "variant_case": null
+    },
+    {
+      "nt_reference": "Mrk.14.62",
+      "nt_display": "Mark 14:62",
+      "nt_book": "Mrk",
+      "ot_reference": "Dan.7.13",
+      "ot_display": "Daniel 7:13",
+      "ot_book": "Dan",
+      "follows_lxx": 0,
+      "divergence_type": "agrees_with_mt_and_theodotion",
+      "divergence_note": "μετὰ τῶν νεφελῶν τοῦ οὐρανοῦ (\"with the clouds of heaven\"), as Theodotion and the MT (עִם); the Old Greek has ἐπί (\"upon\").",
+      "variant_case": {
+        "reference": "Dan.7.13",
+        "case_key": "LXX_OG_divergence"
+      }
+    },
+    {
+      "nt_reference": "Mat.26.64",
+      "nt_display": "Matthew 26:64",
+      "nt_book": "Mat",
+      "ot_reference": "Dan.7.13",
+      "ot_display": "Daniel 7:13",
+      "ot_book": "Dan",
+      "follows_lxx": 1,
+      "divergence_type": "follows_old_greek",
+      "divergence_note": "ἐπὶ τῶν νεφελῶν τοῦ οὐρανοῦ (\"upon the clouds of heaven\"), as the Old Greek; Theodotion has μετά and the MT עִם (\"with\").",
+      "variant_case": {
+        "reference": "Dan.7.13",
+        "case_key": "LXX_OG_divergence"
+      }
+    },
+    {
+      "nt_reference": "Mat.24.30",
+      "nt_display": "Matthew 24:30",
+      "nt_book": "Mat",
+      "ot_reference": "Dan.7.13",
+      "ot_display": "Daniel 7:13",
+      "ot_book": "Dan",
+      "follows_lxx": 1,
+      "divergence_type": "follows_old_greek",
+      "divergence_note": "ἐπὶ τῶν νεφελῶν τοῦ οὐρανοῦ (\"upon the clouds of heaven\"), as the Old Greek; Theodotion has μετά and the MT עִם (\"with\").",
+      "variant_case": {
+        "reference": "Dan.7.13",
+        "case_key": "LXX_OG_divergence"
+      }
+    },
+    {
+      "nt_reference": "Rev.1.7",
+      "nt_display": "Revelation 1:7",
+      "nt_book": "Rev",
+      "ot_reference": "Dan.7.13",
+      "ot_display": "Daniel 7:13",
+      "ot_book": "Dan",
+      "follows_lxx": 0,
+      "divergence_type": "agrees_with_mt_and_theodotion",
+      "divergence_note": "μετὰ τῶν νεφελῶν (\"with the clouds\"), as Theodotion and the MT (עִם); the Old Greek has ἐπί (\"upon\").",
+      "variant_case": {
+        "reference": "Dan.7.13",
+        "case_key": "LXX_OG_divergence"
+      }
     }
   ]
 }
