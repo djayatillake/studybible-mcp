@@ -35,6 +35,11 @@ RUN pip install --no-cache-dir --no-deps -e .
 # Create data directory for Fly.io volume mount
 RUN mkdir -p /data
 
+# The commit shown in the startup log line:
+#   fly deploy --build-arg GIT_COMMIT=$(git rev-parse --short HEAD)
+ARG GIT_COMMIT=unknown
+ENV GIT_COMMIT=${GIT_COMMIT}
+
 # Environment variables - use volume-mounted database
 ENV TRANSPORT=http
 ENV PORT=8080
