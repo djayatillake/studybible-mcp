@@ -9,7 +9,7 @@
       "variant_original": "Same text in the MT; translations obscure; the LXX has a doublet (see the LXX_doublet case)",
       "variant_significance": "major_theological",
       "heiser_analysis": "Heiser notes that English Bible translations that render bene elim as 'mighty ones' or 'heavenly beings' rather than 'sons of gods' are camouflaging the text to protect monotheism. The NIV at Psalm 29:1 has 'mighty ones' — but the Hebrew is bene elim, the exact Ugaritic parallel for divine council members (bn 'il). Commanding nonexistent beings to ascribe glory to Yahweh would be hollow praise. Psalm 29:10 declares 'Yahweh sits enthroned over the flood... as king forever' — cosmic kingship language consistent with the divine council setting.",
-      "scholarly_consensus": "The bene elim of Psalm 29:1 are universally identified as divine beings by Semitics scholars. The psalm's Ugaritic parallels are among the best documented in the Hebrew Bible.",
+      "scholarly_consensus": "Most Semitics scholars identify the bene elim of Psalm 29:1 as divine beings; renderings such as 'mighty ones' or 'sons of the mighty' read them otherwise. The psalm's Ugaritic parallels are among the best documented in the Hebrew Bible.",
       "preferred_for_hlt": "Ascribe to Yahweh, O sons of the gods (divine beings of the heavenly council), ascribe to Yahweh glory and strength!",
       "hlt_rationale": "The HLT renders bene elim literally as 'sons of the gods' with the explanatory gloss 'divine beings of the heavenly council' to make the divine council address explicit.",
       "witnesses": [
@@ -47,7 +47,7 @@
       "hlt_rationale": "The HLT translates bene elim literally and makes the heavenly council setting explicit. The parallelism with Psalm 82 is noted in the study notes.",
       "witnesses": [
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
-        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+        {"manuscript": "LXX", "manuscript_date": "~150 BCE", "reading_support": "supports_variant"}
       ]
     },
     {
@@ -59,12 +59,12 @@
       "variant_original": "Same text",
       "variant_significance": "major_theological",
       "heiser_analysis": "Heiser: 'If they are going to die like humans, they are not humans' (citing Smick). The particle 'aken' in v.7 creates a strong antithetical contrast with v.6 — the grammar requires understanding v.6 as 'I had thought you were gods... BUT you will die like Adam.' This is the sentencing of divine beings to mortality as punishment. The 'shining ones' (ha-sarim) in v.7 connects to Isaiah 14:12 (Lucifer/the shining one) and to Canaanite mythology about the fall of the 'sons of the shining ones' (bn srm). Psalm 82:8 ('Rise up, O God, judge the earth, for you shall inherit all the nations') is the eschatological cry to reverse the Babel allotment — fulfilled in the Great Commission and Pentecost.",
-      "scholarly_consensus": "The divine beings interpretation of Psalm 82:6 is dominant in ANE and Hebrew Bible scholarship. The 'human judges' interpretation is recognized as deriving from theological concerns rather than textual evidence.",
+      "scholarly_consensus": "The divine beings interpretation of Psalm 82:6 is dominant in ANE and Hebrew Bible scholarship. The 'human judges' reading, held by others (e.g. Calvin), appeals in part to Jesus' use of the psalm in John 10:34-36.",
       "preferred_for_hlt": "I said, 'You are gods (elohim — divine beings), sons of the Most High (Elyon), all of you; nevertheless, like Adam you will die, and fall like one of the shining ones (the fallen divine rulers).'",
       "hlt_rationale": "The HLT preserves the Hebrew elohim and Elyon, identifies the beings as divine, and renders ha-sarim as 'shining ones' (connecting to the Canaanite/Isaiah 14 tradition) rather than the generic 'princes.'",
       "witnesses": [
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
-        {"manuscript": "LXX (theoi este)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+        {"manuscript": "LXX (theoi este)", "manuscript_date": "~150 BCE", "reading_support": "supports_variant"}
       ]
     }
   ]

@@ -9,7 +9,7 @@
       "ot_book": "Psa",
       "follows_lxx": 1,
       "divergence_type": "vorlage_or_paraphrase",
-      "divergence_note": "LXX \"a body you prepared for me\" vs MT \"ears you have dug for me\"; applied to Christ's incarnation.",
+      "divergence_note": "The major LXX codices read σῶμα, \"a body you prepared for me\" (Rahlfs prints ὠτία, \"ears\"), vs MT \"ears you have dug for me\"; applied to Christ's incarnation.",
       "variant_case": {
         "reference": "Psa.40.6",
         "case_key": "LXX_quoted_in_NT"
@@ -24,7 +24,7 @@
       "ot_book": "Deu",
       "follows_lxx": 1,
       "divergence_type": "absent_in_mt",
-      "divergence_note": "LXX + 4QDeut^q have \"let all the angels of God worship him\"; MT lacks the bicolon. Applied to Christ.",
+      "divergence_note": "MT lacks the worship line Hebrews quotes: 4QDeut^q has \"bow down to him, all gods\", the LXX \"let all the sons of God worship him\" (Rahlfs; Odes 2:43 \"all the angels of God\", as Hebrews). Applied to Christ.",
       "variant_case": {
         "reference": "Deu.32.43",
         "case_key": "DSS_4QDeutq"

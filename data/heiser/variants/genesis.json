@@ -5,17 +5,34 @@
       "mt_reading": "the sons of God saw that the daughters of man were attractive",
       "mt_hebrew": "בְנֵי־הָאֱלֹהִים (bny h-'lhym)",
       "variant_source": "MT_preserved",
-      "variant_reading": "sons of God (divine beings) — the MT correctly preserves bene ha-elohim here. The variant is interpretive: the Sethite interpretation (that 'sons of God' means the line of Seth) is a post-biblical reinterpretation with no manuscript support.",
-      "variant_original": "בְנֵי־הָאֱלֹהִים",
+      "variant_reading": "sons of God — the MT reads bene ha-elohim here. The question at this verse is interpretive: divine beings, or humans (the line of Seth, or rulers). Interpretive evidence, not a witness to the text: 1 Enoch 6–16 (the Book of the Watchers, non-canonical, 4th–3rd c. BC) retells the episode with angels, the Watchers, as the sons of God.",
+      "variant_original": "Same text in the MT and the critical LXX; some Greek manuscripts differ (see the LXX_manuscript_variant case)",
       "variant_significance": "major_theological",
-      "heiser_analysis": "Heiser argues that every OT usage of bene ha-elohim / bene elohim refers to divine beings, never to human lineages. The phrase is used in Job 1:6; 2:1; 38:7 unambiguously of divine beings presenting before Yahweh. The Sethite interpretation was a rabbinic innovation to avoid the 'offensive' reading of divine-human interbreeding. The Watchers tradition (1 Enoch 6-16) preserves the older, correct understanding that the sons of God in Genesis 6 were divine beings who transgressed their proper domain.",
-      "scholarly_consensus": "The MT reading bene ha-elohim is correct and refers to divine beings. The Sethite interpretation is a theological reinterpretation without textual support.",
+      "heiser_analysis": "Heiser argues that every OT usage of bene ha-elohim / bene elohim refers to divine beings, never to human lineages. The phrase is used in Job 1:6; 2:1; 38:7 unambiguously of divine beings presenting before Yahweh. He regards the human readings as later innovations to avoid the 'offensive' reading of divine-human interbreeding: the rabbinic 'sons of the great ones' or judges, and the Christian Sethite view (Julius Africanus, Augustine). In his view the Watchers tradition (1 Enoch 6-16, non-canonical) preserves the older, correct understanding that the sons of God in Genesis 6 were divine beings who transgressed their proper domain.",
+      "scholarly_consensus": "Heiser and other divine-council scholars hold that bene ha-elohim here means divine beings: the reading of the earliest extant Jewish interpreters and, as they read them, of Jude 6 and 2 Peter 2:4. Others read the phrase of humans: the godly line of Seth (Julius Africanus and Augustine; later Calvin, and Keil and Delitzsch) or, in rabbinic tradition, rulers or judges (Targum Onkelos: 'sons of the great ones').",
       "preferred_for_hlt": "the sons of God (divine beings) saw that the daughters of Adam were beautiful",
       "hlt_rationale": "The Hebrew bene ha-elohim always refers to divine beings in the OT (Job 1:6; 2:1; 38:7). The Sethite interpretation is rejected as a later theological alteration of meaning. The HLT makes the divine nature of these beings explicit.",
       "witnesses": [
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
-        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"},
-        {"manuscript": "1 Enoch 6-16", "manuscript_date": "~300 BCE", "reading_support": "supports_variant"}
+        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Gen.6.2",
+      "mt_reading": "the sons of God saw that the daughters of man were attractive",
+      "mt_hebrew": "בְנֵי־הָאֱלֹהִים (bny h-'lhym)",
+      "variant_source": "LXX_manuscript_variant",
+      "variant_reading": "the angels of God saw that the daughters of men were beautiful",
+      "variant_original": "οἱ ἄγγελοι τοῦ θεοῦ",
+      "variant_significance": "minor_textual",
+      "heiser_analysis": null,
+      "scholarly_consensus": "The critical LXX text (Rahlfs) agrees with the MT: ἰδόντες δὲ οἱ υἱοὶ τοῦ θεοῦ τὰς θυγατέρας τῶν ἀνθρώπων. The manuscript reading οἱ ἄγγελοι τοῦ θεοῦ is generally taken as an interpretive change within the Greek tradition rather than evidence for a different Hebrew text. Philo (Gig. 6, quoting this verse; Deus 1, on 6:4) and Josephus (Antiquities 1.73: πολλοὶ γὰρ ἄγγελοι θεοῦ γυναιξὶ συνιόντες, 'many angels of God accompanied with women', Whiston) also speak of 'angels of God': non-canonical evidence of how the verse was read in the first century, not witnesses to its text.",
+      "preferred_for_hlt": null,
+      "hlt_rationale": null,
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
+        {"manuscript": "LXX, critical text (Rahlfs: οἱ υἱοὶ τοῦ θεοῦ)", "manuscript_date": "~250 BCE", "reading_support": "supports_mt"},
+        {"manuscript": "Some LXX manuscripts, including Codex Alexandrinus (first hand)", "manuscript_date": "~5th c. CE", "reading_support": "supports_variant"}
       ]
     },
     {

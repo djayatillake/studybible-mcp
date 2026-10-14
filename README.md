@@ -1205,7 +1205,7 @@ Every passage is labelled so that the agent never mistakes it for Scripture:
   fails if a citation covers no passage or a biblical reference does not
   parse. A file link to the same passage and range as a module link replaces
   it. Notes print as `⚠ <note> (Contrast: Mark 14:62)`, once per response.
-  The file holds 46 notes and 29 links, e.g. Charles's emendation at 1 Enoch
+  The file holds 46 notes and 40 links, e.g. Charles's emendation at 1 Enoch
   71:14, the Christian "Jesus" of 4 Ezra 7:28–29, the restored lemma at 1QpHab
   7:17, Philo's Logos at Conf. 146, and Yom Kippur atonement at m. Yoma 8:8–9.
 - **Typed links.** `ancient_source_biblical_links.relation` is `aligned`,

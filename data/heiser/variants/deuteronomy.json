@@ -14,7 +14,6 @@
       "hlt_rationale": "DSS 4QDeutj and 4QDeutq plus the LXX preserve the original reading. The MT deliberately changed 'sons of God' to 'sons of Israel' to suppress the divine council theology. The parallel corruption in Deu.32.43 confirms intentional alteration.",
       "witnesses": [
         {"manuscript": "4QDeutj", "manuscript_date": "~150-100 BCE", "reading_support": "supports_variant"},
-        {"manuscript": "4QDeutq", "manuscript_date": "~150-100 BCE", "reading_support": "supports_variant"},
         {"manuscript": "LXX (majority)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"},
         {"manuscript": "Aquila Codex 85", "manuscript_date": "~130 CE", "reading_support": "supports_variant"},
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
@@ -28,16 +27,16 @@
       "mt_reading": "Rejoice, O nations, with his people (shorter text, missing bicolon referencing divine beings)",
       "mt_hebrew": "הַרְנִינוּ גוֹיִם עַמּוֹ",
       "variant_source": "DSS_4QDeutq",
-      "variant_reading": "Rejoice, O heavens, with him, and bow down to him, all gods/divine beings. Rejoice, O nations, with his people, and let all the angels of God strengthen themselves in him.",
-      "variant_original": "הרנינו שמים עמו והשתחוו לו כל אלהים / כל בני אלים",
+      "variant_reading": "Rejoice, O heavens, with him, and bow down to him, all gods.",
+      "variant_original": "הרנינו שמים עמו והשתחוו לו כל אלהים",
       "variant_significance": "major_theological",
       "heiser_analysis": "The MT is demonstrably incomplete when the literary structure is analyzed. Every colon in the Qumran and LXX texts has its partner (a bicolon), but the MT lacks the parallel colon referencing divine beings. The missing colon was deliberately eliminated to avoid reference to 'divine beings.' This parallel corruption with Deu.32.8 strongly argues both texts were intentionally altered for the same reason. The writer of Hebrews quotes Deu.32.43 (LXX/DSS reading) in Hebrews 1:6: 'Let all God's angels worship him.'",
-      "scholarly_consensus": "The longer reading preserved in 4QDeutq and the LXX is original. The MT deliberately shortened the text to eliminate the reference to gods/divine beings bowing to Yahweh.",
+      "scholarly_consensus": "4QDeutq reads הרנינו שמים עמו והשתחוו לו כל אלהים ('Rejoice, O heavens, with him, and bow down to him, all gods') where the MT has הַרְנִינוּ גוֹיִם עַמּוֹ ('Rejoice, O nations, with his people'). The LXX (Rahlfs) has four lines: εὐφράνθητε οὐρανοί ἅμα αὐτῷ καὶ προσκυνησάτωσαν αὐτῷ πάντες υἱοὶ θεοῦ εὐφράνθητε ἔθνη μετὰ τοῦ λαοῦ αὐτοῦ καὶ ἐνισχυσάτωσαν αὐτῷ πάντες ἄγγελοι θεοῦ. The first two agree with 4QDeutq ('heavens'; 'all sons of God' for 'all gods'), the third matches the MT's line, and the fourth, 'let all the angels of God strengthen themselves in him', has no Hebrew witness (Heiser, following Tigay, treats the added lines as a secondary gloss). Many textual critics judge the 4QDeutq form older than the MT and explain the MT as a deliberate removal of the reference to other gods; the motive is inferred, not attested.",
       "preferred_for_hlt": "Rejoice, O heavens, with him, and bow down to him, all divine beings (sons of God). O nations, rejoice with his people, and let all the angels of God strengthen themselves in him.",
       "hlt_rationale": "4QDeutq and LXX preserve the complete literary structure. The MT shortened it to suppress divine council language. The writer of Hebrews quotes this longer reading in Heb 1:6. Hebrews 1:6 quotes this longer reading (\"let all the angels of God worship him\") and applies it to Christ — apostolic endorsement of the LXX/4QDeut^q text-form.",
       "witnesses": [
         {"manuscript": "4QDeutq", "manuscript_date": "~150-100 BCE", "reading_support": "supports_variant"},
-        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX (agrees in the first two lines; adds two more)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"},
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"}
       ]
     }
