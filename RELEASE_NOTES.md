@@ -2,6 +2,65 @@
 
 ---
 
+## Editorial corrections to curated content
+
+The owner's editorial review of the curated data. Wording is attributed and
+calibrated; arguments stay with their authors.
+
+- **HLT hidden.** `get_textual_variant` no longer prints the Heiser Literal
+  Translation's renderings and rationales (the owner's own unpublished
+  translation). The rows stay in `textual_translation_decisions`.
+- **Consensus claims attributed.** "Universally recognized" and similar
+  summaries at Genesis 6:2, 18:1, 48:16, Joshua 5:13, Job 38:7, Psalms 29:1,
+  82:1 and 82:6, Daniel 4:17 and 7:13, and Zechariah 3:1–2 now say who holds a
+  reading and name the alternative (e.g. Calvin, Keil and Delitzsch); motive
+  claims ("theological anxiety") are gone. The cherem, Genesis 1:26 and
+  Genesis 6 entries attribute Heiser's readings; Job 19:25–27 gives the
+  bodily-resurrection reading beside vindication in this life.
+- **Atonement corpus.** Non-penal conclusions rated "Demonstrable" now use the
+  method_002 tiers: the ANE and Levitical data stay well-grounded, the
+  conclusions drawn from them "require connecting texts", with the texts
+  defenders of penal substitution cite. method_007 says the dating of penal
+  substitution is debated and points to the Owen and Stott entries.
+- **Non-canonical sources labelled.** 1 Enoch, Jubilees, the Book of Giants,
+  Sirach, the Apocalypse of Abraham and 2 Baruch are labelled where curated
+  text uses them as evidence; 1 Enoch left the Genesis 6:2 and 6:4 witness
+  lists for a labelled interpretive note. Eleven new typed links pair 1 Enoch
+  1:5, 10:15 and 12:2 with Gen 6:1–4 and Jude 6 (1:5 also with 2 Pet 2:4), and
+  69:29 and 71:13 with Dan 7:13–14 (69:29 also with Matt 19:28 and 25:31).
+- **Nachash.** The theme gives the luminous-being reading as Heiser's and
+  carries method_002's caveat that the "shining one" etymology is speculative.
+- **Genesis 6:2.** A new `LXX_manuscript_variant` case (minor_textual: the
+  Hebrew and the critical Greek agree; the variant is confined to some Greek
+  manuscripts) records οἱ ἄγγελοι τοῦ θεοῦ in some LXX manuscripts, including
+  Codex Alexandrinus (first hand), against Rahlfs's οἱ υἱοὶ τοῦ θεοῦ, and
+  cites Philo (Gig. 6; Deus 1) and Josephus (Ant. 1.73) as non-canonical
+  evidence of interpretation, not witnesses.
+- **Factual corrections.** The Sethite reading is Christian (Julius
+  Africanus, Augustine), the rabbinic one "sons of the great ones"/judges; at
+  Ugarit El fathers the 70 with Athirat, and Elyon is not El's title there;
+  Qumran has Aramaic fragments of 1 Enoch, not its full text; Deut 32:8's
+  Qumran witness is 4QDeutj; elohim counts read "roughly 2,600 occurrences";
+  Psalm 40:6 says Rahlfs prints ὠτία, the major codices σῶμα, and that
+  Hebrews 10:5–7 is not verbatim; Deut 32:43 separates 4QDeutq's text from
+  the LXX-only lines; the LXX Psalter is dated ~150 BCE throughout.
+- **Targum Onkelos** keeps tier B as a stated exception to the c. AD 200
+  limit: its tag gives its final form (c. 3rd–5th c. AD) and earlier
+  tradition, and its caveat, the tier key and the docs say so.
+- **Research sources.** `list_research_sources` with no filter starts with a
+  mix (Tyndale Bulletin, STEP Bible, Sefaria, Bible Odyssey), and STEP's link
+  opens the passage when the query is a Bible reference.
+
+`scripts/repair_editorial_corrections.py` installs the corrected rows in an
+existing database (20 textual-variant cases, 2 quotation hints, 36 theme,
+content and ANE rows, 11 links), from the sources or from a patch applied with
+the standard library; it refuses, changing nothing, unless every row holds the
+previous sources' rows or the corrected ones. The database needs the
+Greek-evidence fix (`repair_textual_variant_witnesses.py`) first. The code and
+the database can be deployed in either order.
+
+---
+
 ## BSB text: pinned to the publisher's file
 
 The verse tools' BSB text now comes from the publisher's `bsb.txt`, pinned by
