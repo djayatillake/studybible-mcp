@@ -544,7 +544,7 @@ Look up a topic in the Tyndale Bible Dictionary.
 
 **When Claude uses it**: User needs background information on a biblical topic, historical or cultural context, or a detailed article about a person, place, or concept.
 
-**What it returns**: Full dictionary article from a collection of 500+ topical articles covering biblical people, places, theological concepts, cultural practices, historical background, and archaeological findings.
+**What it returns**: The dictionary article from a collection of 500+ topical articles covering biblical people, places, theological concepts, cultural practices, historical background, and archaeological findings. A long article comes about 4,000 characters at a time, ending with the `offset` to continue from and the headings of the sections still to come (`section="The Sinai Covenant"` reads one section).
 
 **Example**:
 ```

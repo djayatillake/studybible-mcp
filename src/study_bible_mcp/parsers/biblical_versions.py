@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import difflib
 import json
+import math
 import re
 import sqlite3
 import unicodedata
@@ -263,14 +264,52 @@ def parse_brenton_usfm(directory: Path) -> dict[tuple[str, str], str]:
     return translations
 
 
+PSALM_SUPERSCRIPTION_METHOD = "tvtms, superscription as verse 0"
+
+
 def load_lxx_pairings(path: Path) -> dict[tuple[str, str], list[dict]]:
-    """Index the explicit LXX→MT versification map by Greek book and verse."""
+    """Index the explicit LXX→MT versification map by Greek book and verse.
+
+    The map pairs a Greek Psalm's superscription verses with English verse 1
+    (Psalm 51's three Greek verses 50:1-3 all with 51:1), but the `verses`
+    table and the BSB number superscriptions verse 0. Where several Greek
+    verses map to an English Psalm's verse 1 alone, all but the last are the
+    superscription and are paired with verse 0 (see
+    ``pair_psalm_superscriptions``).
+    """
     pairings: dict[tuple[str, str], list[dict]] = {}
     with path.open(encoding="utf-8") as source:
         for line in source:
             record = json.loads(line)
             pairings.setdefault((record["grk_book"], record["grk_ref"]), []).append(record)
+    pair_psalm_superscriptions(pairings)
     return pairings
+
+
+def pair_psalm_superscriptions(pairings: dict[tuple[str, str], list[dict]]) -> None:
+    """Re-pair Greek Psalm superscription verses with English verse 0, in place.
+
+    Each English Psalm's verse 1 can be the target of several Greek verses
+    only because the superscription (Greek verse 1, or 1-2) is counted with
+    it: the number of extra Greek verses equals the number of Hebrew verses
+    the `verses` table numbers 0 in every Psalm. A short title sharing its
+    verse with the Psalm's first words (Greek 10:1 = Psalm 11:0-1) stays
+    paired with verse 1.
+    """
+    by_psalm: dict[str, list[tuple[int, dict]]] = {}
+    for (book, greek_ref), records in pairings.items():
+        if book != "psalms-lxx":
+            continue
+        for record in records:
+            refs = record.get("mt_refs") or []
+            if len(refs) == 1 and refs[0].endswith(":1") and record.get("mt_book") == "psalms":
+                chapter, verse, _ = _split_ref(greek_ref)
+                by_psalm.setdefault(refs[0], []).append(((chapter, verse), record))
+    for target, records in by_psalm.items():
+        records.sort(key=lambda item: item[0])
+        for _, record in records[:-1]:
+            record["mt_refs"] = [f"{target.split(':')[0]}:0"]
+            record["method"] = PSALM_SUPERSCRIPTION_METHOD
 
 
 # ---------------------------------------------------------------------------
@@ -674,11 +713,138 @@ def _rahlfs_words(morphology_dir: Path) -> frozenset[str]:
     )
 
 
+# Aligning Brenton's verses with Rahlfs's (see align_brenton_keys). Scores are
+# weighted Dice coefficients of the two verses' normalized word sets, 0-1.
+_ALIGNED = 0.5  # a Rahlfs verse this close to Brenton's verse of its number keeps it
+_REALIGN = 0.6  # a better Brenton verse must score at least this ...
+_REALIGN_GAIN = 0.25  # ... and this much more than the verse of the same number
+_REALIGN_ALONE = 0.85  # a realignment with no realigned neighbour needs this, in its chapter
+# Brenton's English and Greek files share verse numbers; where one merges or
+# misnumbers verses, their lengths can disagree.
+_ENGLISH_GREEK_LENGTHS = (0.5, 2.6)
+_ENGLISH_STOPWORDS = frozenset(
+    "the a an and of to in on for with be is are was were you your i me my he him his it "
+    "they them their we us our that this not but or as from by at shall will thou thee thy "
+    "ye hath have has o unto upon which who all".split()
+)
+
+
+def _english_overlap(left: str, right: str) -> float:
+    """Dice overlap of two English verses' content words (first five letters)."""
+    def words(text: str) -> set[str]:
+        return {
+            word[:5] for word in re.findall(r"[a-z]+", text.lower())
+            if len(word) > 2 and word not in _ENGLISH_STOPWORDS
+        }
+    left_words, right_words = words(left), words(right)
+    if not left_words or not right_words:
+        return 0.0
+    return 2 * len(left_words & right_words) / (len(left_words) + len(right_words))
+
+
+def align_brenton_keys(
+    rahlfs: list[tuple[str, str]],
+    brenton_greek: dict[str, str],
+    brenton_english: dict[str, str],
+    reference_english: dict[str, str] | None = None,
+) -> dict[str, str | None]:
+    """Find Rahlfs verses that Brenton numbers differently, by their Greek.
+
+    ``rahlfs`` is one book's (verse, Greek text) in file order; ``brenton_greek``
+    and ``brenton_english`` map Brenton's verse numbers for the same book to
+    his Greek and English, in file order. Returns ``{rahlfs verse: Brenton
+    verse}`` for each Rahlfs verse whose own number in Brenton holds other text
+    (the Letter of Jeremiah is one verse behind Brenton's; Brenton prints
+    Sirach's prologue as 1:1-1:1g and its 1:1 as 1:1h; his Proverbs 24:22a-t
+    is Rahlfs 30:1-14). The value is None for a verse whose Brenton verse
+    went to a closer match: its own number holds another verse's English.
+
+    A verse is moved only when its own number matches poorly, another Brenton
+    verse matches it well and much better, that verse is not already matched
+    by the Rahlfs verse of its own number, and Brenton's English and Greek for
+    it are of comparable length. A move must also continue a neighbour's move
+    (a run of renumbered verses), or match very closely within its chapter.
+    Words are weighted by rarity, so refrains (Daniel 3's "bless the Lord")
+    do not make verses match. ``reference_english`` (another English version
+    of a Rahlfs verse: the BSB of its MT verse) vetoes a move whose English is
+    further from it than the English of the verse's own number: Brenton's Greek
+    Psalm 12 is a verse out from his English, which is not.
+    """
+    reference_english = reference_english or {}
+    rahlfs_words = {ref: frozenset(normalize_greek_text(text)) for ref, text in rahlfs}
+    brenton_words = {key: frozenset(normalize_greek_text(text)) for key, text in brenton_greek.items()}
+    frequency: Counter = Counter()
+    for words in (*rahlfs_words.values(), *brenton_words.values()):
+        frequency.update(words)
+    total = len(rahlfs_words) + len(brenton_words)
+    weight = {word: math.log(1 + total / count) for word, count in frequency.items()}
+
+    def score(left: frozenset, right: frozenset) -> float:
+        if not left or not right:
+            return 0.0
+        shared = sum(weight[word] for word in left & right)
+        return 2 * shared / (sum(weight[word] for word in left) + sum(weight[word] for word in right))
+
+    def comparable_lengths(key: str) -> bool:
+        english, greek = brenton_english.get(key), brenton_greek.get(key)
+        if not english or not greek:
+            return False
+        low, high = _ENGLISH_GREEK_LENGTHS
+        return low <= len(english) / len(greek) <= high
+
+    own = {
+        ref: score(words, brenton_words.get(ref, frozenset())) for ref, words in rahlfs_words.items()
+    }
+    taken = {ref for ref, value in own.items() if value >= _ALIGNED and ref in brenton_words}
+    free = [key for key in brenton_words if key not in taken and comparable_lengths(key)]
+    proposals: dict[str, tuple[str, float]] = {}
+    for ref, words in rahlfs_words.items():
+        if own[ref] >= _ALIGNED or not free:
+            continue
+        best = max(free, key=lambda key: score(words, brenton_words[key]))
+        value = score(words, brenton_words[best])
+        if value >= _REALIGN and value >= own[ref] + _REALIGN_GAIN:
+            proposals[ref] = (best, value)
+
+    position = {key: index for index, key in enumerate(brenton_words)}
+    order = [ref for ref, _ in rahlfs]
+    accepted: dict[str, tuple[str, float]] = {}
+    for index, ref in enumerate(order):
+        if ref not in proposals:
+            continue
+        key, value = proposals[ref]
+        continues_run = any(
+            neighbour in proposals
+            and abs(position[proposals[neighbour][0]] - position[key]) == 1
+            for neighbour in order[max(index - 1, 0):index] + order[index + 1:index + 2]
+        )
+        same_chapter = key.split(":")[0] == ref.split(":")[0]
+        if not (continues_run or (value >= _REALIGN_ALONE and same_chapter)):
+            continue
+        reference = reference_english.get(ref)
+        if reference and _english_overlap(reference, brenton_english.get(key, "")) < _english_overlap(
+            reference, brenton_english.get(ref, "")
+        ):
+            continue
+        accepted[ref] = (key, value)
+
+    # One Brenton verse goes to its closest Rahlfs verse; the others lose the
+    # verse of their own number, which belongs to someone else.
+    best_for_key: dict[str, str] = {}
+    for ref, (key, value) in accepted.items():
+        if key not in best_for_key or value > accepted[best_for_key[key]][1]:
+            best_for_key[key] = ref
+    return {
+        ref: key if best_for_key[key] == ref else None for ref, (key, _) in accepted.items()
+    }
+
+
 def iter_lxx_rows(
     morphology_dir: Path,
     pairings: dict[tuple[str, str], list[dict]],
     translations: dict[tuple[str, str], str],
     brenton_greek: dict[tuple[str, str], str],
+    bsb: dict[str, str] | None = None,
 ) -> Iterator[tuple]:
     """Yield rows for biblical_version_verses from pinned Rahlfs morphology.
 
@@ -688,6 +854,9 @@ def iter_lxx_rows(
     a counterpart of a different MT verse; they are reachable by their own
     edition (Greek) numbering.
 
+    Brenton's English and Greek for a verse are those of the same number,
+    except where Brenton numbers the text differently (``align_brenton_keys``,
+    checked against ``bsb``: BSB text by MT reference, when available).
     Rows carrying Brenton's English are compared with Brenton's own Greek for
     the same verse: ``brenton_greek_differs`` is 1 when it differs from Rahlfs
     (and Brenton's Greek plus a difference summary are stored), 0 when it
@@ -708,7 +877,32 @@ def iter_lxx_rows(
         verses = json.loads(path.read_text(encoding="utf-8"))
         raw_refs = [verse["ref"].rsplit(" ", 1)[-1] for verse in verses]
         texts = [_detokenize(verse["words"]) for verse in verses]
-        greek_texts = [brenton_greek.get((greek_code, raw_ref), "") for raw_ref in raw_refs]
+        # Brenton's verse for each Rahlfs verse: the same number, except where
+        # Brenton numbers the text differently. 2 Esdras takes its English
+        # from Brenton's Ezra and Nehemiah by MT verse instead.
+        brenton_refs: list[str | None] = list(raw_refs)
+        if translation_code and slug != "2-esdras":
+            reference_english = {}
+            for raw_ref in raw_refs:
+                targets, _ = _mapping_targets(pairings.get((slug, raw_ref)) or [{}])
+                english = " ".join(
+                    (bsb or {}).get(f"{book}.{chapter}.{verse_number}", "")
+                    for book, target, _ in targets
+                    for chapter, verse_number, _ in [_split_ref(target)]
+                ).strip()
+                if english:
+                    reference_english[raw_ref] = english
+            moved = align_brenton_keys(
+                list(zip(raw_refs, texts)),
+                {key: text for (code, key), text in brenton_greek.items() if code == greek_code},
+                {key: text for (code, key), text in translations.items() if code == translation_code},
+                reference_english,
+            )
+            brenton_refs = [moved.get(raw_ref, raw_ref) for raw_ref in raw_refs]
+        greek_texts = [
+            brenton_greek.get((greek_code, brenton_ref), "") if brenton_ref else ""
+            for brenton_ref in brenton_refs
+        ]
         seen: set[tuple[str, str | None]] = set()
         for index, verse in enumerate(verses):
             raw_ref, text = raw_refs[index], texts[index]
@@ -717,7 +911,11 @@ def iter_lxx_rows(
             mapped = pairings.get((slug, raw_ref)) or [{"method": "lxx-only"}]
             targets, unpaired_method = _mapping_targets(mapped)
             morphology = _morphology(verse["words"])
-            translation = translations.get((translation_code, raw_ref)) if translation_code else None
+            brenton_ref = brenton_refs[index]
+            translation = (
+                translations.get((translation_code, brenton_ref))
+                if translation_code and brenton_ref else None
+            )
 
             positions: list[tuple[str | None, str | None, int | None, int | None, str, str | None, str]] = []
             for canonical_book, canonical_raw, method in targets:
@@ -795,6 +993,14 @@ def missing_lxx_sources(lxx_dir: Path) -> list[str]:
     return list(dict.fromkeys(missing))
 
 
+def bsb_by_reference(conn: sqlite3.Connection) -> dict[str, str]:
+    """BSB text by reference ('Psa.13.2'), or {} when the database has no BSB."""
+    try:
+        return dict(conn.execute("SELECT reference, text FROM bsb_verses"))
+    except sqlite3.OperationalError:
+        return {}
+
+
 def import_biblical_versions(conn: sqlite3.Connection, data_dir: Path) -> tuple[int, int]:
     """Replace LXX rows from the downloaded sources; MT is read from ``verses``.
 
@@ -819,7 +1025,9 @@ def import_biblical_versions(conn: sqlite3.Connection, data_dir: Path) -> tuple[
     pairings = load_lxx_pairings(lxx_dir / "verse_pairs.jsonl")
     translations = parse_brenton_usfm(lxx_dir / "brenton")
     brenton_greek = parse_brenton_usfm(lxx_dir / "brenton-greek")
-    rows = iter_lxx_rows(lxx_dir / "morphology", pairings, translations, brenton_greek)
+    rows = iter_lxx_rows(
+        lxx_dir / "morphology", pairings, translations, brenton_greek, bsb_by_reference(conn)
+    )
     # Tables created before the Brenton Greek comparison lack its columns.
     existing = {row[1] for row in conn.execute("PRAGMA table_info(biblical_version_verses)")}
     for column, kind in _BRENTON_GREEK_COLUMNS:

@@ -375,8 +375,11 @@ async def test_people_in_passage_lists_nations_apart_and_namesakes_once(db):
     output = await call("people_in_passage", reference="1 Samuel 17")
     people = output.split("### Nations and tribes")[0]
     assert "**Israel**" not in people and "**Judah**" not in people
-    assert "### Nations and tribes\n*(tagged in the source as their ancestor)*\n- **Israel**\n- **Judah**" in output
-    assert "- **Eliab (eliab_1073)**\n- **Eliab (eliab_1075)**" in output
+    nations = output.split("### Nations and tribes\n*(tagged in the source as their ancestor)*\n")[1]
+    assert sorted(nations.split("\n\n")[0].splitlines()) == ["- **Israel**", "- **Judah**"]
+    # Entities are listed in order of first mention; each namesake once, with its id.
+    assert people.count("- **Eliab (eliab_1073)**") == 1
+    assert people.count("- **Eliab (eliab_1075)**") == 1
 
     ruth = await call("people_in_passage", reference="Ruth 4")
     # Ruth 4:12 names Judah with Perez and Tamar: the patriarch, not the tribe

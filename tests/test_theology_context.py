@@ -110,3 +110,39 @@ async def test_theme_results_alternate_between_authors(tmp_path, monkeypatch):
         assert await titles(theme="atonement_models", author="stott") == ["1", "2", "3"]
     finally:
         await db.close()
+
+
+async def test_chapter_reference_returns_the_chapters_entries(theology_db, monkeypatch):
+    # 'Psalm 82' has no verse: every entry indexed to the chapter, ranked as the
+    # chapter fallback ranks them (primary first, then by verse).
+    rows = await theology_db.get_theology_context_by_reference("Psalm 82", limit=10)
+    assert [row["id"] for row in rows] == [2, 3, 5, 6, 1, 4]
+    assert await theology_db.get_theology_context_by_reference("Psalm 83") == []
+    monkeypatch.setattr(server, "db", theology_db)
+    output = (await server.call_tool("get_theology_context", {"reference": "Psalm 82"}))[0].text
+    assert output.startswith("## Theological Scholarship Context for Psalm 82")
+    assert re.findall(r"^### (.+)$", output, re.MULTILINE) == [
+        "Primary entry A", "Primary entry B", "Mixed chapter entry", "Supporting chapter entry",
+    ]
+
+
+async def test_unknown_author_lists_the_authors(theology_db, monkeypatch):
+    monkeypatch.setattr(server, "db", theology_db)
+    output = (await server.call_tool(
+        "get_theology_context", {"reference": "Psalm 82:6", "author": "calvin"}
+    ))[0].text
+    assert output == "No scholarship by author 'calvin'. Authors: heiser."
+    # Author keys are matched case-insensitively.
+    named = (await server.call_tool(
+        "get_theology_context", {"reference": "Psalm 82:6", "author": "Heiser"}
+    ))[0].text
+    assert named.startswith("## Heiser Scholarship Context for Psalm 82:6")
+
+
+async def test_unknown_theme_points_to_the_theme_list(theology_db, monkeypatch):
+    monkeypatch.setattr(server, "db", theology_db)
+    output = (await server.call_tool("get_theology_context", {"theme": "covenant_theology"}))[0].text
+    assert output == (
+        "No theological scholarship found for theme='covenant_theology'. No theme has that "
+        "key; call with no arguments to list the themes."
+    )

@@ -4,6 +4,7 @@ Database layer for the Study Bible MCP server.
 Uses SQLite with async access via aiosqlite.
 """
 
+import difflib
 import heapq
 import json
 import logging
@@ -17,6 +18,8 @@ from typing import Any
 
 import aiosqlite
 
+from .lexicon_search import LexiconIndex, english_stem
+from .morphology import morphology_lookups
 from .parsers.biblical_versions import (
     BRENTON_GREEK_SOURCE_URL,
     BRENTON_TRANSLATION_NOTE,
@@ -140,6 +143,100 @@ _HEBREW_NUMBERING_RE = re.compile(r"\((\d+)\.(\d+)\)$")
 # edition's verse with its KJV/English number in brackets ('Mat.17.15[17.14]')
 # or another numbering in braces ('Jhn.7.53{8.1}').
 _SPLIT_REFERENCE_RE = re.compile(r"^([^.]+)\.(\d+)\.(\d+)([(\[{])(\d+)\.(\d+)[)\]}]$")
+
+
+def _source_number(row: dict) -> tuple[str | None, str]:
+    """A `verses` row's own numbering: ('Hebrew' | 'Greek' | None, 'chapter.verse').
+
+    None marks a plain reference, numbered alike in English.
+    """
+    match = _SPLIT_REFERENCE_RE.match(row["reference"])
+    if not match:
+        return None, ".".join(row["reference"].split(".")[1:])
+    _, chapter, verse, bracket, other_chapter, other_verse = match.groups()
+    if bracket == "(":
+        return "Hebrew", f"{other_chapter}.{other_verse}"
+    return "Greek", f"{chapter}.{verse}"
+
+
+def _join_numbers(numbers: list[str]) -> str:
+    """'51.1', '51.2' -> '51.1–2'; '20.42', '21.1' -> '20.42, 21.1'."""
+    if len(numbers) > 1 and len({number.split(".")[0] for number in numbers}) == 1:
+        verses = [int(number.split(".")[1]) for number in numbers]
+        if verses == list(range(verses[0], verses[0] + len(verses))):
+            return f"{numbers[0]}–{verses[-1]}"
+    return ", ".join(numbers)
+
+
+def verse_label(rows: list[dict]) -> str:
+    """Heading for an English verse made of ``rows`` (one or more `verses` rows).
+
+    The English (BSB) reference comes first, then any other numbering of the
+    Hebrew or Greek text it shows: 'Psa.51 superscription (Hebrew Psa.51.1–2)',
+    '2Co.13.14 (Greek 2Co.13.13)', '3Jn.1.14 (Greek 3Jn.1.14–15)'. A single
+    English(Hebrew) row keeps its reference ('Psa.40.6(40.7)').
+    """
+    first = rows[0]
+    english = first.get("english_reference") or f"{first['book']}.{first['chapter']}.{first['verse']}"
+    book, chapter, verse = english.split(".")
+    numbered = [_source_number(row) for row in rows]
+    language = next((kind for kind, _ in numbered if kind), None)
+    numbers = list(dict.fromkeys(number for _, number in numbered))
+    if verse == "0":
+        label = f"{book}.{chapter} superscription"
+        return f"{label} (Hebrew {book}.{_join_numbers(numbers)})" if language else label
+    if len(rows) == 1 and language == "Hebrew":
+        return first["reference"]
+    if language is None or numbers == [f"{chapter}.{verse}"]:
+        return english
+    return f"{english} ({language} {book}.{_join_numbers(numbers)})"
+
+
+def merge_english_verses(rows: list[dict]) -> list[dict]:
+    """Merge consecutive rows of one English verse into one row.
+
+    Rows carrying ``english_reference`` (see ``StudyBibleDB.attach_bsb_text``)
+    that share it, such as a Psalm's two Hebrew superscription verses or a
+    Greek fragment the English counts with the next verse, become one row:
+    the row carrying the BSB text, with every row's original text and words
+    in order and a ``label`` naming their numbering. Other rows pass through.
+    """
+    merged: list[dict] = []
+    group: list[dict] = []
+
+    def flush() -> None:
+        if not group:
+            return
+        if len(group) == 1:
+            merged.append(group[0])
+        else:
+            base = dict(next((row for row in group if row.get("text_bsb")), group[0]))
+            base["text_original"] = " ".join(
+                row["text_original"] for row in group if row.get("text_original")
+            ) or None
+            base["text_english"] = " ".join(row["text_english"] for row in group if row.get("text_english"))
+            words: list = []
+            for row in group:
+                value = row.get("word_data")
+                try:
+                    words += json.loads(value) if isinstance(value, str) else (value or [])
+                except json.JSONDecodeError:
+                    pass
+            base["word_data"] = json.dumps(words, ensure_ascii=False)
+            base["label"] = verse_label(group)
+            base["references"] = [row["reference"] for row in group]
+            merged.append(base)
+        group.clear()
+
+    for row in rows:
+        key = row.get("english_reference")
+        if group and (key is None or key != group[0].get("english_reference")):
+            flush()
+        group.append(row)
+        if key is None:
+            flush()
+    flush()
+    return merged
 # Verse rows fetched for a similar-passage preview: ample for the 500
 # characters find_similar_passages shows.
 PASSAGE_PREVIEW_VERSES = 30
@@ -269,6 +366,15 @@ def parse_biblical_range(reference: str) -> tuple[str, int, int, int, int] | Non
     return code, chapter, verse, end_chapter, end_verse
 
 
+def _format_chapter_range(chapter: int, verse: int, end_chapter: int, end_verse: int) -> str:
+    """'19:1-37', '1:1-2:3', or '19:3'."""
+    if (chapter, verse) == (end_chapter, end_verse):
+        return f"{chapter}:{verse}"
+    if chapter == end_chapter:
+        return f"{chapter}:{verse}-{end_verse}"
+    return f"{chapter}:{verse}-{end_chapter}:{end_verse}"
+
+
 def format_biblical_range(code: str, chapter: int, verse: int, end_chapter: int, end_verse: int) -> str:
     """Render a parsed range: 'Mark 14:62', 'Gen 6:1–4', 'Heb 9–10', 'Jude 14–15'."""
     book = BOOK_DISPLAY_NAMES.get(code, code)
@@ -372,6 +478,26 @@ _MIN_UNPREFIXED_LETTERS = 3
 def strip_editorial_signs(text: str) -> str:
     """Delete editorial signs so a marked word reads as one word."""
     return _EDITORIAL_SIGNS.sub("", text)
+
+
+# Spelling of names varies between translations (Melchizedek, Josephus's
+# Melchisedec, Philo's Melchisedek). Words sharing a loose spelling key are
+# searched together; the key folds these letter alternations.
+_SPELLING_FOLDS = (("ph", "f"), ("ch", "c"), ("ae", "e"), ("oe", "e"), ("k", "c"),
+                   ("q", "c"), ("z", "s"), ("y", "i"), ("j", "i"))
+# First letters an index word may start with for each first letter of a key.
+_SPELLING_FIRST_LETTERS = {"c": "ckq", "s": "sz", "f": "fp", "i": "iyj", "e": "eao"}
+_MIN_VARIANT_LETTERS = 5
+_MAX_SPELLING_VARIANTS = 4
+
+
+def spelling_key(word: str) -> str:
+    """A loose key under which spelling variants of a Latin-script name coincide."""
+    key = word.lower()
+    for old, new in _SPELLING_FOLDS:
+        key = key.replace(old, new)
+    key = re.sub(r"(.)\1+", r"\1", key)
+    return key[:-1] if len(key) > 4 and key.endswith("h") else key
 
 
 def hebrew_prefix_variants(word: str) -> list[str]:
@@ -525,6 +651,9 @@ class StudyBibleDB:
         self._people_index: list[dict] | None = None
         self._family_graph: dict | None = None
         self._acai_keys: bool | None = None
+        self._moved_verses: dict[str, tuple[int, int, int]] | None = None
+        self._torah_numbering: dict[str, tuple[dict, dict]] = {}
+        self._lexicon_index: LexiconIndex | None = None
 
     async def connect(self):
         """Open database connection."""
@@ -617,44 +746,135 @@ class StudyBibleDB:
             )
         return entry
 
+    async def lexicon_index(self) -> LexiconIndex:
+        """Folded transliterations of every lexicon entry (built once per connection)."""
+        if self._lexicon_index is None:
+            rows = await self._fetchall(
+                "SELECT strongs, language, transliteration, pronunciation, word, "
+                "short_definition, usage_count FROM lexicon"
+            )
+            self._lexicon_index = LexiconIndex(tuple(row.values()) for row in rows)
+        return self._lexicon_index
+
+    # Strong's numbers passed to SQL from the lexicon index, per tier: the
+    # most-used ones, far more than any result page.
+    _INDEX_MATCH_CAP = 300
+    # The opening of a full definition, where BDB and LSJ give the lead sense
+    # ("H8451. torah ... noun feminine direction, instruction, law; ...").
+    _LEAD_CHARS = 200
+
     async def search_lexicon(
         self,
         query: str,
         language: str | None = None,
         limit: int = 4
     ) -> list[dict]:
-        """Search lexicon by definition, transliteration, or word.
+        """Search lexicon by transliteration, gloss, word, or definition.
 
-        Entries whose gloss, word, or transliteration matches come before those
-        matching only in a long definition; then the most frequent words first.
+        Results are ranked in tiers, then by usage (most frequent first):
+
+        0. the query is the entry's transliteration or word, whatever the
+           spelling ('agape' = agapē, 'hesed' = checed/che.sed), unless the
+           query is itself an English gloss ('man', 'son', 'law'), so English
+           searches are not led by a look-alike transliteration;
+        1. the brief definition has the query as a word, or a form of it
+           ('love' in 'to love', 'lover', 'beloved'; not 'sin' in 'since');
+           or, for a transliteration or original-word query, the entry's
+           transliteration or word contains it;
+        2. the brief definition contains the query's stem ('propitiation' ->
+           'to propitiate', 'righteousness' -> 'righteous'), or the lead
+           sense of the full definition has the query as a word (BDB's
+           'direction, instruction, law' for torah);
+        3. the brief definition, lead sense, word or transliteration contains
+           the query some other way ('sin' in 'since', 'law' in
+           'daughter-in-law'), or an English query folds to the entry's
+           transliteration ('son' and tso'n);
+        4. the query appears only further into a full definition.
         """
-        query_lower = f"%{query.lower()}%"
+        query = query.strip()
+        if not query:
+            return []
+        language = language.lower() if language else None
+        index = await self.lexicon_index()
+        exact, partial = index.matches(query, language)
+        english = index.is_gloss(query, language)
+        lookalike: list[str] = []
+        if english:
+            # An English word ('son', 'law'): transliterations that fold to
+            # it (tso'n, la'ab) rank with the weak matches, and spelling-folded
+            # partial matches are not used.
+            exact, partial, lookalike = [], [], exact
+        cap = self._INDEX_MATCH_CAP
+        exact, partial, lookalike = exact[:cap], partial[:cap], lookalike[:cap]
+        glossed = index.gloss_matches(query, language)[:cap]
 
-        sql = """
-            SELECT * FROM lexicon
-            WHERE (
-                LOWER(short_definition) LIKE ?
-                OR LOWER(full_definition) LIKE ?
-                OR LOWER(transliteration) LIKE ?
-                OR LOWER(word) LIKE ?
-                OR LOWER(abbott_smith_def) LIKE ?
+        lowered = query.lower()
+        like = f"%{lowered}%"
+        stem = english_stem(query)
+        stem_like = f"%{stem}%" if stem else None
+        lead = f"LOWER(SUBSTR(full_definition, 1, {self._LEAD_CHARS}))"
+        word_glob = (
+            f"*[^a-z'-]{lowered}[^a-z'-]*" if re.fullmatch(r"[a-z][a-z ]*", lowered) else None
+        )
+
+        # (sql, params) fragments, joined in the order they appear in the query.
+        def in_list(values: list[str]) -> tuple[str, list]:
+            if not values:
+                return "0", []
+            return f"strongs IN ({','.join('?' * len(values))})", list(values)
+
+        def matches(column: str, pattern: str | None, op: str = "LIKE") -> tuple[str, list]:
+            if pattern is None:
+                return "0", []
+            if op == "GLOB":
+                return f"(' ' || {column} || ' ') GLOB ?", [pattern]
+            return f"{column} LIKE ?", [pattern]
+
+        def any_of(*fragments: tuple[str, list]) -> tuple[str, list]:
+            return (
+                "(" + " OR ".join(sql for sql, _ in fragments) + ")",
+                [param for _, values in fragments for param in values],
             )
-        """
-        params = [query_lower, query_lower, query_lower, query_lower, query_lower]
 
+        original = any_of(matches("LOWER(word)", like), matches("LOWER(transliteration)", like))
+        tiers = [
+            in_list(exact),
+            any_of(in_list(glossed), in_list(partial), ("0", []) if english else original),
+            any_of(matches("LOWER(short_definition)", stem_like), matches(lead, word_glob, "GLOB")),
+            any_of(
+                matches("LOWER(short_definition)", like), matches(lead, like), original,
+                in_list(lookalike),
+            ),
+        ]
+        tier_sql = "CASE " + " ".join(
+            f"WHEN {sql} THEN {number}" for number, (sql, _) in enumerate(tiers)
+        ) + f" ELSE {len(tiers)} END"
+        where_sql, where_params = any_of(
+            matches("LOWER(short_definition)", like),
+            matches("LOWER(short_definition)", stem_like),
+            matches("LOWER(full_definition)", like),
+            matches("LOWER(abbott_smith_def)", like),
+            original,
+            in_list(exact + partial + glossed + lookalike),
+        )
+        params = [param for _, values in tiers for param in values] + where_params
+        language_sql = ""
         if language:
-            sql += " AND language = ?"
-            params.append(language.lower())
-
-        sql += """
-            ORDER BY
-                CASE WHEN LOWER(short_definition) LIKE ? OR LOWER(word) LIKE ?
-                          OR LOWER(transliteration) LIKE ? THEN 0 ELSE 1 END,
-                usage_count DESC, strongs
-            LIMIT ?
-        """
-        params.extend([query_lower, query_lower, query_lower, limit])
-        return await self._fetchall(sql, params)
+            language_sql = "AND language = ?"
+            params.append(language)
+        params.append(limit)
+        rows = await self._fetchall(
+            f"""SELECT * FROM (
+                    SELECT *, {tier_sql} AS match_tier FROM lexicon
+                    WHERE {where_sql} {language_sql}
+                )
+                ORDER BY match_tier, usage_count DESC, strongs
+                LIMIT ?""",
+            params,
+        )
+        for row in rows:
+            row.pop("match_tier", None)
+        return rows
 
     async def get_related_words(self, strongs: str) -> list[dict]:
         """Get words related to a Strong's number."""
@@ -698,28 +918,30 @@ class StudyBibleDB:
         return reference
 
     async def get_verse(self, reference: str) -> dict | None:
-        """Get a verse by reference.
+        """Get a verse by its English reference.
 
-        Matches the reference exactly, then by book, chapter and (English)
-        verse number, so a row stored with split numbering such as
-        ``Gen.32.1(32.2)`` is found. There is no substring match: a verse
-        missing from the table returns None, not a neighbour ('Jhn.3.1' must
-        not return 'Jhn.3.16'). The row carries ``text_bsb`` (see
-        ``attach_bsb_text``).
+        Matches book, chapter and English verse number, so a row stored with
+        split numbering such as ``Gen.32.1(32.2)`` or ``2Co.13.13[13.14]`` (BSB
+        2 Cor 13:14) is found; any other reference must match a row exactly.
+        There is no substring match: a verse missing from the table returns
+        None, not a neighbour ('Jhn.3.1' must not return 'Jhn.3.16'). The row
+        carries ``text_bsb`` (see ``attach_bsb_text``); with the BSB loaded, an
+        English verse stored as several rows is returned as one merged row
+        (see ``merge_english_verses``).
         """
         normalized = self._normalize_reference(reference)
-        verse = await self._fetchone("SELECT * FROM verses WHERE reference = ?", (normalized,))
-        if not verse:
-            parts = normalized.split(".")
-            if len(parts) != 3 or not (parts[1].isdecimal() and parts[2].isdecimal()):
-                return None
-            verse = await self._fetchone(
-                "SELECT * FROM verses WHERE book = ? AND chapter = ? AND verse = ? ORDER BY id LIMIT 1",
-                (parts[0], int(parts[1]), int(parts[2])),
+        parts = normalized.split(".")
+        rows: list[dict] = []
+        if len(parts) == 3 and parts[1].isdecimal() and parts[2].isdecimal():
+            chapter, verse = int(parts[1]), int(parts[2])
+            rows = await self.get_passage(parts[0], chapter, verse, chapter, verse)
+        if not rows:
+            rows = await self.attach_bsb_text(
+                await self._fetchall("SELECT * FROM verses WHERE reference = ?", (normalized,))
             )
-        if verse:
-            await self.attach_bsb_text([verse])
-        return verse
+        if not rows:
+            return None
+        return merge_english_verses(rows)[0]
 
     async def get_verses_with_strongs(self, strongs: str, limit: int = 4) -> list[dict]:
         """Find verses containing a specific Strong's number.
@@ -728,14 +950,24 @@ class StudyBibleDB:
         number also matches its suffixed forms; a suffixed number matches only
         itself. Rows carry ``text_bsb`` (see ``attach_bsb_text``).
         """
+        where, patterns = self._strongs_word_data_filter(strongs)
+        return await self.attach_bsb_text(await self._fetchall(
+            f"SELECT * FROM verses WHERE {where} LIMIT ?", (*patterns, limit)
+        ))
+
+    async def count_verses_with_strongs(self, strongs: str) -> int:
+        """How many verses ``get_verses_with_strongs`` could return without a limit."""
+        where, patterns = self._strongs_word_data_filter(strongs)
+        row = await self._fetchone(f"SELECT COUNT(*) AS n FROM verses WHERE {where}", patterns)
+        return row["n"] if row else 0
+
+    def _strongs_word_data_filter(self, strongs: str) -> tuple[str, list[str]]:
+        """SQL condition on verses.word_data, and its LIKE patterns, for a Strong's number."""
         strongs = self._normalize_strongs(strongs)
         patterns = [f'%"{strongs}"%']
         if re.fullmatch(r"[GH]\d{4}", strongs):
             patterns.append(f'%"{strongs}_"%')
-        where = " OR ".join("word_data LIKE ?" for _ in patterns)
-        return await self.attach_bsb_text(await self._fetchall(
-            f"SELECT * FROM verses WHERE {where} LIMIT ?", (*patterns, limit)
-        ))
+        return " OR ".join("word_data LIKE ?" for _ in patterns), patterns
 
     async def has_bsb_text(self) -> bool:
         """True when the bsb_verses table exists and has rows (checked once per instance)."""
@@ -752,62 +984,151 @@ class StudyBibleDB:
             rows += await self._fetchall(f"{sql} ({','.join('?' * len(chunk))})", chunk)
         return rows
 
+    async def _moved_nt_verses(self) -> dict[str, tuple[int, int, int]]:
+        """NT rows whose English (BSB) verse is not their Greek one.
+
+        Returns ``{reference: (english chapter, english verse, id)}``, cached;
+        empty without the BSB. A row such as ``2Co.13.13[13.14]`` carries the
+        Greek edition's verse with the KJV's number in brackets; the BSB
+        follows the KJV there (2 Cor 13:14) but keeps the Greek order of Phil
+        1:16-17, which the KJV swaps. A row's English verse is:
+
+        - for a whole Greek verse (no plain row shares its number): the
+          bracketed verse, unless the BSB lacks it, or the BSB has the Greek
+          verse and the two rows swap numbers (Phil 1:16-17);
+        - for a fragment of a Greek verse that has its own row: the bracketed
+          verse only if no other row is that English verse ('2Co.13.12[13.13]',
+          the BSB's 13:13), else the Greek verse it belongs to.
+        """
+        if self._moved_verses is not None:
+            return self._moved_verses
+        self._moved_verses = {}
+        if not await self.has_bsb_text():
+            return self._moved_verses
+        split: dict[str, tuple[int, str, str]] = {}
+        for row in await self._fetchall(
+            "SELECT id, reference FROM verses WHERE reference LIKE '%[%' ORDER BY id"
+        ):
+            match = _SPLIT_REFERENCE_RE.match(row["reference"])
+            if match and match.group(4) == "[":
+                book, chapter, verse, _, other_chapter, other_verse = match.groups()
+                split[row["reference"]] = (
+                    row["id"], f"{book}.{chapter}.{verse}", f"{book}.{other_chapter}.{other_verse}"
+                )
+        if not split:
+            return self._moved_verses
+        numbers = {ref for _, greek, kjv in split.values() for ref in (greek, kjv)}
+        plain = {
+            row["reference"]
+            for row in await self._fetch_in("SELECT reference FROM verses WHERE reference IN", numbers)
+        }
+        in_bsb = {
+            row["reference"]
+            for row in await self._fetch_in("SELECT reference FROM bsb_verses WHERE reference IN", numbers)
+        }
+        swapped = {greek: kjv for _, greek, kjv in split.values()}
+        english: dict[str, str] = {}
+        for ref, (_, greek, kjv) in split.items():
+            if greek in plain:
+                continue
+            if greek not in in_bsb and kjv in in_bsb:
+                english[ref] = kjv
+            elif swapped.get(kjv) == greek or kjv not in in_bsb:
+                english[ref] = greek
+            else:
+                english[ref] = kjv
+        taken = plain | set(english.values())
+        for ref, (_, greek, kjv) in split.items():
+            if greek in plain:
+                english[ref] = kjv if kjv in in_bsb and kjv not in taken else greek
+        for ref, target in english.items():
+            row_id, greek, _ = split[ref]
+            if target != greek:
+                _, chapter, verse = target.split(".")
+                self._moved_verses[ref] = (int(chapter), int(verse), row_id)
+        return self._moved_verses
+
+    async def english_verse_of_greek(self, book: str, chapter: int, verse: int) -> tuple[int, int] | None:
+        """The BSB (chapter, verse) of a Greek verse the BSB numbers differently, else None."""
+        for ref, (english_chapter, english_verse, _) in (await self._moved_nt_verses()).items():
+            match = _SPLIT_REFERENCE_RE.match(ref)
+            if match.group(1) == book and (int(match.group(2)), int(match.group(3))) == (chapter, verse):
+                return english_chapter, english_verse
+        return None
+
+    async def _bsb_carriers(self, english_refs: set[str]) -> dict[str, str]:
+        """For each English verse, the reference of the row that carries its BSB text.
+
+        That is the plain row with the verse's reference, else the verse's
+        first row (by id): one row per verse, so a verse stored as several rows
+        (Psalm 51's two Hebrew superscription verses) shows its text once.
+        """
+        carriers = {
+            row["reference"]: row["reference"]
+            for row in await self._fetch_in("SELECT reference FROM verses WHERE reference IN", english_refs)
+        }
+        moved = await self._moved_nt_verses()
+        chapters: dict[tuple[str, int], set[str]] = {}
+        for ref in english_refs - carriers.keys():
+            book, chapter, _ = ref.split(".")
+            chapters.setdefault((book, int(chapter)), set()).add(ref)
+        for (book, chapter), refs in chapters.items():
+            first: dict[str, tuple[int, str]] = {}
+            rows = await self._fetchall(
+                "SELECT id, reference, verse FROM verses WHERE book = ? AND chapter = ?", (book, chapter)
+            )
+            candidates = [
+                (row["id"], row["reference"], f"{book}.{chapter}.{row['verse']}")
+                for row in rows if row["reference"] not in moved
+            ]
+            candidates += [
+                (row_id, ref, f"{book}.{moved_chapter}.{verse}")
+                for ref, (moved_chapter, verse, row_id) in moved.items()
+                if ref.split(".")[0] == book and moved_chapter == chapter
+            ]
+            for row_id, reference, english_ref in candidates:
+                if english_ref in refs and (english_ref not in first or row_id < first[english_ref][0]):
+                    first[english_ref] = (row_id, reference)
+            carriers.update({english_ref: reference for english_ref, (_, reference) in first.items()})
+        return carriers
+
     async def attach_bsb_text(self, rows: list[dict]) -> list[dict]:
-        """Set ``text_bsb`` on each `verses` row: its Berean Standard Bible text, or None.
+        """Give each `verses` row its English (BSB) verse, text, and label.
 
-        Rows are left without the key when the database has no BSB, so callers
-        show the STEPBible gloss (``text_english``) as before. A row matches the
-        BSB verse with the same reference. A split-numbered row matches by its
-        English book, chapter and verse ('Gen.32.1(32.2)' -> 'Gen.32.1'),
-        except that:
+        Rows are left unchanged when the database has no BSB, so callers show
+        the STEPBible gloss (``text_english``) as before. Otherwise each row
+        gets:
 
-        - a row sharing its English verse with a plain-reference row gets None,
-          because the plain row carries that verse's BSB text
-          ('1Sa.20.42(21.1)' beside '1Sa.20.42', 'Mat.17.15[17.14]' beside
-          'Mat.17.15');
-        - an NT row whose bracketed English verse has no row of its own is
-          that verse ('2Co.13.13[13.14]' -> '2Co.13.14').
-
-        None also marks verses the BSB omits: the textual-variant verses
-        (Matt 17:21, Acts 8:37, ...) and the Psalm superscriptions.
+        - ``chapter`` and ``verse``: its English verse. OT columns already hold
+          it ('Gen.32.1(32.2)' is English 32:1); an NT row the BSB numbers
+          differently gets its BSB verse (``_moved_nt_verses``:
+          '2Co.13.13[13.14]' is 2 Cor 13:14);
+        - ``english_reference``: that verse's reference;
+        - ``text_bsb``: the verse's BSB text on the one row that carries it
+          (``_bsb_carriers``), None on the verse's other rows ('1Sa.20.42(21.1)'
+          beside '1Sa.20.42') and for verses the BSB omits (Matt 17:21, Acts
+          8:37, ...);
+        - ``label``: its heading (``verse_label``).
         """
         if not rows or not await self.has_bsb_text():
             return rows
-        wanted: dict[int, str] = {}
-        split: dict[int, re.Match] = {}
-        for index, row in enumerate(rows):
-            match = _SPLIT_REFERENCE_RE.match(row["reference"])
-            if match:
-                split[index] = match
-            else:
-                wanted[index] = row["reference"]
-        if split:
-            english = {index: ".".join(match.group(1, 2, 3)) for index, match in split.items()}
-            plain = {
-                row["reference"]
-                for row in await self._fetch_in(
-                    "SELECT reference FROM verses WHERE reference IN", english.values()
-                )
-            }
-            for index, match in split.items():
-                if english[index] in plain:
-                    continue
-                book, _, _, bracket, chapter, verse = match.groups()
-                if bracket == "[" and not await self._fetchone(
-                    "SELECT 1 FROM verses WHERE book = ? AND chapter = ? AND verse = ? LIMIT 1",
-                    (book, int(chapter), int(verse)),
-                ):
-                    wanted[index] = f"{book}.{chapter}.{verse}"
-                else:
-                    wanted[index] = english[index]
+        moved = await self._moved_nt_verses()
+        for row in rows:
+            if row["reference"] in moved:
+                row["chapter"], row["verse"], _ = moved[row["reference"]]
+            row["english_reference"] = f"{row['book']}.{row['chapter']}.{row['verse']}"
+        english_refs = {row["english_reference"] for row in rows}
+        carriers = await self._bsb_carriers(english_refs)
         texts = {
             row["reference"]: row["text"]
             for row in await self._fetch_in(
-                "SELECT reference, text FROM bsb_verses WHERE reference IN", wanted.values()
+                "SELECT reference, text FROM bsb_verses WHERE reference IN", english_refs
             )
         }
-        for index, row in enumerate(rows):
-            row["text_bsb"] = texts.get(wanted.get(index))
+        for row in rows:
+            carried = carriers.get(row["english_reference"]) == row["reference"]
+            row["text_bsb"] = texts.get(row["english_reference"]) if carried else None
+            row["label"] = verse_label([row])
         return rows
 
     # "Luke 19", "Luke 19:1-3", "Luke 19:45-20:2", "Psalm 23-24", "Luk.19.1".
@@ -856,12 +1177,27 @@ class StudyBibleDB:
 
     async def get_chapter_verse_bounds(self, book: str) -> dict[int, tuple[int, int]]:
         """Map each chapter of ``book`` to its (first, last) English verse number."""
-        rows = await self._fetchall(
-            """SELECT chapter, MIN(verse) AS first, MAX(verse) AS last
-               FROM verses WHERE book = ? GROUP BY chapter""",
-            (book,),
-        )
-        return {row["chapter"]: (row["first"], row["last"]) for row in rows}
+        moved = {
+            ref: position for ref, position in (await self._moved_nt_verses()).items()
+            if ref.split(".")[0] == book
+        }
+        if not moved:
+            rows = await self._fetchall(
+                """SELECT chapter, MIN(verse) AS first, MAX(verse) AS last
+                   FROM verses WHERE book = ? GROUP BY chapter""",
+                (book,),
+            )
+            return {row["chapter"]: (row["first"], row["last"]) for row in rows}
+        bounds: dict[int, tuple[int, int]] = {}
+        for row in await self._fetchall(
+            "SELECT reference, chapter, verse FROM verses WHERE book = ?", (book,)
+        ):
+            chapter, verse = moved[row["reference"]][:2] if row["reference"] in moved else (
+                row["chapter"], row["verse"]
+            )
+            first, last = bounds.get(chapter, (verse, verse))
+            bounds[chapter] = (min(first, verse), max(last, verse))
+        return dict(sorted(bounds.items()))
 
     async def get_passage(
         self,
@@ -875,21 +1211,40 @@ class StudyBibleDB:
 
         Matches the ``book``/``chapter``/``verse`` columns (English numbering)
         rather than ``reference`` strings, so OT rows whose reference carries
-        English(Hebrew) split numbering such as ``Psa.40.6(40.7)`` are found.
-        A verse stored as several rows (e.g. ``1Ch.12.4`` and
-        ``1Ch.12.4(12.5)``) returns every row, in source order. Rows carry
-        ``text_bsb`` (see ``attach_bsb_text``).
+        English(Hebrew) split numbering such as ``Psa.40.6(40.7)`` are found,
+        and NT rows the BSB numbers differently by their BSB verse
+        (``2Co.13.13[13.14]`` is 2 Cor 13:14). A verse stored as several rows
+        (e.g. ``1Ch.12.4`` and ``1Ch.12.4(12.5)``) returns every row, in
+        source order. Rows carry ``text_bsb`` (see ``attach_bsb_text``).
         """
-        return await self.attach_bsb_text(await self._fetchall(
+        moved = {
+            ref: position for ref, position in (await self._moved_nt_verses()).items()
+            if ref.split(".")[0] == book
+        }
+        margin = 1 if moved else 0
+        rows = await self._fetchall(
             """SELECT * FROM verses
                WHERE book = ?
                  AND chapter BETWEEN ? AND ?
                  AND (chapter > ? OR verse >= ?)
                  AND (chapter < ? OR verse <= ?)
                ORDER BY chapter, verse, id""",
-            (book, start_chapter, end_chapter, start_chapter, start_verse,
-             end_chapter, end_verse),
-        ))
+            (book, start_chapter - margin, end_chapter + margin,
+             start_chapter - margin, start_verse if not margin else 0,
+             end_chapter + margin, end_verse if not margin else 9999),
+        )
+        if moved:
+            def position(row: dict) -> tuple[int, int]:
+                if row["reference"] in moved:
+                    return moved[row["reference"]][:2]
+                return row["chapter"], row["verse"]
+
+            rows = sorted(
+                (row for row in rows
+                 if (start_chapter, start_verse) <= position(row) <= (end_chapter, end_verse)),
+                key=lambda row: (*position(row), row["id"]),
+            )
+        return await self.attach_bsb_text(rows)
 
     async def get_lxx_quote_hints_for_passage(
         self,
@@ -1154,6 +1509,40 @@ class StudyBibleDB:
     async def get_morphology(self, code: str, language: str = "greek") -> dict | None:
         """Get morphology parsing for a code."""
         return await self._fetchone("SELECT * FROM morphology WHERE code = ? AND language = ?", (code, language.lower()))
+
+    async def resolve_morphology(self, code: str, language: str | None = "greek") -> dict | None:
+        """Find the table rows for a code as the tagged text prints it.
+
+        Accepts compounds ('Hc/Vqw3ms', 'P-1NS + G2532=CONJ'), a missing
+        language letter ('Vqp3ms') and any case ('v-aai-3s'); see
+        ``morphology.morphology_lookups``. Returns {'language', 'parts':
+        [(segment, row)]}; or {'language', 'ambiguous': [(segment, rows)]} when
+        a segment matches only ignoring case and several codes then fit
+        ('hc' is 'HC' or 'Hc'); or None.
+        """
+        ambiguous = None
+        for lang, segments in morphology_lookups(code, language):
+            parts, unclear = [], []
+            for shown, stored in segments:
+                row = await self.get_morphology(stored, lang)
+                if row is None:
+                    rows = await self._fetchall(
+                        "SELECT * FROM morphology WHERE code = ? COLLATE NOCASE AND language = ? "
+                        "ORDER BY code",
+                        (stored, lang),
+                    )
+                    if not rows:
+                        break
+                    if len(rows) > 1:
+                        unclear.append((shown, rows))
+                        continue
+                    row = rows[0]
+                parts.append((shown, row))
+            else:
+                if not unclear:
+                    return {"language": lang, "parts": parts}
+                ambiguous = ambiguous or {"language": lang, "ambiguous": unclear}
+        return ambiguous
 
     # =========================================================================
     # Vector similarity queries
@@ -1692,6 +2081,48 @@ class StudyBibleDB:
 
         return result
 
+    async def graph_get_passage_entities(
+        self,
+        book: str,
+        start_chapter: int,
+        start_verse: int | None,
+        end_chapter: int,
+        end_verse: int | None,
+    ) -> dict:
+        """Entities mentioned in a verse, verse range, chapter, or chapter range.
+
+        Verse numbers are English; a None verse means the start or end of its
+        chapter. Each entity is listed once, in order of its first mention.
+        """
+        result: dict[str, list[dict]] = {"people": [], "places": [], "events": []}
+        theo_book = self._THEOGRAPHIC_BOOK_MAP.get(book, book)
+        start = (start_chapter, start_verse if start_verse is not None else 0)
+        end = (end_chapter, end_verse if end_verse is not None else _MAX_VERSE)
+        mentions: list[tuple[tuple[int, int], dict]] = []
+        for chapter in range(start_chapter, end_chapter + 1):
+            for row in await self._fetchall(
+                """SELECT vm.verse_ref, vm.entity_type, vm.entity_id,
+                          COALESCE(p.name, pl.name, e.title) as entity_name
+                   FROM graph_verse_mentions vm
+                   LEFT JOIN graph_people p ON vm.entity_type = 'person' AND p.id = vm.entity_id
+                   LEFT JOIN graph_places pl ON vm.entity_type = 'place' AND pl.id = vm.entity_id
+                   LEFT JOIN graph_events e ON vm.entity_type = 'event' AND e.id = vm.entity_id
+                   WHERE vm.verse_ref LIKE ?""",
+                (f"{theo_book}.{chapter}.%",),
+            ):
+                verse = row.pop("verse_ref").rsplit(".", 1)[-1]
+                if verse.isdecimal() and start <= (chapter, int(verse)) <= end:
+                    mentions.append(((chapter, int(verse)), row))
+        seen: set[tuple[str, str]] = set()
+        kinds = {"person": "people", "place": "places", "event": "events"}
+        for _, row in sorted(mentions, key=lambda mention: mention[0]):
+            key = (row["entity_type"], row["entity_id"])
+            if key in seen or row["entity_type"] not in kinds:
+                continue
+            seen.add(key)
+            result[kinds[row["entity_type"]]].append(row)
+        return result
+
     async def graph_has_data(self) -> bool:
         """Check if graph tables have data."""
         return await self._table_has_rows("graph_people")
@@ -1778,6 +2209,31 @@ class StudyBibleDB:
             ORDER BY resource_type, start_ref
         """, (book, chapter))
 
+    async def get_study_notes_in_span(
+        self, book: str, start_chapter: int, start_verse: int, end_chapter: int, end_verse: int
+    ) -> list[dict]:
+        """Study and translation notes overlapping a verse span, in verse order per source.
+
+        A short note (at most six verses) that starts earlier in the span's first
+        chapter and runs into the span (Romans 8:19-21 for 'Romans 8:20-22') is
+        included; a longer section overview is not, so a continuation call
+        ('Mark 13:32-37') does not repeat the overview of Mark 13:1-37.
+        """
+        book_num = self._BOOK_ABBR_TO_NUM.get(book)
+        if not book_num:
+            return []
+        chapter_start = f"{book_num}{start_chapter:03d}000"
+        low = f"{book_num}{start_chapter:03d}{start_verse:03d}"
+        high = f"{book_num}{end_chapter:03d}{end_verse:03d}"
+        return await self._fetchall("""
+            SELECT * FROM aquifer_content
+            WHERE resource_type IN ('study_notes', 'translation_notes_uw', 'translation_notes_sil')
+              AND start_ref BETWEEN ? AND ?
+              AND COALESCE(end_ref, start_ref) >= ?
+              AND (start_ref >= ? OR CAST(end_ref AS INTEGER) - CAST(start_ref AS INTEGER) <= 5)
+            ORDER BY resource_type, start_ref, end_ref
+        """, (chapter_start, high, low, low))
+
     async def _search_aquifer_by_type(self, resource_type: str, query: str) -> list[dict]:
         """Search aquifer_content by type — exact title match then LIKE fallback."""
         exact = await self._fetchall(
@@ -1803,9 +2259,84 @@ class StudyBibleDB:
         """Search the Bible dictionary by title or content."""
         return await self._search_aquifer_by_type("dictionary", topic)
 
-    async def get_key_terms(self, term: str) -> list[dict]:
-        """Search FIA Key Terms by title or content."""
-        return await self._search_aquifer_by_type("key_terms", term)
+    # Key-term rows with no text: the Aquifer export's audio-only duplicates.
+    _KEY_TERM_TEXT = "TRIM(COALESCE(content_plain, '')) NOT IN ('', 'Audio Content')"
+
+    async def find_key_terms(self, term: str, limit: int = 2) -> dict:
+        """FIA Key Terms whose title matches ``term``, exactly or nearly.
+
+        Titles are matched case-insensitively: an exact title first; otherwise
+        near titles (one a prefix of the other, 'righteous' -> 'righteousness';
+        a title containing the term as a word; or a close spelling). Entries
+        that only mention the term in their text are never returned as matches,
+        and audio-only stubs ('Audio Content') are skipped.
+
+        Returns ``{"entries": [...] (at most ``limit``), "match": "exact" |
+        "near" | None, "other_titles": [further matching titles],
+        "mentions": [up to 4 titles whose entries mention the term most, when
+        no title matched]}``.
+        """
+        titles = [
+            row["title"] for row in await self._fetchall(
+                f"""SELECT DISTINCT title FROM aquifer_content
+                    WHERE resource_type = 'key_terms' AND {self._KEY_TERM_TEXT}
+                    ORDER BY LOWER(title)"""
+            )
+        ]
+        wanted = " ".join(re.findall(r"\w+", term.lower()))
+        result: dict = {"entries": [], "match": None, "other_titles": [], "mentions": []}
+        if not wanted:
+            return result
+
+        def key(title: str) -> str:
+            return " ".join(re.findall(r"\w+", title.lower()))
+
+        def closeness(title: str) -> float:
+            return difflib.SequenceMatcher(None, key(title), wanted).ratio()
+
+        def near(title: str) -> bool:
+            shorter, longer = sorted((key(title), wanted), key=len)
+            return (
+                (len(shorter) >= 4 and longer.startswith(shorter) and len(longer) - len(shorter) <= 4)
+                or (len(wanted) >= 4 and re.search(rf"\b{re.escape(wanted)}\b", key(title)) is not None)
+                or closeness(title) >= 0.85
+            )
+
+        exact = [title for title in titles if key(title) == wanted]
+        nearby = sorted(
+            (title for title in titles if title not in exact and near(title)),
+            key=lambda title: -closeness(title),
+        )
+        matched = exact or nearby
+        if matched:
+            shown = matched[:limit]
+            rows = await self._fetch_in(
+                f"""SELECT * FROM aquifer_content
+                    WHERE resource_type = 'key_terms' AND {self._KEY_TERM_TEXT} AND title IN""",
+                shown,
+            )
+            rows.sort(key=lambda row: (shown.index(row["title"]), row["content_id"]))
+            result.update(
+                entries=rows,
+                match="exact" if exact else "near",
+                other_titles=[title for title in (exact + nearby) if title not in shown],
+            )
+            return result
+
+        # No title matched: name the entries that mention the term most often.
+        mentions = await self._fetchall(
+            f"""SELECT title,
+                       (LENGTH(LOWER(content_plain))
+                        - LENGTH(REPLACE(LOWER(content_plain), ?, ''))) / LENGTH(?) AS hits
+                FROM aquifer_content
+                WHERE resource_type = 'key_terms' AND {self._KEY_TERM_TEXT}
+                  AND LOWER(content_plain) LIKE ?
+                ORDER BY hits DESC, LENGTH(title), title
+                LIMIT 4""",
+            (wanted, wanted, f"%{wanted}%"),
+        )
+        result["mentions"] = [row["title"] for row in mentions]
+        return result
 
     async def search_aquifer_content(
         self,
@@ -1980,14 +2511,84 @@ class StudyBibleDB:
         """Check if torah_weave tables exist and have data."""
         return await self._table_has_rows("torah_weave_units")
 
+    async def _torah_hebrew_numbering(self, book: str) -> tuple[dict, dict]:
+        """(English -> Hebrew, Hebrew -> English) verse lists for a book's renumbered verses.
+
+        Kline's Torah Weave data numbers verses like the Hebrew Bible (Leviticus
+        5:20-26 is English 6:1-7, Deuteronomy 28:69 is English 29:1); the
+        `verses` table's English(Hebrew) rows pair the two. Verses absent from
+        both maps are numbered alike.
+        """
+        if book not in self._torah_numbering:
+            english_to_hebrew: dict[tuple[int, int], list[tuple[int, int]]] = {}
+            hebrew_to_english: dict[tuple[int, int], list[tuple[int, int]]] = {}
+            for row in await self._fetchall(
+                "SELECT reference FROM verses WHERE book = ? AND reference LIKE '%(%' ORDER BY id", (book,)
+            ):
+                match = _SPLIT_REFERENCE_RE.match(row["reference"])
+                if not match or match.group(4) != "(":
+                    continue
+                _, chapter, verse, _, hebrew_chapter, hebrew_verse = match.groups()
+                english = (int(chapter), int(verse))
+                hebrew = (int(hebrew_chapter), int(hebrew_verse))
+                english_to_hebrew.setdefault(english, []).append(hebrew)
+                hebrew_to_english.setdefault(hebrew, []).append(english)
+            # An English verse that also has a plain row ('Num.26.1' beside
+            # 'Num.26.1(25.19)') includes the Hebrew verse of its own number.
+            plain = {
+                row["reference"]
+                for row in await self._fetch_in(
+                    "SELECT reference FROM verses WHERE reference IN",
+                    [f"{book}.{chapter}.{verse}" for chapter, verse in english_to_hebrew],
+                )
+            }
+            for (chapter, verse), hebrew in english_to_hebrew.items():
+                if f"{book}.{chapter}.{verse}" in plain:
+                    hebrew.append((chapter, verse))
+                    hebrew_to_english.setdefault((chapter, verse), []).append((chapter, verse))
+            self._torah_numbering[book] = (english_to_hebrew, hebrew_to_english)
+        return self._torah_numbering[book]
+
+    async def _torah_english_range(
+        self, book: str, start: tuple[int, int], end: tuple[int, int]
+    ) -> tuple[int, int, int, int]:
+        """English (chapter, verse, end chapter, end verse) of a Hebrew-numbered range."""
+        _, hebrew_to_english = await self._torah_hebrew_numbering(book)
+        first = min(hebrew_to_english.get(start, [start]))
+        last = max(hebrew_to_english.get(end, [end]))
+        return (*first, *last)
+
+    async def _english_torah_cells(self, book: str, cells: list[dict]) -> list[dict]:
+        """Renumber cells' (and their units') Hebrew verse ranges in English, in place."""
+        for cell in cells:
+            c1, v1, c2, v2 = await self._torah_english_range(
+                book, (cell["chapter_start"], cell["verse_start"]), (cell["chapter_end"], cell["verse_end"])
+            )
+            cell.update(chapter_start=c1, verse_start=v1, chapter_end=c2, verse_end=v2,
+                        verse_range=_format_chapter_range(c1, v1, c2, v2))
+            if cell.get("unit_verses"):
+                cell["unit_verses"] = await self._english_unit_verses(book, cell["unit_verses"])
+        return cells
+
+    async def _english_unit_verses(self, book: str, verses: str) -> str:
+        """'Leviticus 6:1-7:38' (Hebrew numbers) -> 'Leviticus 6:8-7:38'."""
+        match = re.match(r"^(.*?)\s*(\d+):(\d+)(?:-(?:(\d+):)?(\d+))?$", verses)
+        if not match:
+            return verses
+        name, c1, v1, c2, v2 = match.groups()
+        start = (int(c1), int(v1))
+        end = (int(c2 or c1), int(v2)) if v2 else start
+        return f"{name} {_format_chapter_range(*await self._torah_english_range(book, start, end))}".strip()
+
     async def get_torah_weave_cells_for_reference(
         self, reference: str
     ) -> list[dict]:
-        """Find all Torah Weave cells that contain the given reference.
+        """Find all Torah Weave cells that contain the given (English) verse.
 
         Returns cells joined with their parent unit metadata. Multiple cells
         may match if a verse sits within both a cell and a sibling subdivision
-        in the same unit, or if units overlap at their boundaries.
+        in the same unit, or if units overlap at their boundaries. Kline's
+        Hebrew verse numbers are matched and shown in English numbering.
         """
         normalized = self._normalize_reference(reference)
         parts = normalized.split(".")
@@ -2004,34 +2605,42 @@ class StudyBibleDB:
         if book_abbr not in ("Gen", "Exo", "Lev", "Num", "Deu"):
             return []
 
-        target = chapter * 1000 + verse
-        return await self._fetchall(
-            """
-            SELECT c.*,
-                   u.id AS unit_serial,
-                   u.book_full AS unit_book_full,
-                   u.unit_number AS unit_number,
-                   u.title AS unit_title,
-                   u.verses AS unit_verses,
-                   u.verse_range AS unit_verse_range,
-                   u.format AS unit_format,
-                   u.irregular AS unit_irregular,
-                   u.is_unique AS unit_is_unique,
-                   u.cell_count AS unit_cell_count,
-                   u.type AS unit_type
-            FROM torah_weave_cells c
-            JOIN torah_weave_units u ON u.id = c.unit_id
-            WHERE c.book = ?
-              AND c.sort_start <= ?
-              AND c.sort_end >= ?
-            ORDER BY (c.sort_end - c.sort_start) ASC, c.row_num, c.column_letter
-            """,
-            (book_abbr, target, target),
-        )
+        english_to_hebrew, _ = await self._torah_hebrew_numbering(book_abbr)
+        cells: dict[int, dict] = {}
+        for hebrew_chapter, hebrew_verse in english_to_hebrew.get((chapter, verse), [(chapter, verse)]):
+            target = hebrew_chapter * 1000 + hebrew_verse
+            for cell in await self._fetchall(
+                """
+                SELECT c.*,
+                       u.id AS unit_serial,
+                       u.book_full AS unit_book_full,
+                       u.unit_number AS unit_number,
+                       u.title AS unit_title,
+                       u.verses AS unit_verses,
+                       u.verse_range AS unit_verse_range,
+                       u.format AS unit_format,
+                       u.irregular AS unit_irregular,
+                       u.is_unique AS unit_is_unique,
+                       u.cell_count AS unit_cell_count,
+                       u.type AS unit_type
+                FROM torah_weave_cells c
+                JOIN torah_weave_units u ON u.id = c.unit_id
+                WHERE c.book = ?
+                  AND c.sort_start <= ?
+                  AND c.sort_end >= ?
+                ORDER BY (c.sort_end - c.sort_start) ASC, c.row_num, c.column_letter
+                """,
+                (book_abbr, target, target),
+            ):
+                cells.setdefault(cell["id"], cell)
+        return await self._english_torah_cells(book_abbr, list(cells.values()))
 
     async def get_torah_weave_unit_cells(self, unit_id: int) -> list[dict]:
-        """Get all cells for a given unit, ordered by row then column then subdivision."""
-        return await self._fetchall(
+        """Get all cells for a given unit, ordered by row then column then subdivision.
+
+        Verse ranges are in English numbering.
+        """
+        cells = await self._fetchall(
             """
             SELECT * FROM torah_weave_cells
             WHERE unit_id = ?
@@ -2040,6 +2649,34 @@ class StudyBibleDB:
             """,
             (unit_id,),
         )
+        return await self._english_torah_cells(cells[0]["book"], cells) if cells else cells
+
+    async def get_torah_weave_units_in_passage(
+        self, book: str, start: tuple[int, int], end: tuple[int, int]
+    ) -> list[dict]:
+        """Torah Weave units overlapping an English-numbered passage, in order.
+
+        Each unit carries ``verses`` in English numbering and ``cells``: its
+        cells, as from ``get_torah_weave_unit_cells``.
+        """
+        english_to_hebrew, _ = await self._torah_hebrew_numbering(book)
+        first = min(english_to_hebrew.get(start, [start]))
+        last = max(english_to_hebrew.get(end, [end]))
+        units = []
+        for unit in await self._fetchall(
+            "SELECT * FROM torah_weave_units WHERE book = ? ORDER BY id", (book,)
+        ):
+            match = re.match(r"^(\d+):(\d+)(?:-(?:(\d+):)?(\d+))?$", unit["verse_range"].strip())
+            if not match:
+                continue
+            c1, v1, c2, v2 = match.groups()
+            unit_start = (int(c1), int(v1))
+            unit_end = (int(c2 or c1), int(v2)) if v2 else unit_start
+            if unit_start <= last and first <= unit_end:
+                unit["verses"] = await self._english_unit_verses(book, unit["verses"])
+                unit["cells"] = await self.get_torah_weave_unit_cells(unit["id"])
+                units.append(unit)
+        return units
 
     # =========================================================================
     # Theological scholarship queries (unified: Heiser, Bradley, etc.)
@@ -2055,12 +2692,37 @@ class StudyBibleDB:
             return bool(rows)
         return await self._table_has_rows("theology_content")
 
+    async def get_theology_authors(self) -> list[str]:
+        """The author keys that have scholarship entries, alphabetically."""
+        rows = await self._fetchall(
+            "SELECT DISTINCT source_author FROM theology_content ORDER BY source_author"
+        )
+        return [row["source_author"] for row in rows]
+
+    async def theology_theme_exists(self, theme_key: str) -> bool:
+        """True when ``theme_key`` names a theology theme."""
+        return bool(await self._fetchone(
+            "SELECT 1 FROM theology_themes WHERE theme_key = ?", (theme_key,)
+        ))
+
     async def get_theology_context_by_reference(
         self, reference: str, author: str | None = None, limit: int = 4
     ) -> list[dict]:
-        """Get scholarship entries relevant to a verse reference, optionally filtered by author."""
+        """Get scholarship entries relevant to a verse or chapter, optionally filtered by author.
+
+        A verse returns the entries indexed to it, else those indexed to its
+        chapter; a chapter reference ('Psalm 82') returns the chapter's entries.
+        """
         normalized = self._normalize_reference(reference)
         parts = normalized.split(".")
+        if len(parts) != 3:
+            # Not a verse: read it as a chapter ('Psalm 82', 'Rom 3'), which
+            # skips the exact-verse query and ranks the chapter's entries.
+            parsed = self.parse_passage_reference(reference)
+            if not parsed or parsed["start_verse"] is not None:
+                return []
+            normalized = None
+            parts = [parsed["book"], str(parsed["start_chapter"])]
         book = parts[0] if parts else ""
         chapter = int(parts[1]) if len(parts) > 1 else None
 
@@ -2094,7 +2756,7 @@ class StudyBibleDB:
             "MIN(CASE vi.relevance WHEN 'primary' THEN 0 ELSE 1 END * 1000"
             " + COALESCE(vi.verse, 0)) AS match_rank"
         )
-        exact = await self._fetchall(
+        exact = normalized and await self._fetchall(
             f"""SELECT tc.*, vi.reference AS matched_ref, vi.relevance, {best_match},
                       GROUP_CONCAT(DISTINCT tt.theme_key) AS themes
                FROM theology_content tc
@@ -2404,6 +3066,7 @@ class StudyBibleDB:
                     terms.append(term)
         result: dict[str, Any] = {
             "status": "ok", "rows": [], "terms": terms, "match": None, "prefix_match": False,
+            "variants": {},
         }
         if not terms:
             result["status"] = "invalid_query"
@@ -2464,15 +3127,19 @@ class StudyBibleDB:
 
         exact = "{text original_text_folded}"
         widened = "{text original_text_folded original_prefix_variants}"
+        variants = await self._ancient_spelling_variants(terms)
+        result["variants"] = variants
+        # A term matches itself or any spelling variant of it.
+        term_queries = [
+            "(" + " OR ".join(f'"{word}"' for word in [term, *variants.get(term, ())]) + ")"
+            for term in terms
+        ]
         stages = [(exact, "all", " AND "), (exact, "any", " OR ")]
         if any(_HEBREW_WORD.fullmatch(term) for term in terms):
             stages += [(widened, "all", " AND "), (widened, "any", " OR ")]
-        rows: list[dict] = []
-        for columns, match, operator in stages:
-            if match == "any" and len(terms) == 1:
-                continue
-            terms_query = operator.join(f'"{term}"' for term in terms)
-            rows = await self._fetchall(
+
+        async def search(match_query: str, size: int) -> list[dict]:
+            return await self._fetchall(
                 f"""SELECT p.*, bm25(ancient_source_passages_fts) AS rank
                     FROM ancient_source_passages_fts
                     JOIN ancient_source_passages p
@@ -2480,8 +3147,19 @@ class StudyBibleDB:
                     WHERE {' AND '.join(where)}
                     ORDER BY rank, p.corpus, p.work_title, p.sort_start
                     LIMIT ?""",
-                [f"{columns} : ({terms_query})", *params, limit],
+                [match_query, *params, size],
             )
+
+        rows: list[dict] = []
+        for columns, match, operator in stages:
+            if match == "any" and len(terms) == 1:
+                continue
+            rows = await search(f"{columns} : ({operator.join(term_queries)})", limit)
+            if rows and match == "all" and columns == exact and len(terms) > 1:
+                # Passages with the words as a phrase ('son of man') come first.
+                phrase = await search(f'{columns} : ("{" ".join(terms)}")', limit)
+                phrase_ids = {row["id"] for row in phrase}
+                rows = (phrase + [row for row in rows if row["id"] not in phrase_ids])[:limit]
             if rows:
                 result["match"] = match
                 result["prefix_match"] = columns == widened
@@ -2491,6 +3169,48 @@ class StudyBibleDB:
             return result
         result["rows"] = await self._attach_ancient_annotations(rows)
         return result
+
+    async def ancient_corpus_has_english(self, corpus: str) -> bool:
+        """True when some passage of ``corpus`` has English text to search."""
+        return bool(await self._fetchone(
+            "SELECT 1 FROM ancient_source_passages WHERE corpus = ? AND text != '' LIMIT 1",
+            (corpus,),
+        ))
+
+    async def _ancient_spelling_variants(self, terms: list[str]) -> dict[str, list[str]]:
+        """Index words spelled like each Latin-script search term ('melchizedek' ->
+        ['melchisedec', 'melchisedek']), read from the full-text index's vocabulary."""
+        variants: dict[str, list[str]] = {}
+        wanted = [
+            term for term in terms
+            if len(term) >= _MIN_VARIANT_LETTERS and re.fullmatch(r"[a-z]+", term)
+        ]
+        if not wanted:
+            return variants
+        try:
+            await self.conn.execute(
+                "CREATE VIRTUAL TABLE IF NOT EXISTS temp.ancient_search_vocab "
+                "USING fts5vocab(main, 'ancient_source_passages_fts', 'row')"
+            )
+        except Exception:
+            return variants
+        for term in wanted:
+            key = spelling_key(term)
+            if len(key) < _MIN_VARIANT_LETTERS - 1:
+                continue
+            found = []
+            for letter in _SPELLING_FIRST_LETTERS.get(key[0], key[0]):
+                rows = await self._fetchall(
+                    "SELECT term FROM temp.ancient_search_vocab WHERE term >= ? AND term < ?",
+                    (letter, chr(ord(letter) + 1)),
+                )
+                found += [
+                    row["term"] for row in rows
+                    if row["term"] != term and spelling_key(row["term"]) == key
+                ]
+            if found:
+                variants[term] = sorted(found)[:_MAX_SPELLING_VARIANTS]
+        return variants
 
     async def lookup_ancient_passages(
         self,

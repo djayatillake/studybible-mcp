@@ -1,0 +1,30 @@
+{
+  "_about": "Curated fixes for published third-party text, applied when a tool shows it (study_bible_mcp/published_text.py). 'corrections' never edit the publisher's wording: each inserts a '[⚠ Correction: note]' right after 'match' (exact text as displayed) in the Aquifer item named by resource_type and content_id (or title). 'transcriptions' fix transcription/OCR slips that are not the edition's wording, in one ancient-source passage field, at display and at import.",
+  "corrections": [
+    {
+      "resource_type": "dictionary",
+      "content_id": 3320,
+      "title": "Abraham",
+      "match": "left Haran at the age of 74.",
+      "note": "Genesis 12:4 gives Abram's age on leaving Haran as 75 (as the article's own '25 years' of waiting, to Isaac's birth at 100, implies)."
+    },
+    {
+      "resource_type": "key_terms",
+      "content_id": 280074,
+      "title": "high priest",
+      "match": "The high priest killed a lamb, and took the blood inside the temple.",
+      "note": "Leviticus 16 prescribes no lamb on the Day of Atonement: the high priest killed a bull as the sin offering for himself and his household (16:6, 11) and a goat for the people (16:9, 15), and took the blood of each into the Most Holy Place (16:14–15; Heb 9:7, 12). 'The lamb' later in this paragraph has the same slip."
+    }
+  ],
+  "transcriptions": [
+    {
+      "corpus": "pseudepigrapha",
+      "work_key": "4_ezra",
+      "reference": "4 Ezra 7:28",
+      "field": "original_text",
+      "find": "cum bis qui",
+      "replace": "cum his qui",
+      "reason": "Latin Wikisource transcription slip (h read as b); the Clementine Vulgate prints 'cum his qui cum eo sunt' ('with those who are with him'), and 'cum bis' is not Latin."
+    }
+  ]
+}

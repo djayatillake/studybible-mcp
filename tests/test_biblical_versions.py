@@ -18,11 +18,12 @@ from study_bible_mcp.parsers.biblical_versions import (
     BRENTON_BOOK_CODES,
     BRENTON_TRANSLATION_NOTE,
     KJV_APOCRYPHA_NOTE,
-    KJV_APOCRYPHA_TRANSLATION_LABEL,
     LXX_BOOK_CODES,
+    LXX_LICENSE,
     LXX_SOURCE_BOOKS,
-    LXX_TRANSLATION_LABEL,
+    LXX_SOURCE_URL,
     MT_BOOK_CODES,
+    MT_SOURCE_URL,
     REQUIRED_BRENTON_BOOKS,
     REQUIRED_BRENTON_GREEK_BOOKS,
     apocrypha_name,
@@ -33,7 +34,7 @@ from study_bible_mcp.parsers.biblical_versions import (
     normalize_greek_text,
     parse_brenton_usfm,
 )
-from study_bible_mcp.tools import format_biblical_version_comparison
+from study_bible_mcp.tools import BRENTON_SHORT_NOTE, format_biblical_version_comparison
 
 PROVENANCE_FIELDS = {
     "version",
@@ -324,7 +325,13 @@ async def test_mt_and_lxx_share_one_canonical_header(tmp_path, reference, mt_edi
     assert len({row["canonical_reference"] for row in rows}) == 1
     assert [row["edition_reference"] for row in rows] == [mt_edition, lxx_edition]
     assert output.count("\n### ") == 1
-    assert "STEPBible word glosses (interlinear, not a translation)" in output
+    assert "**English (word glosses):**" in output
+    # One sources line names each edition's licence and source.
+    assert (
+        f"*Sources: MT STEPBible TAHOT / Westminster Leningrad Codex (CC BY 4.0) {MT_SOURCE_URL} · "
+        f"LXX Rahlfs Septuagint (1935) ({LXX_LICENSE}) {LXX_SOURCE_URL} · "
+    ) in output
+    assert output.count("verse mapping: ") == 1
     shifted = mt_edition != rows[0]["canonical_reference"]
     assert ("TAHOT English/Hebrew versification" in output) == shifted
 
@@ -544,6 +551,7 @@ async def test_flagged_row_shows_warning_and_brentons_greek(tmp_path):
     )
     assert output.count(BRENTON_TRANSLATION_NOTE) == 1
     assert f"*Brenton's English: {BRENTON_TRANSLATION_NOTE}*" in output
+    assert BRENTON_SHORT_NOTE not in output
     assert output.index("Warning") < output.index("**English") < output.index("*Brenton's English:")
     without_greek = format_biblical_version_comparison(
         "Deuteronomy 32:43", result["rows"], include_original=False
@@ -557,7 +565,7 @@ async def test_psalm_40_6_flags_body_for_ears(tmp_path):
     assert result["rows"][0]["brenton_greek_difference"] == "Brenton's Greek reads σῶμα for ὠτία"
 
 
-async def test_matching_greek_shows_only_the_standing_note(tmp_path):
+async def test_matching_greek_shows_only_the_short_brenton_note(tmp_path):
     db_path = _build_db(tmp_path)
 
     result = await _compare(db_path, "Psalm 82:6", ["LXX"])
@@ -567,8 +575,9 @@ async def test_matching_greek_shows_only_the_standing_note(tmp_path):
     assert row["brenton_greek_differs"] == 0
     assert "brenton_greek" not in row and "brenton_greek_difference" not in row
     assert "Warning" not in output and "Brenton's Greek (the text" not in output
-    assert output.count(BRENTON_TRANSLATION_NOTE) == 1
-    assert f"*Brenton's English: {BRENTON_TRANSLATION_NOTE}*" in output
+    # The full caveat is kept for a row whose Greek differs; here one line says it.
+    assert BRENTON_TRANSLATION_NOTE not in output
+    assert output.count(BRENTON_SHORT_NOTE) == 1
     assert "Apocrypha" not in output and "apocrypha" not in row
 
 
@@ -604,7 +613,7 @@ async def test_kjv_apocrypha_english_is_labelled_with_one_closing_note(tmp_path)
     assert "#### LXX Rahlfs Septuagint (1935) · Tob.1.1 (mapping: lxx-only) (Apocrypha)" in output
     assert "**English (KJV Apocrypha):** The book of the words of Tobit." in output
     assert "Warning" not in output and "1611" not in output
-    assert f"English: {KJV_APOCRYPHA_TRANSLATION_LABEL}." in output  # Sources block
+    assert f"*Sources: LXX Rahlfs Septuagint (1935) ({LXX_LICENSE}) {LXX_SOURCE_URL}" in output
     assert output.count(KJV_APOCRYPHA_NOTE) == 1
     assert output.endswith(f"*KJV Apocrypha English: {KJV_APOCRYPHA_NOTE}*")
     assert (
@@ -613,7 +622,7 @@ async def test_kjv_apocrypha_english_is_labelled_with_one_closing_note(tmp_path)
     ) in output
     assert "Brenton's English:" not in output and "English (Brenton)" not in output
     assert "Brenton's Greek (the text" not in output and "not compared" not in output
-    assert output.index("**Sources**") < output.index("*Apocrypha:")
+    assert output.index("*Sources:") < output.index("*Apocrypha:")
 
 
 async def test_daniel_3_24_to_90_is_kjv_apocrypha(tmp_path):
@@ -634,19 +643,17 @@ async def test_mixed_kjv_and_brenton_rows_list_both_english_labels(tmp_path):
     # Greek numbering: Daniel 3:25 (Theodotion, KJV) and 3:92 (= MT 3:25, Brenton's own).
     result = await _compare(_build_db(tmp_path), "Daniel 3:25-92", numbering="lxx")
     output = format_biblical_version_comparison("Daniel 3:25-92", result["rows"], numbering="lxx")
-    sources = output[output.index("**Sources**"):]
+    sources = output[output.index("*Sources:"):]
 
     assert [row["edition_reference"] for row in result["rows"]] == [
         "Dan.3.25", "Dan.3.25", "Dan.3.25", "Dan.3.92", "Dan.3.92",
     ]
     assert "**English (KJV Apocrypha):** Then Azarias" in output
     assert "**English (Brenton):** and the appearance of the fourth" in output
-    assert (
-        f"Theodotion (Greek): {result['rows'][-1]['license']}. "
-        f"English: {KJV_APOCRYPHA_TRANSLATION_LABEL}; {LXX_TRANSLATION_LABEL}."
-    ) in sources
-    assert "Old Greek (Greek): " in sources and "English: none." in sources
-    assert output.count(KJV_APOCRYPHA_NOTE) == output.count(BRENTON_TRANSLATION_NOTE) == 1
+    assert "Theodotion" in sources and "Old Greek" in sources
+    assert f"({result['rows'][-1]['license']})" in sources
+    assert output.count(KJV_APOCRYPHA_NOTE) == 1
+    assert output.count(BRENTON_TRANSLATION_NOTE) + output.count(BRENTON_SHORT_NOTE) == 1
     assert output.count(" (Apocrypha)\n") == 2 and output.count("*Apocrypha:") == 1
     assert "Dan.3.92 (mapping: tvtms) (Apocrypha)" not in output
 
@@ -774,12 +781,34 @@ def test_comparison_formatter_honors_original_and_morphology_flags():
     assert "Morphology" not in compact
     assert "### Psa.24.1" in compact
     assert "#### LXX Rahlfs Septuagint (1935) · Psa.23.1 (mapping: tvtms)" in compact
-    # Provenance is listed once, in the closing Sources block.
+    # Provenance is listed once, in the closing Sources line.
     assert compact.count("https://example.test/lxx") == 1
-    assert "- LXX Rahlfs Septuagint (1935) (Greek): CC BY 4.0." in compact
-    assert "TVTMS (Tyndale Versification Traditions Mapping System)" in compact
+    assert "*Sources: LXX Rahlfs Septuagint (1935) (CC BY 4.0) https://example.test/lxx · " in compact
+    assert "verse mapping: OpenScriptorium lxx-morph, partly from TVTMS, CC BY 4.0" in compact
     assert "τοῦ κυρίου" in detailed
     assert "κύριος; noun; masc gen sg" in detailed
+
+
+def test_editions_sharing_a_source_are_named_once_in_the_sources_line():
+    def row(edition, text):
+        return {
+            "version": "LXX", "edition": edition, "language": "Greek",
+            "canonical_reference": None, "edition_reference": "Tob.1.1", "text": text,
+            "translation": None, "license": "CC BY 4.0", "source_url": "https://example.test/lxx",
+            "mapping_method": "lxx-only",
+        }
+
+    output = format_biblical_version_comparison(
+        "Tobit 1:1",
+        [row("Rahlfs Septuagint (1935)", "a"), row("Rahlfs Septuagint (1935), Sinaiticus recension", "b")],
+        numbering="lxx",
+    )
+    assert (
+        "*Sources: LXX Rahlfs Septuagint (1935) and LXX Rahlfs Septuagint (1935), Sinaiticus "
+        "recension (CC BY 4.0) https://example.test/lxx · verse mapping: "
+    ) in output
+    assert output.count("https://example.test/lxx") == 1
+    assert BRENTON_SHORT_NOTE not in output  # no Brenton English shown
 
 
 def test_formatter_prints_non_identity_mapping_even_when_references_match():
