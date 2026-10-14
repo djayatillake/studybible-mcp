@@ -1,148 +1,91 @@
 #!/usr/bin/env python3
 """Import the Torah Weave dataset (Moshe Kline) into the study_bible database.
 
-Reads data/torah_weave/torah-units.json and populates:
+Reads data/torah_weave/torah-units.json and replaces:
   - torah_weave_units  (86 literary units)
-  - torah_weave_cells  (~950 cells with row/column/subdivision + verse ranges)
+  - torah_weave_cells  (1,019 rows: Kline's 600 cells, counting each
+                        subdivision separately, with row/column/subdivision
+                        and verse range)
+
+Source: version 1.1 of https://chaver.com/torah-weave/data/torah-units.json,
+retrieved 2026-10-14, CC BY 4.0 (Moshe Kline, chaver.com). The file is pinned by
+SHA-256 (TORAH_WEAVE_SHA256 in src/study_bible_mcp/parsers/torah_weave.py) and
+the import changes nothing unless the file matches it. Re-running the import
+gives the same tables as a fresh build. To bring an existing database from
+version 1.0 to 1.1, or the Fly volume, use scripts/repair_torah_weave.py.
+
+Usage: import_torah_weave.py [DB]   (default: db/study_bible.db)
 """
 
 from __future__ import annotations
 
+import argparse
 import sqlite3
 import sys
 from pathlib import Path
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from study_bible_mcp.parsers.torah_weave import parse_torah_weave_file
+from study_bible_mcp.database import create_schema
+from study_bible_mcp.parsers.torah_weave import (
+    TORAH_WEAVE_SOURCE_URL,
+    TORAH_WEAVE_VERSION,
+    import_torah_weave,
+)
 
 
 def get_db_path() -> Path:
-    return Path(__file__).resolve().parent.parent / "db" / "study_bible.db"
+    return PROJECT_ROOT / "db" / "study_bible.db"
 
 
 def get_data_path() -> Path:
-    return (
-        Path(__file__).resolve().parent.parent
-        / "data"
-        / "torah_weave"
-        / "torah-units.json"
-    )
+    return PROJECT_ROOT / "data" / "torah_weave" / "torah-units.json"
 
 
-def import_units(conn: sqlite3.Connection, filepath: Path) -> tuple[int, int]:
-    """Import all units and cells. Returns (units_imported, cells_imported)."""
-    unit_count = 0
-    cell_count = 0
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("db", type=Path, nargs="?", default=get_db_path())
+    args = parser.parse_args()
 
-    for unit, cells in parse_torah_weave_file(filepath):
-        try:
-            conn.execute(
-                """INSERT OR REPLACE INTO torah_weave_units
-                   (id, book, book_full, unit_number, title, verses, verse_range,
-                    format, irregular, is_unique, cell_count, type,
-                    cell_count_with_subdivisions)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    unit["id"],
-                    unit["book"],
-                    unit["book_full"],
-                    unit["unit_number"],
-                    unit["title"],
-                    unit["verses"],
-                    unit["verse_range"],
-                    unit["format"],
-                    unit["irregular"],
-                    unit["is_unique"],
-                    unit["cell_count"],
-                    unit["type"],
-                    unit["cell_count_with_subdivisions"],
-                ),
-            )
-            unit_count += 1
-        except sqlite3.Error as e:
-            print(f"  Warning: failed to insert unit {unit['id']} ({unit['title']}): {e}")
-            continue
-
-        # Clear any existing cells for this unit (supports re-import)
-        conn.execute("DELETE FROM torah_weave_cells WHERE unit_id = ?", (unit["id"],))
-
-        for cell in cells:
-            try:
-                conn.execute(
-                    """INSERT INTO torah_weave_cells
-                       (unit_id, cell_label, row_num, column_letter, subdivision,
-                        book, verse_range, chapter_start, verse_start,
-                        chapter_end, verse_end, sort_start, sort_end)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        cell["unit_id"],
-                        cell["cell_label"],
-                        cell["row_num"],
-                        cell["column_letter"],
-                        cell["subdivision"],
-                        cell["book"],
-                        cell["verse_range"],
-                        cell["chapter_start"],
-                        cell["verse_start"],
-                        cell["chapter_end"],
-                        cell["verse_end"],
-                        cell["sort_start"],
-                        cell["sort_end"],
-                    ),
-                )
-                cell_count += 1
-            except sqlite3.Error as e:
-                print(
-                    f"  Warning: failed to insert cell {cell['cell_label']} "
-                    f"in unit {cell['unit_id']}: {e}"
-                )
-
-    conn.commit()
-    return unit_count, cell_count
-
-
-def main():
-    db_path = get_db_path()
+    db_path = args.db
     if not db_path.exists():
         print(f"Database not found at {db_path}")
         print("Run build_database.py first to create the base database.")
-        sys.exit(1)
+        return 1
 
     data_path = get_data_path()
     if not data_path.exists():
         print(f"Torah Weave data not found at {data_path}")
-        print(
-            "Download it from https://chaver.com/torah-weave/data/torah-units.json "
-            "and place it there."
-        )
-        sys.exit(1)
+        print(f"It ships with the repository; version {TORAH_WEAVE_VERSION} is {TORAH_WEAVE_SOURCE_URL}")
+        return 1
 
     conn = sqlite3.connect(str(db_path))
+    try:
+        create_schema(conn)
 
-    # Ensure schema exists
-    from study_bible_mcp.database import create_schema
-    create_schema(conn)
+        print("=" * 60)
+        print(f"Importing Torah Weave {TORAH_WEAVE_VERSION} (Moshe Kline)")
+        print("=" * 60)
 
-    print("=" * 60)
-    print("Importing Torah Weave (Moshe Kline)")
-    print("=" * 60)
+        try:
+            units, cells = import_torah_weave(conn, data_path)
+        except ValueError as exc:
+            print(f"ERROR: {exc}; nothing was changed", file=sys.stderr)
+            return 1
+        print(f"\n[Units] Imported {units} units")
+        print(f"[Cells] Imported {cells} cells")
 
-    units, cells = import_units(conn, data_path)
-    print(f"\n[Units] Imported {units} units")
-    print(f"[Cells] Imported {cells} cells")
-
-    # Summary
-    print("\n" + "=" * 60)
-    for table in ["torah_weave_units", "torah_weave_cells"]:
-        row = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
-        print(f"  {table}: {row[0]} rows")
-    print("=" * 60)
-
-    conn.close()
+        print("\n" + "=" * 60)
+        for table in ["torah_weave_units", "torah_weave_cells"]:
+            row = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
+            print(f"  {table}: {row[0]} rows")
+        print("=" * 60)
+    finally:
+        conn.close()
     print("\nDone!")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
