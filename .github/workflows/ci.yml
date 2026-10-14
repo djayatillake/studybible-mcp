@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.10 is the minimum supported; 3.11 is what production (Dockerfile) runs.
+        python-version: ["3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+      - name: Install (locked dev + server extras)
+        run: uv sync --locked --extra dev --extra sse
+      - name: Run the test suite
+        # Self-contained: every test builds its own temporary database, and no
+        # test touches the network or the production database.
+        run: uv run pytest -q
+      - name: Server imports and registers its tools
+        run: >-
+          uv run python -c "from study_bible_mcp import server;
+          from study_bible_mcp.tools import TOOLS;
+          print(len(TOOLS), 'tools registered')"
+
+  lint:
+    name: Lint (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
+      - name: Install
+        run: uv sync --locked --extra dev
+      - name: Ruff (reported, not yet enforced)
+        run: |
+          if ! uv run ruff check --statistics src tests scripts; then
+            echo "::warning::ruff reported issues; lint is advisory until the existing code is cleaned up"
+          fi
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the runtime image
+        # The image installs from requirements.txt, which can drift from
+        # pyproject.toml; building it catches a broken runtime install.
+        run: docker build -t studybible-mcp:ci .
+      - name: Server imports inside the image
+        run: docker run --rm studybible-mcp:ci python -c "import study_bible_mcp.server"
