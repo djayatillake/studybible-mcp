@@ -61,6 +61,39 @@ the database can be deployed in either order.
 
 ---
 
+## Versification: English verse numbers everywhere
+
+The tools take English (BSB) references, but several sources number verses
+otherwise. `scripts/repair_versification.py` brings an existing database into
+line (from the sources, or from a patch applied with the standard library):
+
+- **Cross-references.** The CH set numbers the Old Testament like the Hebrew
+  Bible, so Psalm 40:6 returned the links of English 40:5 and Joel 2:28 had
+  none. 8,132 CH pairs are renumbered to English; 178 pairs naming a verse in
+  neither numbering ('Psa.96.96') and 4 duplicates are dropped. TSK's
+  Philippians 1:16 and 1:17 (KJV order) and 3 John 1:15 take their BSB
+  numbers (30 rows), and its 45 self-links are dropped.
+- **LXX comparison.** Greek Psalm superscriptions are paired with English
+  verse 0, not verse 1 (67 rows). Where Brenton numbers verses differently
+  from Rahlfs, his English is taken from the verse whose Greek matches, checked
+  against the BSB: Sirach 1:1 had the English of the Prologue, the Letter of
+  Jeremiah was a verse out, Proverbs 30-31 had none (733 rows, mostly
+  Proverbs, Sirach, 1 Esdras, Letter of Jeremiah and Tobit).
+- **NT verses.** The verses table numbers the NT like the Greek edition;
+  each row now resolves by its BSB verse, so 2 Corinthians 13:14 is found,
+  13:13 shows its BSB text, and labels lead with the English reference
+  ('2Co.13.14 (Greek 2Co.13.13)'). A verse stored as several rows (Psalm
+  51:0's two Hebrew superscription verses, 3 John 1:14 with Greek 1:15) is
+  shown once.
+- **Torah Weave.** Kline's data uses Hebrew verse numbers; lookups and the
+  ranges shown are English (Leviticus 6:1-7:38 is English 6:8-7:38). A verse
+  in a unit but in no cell returns the unit, and a chapter lists its units.
+
+`people_in_passage` now reads every verse of a range ('Gen 22:1-3', 'Psalm
+23-24').
+
+---
+
 ## BSB text: pinned to the publisher's file
 
 The verse tools' BSB text now comes from the publisher's `bsb.txt`, pinned by
