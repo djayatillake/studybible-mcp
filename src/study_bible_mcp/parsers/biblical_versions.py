@@ -789,6 +789,8 @@ _ALIGNED = 0.5  # a Rahlfs verse this close to Brenton's verse of its number kee
 _REALIGN = 0.6  # a better Brenton verse must score at least this ...
 _REALIGN_GAIN = 0.25  # ... and this much more than the verse of the same number
 _REALIGN_ALONE = 0.85  # a realignment with no realigned neighbour needs this, in its chapter
+_CONTAINED = 0.8  # share of a Rahlfs verse's (weighted) words within a Brenton verse that holds it
+_NEARBY = 3  # Brenton verses this many places either side of a verse's own number are nearby
 # Brenton's English and Greek files share verse numbers; where one merges or
 # misnumbers verses, their lengths can disagree.
 _ENGLISH_GREEK_LENGTHS = (0.5, 2.6)
@@ -799,17 +801,86 @@ _ENGLISH_STOPWORDS = frozenset(
 )
 
 
+def _english_words(text: str) -> set[str]:
+    """An English verse's content words (first five letters)."""
+    return {
+        word[:5] for word in re.findall(r"[a-z]+", text.lower())
+        if len(word) > 2 and word not in _ENGLISH_STOPWORDS
+    }
+
+
 def _english_overlap(left: str, right: str) -> float:
     """Dice overlap of two English verses' content words (first five letters)."""
-    def words(text: str) -> set[str]:
-        return {
-            word[:5] for word in re.findall(r"[a-z]+", text.lower())
-            if len(word) > 2 and word not in _ENGLISH_STOPWORDS
-        }
-    left_words, right_words = words(left), words(right)
+    left_words, right_words = _english_words(left), _english_words(right)
     if not left_words or not right_words:
         return 0.0
     return 2 * len(left_words & right_words) / (len(left_words) + len(right_words))
+
+
+# A Brenton Greek verse repeating its neighbour (see without_repeated_verses):
+_REPEAT_COVERAGE = 0.9  # this much of the neighbour's words, in order, at one end of the verse ...
+_REPEAT_ENGLISH = 0.6  # ... where his English for the two shares less than this of its words
+_REPEAT_REMAINDER = 0.1  # a verse with no more than this left over is nothing but the copy
+
+
+def without_repeated_verses(
+    greek: dict[str, str], english: dict[str, str], rahlfs: dict[str, str] | None = None
+) -> dict[str, str]:
+    """One book of Brenton's Greek without the copies of a neighbouring verse it repeats.
+
+    eBible's transcription repeats a few verses by mistake: Job 3:14 and
+    3 Kingdoms 8:58 begin with the whole of the verse before, 1 Chronicles
+    11:24 ends with the whole of the verse after, and Numbers 34:10 is a second
+    copy of 34:11 instead of its own text. Brenton's English does not repeat
+    them, which tells a keying error from a refrain or formula (repeated in his
+    English too). ``greek`` and ``english`` map Brenton's verse numbers to his
+    text in file order; ``rahlfs`` maps Rahlfs verse numbers to the Rahlfs text.
+
+    The neighbour's words found again, in order, at the start or end of a
+    verse are removed from it. Where the two verses are the same text, the copy
+    is removed altogether: the one further from the Rahlfs verse of its number,
+    or both when Rahlfs cannot tell.
+    """
+    rahlfs = rahlfs or {}
+    corrected = dict(greek)
+    keys = list(greek)
+    for pair in zip(keys, keys[1:]):
+        if pair[0].split(":")[0] != pair[1].split(":")[0] or not all(key in corrected for key in pair):
+            continue
+        english_words = [_english_words(english.get(key, "")) for key in pair]
+        if not all(english_words) or len(english_words[0] & english_words[1]) >= _REPEAT_ENGLISH * min(
+            len(words) for words in english_words
+        ):
+            continue
+        tokens = {key: _greek_tokens(corrected[key].split(), 0) for key in pair}
+        short, long = sorted(pair, key=lambda key: len(tokens[key]))
+        blocks = [
+            block for block in difflib.SequenceMatcher(
+                None, [form for form, _, _ in tokens[short]], [form for form, _, _ in tokens[long]],
+                autojunk=False,
+            ).get_matching_blocks()
+            if block.size >= 2
+        ]
+        if not tokens[short] or sum(block.size for block in blocks) < _REPEAT_COVERAGE * len(tokens[short]):
+            continue
+        start, end = blocks[0].b, blocks[-1].b + blocks[-1].size
+        if start and end < len(tokens[long]):
+            continue  # inside the verse, not a copy appended to it
+        if len(tokens[long]) - (end - start) > _REPEAT_REMAINDER * len(tokens[long]):
+            words = corrected[long].split()
+            first_word, last_word = tokens[long][start][1], tokens[long][end - 1][2]
+            corrected[long] = " ".join(words[:first_word] + words[last_word + 1:])
+            continue
+
+        def own_match(key: str) -> float:
+            own, theirs = set(normalize_greek_text(rahlfs.get(key, ""))), {form for form, _, _ in tokens[key]}
+            return 2 * len(own & theirs) / (len(own) + len(theirs)) if own and theirs else 0.0
+
+        matches = {key: own_match(key) for key in pair}
+        for key in pair:
+            if matches[key] <= min(matches.values()):
+                del corrected[key]
+    return corrected
 
 
 def align_brenton_keys(
@@ -827,18 +898,22 @@ def align_brenton_keys(
     (the Letter of Jeremiah is one verse behind Brenton's; Brenton prints
     Sirach's prologue as 1:1-1:1g and its 1:1 as 1:1h; his Proverbs 24:22a-t
     is Rahlfs 30:1-14). The value is None for a verse whose Brenton verse
-    went to a closer match: its own number holds another verse's English.
+    went to a closer match, when no other Brenton verse holds it: its own
+    number holds another verse's English.
 
     A verse is moved only when its own number matches poorly, another Brenton
     verse matches it well and much better, that verse is not already matched
     by the Rahlfs verse of its own number, and Brenton's English and Greek for
     it are of comparable length. A move must also continue a neighbour's move
     (a run of renumbered verses), or match very closely within its chapter.
-    Words are weighted by rarity, so refrains (Daniel 3's "bless the Lord")
-    do not make verses match. ``reference_english`` (another English version
-    of a Rahlfs verse: the BSB of its MT verse) vetoes a move whose English is
-    further from it than the English of the verse's own number: Brenton's Greek
-    Psalm 12 is a verse out from his English, which is not.
+    A verse whose own Brenton verse was moved to another verse then follows
+    its text to wherever Brenton prints it (Brenton's 4 Maccabees 7:24-8:1 is
+    Rahlfs 8:1-2), unless it lies within that verse too. Words are weighted by
+    rarity, so refrains (Daniel 3's "bless the Lord") do not make verses
+    match. ``reference_english`` (another English version of a Rahlfs verse:
+    the BSB of its MT verse) vetoes a move whose English is further from it
+    than the English of the verse's own number: Brenton's Greek Psalm 12 is a
+    verse out from his English, which is not.
     """
     reference_english = reference_english or {}
     rahlfs_words = {ref: frozenset(normalize_greek_text(text)) for ref, text in rahlfs}
@@ -904,9 +979,39 @@ def align_brenton_keys(
     for ref, (key, value) in accepted.items():
         if key not in best_for_key or value > accepted[best_for_key[key]][1]:
             best_for_key[key] = ref
-    return {
+    moved: dict[str, str | None] = {
         ref: key if best_for_key[key] == ref else None for ref, (key, _) in accepted.items()
     }
+
+    # So does a Rahlfs verse whose own number went to the verse it belongs to
+    # (Rahlfs 4 Maccabees 8:2 is Brenton's 7:25-8:1), unless it lies within that
+    # Brenton verse too (Brenton joins two Rahlfs verses). It takes the Brenton
+    # verse closest to it instead (Rahlfs 8:1 is Brenton's 7:24) when that is
+    # as close as an aligned verse, or else a nearby Brenton verse that holds
+    # it, provided Brenton's English for that verse is no further from the
+    # reference English than his English of its own number.
+    def within(words: frozenset, key: str) -> float:
+        total = sum(weight[word] for word in words)
+        return sum(weight[word] for word in words & brenton_words.get(key, frozenset())) / total if total else 0.0
+
+    for ref, words in rahlfs_words.items():
+        if ref in moved or ref not in best_for_key or within(words, ref) >= _CONTAINED:
+            continue
+        candidates = [key for key in brenton_words if key != ref and comparable_lengths(key)]
+        best = max(candidates, key=lambda key: score(words, brenton_words[key]), default=None)
+        if best is None or score(words, brenton_words[best]) < _ALIGNED:
+            nearby = [key for key in candidates if abs(position[key] - position[ref]) <= _NEARBY]
+            best = max(nearby, key=lambda key: within(words, key), default=None)
+            if best is None or within(words, best) < _CONTAINED:
+                moved[ref] = None
+                continue
+        reference = reference_english.get(ref)
+        if reference and _english_overlap(reference, brenton_english.get(best, "")) < _english_overlap(
+            reference, brenton_english.get(ref, "")
+        ):
+            continue
+        moved[ref] = best
+    return moved
 
 
 def iter_lxx_rows(
@@ -928,9 +1033,11 @@ def iter_lxx_rows(
     except where Brenton numbers the text differently (``align_brenton_keys``,
     checked against ``bsb``: BSB text by MT reference, when available).
     Rows carrying Brenton's English are compared with Brenton's own Greek for
-    the same verse: ``brenton_greek_differs`` is 1 when it differs from Rahlfs
-    (and Brenton's Greek plus a difference summary are stored), 0 when it
-    agrees, and NULL when there is no English or no Brenton Greek verse. Verses
+    the same verse, less any copy of a neighbouring verse that eBible's
+    transcription repeats (``without_repeated_verses``): ``brenton_greek_differs``
+    is 1 when it differs from Rahlfs (and Brenton's Greek plus a difference
+    summary are stored), 0 when it agrees, and NULL when there is no English or
+    no Brenton Greek verse (Numbers 34:10, which eBible replaces with 34:11). Verses
     whose English is the KJV Apocrypha (see ``is_kjv_apocrypha``) are not
     compared (NULL): that English does not translate Brenton's Greek.
     """
@@ -951,7 +1058,10 @@ def iter_lxx_rows(
         # Brenton numbers the text differently. 2 Esdras takes its English
         # from Brenton's Ezra and Nehemiah by MT verse instead.
         brenton_refs: list[str | None] = list(raw_refs)
+        book_greek = {key: text for (code, key), text in brenton_greek.items() if code == greek_code}
         if translation_code and slug != "2-esdras":
+            book_english = {key: text for (code, key), text in translations.items() if code == translation_code}
+            book_greek = without_repeated_verses(book_greek, book_english, dict(zip(raw_refs, texts)))
             reference_english = {}
             for raw_ref in raw_refs:
                 targets, _ = _mapping_targets(pairings.get((slug, raw_ref)) or [{}])
@@ -962,17 +1072,9 @@ def iter_lxx_rows(
                 ).strip()
                 if english:
                     reference_english[raw_ref] = english
-            moved = align_brenton_keys(
-                list(zip(raw_refs, texts)),
-                {key: text for (code, key), text in brenton_greek.items() if code == greek_code},
-                {key: text for (code, key), text in translations.items() if code == translation_code},
-                reference_english,
-            )
+            moved = align_brenton_keys(list(zip(raw_refs, texts)), book_greek, book_english, reference_english)
             brenton_refs = [moved.get(raw_ref, raw_ref) for raw_ref in raw_refs]
-        greek_texts = [
-            brenton_greek.get((greek_code, brenton_ref), "") if brenton_ref else ""
-            for brenton_ref in brenton_refs
-        ]
+        greek_texts = [book_greek.get(brenton_ref, "") if brenton_ref else "" for brenton_ref in brenton_refs]
         seen: set[tuple[str, str | None]] = set()
         for index, verse in enumerate(verses):
             raw_ref, text = raw_refs[index], texts[index]
