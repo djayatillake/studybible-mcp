@@ -8,7 +8,7 @@ A Bible study assistant for Claude that provides full scholarly lexicons (LSJ Gr
 
 1. Open **Settings** → **Connectors**
 2. Click **Add Custom Connector**
-3. Paste: `https://studybible-mcp.fly.dev/sse`
+3. Paste: `https://studybible-mcp.fly.dev/mcp/`
 4. Restart Claude Desktop
 
 That's it. No signup, no API keys, no downloads.
@@ -16,7 +16,7 @@ That's it. No signup, no API keys, no downloads.
 ### Claude Code
 
 ```bash
-claude mcp add study-bible https://studybible-mcp.fly.dev/sse
+claude mcp add --transport http study-bible https://studybible-mcp.fly.dev/mcp/
 ```
 
 ### ChatGPT (Developer Mode)
@@ -34,7 +34,7 @@ Add to your MCP configuration (usually `.cursor/mcp.json`, `.windsurf/mcp.json`,
   "mcpServers": {
     "study-bible": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://studybible-mcp.fly.dev/sse"]
+      "args": ["-y", "mcp-remote", "https://studybible-mcp.fly.dev/mcp/"]
     }
   }
 }
@@ -62,7 +62,7 @@ If you prefer editing config files directly:
   "mcpServers": {
     "study-bible": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://studybible-mcp.fly.dev/sse"]
+      "args": ["-y", "mcp-remote", "https://studybible-mcp.fly.dev/mcp/"]
     }
   }
 }
@@ -72,6 +72,14 @@ Config file locations:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
+
+### Transports
+
+| Endpoint | Transport | Status |
+|----------|-----------|--------|
+| `https://studybible-mcp.fly.dev/mcp/` | Streamable HTTP (stateless; `/mcp` without the slash works too) | **Recommended** |
+| `https://studybible-mcp.fly.dev/sse` (+ `/messages`) | Legacy HTTP+SSE | **Deprecated**: still served for existing connectors, but will be removed. Re-add the connector with the `/mcp/` URL. |
+| `studybible-mcp --transport stdio` | stdio (local) | Supported |
 
 ---
 

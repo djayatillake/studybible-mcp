@@ -2360,23 +2360,64 @@ class _ASGIEndpoint:
         await self.app(scope, receive, send)
 
 
+# The SSE stream sends a comment line this often while idle, so Fly's proxy
+# (and any other) never closes a quiet session as idle. sse-starlette's
+# default is 15 s today; pinned so a library upgrade cannot lengthen it.
+SSE_PING_SECONDS = 15
+
+
+def _make_sse_transport():
+    """The SDK's SSE transport, made to forget a session once its stream closes.
+
+    SseServerTransport keeps each session's writer after the client
+    disconnects. A POST to that session id was then answered 202 Accepted and
+    the message dropped (the send on the closed stream raised after the
+    response), so the client's call hung until it timed out. Now a closed
+    session is answered like an unknown one: 404 "Could not find session".
+
+    404 is kept for unknown and expired sessions (the SDK's answer): no SSE
+    client treats any status as "reconnect" (the TypeScript and Python SDKs
+    raise on every non-2xx POST, e.g. "Error POSTing to endpoint (HTTP 404)"),
+    and 404 is what the Streamable HTTP spec defines for an expired session,
+    on which clients must start a new one.
+    """
+    from mcp.server.sse import SseServerTransport
+
+    class ForgetfulSseTransport(SseServerTransport):
+        def forget_closed_sessions(self) -> None:
+            for session_id, writer in list(self._read_stream_writers.items()):
+                counts = writer.statistics()
+                if not counts.open_send_streams or not counts.open_receive_streams:
+                    del self._read_stream_writers[session_id]
+
+        async def handle_post_message(self, scope, receive, send) -> None:
+            self.forget_closed_sessions()
+            await super().handle_post_message(scope, receive, send)
+
+    return ForgetfulSseTransport("/messages")
+
+
 def _make_sse_routes():
     """Create the legacy SSE transport routes shared by the SSE and HTTP transports.
 
     GET /sse opens a session and tells the client to POST its messages to
-    /messages?session_id=<id>.
+    /messages?session_id=<id>. Deprecated: clients should use /mcp/.
     """
-    from mcp.server.sse import SseServerTransport
+    from sse_starlette import EventSourceResponse
     from starlette.routing import Route
 
-    sse = SseServerTransport("/messages")
+    EventSourceResponse.DEFAULT_PING_INTERVAL = SSE_PING_SECONDS
+    sse = _make_sse_transport()
 
     async def handle_sse(scope, receive, send):
-        async with sse.connect_sse(scope, receive, send) as streams:
-            await server.run(
-                streams[0], streams[1],
-                server.create_initialization_options()
-            )
+        try:
+            async with sse.connect_sse(scope, receive, send) as streams:
+                await server.run(
+                    streams[0], streams[1],
+                    server.create_initialization_options()
+                )
+        finally:
+            sse.forget_closed_sessions()
 
     # Both handlers send their own response and return None (handle_post_message
     # answers 202, or 400/404 for a bad or unknown session id), so they are routed
@@ -2404,8 +2445,8 @@ def build_sse_app():
             "description": ROOT_DESCRIPTION,
             "transport": "sse",
             "endpoints": {
-                "/sse": "SSE connection endpoint",
-                "/messages": "Message POST endpoint",
+                "/sse": "SSE connection endpoint (deprecated; use /mcp/ — will be removed)",
+                "/messages": "Message POST endpoint (deprecated with /sse)",
                 "/health": "Health check",
                 "/privacy": "Privacy policy",
             },
@@ -2565,8 +2606,8 @@ def build_http_app():
             "transports": ["streamable-http", "sse"],
             "endpoints": {
                 "/mcp": "Streamable HTTP MCP endpoint (recommended)",
-                "/sse": "SSE connection endpoint (legacy)",
-                "/messages": "SSE message POST endpoint",
+                "/sse": "SSE connection endpoint (deprecated; use /mcp/ — will be removed)",
+                "/messages": "SSE message POST endpoint (deprecated with /sse)",
                 "/health": "Health check",
                 "/privacy": "Privacy policy",
                 "/static/icon.png": "Server icon",
