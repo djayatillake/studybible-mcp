@@ -713,7 +713,9 @@ alignment also stay in their own sections, and sections with nothing
 catalogued are omitted. Verses where the witnesses agree with the MT but the
 reading or rendering is contested (for example the divine-council language of
 Psalm 82:6) appear as **Translation and interpretation notes**, never as
-variants. `lookup_verse` mentions when a verse has a catalogued variant case or
+variants. A verse can have both: at Job 38:7, Daniel 4:17 and 7:13, and Psalm
+29:1 a variant case records where the Greek differs from the MT, and the notes
+follow it. `lookup_verse` mentions when a verse has a catalogued variant case or
 interpretation notes. On a database that still has the legacy
 variant schema, the tool asks you to run `python scripts/upgrade_database.py`.
 

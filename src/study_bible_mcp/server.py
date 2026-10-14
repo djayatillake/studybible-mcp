@@ -389,7 +389,14 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
         book, shown_start[0], shown_start[1], shown_end[0], shown_end[1]
     )
     variant_cases = [case for case in cases if case["case_key"] not in INTERPRETIVE_CASE_KEYS]
-    interpretive_cases = [case for case in cases if case["case_key"] in INTERPRETIVE_CASE_KEYS]
+    # A verse with a variant is cued once, as a variant: get_textual_variant
+    # returns its interpretation notes with it, and they are not "no variant".
+    variant_verses = {(case["chapter"], case["verse"]) for case in variant_cases}
+    interpretive_cases = [
+        case for case in cases
+        if case["case_key"] in INTERPRETIVE_CASE_KEYS
+        and (case["chapter"], case["verse"]) not in variant_verses
+    ]
 
     def cued(found: list[dict]) -> str:
         return ", ".join(

@@ -2,6 +2,32 @@
 
 ---
 
+## Textual variants: Greek evidence at four divine-council verses
+
+Reported in #4. The interpretation notes at these verses listed Greek
+witnesses as agreeing with the MT where the Rahlfs text does not. Each verse
+now has a manuscript-variant case for the Greek, ahead of its unchanged notes:
+
+- **Job 38:7** (`LXX_divergence`): the LXX has πάντες ἄγγελοί μου ("all my
+  angels") for "all the sons of God", and "when the stars were made" for "when
+  the morning stars sang together".
+- **Daniel 4:17** (`LXX_OG_omission`): the Old Greek has no equivalent for the
+  decree-of-the-watchers clause; Theodotion keeps it (ιρ). The watchers
+  terminology is Theodotion's, not the Old Greek's, which has ἄγγελος at 4:13
+  and 4:23.
+- **Daniel 7:13** (`LXX_OG_divergence`): the Old Greek has ἐπί ("upon") the
+  clouds, Theodotion μετά ("with"), as the MT. Mark 14:62 and Revelation 1:7
+  have μετά; Matthew 24:30 and 26:64 have ἐπί.
+- **Psalm 29:1** (`LXX_doublet`): the LXX has both υἱοὶ θεοῦ and υἱοὺς κριῶν.
+
+The diverging Greek witnesses left the notes, and where a verse has both kinds
+of case the notes follow the variant and point to it instead of repeating the
+MT text. `lookup_verse` cues such a verse once, as a variant.
+`scripts/repair_textual_variant_witnesses.py` corrects an existing database in
+place, from the records or from a patch applied with the standard library.
+
+---
+
 ## Ancient sources: Second Temple witnesses, labelled at the point of use
 
 - **Kept corpora.** The ancient sources are texts written by about AD 200 that

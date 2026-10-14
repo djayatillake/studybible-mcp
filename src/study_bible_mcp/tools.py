@@ -1062,7 +1062,7 @@ WHAT IT RETURNS for a given verse reference:
 - Author-specific claims: named-author arguments, separate from critical judgments
 - Translation decisions: a translation's selected reading and rationale
 - NT quotation alignment: separately catalogued links where an NT quotation follows an LXX form
-- Translation and interpretation notes: verses where the witnesses agree with the MT but the reading or rendering is contested (e.g. divine-council language at Psalm 82:6); shown separately, never as a variant
+- Translation and interpretation notes: how a contested verse is read or rendered (e.g. divine-council language at Psalm 82:6); shown separately, after any manuscript variant at the verse, never as one
 
 Sections with nothing catalogued are omitted. Each manuscript-variant witness
 keeps the dataset's raw support label. A witness date describes the witness
@@ -2066,17 +2066,36 @@ def _format_citation_evidence(case: dict) -> list[str]:
     return lines
 
 
-def _format_interpretive_case(case: dict) -> list[str]:
-    """Format an agreed-text case: the MT reading, then the attributed layers."""
+def _format_interpretive_case(
+    case: dict, shown_readings: set[tuple[str, str | None]] | None = None
+) -> list[str]:
+    """Format an agreed-text case: the MT reading, then the attributed layers.
+
+    ``shown_readings`` holds the (text, original_text) of readings already shown
+    by a manuscript variant at the same verse. The notes then say the evidence
+    is in that record, and skip a text block that would repeat it.
+    """
+    if shown_readings is None:
+        banner = (
+            "*Not a manuscript variant: the witnesses agree with the Masoretic Text "
+            "here. These notes record how the verse is read and translated.*"
+        )
+    else:
+        banner = (
+            "*Not manuscript evidence: these notes record how the verse is read and "
+            "translated. The textual evidence at this verse is in the variant record "
+            "above.*"
+        )
     lines = [
         f"## Translation and interpretation notes at {case['reference']}",
-        "*Not a manuscript variant: the witnesses agree with the Masoretic Text "
-        "here. These notes record how the verse is read and translated.*",
+        banner,
         f"**Case key:** {case['case_key']}",
     ]
     if case.get("significance"):
         lines.append(f"**Significance classification:** {case['significance']}")
     for reading in case.get("manuscript_evidence") or []:
+        if (reading["text"], reading.get("original_text")) in (shown_readings or set()):
+            continue
         lines.extend(["", f"### Text ({reading['tradition']})", reading["text"]])
         if reading.get("original_text"):
             lines.append(f"\n**Original-language text:** `{reading['original_text']}`")
@@ -2099,14 +2118,27 @@ def format_textual_variant_cases(
     cases: list[dict],
     quotation_hints: list[dict],
 ) -> str:
-    """Format evidence, judgments, interpretations, and claims as separate sections."""
+    """Format evidence, judgments, interpretations, and claims as separate sections.
+
+    Where a verse has both a manuscript variant and interpretation notes, the
+    variant comes first and the notes point back to it.
+    """
     if cases and all(case.get("kind") == "interpretive" for case in cases):
         lines = [f"# Translation and interpretation notes for {reference}", ""]
     else:
         lines = [f"# Textual variant record for {reference}", ""]
-    for case in cases:
+    variant_cases = [case for case in cases if case.get("kind") != "interpretive"]
+    shown_readings: dict[str, set[tuple[str, str | None]]] = {}
+    for case in variant_cases:
+        shown_readings.setdefault(case["reference"], set()).update(
+            (reading["text"], reading.get("original_text"))
+            for reading in case.get("manuscript_evidence") or []
+        )
+    for case in variant_cases + [case for case in cases if case.get("kind") == "interpretive"]:
         if case.get("kind") == "interpretive":
-            lines.extend(_format_interpretive_case(case))
+            lines.extend(
+                _format_interpretive_case(case, shown_readings.get(case["reference"]))
+            )
             continue
         lines.extend(
             [

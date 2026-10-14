@@ -6,15 +6,31 @@
       "mt_hebrew": "הָבוּ לַיהוָה בְּנֵי אֵלִים הָבוּ לַיהוָה כָּבוֹד וָעֹז (bene elim = sons of gods/the mighty)",
       "variant_source": "translation_choice",
       "variant_reading": "The Hebrew bene elim literally means 'sons of gods' or 'sons of the mighty ones.' Many translations obscure this: NIV has 'mighty ones,' NASB has 'sons of the mighty,' NKJV has 'mighty ones.' The Hebrew is transparent — these are divine beings being commanded to worship Yahweh. The same phrase bene elim appears in Psalm 89:6 in an explicitly heavenly/divine council context ('who in the clouds can be compared to Yahweh? who among the bene elim is like Yahweh?'). Psalm 29 is recognized as among the oldest poetry in the Hebrew Bible (12th-10th century BCE), predating any supposed 'evolution' toward monotheism.",
-      "variant_original": "Same text; translations obscure",
+      "variant_original": "Same text in the MT; translations obscure; the LXX has a doublet (see the LXX_doublet case)",
       "variant_significance": "major_theological",
       "heiser_analysis": "Heiser notes that English Bible translations that render bene elim as 'mighty ones' or 'heavenly beings' rather than 'sons of gods' are camouflaging the text to protect monotheism. The NIV at Psalm 29:1 has 'mighty ones' — but the Hebrew is bene elim, the exact Ugaritic parallel for divine council members (bn 'il). Commanding nonexistent beings to ascribe glory to Yahweh would be hollow praise. Psalm 29:10 declares 'Yahweh sits enthroned over the flood... as king forever' — cosmic kingship language consistent with the divine council setting.",
       "scholarly_consensus": "The bene elim of Psalm 29:1 are universally identified as divine beings by Semitics scholars. The psalm's Ugaritic parallels are among the best documented in the Hebrew Bible.",
       "preferred_for_hlt": "Ascribe to Yahweh, O sons of the gods (divine beings of the heavenly council), ascribe to Yahweh glory and strength!",
       "hlt_rationale": "The HLT renders bene elim literally as 'sons of the gods' with the explanatory gloss 'divine beings of the heavenly council' to make the divine council address explicit.",
       "witnesses": [
-        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"},
-        {"manuscript": "LXX (huioi theou)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_variant"}
+      ]
+    },
+    {
+      "reference": "Psa.29.1",
+      "mt_reading": "Ascribe to Yahweh, O sons of gods, ascribe to Yahweh glory and strength",
+      "mt_hebrew": "הָבוּ לַיהוָה בְּנֵי אֵלִים הָבוּ לַיהוָה כָּבוֹד וָעֹז (bene elim = sons of gods/the mighty)",
+      "variant_source": "LXX_doublet",
+      "variant_reading": "Bring to the Lord, O sons of God; bring to the Lord sons of rams; bring to the Lord glory and honor.",
+      "variant_original": "ἐνέγκατε τῷ κυρίῳ υἱοὶ θεοῦ ἐνέγκατε τῷ κυρίῳ υἱοὺς κριῶν ἐνέγκατε τῷ κυρίῳ δόξαν καὶ τιμήν",
+      "variant_significance": null,
+      "heiser_analysis": null,
+      "scholarly_consensus": "The LXX (Psalm 28:1) renders the first colon twice, a doublet: υἱοὶ θεοῦ ('sons of God', for בְּנֵי אֵלִים) and υἱοὺς κριῶν ('sons of rams'; Brenton 'young rams'), which reads the same consonants אלים as 'rams'. Both stand in the LXX text.",
+      "preferred_for_hlt": null,
+      "hlt_rationale": null,
+      "witnesses": [
+        {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
+        {"manuscript": "LXX (Psalm 28:1)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
       ]
     },
     {
