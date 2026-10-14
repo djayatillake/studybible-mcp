@@ -2,6 +2,32 @@
 
 ---
 
+## ACAI annotations moved to the entities they describe
+
+`lookup_name` showed some ACAI annotations on the wrong person or place. The
+annotations are ACAI's own; the build now attaches them correctly, from
+curated corrections in `graph_curated.json` ("acai"), each recording the value
+it replaces and why, so the build stops if ACAI changes them.
+
+- **Ramah.** ACAI's Ramahs of Benjamin, Asher and Naphtali carried each
+  other's labels and descriptions: Benjamin's Ramah (Judges 4:5, Jeremiah
+  31:15, Matthew 2:18) was "a town in the territory of Simeon". Each now has
+  the label and description ACAI gives that town elsewhere.
+- **Also known as.** The patriarch Judah is no longer "also known as" David,
+  nor Jehoiakim as Zedekiah: both came from English renderings (ESV 2 Chr
+  25:28 "city of David", Jer 27:1 "Zedekiah") that TIPNR lists under them.
+- **Roles.** The priest John of Acts 4:6 and Peter's father John are no longer
+  "Disciple", and Aiah no longer has his daughter Rizpah's roles
+  ("Concubine").
+
+`scripts/repair_acai_corrections.py` updates those fields of an existing
+database (12 fields in 9 rows), from the sources or from a patch applied with
+the standard library; it refuses, changing nothing, unless each row holds the
+source value or the corrected one. The code and the database can be deployed
+in either order.
+
+---
+
 ## Torah Weave 1.1
 
 `get_torah_weave` now reads version 1.1 of Moshe Kline's dataset, pinned by

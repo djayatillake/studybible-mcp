@@ -12,12 +12,120 @@ Each entity file contains structured data including:
 - Relationships: family (father, mother, partners, offspring, siblings)
 - References: verse-level annotations, speech attributions
 - Localization: multilingual labels and descriptions
+
+Some annotations are attached to the wrong entity; the curated corrections
+in graph_curated.json ("acai") put them right (``apply_acai_corrections``).
 """
 
 import json
 import re
 from collections.abc import Iterator
 from pathlib import Path
+
+# The entity directories, in the order a build imports them
+ACAI_TYPES = ("people", "places", "groups", "keyterms")
+# acai_entities columns that hold a JSON list; a curated correction gives them as lists
+JSON_FIELDS = (
+    "roles", "partners", "offspring", "siblings", "referred_to_as", "key_references", "tipnr_keys",
+)
+CORRECTABLE_FIELDS = (
+    "name", "gender", "description", "father_id", "mother_id",
+    "reference_count", "speeches_count", *JSON_FIELDS,
+)
+
+
+class CuratedAcaiError(ValueError):
+    """A curated ACAI correction no longer matches the source it corrects."""
+
+
+def parse_acai_dir(acai_dir: Path, on_error=None) -> dict[str, dict]:
+    """Every entity under acai_dir, by id, as parse_acai_entities yields them.
+
+    A later duplicate id replaces an earlier one, as the build's INSERT OR
+    REPLACE does. A file that fails to parse is passed to ``on_error(path,
+    error)`` if given, and otherwise raises.
+    """
+    entities: dict[str, dict] = {}
+    for entity_type in ACAI_TYPES:
+        for path in sorted((acai_dir / entity_type).glob("*.json")):
+            try:
+                parsed = list(parse_acai_entities(path, entity_type))
+            except Exception as error:
+                if on_error is None:
+                    raise
+                on_error(path, error)
+                continue
+            for entity in parsed:
+                entities[entity["id"]] = entity
+    return entities
+
+
+def field_value(entity: dict, field: str):
+    """A parsed entity's field as a correction gives it: JSON lists decoded."""
+    value = entity.get(field)
+    return json.loads(value) if field in JSON_FIELDS and value is not None else value
+
+
+def apply_acai_corrections(
+    entities: dict[str, dict], corrections: list[dict], require_all: bool = False
+) -> dict[str, dict]:
+    """Apply the curated corrections of graph_curated.json ("acai") to parsed entities.
+
+    ACAI attaches some of its annotations to the wrong entity: the Ramahs'
+    labels and descriptions are rotated against their own references and
+    TIPNR keys, and the patriarch Judah is 'also known as' David. Each
+    correction names an entity ('id'), a field (an acai_entities column; a
+    JSON list column is given as a list), the value the source has ('from')
+    and the corrected value ('to'), with the reason. 'source', where given,
+    names the entity whose own value of that field 'to' is, so a correction
+    moves ACAI's text to the entity it describes and never brings in new text.
+
+    An entity already holding 'to' is left alone. One holding neither, a
+    'source' that no longer holds 'to', or (with require_all) an entity
+    missing from the source raises CuratedAcaiError, so that a change
+    upstream stops the build until the correction is reviewed. Returns the
+    entities, corrected; ``entities`` itself is not changed.
+    """
+    corrected = dict(entities)
+    seen = set()
+    for fix in corrections:
+        entity_id, field = fix["id"], fix["field"]
+        if field not in CORRECTABLE_FIELDS:
+            raise CuratedAcaiError(f"graph_curated.json corrects unknown field {field!r} of {entity_id}")
+        if (entity_id, field) in seen:
+            raise CuratedAcaiError(f"graph_curated.json corrects {entity_id} {field} twice")
+        seen.add((entity_id, field))
+        entity = entities.get(entity_id)
+        if entity is None:
+            if require_all:
+                raise CuratedAcaiError(f"ACAI has no entity {entity_id}, which graph_curated.json corrects")
+            continue
+        current = field_value(entity, field)
+        if current == fix["to"]:
+            continue
+        if current != fix["from"]:
+            raise CuratedAcaiError(
+                f"ACAI {entity_id} {field} is {current!r}, but graph_curated.json corrects "
+                f"{fix['from']!r} to {fix['to']!r}; review the correction"
+            )
+        source_id = fix.get("source")
+        if source_id:
+            source = entities.get(source_id)
+            if source is None:
+                if require_all:
+                    raise CuratedAcaiError(
+                        f"ACAI has no entity {source_id}, whose {field} graph_curated.json gives {entity_id}"
+                    )
+            elif field_value(source, field) != fix["to"]:
+                raise CuratedAcaiError(
+                    f"ACAI {source_id} {field} is {field_value(source, field)!r}, not the "
+                    f"{fix['to']!r} graph_curated.json gives {entity_id}; review the correction"
+                )
+        corrected[entity_id] = {
+            **corrected[entity_id],
+            field: json.dumps(fix["to"]) if field in JSON_FIELDS else fix["to"],
+        }
+    return corrected
 
 
 def parse_acai_entities(filepath: Path, entity_type: str) -> Iterator[dict]:

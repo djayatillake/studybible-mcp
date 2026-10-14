@@ -806,76 +806,37 @@ def import_aquifer_content(conn: sqlite3.Connection, aquifer_dir: Path):
 
 
 def import_acai_entities(conn: sqlite3.Connection, acai_dir: Path):
-    """Import ACAI entity annotation files."""
-    from study_bible_mcp.parsers.acai import parse_acai_entities
+    """Import ACAI entity annotation files, with the curated corrections applied."""
+    from collections import Counter
 
-    entity_types = ["people", "places", "groups", "keyterms"]
-    total_count = 0
+    from study_bible_mcp.parsers.acai import apply_acai_corrections, parse_acai_dir
 
-    for entity_type in entity_types:
-        type_dir = acai_dir / entity_type
-        if not type_dir.exists():
-            continue
+    def warn(path: Path, error: Exception):
+        console.print(f"  [yellow]Warning: {path.name}: {error}[/yellow]")
 
-        json_files = sorted(type_dir.glob("*.json"))
-        if not json_files:
-            continue
+    console.print("Importing ACAI entities...")
+    entities = parse_acai_dir(acai_dir, on_error=warn)
+    if not entities:
+        return
+    for entity_type, count in Counter(e["entity_type"] for e in entities.values()).items():
+        console.print(f"  [green]✓[/green] Parsed {count} {entity_type} entities")
 
-        console.print(f"Importing ACAI {entity_type} ({len(json_files)} files)...")
-        count = 0
-        batch = []
-
-        for json_file in json_files:
-            try:
-                for entity in parse_acai_entities(json_file, entity_type):
-                    batch.append((
-                        entity['id'],
-                        entity['entity_type'],
-                        entity['name'],
-                        entity.get('gender'),
-                        entity.get('description'),
-                        entity.get('roles'),
-                        entity.get('father_id'),
-                        entity.get('mother_id'),
-                        entity.get('partners'),
-                        entity.get('offspring'),
-                        entity.get('siblings'),
-                        entity.get('referred_to_as'),
-                        entity.get('key_references'),
-                        entity.get('reference_count', 0),
-                        entity.get('speeches_count', 0),
-                        entity.get('tipnr_keys'),
-                    ))
-                    count += 1
-
-                    if len(batch) >= 500:
-                        conn.executemany("""
-                            INSERT OR REPLACE INTO acai_entities
-                            (id, entity_type, name, gender, description, roles,
-                             father_id, mother_id, partners, offspring, siblings,
-                             referred_to_as, key_references, reference_count, speeches_count, tipnr_keys)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """, batch)
-                        conn.commit()
-                        batch = []
-            except Exception as e:
-                console.print(f"  [yellow]Warning: {json_file.name}: {e}[/yellow]")
-
-        if batch:
-            conn.executemany("""
-                INSERT OR REPLACE INTO acai_entities
-                (id, entity_type, name, gender, description, roles,
-                 father_id, mother_id, partners, offspring, siblings,
-                 referred_to_as, key_references, reference_count, speeches_count, tipnr_keys)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, batch)
-            conn.commit()
-
-        console.print(f"  [green]✓[/green] Imported {count} {entity_type}")
-        total_count += count
-
-    if total_count:
-        console.print(f"  [green]✓[/green] Total ACAI entities: {total_count}")
+    # Annotations ACAI attaches to the wrong entity (graph_curated.json "acai");
+    # a correction that no longer matches the source stops the build
+    entities = apply_acai_corrections(entities, load_curated()["acai"], require_all=True)
+    columns = (
+        "id", "entity_type", "name", "gender", "description", "roles",
+        "father_id", "mother_id", "partners", "offspring", "siblings",
+        "referred_to_as", "key_references", "reference_count", "speeches_count", "tipnr_keys",
+    )
+    defaults = {"reference_count": 0, "speeches_count": 0}
+    conn.executemany(
+        f"INSERT OR REPLACE INTO acai_entities ({', '.join(columns)}) "
+        f"VALUES ({', '.join('?' for _ in columns)})",
+        [tuple(entity.get(c, defaults.get(c)) for c in columns) for entity in entities.values()],
+    )
+    conn.commit()
+    console.print(f"  [green]✓[/green] Total ACAI entities: {len(entities)}")
 
 
 def import_ane_context(conn: sqlite3.Connection, ane_dir: Path):
