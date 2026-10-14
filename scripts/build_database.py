@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from study_bible_mcp.corpora import CORPORA
 from study_bible_mcp.database import create_schema
+from study_bible_mcp.lexicon_usage import update_usage_counts
 from study_bible_mcp.parsers.ancient_sources import import_available_corpora
 from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
 from study_bible_mcp.parsers.lexicon import (
@@ -150,6 +151,10 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
         tahot_files = find_tahot_files(data_dir)
         for tahot_path in tahot_files:
             import_verses(conn, tahot_path, "tahot", tahot_path.stem)
+
+        # Word frequencies come from the tagged text, not the lexicon sources
+        changed, counted = update_usage_counts(conn)
+        console.print(f"  [green]✓[/green] Usage counts for {counted} lexicon entries")
 
         # Import proper names
         tipnr_path = data_dir / "TIPNR.txt"
