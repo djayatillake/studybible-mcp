@@ -215,7 +215,7 @@ def test_bundled_quotation_hints_link_to_bundled_cases(tmp_path):
     total = conn.execute("SELECT COUNT(*) FROM nt_ot_lxx_quote_hints").fetchone()[0]
     conn.close()
 
-    assert first == second == total == 18
+    assert first == second == total == 22
     assert links == {
         "Heb.10.5": "Psa.40.6 LXX_quoted_in_NT",
         "Heb.1.6": "Deu.32.43 DSS_4QDeutq",
@@ -223,6 +223,10 @@ def test_bundled_quotation_hints_link_to_bundled_cases(tmp_path):
         "Luk.4.18": "Isa.61.1 LXX_quoted_in_NT",
         "Luk.3.6": "Isa.40.5 LXX_quoted_in_NT",
         "Mat.21.16": "Psa.8.2 LXX_quoted_in_NT",
+        "Mrk.14.62": "Dan.7.13 LXX_OG_divergence",
+        "Mat.26.64": "Dan.7.13 LXX_OG_divergence",
+        "Mat.24.30": "Dan.7.13 LXX_OG_divergence",
+        "Rev.1.7": "Dan.7.13 LXX_OG_divergence",
     }
 
 

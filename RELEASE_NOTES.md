@@ -8,21 +8,32 @@ Reported in #4. The interpretation notes at these verses listed Greek
 witnesses as agreeing with the MT where the Rahlfs text does not. Each verse
 now has a manuscript-variant case for the Greek, ahead of its unchanged notes:
 
-- **Job 38:7** (`LXX_divergence`): the LXX has πάντες ἄγγελοί μου ("all my
+- **Job 38:7** (`LXX_divergence`, minor_textual): the LXX has πάντες ἄγγελοί μου ("all my
   angels") for "all the sons of God", and "when the stars were made" for "when
   the morning stars sang together".
-- **Daniel 4:17** (`LXX_OG_omission`): the Old Greek has no equivalent for the
+- **Daniel 4:17** (`LXX_OG_omission`, major_textual): the Old Greek has no equivalent for the
   decree-of-the-watchers clause; Theodotion keeps it (ιρ). The watchers
   terminology is Theodotion's, not the Old Greek's, which has ἄγγελος at 4:13
   and 4:23.
-- **Daniel 7:13** (`LXX_OG_divergence`): the Old Greek has ἐπί ("upon") the
-  clouds, Theodotion μετά ("with"), as the MT. Mark 14:62 and Revelation 1:7
-  have μετά; Matthew 24:30 and 26:64 have ἐπί.
-- **Psalm 29:1** (`LXX_doublet`): the LXX has both υἱοὶ θεοῦ and υἱοὺς κριῶν.
+- **Daniel 7:13** (`LXX_OG_divergence`, major_NT_quotation): the Old Greek
+  has ἐπί ("upon") the clouds, Theodotion μετά ("with"), as the MT. Mark 14:62
+  and Revelation 1:7 have μετά; Matthew 24:30 and 26:64 have ἐπί. The summary
+  also records the Old Greek's ὡς παλαιὸς ἡμερῶν παρῆν ("present as the
+  Ancient of Days") where the MT and Theodotion have him come to the Ancient
+  of Days, and that its significance is debated.
+- **Psalm 29:1** (`LXX_doublet`, minor_textual): the LXX has both υἱοὶ θεοῦ and υἱοὺς κριῶν.
 
-The diverging Greek witnesses left the notes, and where a verse has both kinds
-of case the notes follow the variant and point to it instead of repeating the
-MT text. `lookup_verse` cues such a verse once, as a variant.
+The new cases date the LXX and Old Greek witnesses ~150 BCE. The diverging
+Greek witnesses left the notes, and where a verse has both kinds of case the
+notes follow the variant and point to it instead of repeating the MT text.
+`lookup_verse` cues such a verse once, as a variant.
+
+Four NT quotation hints link Mark 14:62 and Revelation 1:7
+(`agrees_with_mt_and_theodotion`) and Matthew 26:64 and 24:30
+(`follows_old_greek`) to the Daniel 7:13 case, so `get_textual_variant` on
+those verses returns it. The `lookup_verse` cue now honours a hint's
+`follows_lxx`: a quotation that agrees with the MT is labelled "NT↔OT
+quotation", not an LXX form.
 `scripts/repair_textual_variant_witnesses.py` corrects an existing database in
 place, from the records or from a patch applied with the standard library.
 

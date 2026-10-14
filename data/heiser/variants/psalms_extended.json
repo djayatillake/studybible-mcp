@@ -23,14 +23,14 @@
       "variant_source": "LXX_doublet",
       "variant_reading": "Bring to the Lord, O sons of God; bring to the Lord sons of rams; bring to the Lord glory and honor.",
       "variant_original": "ἐνέγκατε τῷ κυρίῳ υἱοὶ θεοῦ ἐνέγκατε τῷ κυρίῳ υἱοὺς κριῶν ἐνέγκατε τῷ κυρίῳ δόξαν καὶ τιμήν",
-      "variant_significance": null,
+      "variant_significance": "minor_textual",
       "heiser_analysis": null,
       "scholarly_consensus": "The LXX (Psalm 28:1) renders the first colon twice, a doublet: υἱοὶ θεοῦ ('sons of God', for בְּנֵי אֵלִים) and υἱοὺς κριῶν ('sons of rams'; Brenton 'young rams'), which reads the same consonants אלים as 'rams'. Both stand in the LXX text.",
       "preferred_for_hlt": null,
       "hlt_rationale": null,
       "witnesses": [
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
-        {"manuscript": "LXX (Psalm 28:1)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+        {"manuscript": "LXX (Psalm 28:1)", "manuscript_date": "~150 BCE", "reading_support": "supports_variant"}
       ]
     },
     {

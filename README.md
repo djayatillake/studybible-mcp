@@ -715,7 +715,8 @@ reading or rendering is contested (for example the divine-council language of
 Psalm 82:6) appear as **Translation and interpretation notes**, never as
 variants. A verse can have both: at Job 38:7, Daniel 4:17 and 7:13, and Psalm
 29:1 a variant case records where the Greek differs from the MT, and the notes
-follow it. `lookup_verse` mentions when a verse has a catalogued variant case or
+follow it; Mark 14:62, Matthew 24:30 and 26:64, and Revelation 1:7 reach the
+Daniel 7:13 case through NT quotation alignment. `lookup_verse` mentions when a verse has a catalogued variant case or
 interpretation notes. On a database that still has the legacy
 variant schema, the tool asks you to run `python scripts/upgrade_database.py`.
 

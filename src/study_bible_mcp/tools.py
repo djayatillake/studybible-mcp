@@ -1061,7 +1061,7 @@ WHAT IT RETURNS for a given verse reference:
 - Theological interpretations: explicitly labelled interpretations, never presented as manuscript evidence
 - Author-specific claims: named-author arguments, separate from critical judgments
 - Translation decisions: a translation's selected reading and rationale
-- NT quotation alignment: separately catalogued links where an NT quotation follows an LXX form
+- NT quotation alignment: separately catalogued links showing which form (an LXX form or the MT) an NT quotation follows
 - Translation and interpretation notes: how a contested verse is read or rendered (e.g. divine-council language at Psalm 82:6); shown separately, after any manuscript variant at the verse, never as one
 
 Sections with nothing catalogued are omitted. Each manuscript-variant witness

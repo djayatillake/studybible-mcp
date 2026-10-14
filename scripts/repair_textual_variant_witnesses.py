@@ -14,14 +14,18 @@ agreeing with the MT where the Rahlfs text does not:
 
 The corrected records add a manuscript-variant case at each verse beside its
 interpretation notes, and drop the diverging Greek witnesses from the notes.
-This script brings an existing database into line without rebuilding it. It
-touches only the textual-variant rows of the eight cases in CASES.
+Four NT quotation hints link Mark 14:62, Matthew 26:64 and 24:30, and
+Revelation 1:7 to the Daniel 7:13 case, so get_textual_variant reaches it from
+the NT side. This script brings an existing database into line without
+rebuilding it. It touches only the textual-variant rows of the eight cases in
+CASES and the nt_ot_lxx_quote_hints rows in HINTS.
 
 Two modes, both idempotent:
 
   repair_textual_variant_witnesses.py DB [--data-dir data] [--write-patch PATCH]
-      Import the corrected records from data/heiser/variants with the real
-      importer and install their rows. --write-patch also saves the rows, so a
+      Import the corrected records from data/heiser/variants and the hints
+      from data/heiser/lxx_quote_hints.json with the real importers, and
+      install their rows. --write-patch also saves the rows, so a
       copy of the same database elsewhere (the Fly volume) can be repaired
       without the sources.
 
@@ -30,9 +34,11 @@ Two modes, both idempotent:
       server from a copy of this script.
 
 A case is replaced only while it holds exactly the rows the previous records
-produced (for a new case: while it is absent); a case that already holds the
-corrected rows is left alone. If any case holds anything else, nothing is
-changed. Case ids are kept, so links to them stay valid.
+produced (for a new case or hint: while it is absent); a case or hint that
+already holds the corrected rows is left alone. If any holds anything else,
+nothing is changed. Case ids are kept, so links to them stay valid; a hint
+names its case by reference and case key, and is linked to that case's id in
+the database being repaired.
 """
 
 from __future__ import annotations
@@ -67,6 +73,17 @@ BEFORE = {
     ("Psa.29.1", "translation_choice"): "28a4460ea71b123fe1f807dd6769c5863a3c7f1196462878314aeb3df871bc2a",
     ("Psa.29.1", "LXX_doublet"): None,
 }
+# NT quotation hints (nt_reference, ot_reference), all new.
+HINTS = (
+    ("Mrk.14.62", "Dan.7.13"),
+    ("Mat.26.64", "Dan.7.13"),
+    ("Mat.24.30", "Dan.7.13"),
+    ("Rev.1.7", "Dan.7.13"),
+)
+HINT_COLUMNS = (
+    "nt_reference", "nt_display", "nt_book", "ot_reference", "ot_display", "ot_book",
+    "follows_lxx", "divergence_type", "divergence_note",
+)
 CASE_COLUMNS = ("reference", "book", "chapter", "verse", "case_key", "significance")
 READING_COLUMNS = ("reading_key", "tradition", "text", "original_text", "language")
 WITNESS_COLUMNS = (
@@ -178,38 +195,91 @@ def write_case(conn: sqlite3.Connection, rows: dict) -> None:
         )
 
 
-def compute_changes(data_dir: Path) -> dict:
-    """The patch: each case's expected fingerprint and its corrected rows.
+def read_hint(conn: sqlite3.Connection, nt_reference: str, ot_reference: str) -> dict | None:
+    """A quotation hint without its id, naming its case by key; None if absent."""
+    row = conn.execute(
+        "SELECT " + ", ".join(f"h.{column}" for column in HINT_COLUMNS)
+        + ", h.variant_case_id, c.reference, c.case_key FROM nt_ot_lxx_quote_hints h "
+        "LEFT JOIN textual_variant_cases c ON c.id = h.variant_case_id "
+        "WHERE h.nt_reference = ? AND h.ot_reference = ?",
+        (nt_reference, ot_reference),
+    ).fetchone()
+    if row is None:
+        return None
+    case_id, reference, case_key = row[len(HINT_COLUMNS):]
+    if case_id is None:
+        variant_case = None
+    elif reference is None:
+        variant_case = ["missing case id", case_id]
+    else:
+        variant_case = [reference, case_key]
+    return {"values": list(row[:len(HINT_COLUMNS)]), "variant_case": variant_case}
 
-    The rows come from importing the bundled records with the real importer
-    into an empty in-memory database.
+
+def write_hint(conn: sqlite3.Connection, hint: dict) -> bool:
+    """Insert or update a hint, linked to its case here; False if that case is missing."""
+    case_id = None
+    if hint["variant_case"] is not None:
+        found = conn.execute(
+            "SELECT id FROM textual_variant_cases WHERE reference = ? AND case_key = ?",
+            tuple(hint["variant_case"]),
+        ).fetchone()
+        if found is None:
+            return False
+        case_id = found[0]
+    updates = ", ".join(f"{column} = excluded.{column}" for column in HINT_COLUMNS[2:])
+    conn.execute(
+        f"INSERT INTO nt_ot_lxx_quote_hints ({', '.join(HINT_COLUMNS)}, variant_case_id) "
+        f"VALUES ({', '.join('?' for _ in HINT_COLUMNS)}, ?) "
+        f"ON CONFLICT(nt_reference, ot_reference) DO UPDATE SET {updates}, "
+        "variant_case_id = excluded.variant_case_id",
+        (*hint["values"], case_id),
+    )
+    return True
+
+
+def compute_changes(data_dir: Path) -> dict:
+    """The patch: each case's and hint's expected fingerprint and corrected rows.
+
+    The rows come from importing the bundled records and quotation hints with
+    the real importers into an empty in-memory database.
     """
     sys.path.insert(0, str(PROJECT_ROOT / "src"))
     sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
-    from import_heiser_content import import_textual_variant_record
+    from import_heiser_content import import_nt_ot_lxx_quote_hints, import_textual_variants
 
     from study_bible_mcp.database import create_schema
 
     variants_dir = data_dir / "heiser" / "variants"
+    hints_path = data_dir / "heiser" / "lxx_quote_hints.json"
     references = {reference for reference, _ in CASES}
-    records = [
-        variant
+    found = sorted(
+        (variant["reference"], variant["variant_source"])
         for path in sorted(variants_dir.glob("*.json"))
         for variant in json.loads(path.read_text(encoding="utf-8")).get("variants", [])
         if variant.get("reference") in references
-    ]
-    found = sorted((variant["reference"], variant["variant_source"]) for variant in records)
+    )
     if found != sorted(CASES):
         raise SystemExit(
             f"{variants_dir} has records {found} for {sorted(references)}, "
             f"expected {sorted(CASES)}; nothing was changed"
         )
+    found = sorted(
+        (hint["nt_reference"], hint["ot_reference"])
+        for hint in json.loads(hints_path.read_text(encoding="utf-8"))["hints"]
+        if hint["ot_reference"] in references
+    )
+    if found != sorted(HINTS):
+        raise SystemExit(
+            f"{hints_path} has hints {found} for {sorted(references)}, "
+            f"expected {sorted(HINTS)}; nothing was changed"
+        )
 
     scratch = sqlite3.connect(":memory:")
     try:
         create_schema(scratch)
-        for variant in records:
-            import_textual_variant_record(scratch, variant)
+        import_textual_variants(scratch, variants_dir)
+        import_nt_ot_lxx_quote_hints(scratch, hints_path)
         cases = [
             {
                 "reference": reference,
@@ -219,39 +289,69 @@ def compute_changes(data_dir: Path) -> dict:
             }
             for reference, case_key in CASES
         ]
+        hints = [
+            {
+                "nt_reference": nt_reference,
+                "ot_reference": ot_reference,
+                "before": None,
+                "row": read_hint(scratch, nt_reference, ot_reference),
+            }
+            for nt_reference, ot_reference in HINTS
+        ]
     finally:
         scratch.close()
-    return {"cases": cases}
+    return {"cases": cases, "hints": hints}
 
 
 def apply_changes(conn: sqlite3.Connection, changes: dict) -> tuple[list[str], list[str]]:
-    """Apply a patch in one transaction; return (cases replaced, conflicts)."""
-    if conn.execute(
-        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'textual_variant_cases'"
-    ).fetchone() is None:
+    """Apply a patch in one transaction; return (cases and hints replaced, conflicts)."""
+    tables = {
+        row[0] for row in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' "
+            "AND name IN ('textual_variant_cases', 'nt_ot_lxx_quote_hints')"
+        )
+    }
+    if len(tables) != 2:
         raise SystemExit(
-            "The database has no textual_variant_cases table; run "
-            "scripts/upgrade_database.py first. Nothing was changed"
+            "The database lacks the textual_variant_cases or nt_ot_lxx_quote_hints "
+            "table; run scripts/upgrade_database.py first. Nothing was changed"
         )
     if not conn.in_transaction:
         conn.execute("BEGIN IMMEDIATE")
     replaced = []
     conflicts = []
+
+    def check(label: str, current: str | None, before: str | None) -> bool:
+        if current == before:
+            return True
+        conflicts.append(
+            f"{label} is missing" if current is None
+            else f"{label} holds neither the rows the patch replaces nor its rows"
+        )
+        return False
+
+    # Cases first: a hint is linked to its case's id in this database.
     for case in changes["cases"]:
         label = f"{case['reference']} {case['case_key']}"
         after = digest(case["rows"])
         current = digest(read_case(conn, case["reference"], case["case_key"]))
-        if current == after:
-            continue
-        if current != case["before"]:
-            conflicts.append(
-                f"{label} is missing" if current is None
-                else f"{label} holds neither the rows the patch replaces nor its rows"
-            )
+        if current == after or not check(label, current, case["before"]):
             continue
         write_case(conn, case["rows"])
         if digest(read_case(conn, case["reference"], case["case_key"])) != after:
             conflicts.append(f"{label} did not read back as the patch's rows")
+        replaced.append(label)
+    for hint in changes["hints"]:
+        key = (hint["nt_reference"], hint["ot_reference"])
+        label = f"hint {key[0]} -> {key[1]}"
+        after = digest(hint["row"])
+        current = digest(read_hint(conn, *key))
+        if current == after or not check(label, current, hint["before"]):
+            continue
+        if not write_hint(conn, hint["row"]):
+            conflicts.append(f"{label} links to a case the database lacks")
+        elif digest(read_hint(conn, *key)) != after:
+            conflicts.append(f"{label} did not read back as the patch's row")
         replaced.append(label)
     return replaced, conflicts
 
@@ -289,8 +389,11 @@ def main() -> int:
         conn.close()
 
     source = f"the patch {args.apply_patch}" if args.apply_patch else f"the records in {args.data_dir}"
-    total = len(changes["cases"])
-    print(f"{args.db}, from {source}: {total} textual-variant cases")
+    total = len(changes["cases"]) + len(changes["hints"])
+    print(
+        f"{args.db}, from {source}: {len(changes['cases'])} textual-variant cases and "
+        f"{len(changes['hints'])} NT quotation hints"
+    )
     if replaced:
         print(f"   replaced {', '.join(replaced)}")
     print(f"   {total - len(replaced)} of {total} already held the corrected rows")

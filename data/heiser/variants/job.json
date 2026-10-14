@@ -23,14 +23,14 @@
       "variant_source": "LXX_divergence",
       "variant_reading": "When the stars were made, all my angels praised me with a loud voice. (Brenton's translation)",
       "variant_original": "ὅτε ἐγενήθησαν ἄστρα ᾔνεσάν με φωνῇ μεγάλῃ πάντες ἄγγελοί μου",
-      "variant_significance": null,
+      "variant_significance": "minor_textual",
       "heiser_analysis": null,
       "scholarly_consensus": "The LXX is not verbally identical to the MT here: for 'all the sons of God' (כָּל בְּנֵי אֱלֹהִים) it has πάντες ἄγγελοί μου ('all my angels'), and for 'when the morning stars sang together' it has ὅτε ἐγενήθησαν ἄστρα ('when the stars were made'). Whether the Greek reflects a different Hebrew Vorlage or an interpretive rendering is open. Either way, the Greek still speaks of heavenly beings.",
       "preferred_for_hlt": null,
       "hlt_rationale": null,
       "witnesses": [
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
-        {"manuscript": "LXX", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"}
+        {"manuscript": "LXX", "manuscript_date": "~150 BCE", "reading_support": "supports_variant"}
       ]
     }
   ]

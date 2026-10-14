@@ -24,15 +24,15 @@
       "variant_source": "LXX_OG_divergence",
       "variant_reading": "I was watching in the night vision, and behold, upon the clouds of heaven one like a son of man was coming",
       "variant_original": "ἐθεώρουν ἐν ὁράματι τῆς νυκτὸς καὶ ἰδοὺ ἐπὶ τῶν νεφελῶν τοῦ οὐρανοῦ ὡς υἱὸς ἀνθρώπου ἤρχετο",
-      "variant_significance": null,
+      "variant_significance": "major_NT_quotation",
       "heiser_analysis": null,
-      "scholarly_consensus": "The MT's עִם and Theodotion's μετά both mean 'with'; the Old Greek has ἐπί ('upon'). The NT citations above divide the same way. Mark 13:26 and Luke 21:27 have ἐν ('in'), agreeing with neither.",
+      "scholarly_consensus": "The MT's עִם and Theodotion's μετά both mean 'with'; the Old Greek has ἐπί ('upon'). The NT citations above divide the same way. Mark 13:26 and Luke 21:27 have ἐν ('in'), agreeing with neither. The Old Greek differs again later in the verse: where the MT and Theodotion have him come to the Ancient of Days (ἕως τοῦ παλαιοῦ τῶν ἡμερῶν ἔφθασεν) and be brought before him, it reads καὶ ὡς παλαιὸς ἡμερῶν παρῆν καὶ οἱ παρεστηκότες παρῆσαν αὐτῷ ('and he was present as the Ancient of Days, and those standing by were present with him'). Some scholars take ὡς παλαιὸς as an early inner-Greek corruption of ἕως παλαιοῦ ('to the Ancient of Days'), so the reading's significance is debated.",
       "preferred_for_hlt": null,
       "hlt_rationale": null,
       "witnesses": [
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
         {"manuscript": "LXX (Theodotion: μετὰ τῶν νεφελῶν τοῦ οὐρανοῦ)", "manuscript_date": "~150 CE", "reading_support": "supports_mt"},
-        {"manuscript": "LXX (OG)", "manuscript_date": "~250 BCE", "reading_support": "supports_variant"},
+        {"manuscript": "LXX (OG)", "manuscript_date": "~150 BCE", "reading_support": "supports_variant"},
         {"manuscript": "Mark 14:62 (μετὰ τῶν νεφελῶν τοῦ οὐρανοῦ)", "manuscript_date": null, "reading_support": "supports_mt"},
         {"manuscript": "Revelation 1:7 (μετὰ τῶν νεφελῶν)", "manuscript_date": null, "reading_support": "supports_mt"},
         {"manuscript": "Matthew 24:30 (ἐπὶ τῶν νεφελῶν τοῦ οὐρανοῦ)", "manuscript_date": null, "reading_support": "supports_variant"},
@@ -63,7 +63,7 @@
       "variant_source": "LXX_OG_omission",
       "variant_reading": "The Old Greek has no equivalent for this clause. Its verse reads: 'until he knows that the Lord of heaven has authority over all things in heaven and on earth, and does among them whatever he wishes.'",
       "variant_original": "ἕως ἂν γνῷ τὸν κύριον τοῦ οὐρανοῦ ἐξουσίαν ἔχειν πάντων τῶν ἐν τῷ οὐρανῷ καὶ τῶν ἐπὶ τῆς γῆς καὶ ὅσα ἂν θέλῃ ποιεῖ ἐν αὐτοῖς",
-      "variant_significance": null,
+      "variant_significance": "major_textual",
       "heiser_analysis": null,
       "scholarly_consensus": "Theodotion keeps the clause and transliterates 'watcher' as ιρ; the Old Greek has no equivalent for it. Elsewhere in the chapter (4:13 and 4:23; Aramaic 4:10 and 4:20), where Theodotion has ιρ and 'holy one', the Old Greek has ἄγγελος ('angel'). The Watchers terminology is preserved in Theodotion, not in the Old Greek. Verse numbers are English; this verse is Aramaic 4:14.",
       "preferred_for_hlt": null,
@@ -71,7 +71,7 @@
       "witnesses": [
         {"manuscript": "Masoretic Text", "manuscript_date": "~900 CE", "reading_support": "supports_mt"},
         {"manuscript": "LXX (Theodotion: διὰ συγκρίματος ιρ ὁ λόγος καὶ ῥῆμα ἁγίων τὸ ἐπερώτημα)", "manuscript_date": "~150 CE", "reading_support": "supports_mt"},
-        {"manuscript": "LXX (OG)", "manuscript_date": "~250 BCE", "reading_support": "omits"}
+        {"manuscript": "LXX (OG)", "manuscript_date": "~150 BCE", "reading_support": "omits"}
       ]
     }
   ]

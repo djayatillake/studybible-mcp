@@ -434,9 +434,10 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
                 f"of those verses as the reference.*"
             )
 
-    # Hint: NT↔OT LXX-form quotation. Surfaces in both directions — looking up
-    # the OT verse mentions the NT quotation, while looking up the NT verse
-    # mentions the OT source.
+    # Hint: NT↔OT quotation alignment, usually an LXX-form quotation. Surfaces
+    # in both directions — looking up the OT verse mentions the NT quotation,
+    # while looking up the NT verse mentions the OT source. A quotation that
+    # agrees with the MT (follows_lxx = 0) is not called an LXX form.
     lxx_hints = await db.get_lxx_quote_hints_for_passage(
         book, shown_start[0], shown_start[1], shown_end[0], shown_end[1]
     )
@@ -448,7 +449,8 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
                 cue = f"quoted in **{h['nt_display']}** ({h['divergence_type']})"
                 own = h["ot_display"]
             else:
-                cue = f"quotes **{h['ot_display']}** in its LXX form ({h['divergence_type']})"
+                form = " in its LXX form" if h["follows_lxx"] else ""
+                cue = f"quotes **{h['ot_display']}**{form} ({h['divergence_type']})"
                 own = h["nt_display"]
             cues.append(cue if single else f"{own} {cue}")
         if len(lxx_hints) > 2:
@@ -457,8 +459,12 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
             f"(reference='{hint_reference}')" if single
             else "with the quoting or quoted verse as the reference"
         )
+        label = (
+            "NT↔OT LXX-form quotation" if all(h["follows_lxx"] for h in lxx_hints)
+            else "NT↔OT quotation"
+        )
         result += (
-            "\n\n---\n*NT↔OT LXX-form quotation: " + "; ".join(cues) + ". "
+            f"\n\n---\n*{label}: " + "; ".join(cues) + ". "
             f"Separated manuscript evidence and attributed analysis via "
             f"`get_textual_variant` {target}.*"
         )

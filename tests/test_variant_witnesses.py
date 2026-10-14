@@ -2,9 +2,10 @@
 
 The bundled records listed Greek witnesses as agreeing with the MT where the
 Rahlfs text does not. Each verse now has a manuscript-variant case for the
-Greek evidence beside its interpretation notes, and
-scripts/repair_textual_variant_witnesses.py brings an existing database into
-line.
+Greek evidence beside its interpretation notes, four NT quotation hints reach
+the Daniel 7:13 case from Mark 14:62, Matthew 26:64 and 24:30, and Revelation
+1:7, and scripts/repair_textual_variant_witnesses.py brings an existing
+database into line.
 """
 
 from __future__ import annotations
@@ -21,11 +22,16 @@ import pytest
 
 import scripts.repair_textual_variant_witnesses as repair
 import study_bible_mcp.server as server_module
-from scripts.import_heiser_content import import_textual_variant_record, import_textual_variants
+from scripts.import_heiser_content import (
+    import_nt_ot_lxx_quote_hints,
+    import_textual_variant_record,
+    import_textual_variants,
+)
 from study_bible_mcp.database import INTERPRETIVE_CASE_KEYS, StudyBibleDB, create_schema
 
 ROOT = Path(__file__).resolve().parent.parent
 VARIANTS_DIR = ROOT / "data" / "heiser" / "variants"
+HINTS_PATH = ROOT / "data" / "heiser" / "lxx_quote_hints.json"
 REFERENCES = {reference for reference, _ in repair.CASES}
 
 # The interpretation notes' witnesses before the fix, all labelled supports_variant.
@@ -67,12 +73,15 @@ def fresh_db(tmp_path) -> Path:
     conn = sqlite3.connect(path)
     create_schema(conn)
     import_textual_variants(conn, VARIANTS_DIR)
+    import_nt_ot_lxx_quote_hints(conn, HINTS_PATH)
     conn.executemany(
         "INSERT INTO verses (reference, book, chapter, verse, text_english) VALUES (?, ?, ?, ?, ?)",
         [
             ("Job.38.6", "Job", 38, 6, "On what were its bases sunk?"),
             ("Job.38.7", "Job", 38, 7, "when the morning stars sang together"),
             ("Psa.82.1", "Psa", 82, 1, "God has taken his place in the divine council"),
+            ("Mrk.14.62", "Mrk", 14, 62, "and coming with the clouds of heaven"),
+            ("Mat.26.64", "Mat", 26, 64, "and coming on the clouds of heaven"),
         ],
     )
     conn.commit()
@@ -99,6 +108,12 @@ def stale_db(tmp_path) -> Path:
                 ],
             }
         import_textual_variant_record(conn, record)
+    # The quotation hints before the fix: none for Daniel 7:13.
+    hints = json.loads(HINTS_PATH.read_text(encoding="utf-8"))
+    hints["hints"] = [hint for hint in hints["hints"] if hint["ot_reference"] not in REFERENCES]
+    previous_hints = tmp_path / "previous_hints.json"
+    previous_hints.write_text(json.dumps(hints, ensure_ascii=False), encoding="utf-8")
+    import_nt_ot_lxx_quote_hints(conn, previous_hints)
     conn.commit()
     conn.close()
     return path
@@ -145,7 +160,8 @@ async def test_job_38_7_shows_the_lxx_angels_apart_from_the_mt(fresh_db, server_
     assert "**Masoretic Text** (~900 CE) (dataset label: `supports_mt`)" in mt
     assert "LXX" not in mt
     assert "πάντες ἄγγελοί μου" in lxx
-    assert "**LXX** (~250 BCE) (dataset label: `supports_variant`)" in lxx
+    assert "**LXX** (~150 BCE) (dataset label: `supports_variant`)" in lxx
+    assert "**Case key:** LXX_divergence\n**Significance classification:** minor_textual" in output
     assert "Whether the Greek reflects a different Hebrew Vorlage or an interpretive " \
         "rendering is open" in output
 
@@ -170,7 +186,9 @@ async def test_daniel_4_17_lists_the_old_greek_omission(fresh_db, server_db):
     omission = _section(output, "#### LXX_OG_omission")
     assert "LXX (Theodotion: διὰ συγκρίματος ιρ ὁ λόγος καὶ ῥῆμα ἁγίων τὸ ἐπερώτημα)" in mt
     assert "LXX (OG)" not in mt
-    assert "**LXX (OG)** (~250 BCE) (dataset label: `omits`)" in omission
+    assert "**LXX (OG)** (~150 BCE) (dataset label: `omits`)" in omission
+    assert "**Case key:** LXX_OG_omission\n**Significance classification:** major_textual" \
+        in output
     assert "The Old Greek has no equivalent for this clause." in omission
     assert "ἕως ἂν γνῷ τὸν κύριον τοῦ οὐρανοῦ" in omission
     assert "The Watchers terminology is preserved in Theodotion, not in the Old Greek." in output
@@ -186,8 +204,17 @@ async def test_daniel_7_13_separates_old_greek_epi_from_theodotion_meta(fresh_db
     assert "**LXX (Theodotion: μετὰ τῶν νεφελῶν τοῦ οὐρανοῦ)** (~150 CE)" in mt
     assert "LXX (OG)" not in mt
     assert "ἐπὶ τῶν νεφελῶν τοῦ οὐρανοῦ" in old_greek
-    assert "**LXX (OG)** (~250 BCE) (dataset label: `supports_variant`)" in old_greek
+    assert "**LXX (OG)** (~150 BCE) (dataset label: `supports_variant`)" in old_greek
     assert "Theodotion" not in old_greek
+    assert "**Case key:** LXX_OG_divergence\n**Significance classification:** major_NT_quotation" \
+        in output
+    summary = _section(output, "### Unsourced dataset summary")
+    assert (
+        "where the MT and Theodotion have him come to the Ancient of Days "
+        "(ἕως τοῦ παλαιοῦ τῶν ἡμερῶν ἔφθασεν) and be brought before him, it reads "
+        "καὶ ὡς παλαιὸς ἡμερῶν παρῆν καὶ οἱ παρεστηκότες παρῆσαν αὐτῷ"
+    ) in summary
+    assert "early inner-Greek corruption of ἕως παλαιοῦ" in summary
 
     citations = _section(output, "### NT citation evidence")
     assert "**Mark 14:62 (μετὰ τῶν νεφελῶν τοῦ οὐρανοῦ)** — quotes the Masoretic Text reading" \
@@ -197,6 +224,31 @@ async def test_daniel_7_13_separates_old_greek_epi_from_theodotion_meta(fresh_db
         assert f"**{matthew} (ἐπὶ τῶν νεφελῶν τοῦ οὐρανοῦ)** — quotes the LXX_OG_divergence " \
             "reading" in citations
     assert "LXX (OG)" not in _notes(output, "Dan.7.13")
+    alignment = output[output.index("## NT quotation alignment"):]
+    assert alignment.count("quotes **Daniel 7:13**") == 4
+
+
+@pytest.mark.parametrize(
+    ("reference", "nt_display", "label"),
+    [
+        ("Mark 14:62", "Mark 14:62", "agrees_with_mt_and_theodotion"),
+        ("Revelation 1:7", "Revelation 1:7", "agrees_with_mt_and_theodotion"),
+        ("Matthew 24:30", "Matthew 24:30", "follows_old_greek"),
+        ("Matthew 26:64", "Matthew 26:64", "follows_old_greek"),
+    ],
+)
+async def test_nt_quotations_of_daniel_7_13_reach_its_cases(
+    fresh_db, server_db, reference, nt_display, label
+):
+    await server_db(fresh_db)
+    output = await _variant(reference)
+
+    assert output.startswith(f"# Textual variant record for {reference}")
+    assert "## Variant at Dan.7.13" in output
+    assert "## Translation and interpretation notes at Dan.7.13" in output
+    alignment = output[output.index("## NT quotation alignment"):]
+    assert f"- **{nt_display}** quotes **Daniel 7:13** — *{label}*: " in alignment
+    assert alignment.count("quotes **Daniel 7:13**") == 1  # only this verse's link
 
 
 async def test_psalm_29_1_records_both_halves_of_the_lxx_doublet(fresh_db, server_db):
@@ -205,7 +257,8 @@ async def test_psalm_29_1_records_both_halves_of_the_lxx_doublet(fresh_db, serve
 
     doublet = _section(output, "#### LXX_doublet")
     assert "υἱοὶ θεοῦ" in doublet and "υἱοὺς κριῶν" in doublet
-    assert "**LXX (Psalm 28:1)** (~250 BCE) (dataset label: `supports_variant`)" in doublet
+    assert "**LXX (Psalm 28:1)** (~150 BCE) (dataset label: `supports_variant`)" in doublet
+    assert "**Case key:** LXX_doublet\n**Significance classification:** minor_textual" in output
     assert "huioi theou" not in output
 
 
@@ -232,16 +285,32 @@ async def test_lookup_verse_cues_a_verse_with_both_kinds_once_as_a_variant(fresh
     assert "no manuscript variant" not in passage.text
 
 
+async def test_lookup_verse_names_the_form_a_daniel_7_13_quotation_follows(fresh_db, server_db):
+    await server_db(fresh_db)
+
+    [mark] = await server_module.handle_lookup_verse({"reference": "Mark 14:62"})
+    [matthew] = await server_module.handle_lookup_verse({"reference": "Matthew 26:64"})
+
+    assert "*NT↔OT quotation: quotes **Daniel 7:13** (agrees_with_mt_and_theodotion)." in mark.text
+    assert "LXX form" not in mark.text
+    assert (
+        "*NT↔OT LXX-form quotation: quotes **Daniel 7:13** in its LXX form (follows_old_greek)."
+        in matthew.text
+    )
+
+
 # ---------------------------------------------------------------------------
 # scripts/repair_textual_variant_witnesses.py
 # ---------------------------------------------------------------------------
 
 
 def _cases(path: Path) -> dict:
-    """Every case's rows, without ids, by (reference, case_key)."""
+    """Every case's and quotation hint's rows, without ids, by natural key."""
     conn = sqlite3.connect(path)
     keys = conn.execute("SELECT reference, case_key FROM textual_variant_cases").fetchall()
     cases = {key: repair.read_case(conn, *key) for key in keys}
+    for key in conn.execute("SELECT nt_reference, ot_reference FROM nt_ot_lxx_quote_hints"):
+        cases[("hint", *key)] = repair.read_hint(conn, *key)
     conn.close()
     return cases
 
@@ -281,10 +350,12 @@ def test_repair_from_source_is_idempotent_and_writes_a_patch(
     assert (
         "replaced Job.38.7 MT_preserved, Job.38.7 LXX_divergence, Dan.4.17 LXX_OG_omission, "
         "Dan.7.13 MT_preserved, Dan.7.13 LXX_OG_divergence, Psa.29.1 translation_choice, "
-        "Psa.29.1 LXX_doublet"
+        "Psa.29.1 LXX_doublet, hint Mrk.14.62 -> Dan.7.13, hint Mat.26.64 -> Dan.7.13, "
+        "hint Mat.24.30 -> Dan.7.13, hint Rev.1.7 -> Dan.7.13\n"
     ) in out
-    assert "1 of 8 already held the corrected rows" in out  # Dan.4.17's notes are unchanged
-    # Every case, touched or not, now matches a fresh build; existing ids are kept.
+    assert "1 of 12 already held the corrected rows" in out  # Dan.4.17's notes are unchanged
+    # Every case and hint, touched or not, now matches a fresh build; existing
+    # ids are kept, and the hints link to the new Daniel 7:13 case.
     assert _cases(stale_db) == _cases(fresh_db)
     assert {key: _case_ids(stale_db)[key] for key in ids} == ids
 
@@ -292,11 +363,16 @@ def test_repair_from_source_is_idempotent_and_writes_a_patch(
         saved = json.load(handle)
     assert [(case["reference"], case["case_key"]) for case in saved["cases"]] == list(repair.CASES)
     assert [case["before"] for case in saved["cases"]] == [repair.BEFORE[k] for k in repair.CASES]
+    assert [(hint["nt_reference"], hint["ot_reference"], hint["before"])
+            for hint in saved["hints"]] == [(*key, None) for key in repair.HINTS]
+    assert {tuple(hint["row"]["variant_case"]) for hint in saved["hints"]} == {
+        ("Dan.7.13", "LXX_OG_divergence")
+    }
 
     assert _run(monkeypatch, stale_db) == 0
     out = capsys.readouterr().out
     assert "replaced" not in out
-    assert "8 of 8 already held the corrected rows" in out
+    assert "12 of 12 already held the corrected rows" in out
     assert _cases(stale_db) == _cases(fresh_db)
 
 
@@ -316,15 +392,17 @@ def test_patch_repairs_a_copy_with_the_standard_library_only(
     second = subprocess.run(command, cwd=server, capture_output=True, text=True)
 
     assert first.returncode == 0, first.stderr
-    assert "1 of 8 already held the corrected rows" in first.stdout
+    assert "1 of 12 already held the corrected rows" in first.stdout
     assert second.returncode == 0, second.stderr
-    assert "8 of 8 already held the corrected rows" in second.stdout
+    assert "12 of 12 already held the corrected rows" in second.stdout
     assert _cases(server / "study_bible.db") == _cases(fresh_db)
 
 
 def test_patch_refuses_a_database_that_differs(stale_db, tmp_path, monkeypatch, capsys):
     patch = tmp_path / "patch.json.gz"
+    pristine = tmp_path / "pristine.db"
     copy = tmp_path / "copy.db"
+    shutil.copy(stale_db, pristine)
     shutil.copy(stale_db, copy)
     assert _run(monkeypatch, stale_db, "--write-patch", patch) == 0
     capsys.readouterr()
@@ -382,6 +460,21 @@ def test_patch_refuses_a_database_that_differs(stale_db, tmp_path, monkeypatch, 
     assert "Dan.7.13 MT_preserved is missing" in capsys.readouterr().err
     assert _cases(copy) == before
 
+    # A new quotation hint that already exists with other values.
+    shutil.copy(pristine, copy)
+    conn = sqlite3.connect(copy)
+    conn.execute(
+        """INSERT INTO nt_ot_lxx_quote_hints
+           (nt_reference, nt_display, nt_book, ot_reference, ot_display, ot_book, follows_lxx)
+           VALUES ('Mrk.14.62', 'Mark 14:62', 'Mrk', 'Dan.7.13', 'Daniel 7:13', 'Dan', 1)"""
+    )
+    conn.commit()
+    conn.close()
+    before = _cases(copy)
+    assert _run(monkeypatch, copy, "--apply-patch", patch) == 1
+    assert "hint Mrk.14.62 -> Dan.7.13 holds neither" in capsys.readouterr().err
+    assert _cases(copy) == before
+
 
 def test_repair_refuses_records_other_than_the_expected_cases(stale_db, tmp_path, monkeypatch):
     data_dir = tmp_path / "data"
@@ -394,6 +487,17 @@ def test_repair_refuses_records_other_than_the_expected_cases(stale_db, tmp_path
     daniel.write_text(json.dumps(records, ensure_ascii=False), encoding="utf-8")
     before = _cases(stale_db)
 
-    with pytest.raises(SystemExit, match="expected"):
+    with pytest.raises(SystemExit, match="has records .* expected"):
+        _run(monkeypatch, stale_db, "--data-dir", data_dir)
+    assert _cases(stale_db) == before
+
+    # Likewise a hints file without one of the Daniel 7:13 hints.
+    shutil.copy(VARIANTS_DIR / "daniel.json", daniel)
+    hints = json.loads(HINTS_PATH.read_text(encoding="utf-8"))
+    hints["hints"] = [hint for hint in hints["hints"] if hint["nt_reference"] != "Rev.1.7"]
+    (data_dir / "heiser" / "lxx_quote_hints.json").write_text(
+        json.dumps(hints, ensure_ascii=False), encoding="utf-8"
+    )
+    with pytest.raises(SystemExit, match="has hints .* expected"):
         _run(monkeypatch, stale_db, "--data-dir", data_dir)
     assert _cases(stale_db) == before
