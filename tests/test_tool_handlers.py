@@ -920,7 +920,10 @@ async def test_bible_dictionary_caps_matches_and_truncates_articles(db):
     output = await call("get_bible_dictionary", topic="jubilee")
     assert len(re.findall(r"^## Jubilee note \d+$", output, re.MULTILINE)) == 10  # of 12
     long_article = await call("get_bible_dictionary", topic="Tabernacle")
-    assert "*[Article truncated — full text available in the Tyndale Bible Dictionary]*" in long_article
+    assert re.search(
+        r'\*\[Truncated — 2,152 more characters\. Call get_bible_dictionary again with '
+        r'topic="Tabernacle" and offset=3997\.\]\*', long_article
+    )
     assert len(long_article) < 4300
 
 

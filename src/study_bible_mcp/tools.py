@@ -38,6 +38,13 @@ from mcp.types import Tool, ToolAnnotations
 from .corpora import CORPORA, LINK_RELATIONS, TIERS, all_periods
 from .database import HEBREW_PREFIX_LETTERS, format_biblical_range, strip_editorial_signs
 from .parsers.biblical_versions import APOCRYPHA_PLURAL_NAMES
+from .published_text import (
+    aquifer_rendering,
+    aquifer_title,
+    clean_aquifer_items,
+    fix_ancient_row,
+    safe_cut,
+)
 
 
 def _parse_json_field(value, default=None):
@@ -53,10 +60,15 @@ def _parse_json_field(value, default=None):
 
 
 def _truncate(text: str, limit: int, suffix: str = "\n\n*[Truncated]*") -> str:
-    """Truncate text to limit characters, appending suffix if truncated."""
+    """Truncate text to limit characters, appending suffix if truncated.
+
+    A cut that would separate a published text's correction note from the
+    text it corrects moves to the end of the note.
+    """
     if len(text) <= limit:
         return text
-    return text[:limit] + suffix
+    cut = safe_cut(text, limit)
+    return text if cut >= len(text) else text[:cut] + suffix
 
 
 RESEARCH_SOURCES_DEFAULT_LIMIT = 4
@@ -836,13 +848,21 @@ Relevant for background on a biblical topic, historical or cultural context, a
 detailed article on a person, place, or concept, or a published definition of a
 theological term.
 
-Returns the full dictionary article with cross-references.""",
+Long articles come a page at a time; the truncation note says how to read on.""",
         inputSchema={
             "type": "object",
             "properties": {
                 "topic": {
                     "type": "string",
                     "description": "Topic to look up (e.g., 'Abraham', 'covenant', 'baptism', 'Pharisees')"
+                },
+                "section": {
+                    "type": "string",
+                    "description": "Heading of one section to read (a truncated article lists them)"
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Character offset to continue a truncated article from"
                 }
             },
             "required": ["topic"]
@@ -1772,16 +1792,13 @@ def _fold_with_positions(text: str) -> tuple[str, list[int]]:
 _HEBREW_WORD = re.compile(r"[\u05d0-\u05ea]+")
 
 
-def _match_excerpt(text: str, query: str, limit: int) -> str:
-    """Return up to ``limit`` characters of ``text`` around the first query match.
+def _match_start(text: str, query: str, limit: int) -> int | None:
+    """Where an excerpt of ``limit`` characters around the first query match starts.
 
     Matching folds like the search index and accepts a word stem (``build``
     finds ``building``) and, for a Hebrew/Aramaic word, one or two attached
-    prefix letters (``הון`` finds ``ובהון``). Without a match the excerpt starts
-    at the beginning. Ellipses mark text cut at either end.
+    prefix letters (``הון`` finds ``ובהון``). None when nothing matches.
     """
-    if len(text) <= limit:
-        return text
     folded, folded_positions = _fold_with_positions(text)
     positions = []
     for word in re.findall(r"\w+", _fold_with_positions(query)[0]):
@@ -1793,8 +1810,34 @@ def _match_excerpt(text: str, query: str, limit: int) -> str:
         found = re.search(pattern, folded)
         if found:
             positions.append(folded_positions[found.start()])
-    start = max(0, min(positions) - limit // 5) if positions else 0
-    if start:
+    return max(0, min(positions) - limit // 5) if positions else None
+
+
+def _aligned_start(start: int, source: str, target: str) -> int:
+    """The point of ``target`` at the same proportion as ``start`` in ``source``, at a sentence start.
+
+    A bilingual passage's two excerpts then cover roughly the same text when
+    only one of them matched the query (an English query never matches the
+    Hebrew). The point moves back to just after a nearby sentence end.
+    """
+    point = round(start * len(target) / max(len(source), 1))
+    sentence = max(target.rfind(mark, max(0, point - 80), point) for mark in (". ", ": ", "; ", "· "))
+    return sentence + 2 if sentence >= 0 else point
+
+
+def _match_excerpt(text: str, query: str, limit: int, fallback_start: int = 0) -> str:
+    """Return up to ``limit`` characters of ``text`` around the first query match.
+
+    Without a match the excerpt starts at ``fallback_start`` (the beginning
+    unless aligned with the other language's excerpt). Ellipses mark text cut
+    at either end.
+    """
+    if len(text) <= limit:
+        return text
+    start = _match_start(text, query, limit)
+    if start is None:
+        start = min(fallback_start, max(0, len(text) - limit))
+    if start and not text[start - 1].isspace():
         space = text.find(" ", start)
         start = space + 1 if 0 <= space < start + 40 else start
     end = min(len(text), start + limit)
@@ -1859,8 +1902,8 @@ def _line_window(row: dict, window: tuple[int, int] | None) -> tuple[str, str | 
     )
 
 
-def _excerpt(text: str, query: str, limit: int, note_cut: bool) -> str:
-    excerpt = _match_excerpt(text, query, limit)
+def _excerpt(text: str, query: str, limit: int, note_cut: bool, fallback_start: int = 0) -> str:
+    excerpt = _match_excerpt(text, query, limit, fallback_start)
     if note_cut and len(text) > limit:
         excerpt += f" *[excerpt of {len(text):,} characters; full_text=true shows more]*"
     return excerpt
@@ -1879,6 +1922,7 @@ def _ancient_passage_lines(
     window: tuple[int, int] | None = None,
 ) -> tuple[list[str], tuple[str, ...]]:
     """One passage: heading, tag, editorial heading, excerpts, ⚠ notes and typed links."""
+    row = fix_ancient_row(row)
     registered = CORPORA.get(row.get("corpus") or corpus or "")
     language = row.get("original_language") or (
         registered.original_language if registered else "Original-language"
@@ -1890,11 +1934,24 @@ def _ancient_passage_lines(
         lines.append(f"*{label} (editorial): {row['editorial_heading']}*")
     original_query = query if _ORIGINAL_SCRIPT.search(query) else ""
     if row.get("text"):
-        lines.extend(["", _excerpt(row["text"], query, english_limit, note_cut)])
+        english = row["text"]
+        original = limit = None
         if row.get("original_text") and include_original:
             original, _ = _line_window(row, window)
             limit = original_limit * 2 if original_query else original_limit
-            lines.extend(["", f"**{language}:** {_excerpt(original, original_query, limit, note_cut)}"])
+        # The language that matched the query sets where the other's excerpt starts.
+        english_start = _match_start(english, query, english_limit)
+        original_start = None
+        if original and original_query:
+            original_start = _match_start(original, original_query, limit)
+        if original and original_start is None and english_start:
+            original_start = _aligned_start(english_start, english, original)
+        elif original_start and english_start is None:
+            english_start = _aligned_start(original_start, original, english)
+        lines.extend(["", _excerpt(english, query, english_limit, note_cut, english_start or 0)])
+        if original:
+            excerpt = _excerpt(original, original_query, limit, note_cut, original_start or 0)
+            lines.extend(["", f"**{language}:** {excerpt}"])
     elif row.get("original_text"):
         # Without English the original is the passage: centre it on the match.
         original, shown = _line_window(row, window)
@@ -2373,6 +2430,7 @@ def format_study_notes(notes: list[dict]) -> str:
     """Format study notes grouped by source type."""
     if not notes:
         return "No study notes available for this reference.\n"
+    notes = clean_aquifer_items(notes)
 
     lines = []
 
@@ -2501,6 +2559,7 @@ def _format_content_items(items: list[dict], limit: int, truncation_note: str, e
     """Format a list of content items (articles, terms) with title + truncated body."""
     if not items:
         return empty_msg
+    items = clean_aquifer_items(items)
 
     lines = []
     for item in items:
@@ -2514,13 +2573,119 @@ def _format_content_items(items: list[dict], limit: int, truncation_note: str, e
     return "\n".join(lines)
 
 
-def format_dictionary_article(articles: list[dict]) -> str:
-    """Format Bible dictionary articles."""
-    return _format_content_items(
-        articles, 4000,
-        "\n\n*[Article truncated — full text available in the Tyndale Bible Dictionary]*",
-        "No dictionary article found for this topic.\n",
+# get_bible_dictionary shows a long article a page at a time (context economy),
+# naming at most this many of the sections still to come.
+DICTIONARY_PAGE = 4000
+DICTIONARY_POINTER_SECTIONS = 8
+
+
+def _page_end(text: str, start: int, limit: int, stop: int) -> int:
+    """Where a page of ``text`` from ``start`` ends: ``stop`` if it fits, else a line or word break."""
+    end = start + limit
+    if end >= stop:
+        return stop
+    floor = start + limit * 3 // 4
+    for separator in ("\n", " "):
+        index = text.rfind(separator, floor, end)
+        if index > start:
+            end = index
+            break
+    return min(safe_cut(text, end), len(text))
+
+
+def _article_sections(text: str, headings: list[tuple[int, str]]) -> list[tuple[int, str, int]]:
+    """(level, heading, position) of each section heading (h2 and below) on its own line, in order."""
+    sections = []
+    position = 0
+    for level, heading in headings:
+        found = re.compile(rf"(?m)^{re.escape(heading)}$").search(text, position)
+        if found:
+            if level > 1:
+                sections.append((level, heading, found.start()))
+            position = found.end()
+    return sections
+
+
+def _find_section(sections: list[tuple[int, str, int]], name: str) -> int | None:
+    """Index of the section headed ``name`` (case-insensitive; else the first containing it)."""
+    wanted = name.strip().casefold()
+    for matches in (lambda h: h.casefold() == wanted, lambda h: wanted in h.casefold()):
+        for index, (_, heading, _) in enumerate(sections):
+            if matches(heading):
+                return index
+    return None
+
+
+def _dictionary_page(item: dict, section: str | None, offset: int) -> tuple[bool, list[str]]:
+    """One article's page: (whether the section or offset was found, its lines).
+
+    The page runs from ``offset`` (or the named section's heading) for up to
+    ``DICTIONARY_PAGE`` characters; a section page stops at the next heading
+    of the same or a higher level. Anything left is announced with the
+    ``offset`` to continue from and the headings of the sections still to come.
+    """
+    title = aquifer_title(item) or "Untitled"
+    text, headings = aquifer_rendering(item)
+    sections = _article_sections(text, headings)
+    lines = [f"## {title}", ""]
+    start, stop, heading = offset, len(text), None
+    if section:
+        index = _find_section(sections, section)
+        if index is None:
+            names = "; ".join(name for _, name, _ in sections) or "none (read on with offset)"
+            lines.extend([f'*[No section matching "{section}". Sections: {names}.]*', ""])
+            return False, lines
+        level, heading, start = sections[index]
+        stop = next((pos for lvl, _, pos in sections[index + 1:] if lvl <= level), len(text))
+    elif start >= len(text) and start:
+        lines.extend([
+            f"*[Offset {start:,} is past the end of this article ({len(text):,} characters).]*", "",
+        ])
+        return False, lines
+    end = _page_end(text, start, DICTIONARY_PAGE, stop)
+    # A page cut just after a heading leaves the heading for the next page.
+    end = next(
+        (pos for _, name, pos in sections
+         if start < pos < end and not text[pos + len(name):end].strip()),
+        end,
     )
+    if start:
+        lines.extend([f"*[From character {start:,} of {len(text):,}.]*", ""])
+    if text[start:end].strip():
+        lines.append(text[start:end].strip())
+    if end < len(text):
+        rest = [name for _, name, pos in sections if pos >= end]
+        names = "; ".join(rest[:DICTIONARY_POINTER_SECTIONS])
+        if len(rest) > DICTIONARY_POINTER_SECTIONS:
+            names += f" (and {len(rest) - DICTIONARY_POINTER_SECTIONS} more)"
+        lead = (
+            f'End of section "{heading}"; {len(text) - end:,} more characters in the article'
+            if heading and end == stop else f"Truncated — {len(text) - end:,} more characters"
+        )
+        lines.extend([
+            "",
+            f'*[{lead}. Call get_bible_dictionary again with topic="{title}" and offset={end}'
+            + (f", or section= one of: {names}" if names else "") + ".]*",
+        ])
+    lines.append("")
+    return True, lines
+
+
+def format_dictionary_article(articles: list[dict], section: str | None = None, offset: int = 0) -> str:
+    """Format Bible dictionary articles, a page each, from ``offset`` or the named ``section``.
+
+    With a section or offset, articles that lack it (another article of the
+    same title) are left out unless none has it.
+    """
+    if not articles:
+        return "No dictionary article found for this topic.\n"
+    pages = [_dictionary_page(item, section, max(0, offset)) for item in articles]
+    if section or offset:
+        found = [lines for hit, lines in pages if hit]
+        chosen = found or [lines for _, lines in pages]
+    else:
+        chosen = [lines for _, lines in pages]
+    return "\n".join(line for lines in chosen for line in lines)
 
 
 def format_key_terms(terms: list[dict]) -> str:
