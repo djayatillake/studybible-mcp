@@ -250,6 +250,144 @@ def test_brenton_markers_keep_word_spacing(tmp_path):
     assert translations[("GEN", "81:6")] == "and all of you children of the most High."
 
 
+def _parse_usfm(tmp_path: Path, body: str) -> dict[str, str]:
+    (tmp_path / "test.usfm").write_text(f"\\id TST - test\n\\h Test\n\\mt1 TEST\n{body}", encoding="utf-8")
+    return {reference: text for (_, reference), text in parse_brenton_usfm(tmp_path).items()}
+
+
+def test_usfm_verse_markers_may_stand_anywhere_in_a_line(tmp_path):
+    assert _parse_usfm(tmp_path, (
+        "\\c 1\n\\p \\v 9 Inline first, \\v 10 then the next.\n"
+        "\\q1 \\v 11 A poetic line\n\\q2 and its second line;\n"
+        "\\m \\v 12 after a margin paragraph \\v 13 and on.\n"
+        "\\p It continues verse 13 across a paragraph.\n"
+        "\\c 2\n\\li1 \\v 1 A list item \\li2 and a sub-item.\n"
+    )) == {
+        "1:9": "Inline first,",
+        "1:10": "then the next.",
+        "1:11": "A poetic line and its second line;",
+        "1:12": "after a margin paragraph",
+        "1:13": "and on. It continues verse 13 across a paragraph.",
+        "2:1": "A list item and a sub-item.",
+    }
+
+
+def test_usfm_numbering_is_read_from_lettered_and_bridged_verses(tmp_path):
+    assert _parse_usfm(tmp_path, (
+        "\\c 3\n\\v 12a First half; \\v 12b second half.\n"
+        "\\v 14-15 A bridge is stored under its first verse.\n"
+        "\\v 16 One part\n\\p \\v 16 and a repeated number continues it.\n"
+    )) == {
+        "3:12a": "First half;",
+        "3:12b": "second half.",
+        "3:14": "A bridge is stored under its first verse.",
+        "3:16": "One part and a repeated number continues it.",
+    }
+
+
+def test_usfm_notes_headings_and_published_numbers_are_not_verse_text(tmp_path):
+    assert _parse_usfm(tmp_path, (
+        "\\c 1\n\\ip An introduction.\n\\p Words before the first verse.\n"
+        "\\v 1 In the \\f + \\fr 1:1 \\ft a note\nthat runs over \\fq two\\fq* lines\\f*beginning\n"
+        "\\s1 ΣΟΦΙΑ ΣΕΙΡΑΧ.\n\\r (Gen 1:1)\n\\p God made the heaven.\n"
+        "\\v 2 \\vp 2a\\vp* The earth \\va 3\\va* was \\x - \\xo 1:2 \\xt Jer 4:23\\x*unsightly.\n"
+        "\\ms2 A major section\n\\d A Psalm title\n\\v 3 After the headings.\n"
+        "\\v 4 An unclosed \\f + \\ft note\n\\v 5 ends at the next verse.\n"
+    )) == {
+        "1:1": "In the beginning God made the heaven.",
+        "1:2": "The earth was unsightly.",
+        "1:3": "After the headings.",
+        "1:4": "An unclosed",
+        "1:5": "ends at the next verse.",
+    }
+
+
+def test_usfm_character_markup_keeps_its_words(tmp_path):
+    assert _parse_usfm(tmp_path, (
+        "\\c 1\n\\v 1 The \\nd Lord\\nd* \\add is\\add* \\+it good\\+it*, "
+        "\\w λόγος|lemma=\"λόγος\" strong=\"G3056\"\\w* and \\w χάρις|χάρις\\w*~too.\n"
+        "\\v 2 \\qt-s |who=\"David\"\\*Selah \\qs Pause\\qs*.\\qt-e\\*\n"
+    )) == {
+        "1:1": "The Lord is good, λόγος and χάρις too.",
+        "1:2": "Selah Pause.",
+    }
+
+
+# eBible's Greek Psalm 12 as pinned: verse 2 has no marker (see BRENTON_USFM_CORRECTIONS).
+EBIBLE_GREEK_PSALM_12 = (
+    "\\c 12  \n\\d\n\\v 1 Εἰς τὸ τέλος, ψαλμὸς τῷ Δαυίδ.  \n"
+    "\\p Ἕως πότε Κύριε ἐπιλήσῃ μου, εἰς τέλος; ἕως πότε ἀποστρέψεις τὸ πρόσωπόν σου ἀπʼ ἐμοῦ;  \n"
+    "\\v 2 Ἕως τίνος θήσομαι βουλὰς ἐν ψυχῇ μου, ὀδύνας ἐν καρδίᾳ μου ἡμέρας; "
+    "ἕως πότε ὑψωθήσεται ὁ ἐχθρός μου ἐπʼ ἐμέ;  \n"
+    "\\v 3 Ἐπίβλεψον, εἰσάκουσόν μου, Κύριε ὁ Θεός μου· φώτισον τοὺς ὀφθαλμούς μου, "
+    "μή ποτε ὑπνώσω εἰς θάνατον·  \n"
+    "\\v 4 μή ποτε εἴποι ὁ ἐχθρός μου, ἴσχυσα πρὸς αὐτόν· οἱ θλίβοντές με ἀγαλλιάσονται ἐὰν σαλευθῶ.   \n"
+    "\\p\n\\v 5 Ἐγὼ δὲ ἐπὶ τῷ ἐλέει σου ἤλπισα· ἀγαλλιάσεται ἡ καρδία μου ἐν τῷ σωτηρίῳ σου.  \n"
+    "\\v 6 Ἄσω τῷ Κυρίῳ τῷ εὐεργετήσαντί με, καὶ ψαλῶ τῷ ὀνόματι Κυρίου τοῦ ὑψίστου.   \n"
+)
+
+
+def test_ebibles_greek_psalm_12_gets_back_its_verse_2(tmp_path):
+    (tmp_path / "20-PSAgrcbrent.usfm").write_text(
+        f"\\id PSA - Brenton Greek Text\n{EBIBLE_GREEK_PSALM_12}", encoding="utf-8"
+    )
+    verses = {reference: text for (_, reference), text in parse_brenton_usfm(tmp_path).items()}
+    assert {reference: text.split()[0] for reference, text in verses.items()} == {
+        "12:1": "Εἰς", "12:2": "Ἕως", "12:3": "Ἕως", "12:4": "Ἐπίβλεψον,", "12:5": "μή", "12:6": "Ἐγὼ",
+    }
+    assert verses["12:2"].endswith("ἀπʼ ἐμοῦ;")
+    assert verses["12:6"].endswith("ἐν τῷ σωτηρίῳ σου. Ἄσω τῷ Κυρίῳ τῷ εὐεργετήσαντί με, καὶ ψαλῶ "
+                                   "τῷ ὀνόματι Κυρίου τοῦ ὑψίστου.")
+
+
+def test_psalm_12_is_compared_verse_by_verse_with_its_corrected_greek(tmp_path):
+    greek_dir = tmp_path / "greek"
+    greek_dir.mkdir()
+    (greek_dir / "20-PSAgrcbrent.usfm").write_text(
+        f"\\id PSA - Brenton Greek Text\n{EBIBLE_GREEK_PSALM_12}", encoding="utf-8"
+    )
+    rahlfs = {
+        "12:1": "εἰς τὸ τέλος ψαλμὸς τῷ Δαυιδ",
+        "12:2": "ἕως πότε κύριε ἐπιλήσῃ μου εἰς τέλος ἕως πότε ἀποστρέψεις τὸ πρόσωπόν σου ἀπ᾿ ἐμοῦ",
+        "12:3": "ἕως τίνος θήσομαι βουλὰς ἐν ψυχῇ μου ὀδύνας ἐν καρδίᾳ μου ἡμέρας ἕως πότε "
+                "ὑψωθήσεται ὁ ἐχθρός μου ἐπ᾿ ἐμέ",
+        "12:4": "ἐπίβλεψον εἰσάκουσόν μου κύριε ὁ θεός μου φώτισον τοὺς ὀφθαλμούς μου μήποτε "
+                "ὑπνώσω εἰς θάνατον",
+        "12:5": "μήποτε εἴπῃ ὁ ἐχθρός μου ἴσχυσα πρὸς αὐτόν οἱ θλίβοντές με ἀγαλλιάσονται ἐὰν σαλευθῶ",
+        "12:6": "ἐγὼ δὲ ἐπὶ τῷ ἐλέει σου ἤλπισα ἀγαλλιάσεται ἡ καρδία μου ἐπὶ τῷ σωτηρίῳ σου ᾄσω "
+                "τῷ κυρίῳ τῷ εὐεργετήσαντί με καὶ ψαλῶ τῷ ὀνόματι κυρίου τοῦ ὑψίστου",
+    }
+    morphology_dir = tmp_path / "morphology"
+    morphology_dir.mkdir()
+    (morphology_dir / "psalms-lxx.json").write_text(json.dumps(
+        [{"ref": f"Ps {ref}", "words": _words(text)} for ref, text in rahlfs.items()]
+    ), encoding="utf-8")
+    english = {("PSA", ref): f"Brenton's English of {ref}." for ref in rahlfs}
+
+    rows = {
+        row["edition_reference"]: row
+        for row in (dict(zip(LXX_ROW_FIELDS, values)) for values in iter_lxx_rows(
+            morphology_dir, {}, english, parse_brenton_usfm(greek_dir)
+        ))
+    }
+    assert {ref: row["brenton_greek_differs"] for ref, row in rows.items()} == {
+        "Psa.12.1": 0, "Psa.12.2": 0, "Psa.12.3": 0, "Psa.12.4": 0, "Psa.12.5": 1, "Psa.12.6": 1,
+    }
+    assert rows["Psa.12.5"]["brenton_greek_difference"] == "Brenton's Greek reads εἴποι for εἴπῃ"
+    assert rows["Psa.12.6"]["brenton_greek_difference"] == "Brenton's Greek reads ἐν for ἐπὶ"
+
+
+def test_a_usfm_correction_applies_only_to_the_text_it_was_written_for():
+    # A file that is already right (or another book or language) is left alone.
+    assert biblical_versions_module.correct_brenton_usfm("PSA", "\\c 12\n\\v 1 For the end.\n") == (
+        "\\c 12\n\\v 1 For the end.\n"
+    )
+    assert biblical_versions_module.correct_brenton_usfm("GEN", EBIBLE_GREEK_PSALM_12) == EBIBLE_GREEK_PSALM_12
+    # A file holding only part of the text it corrects has changed: stop.
+    with pytest.raises(ValueError, match="no longer matches"):
+        biblical_versions_module.correct_brenton_usfm("PSA", EBIBLE_GREEK_PSALM_12.replace("\\v 4 μή", "\\v 5 μή"))
+
+
 def test_brenton_is_attached_only_to_its_own_recension(tmp_path):
     morphology_dir = tmp_path / "morphology"
     morphology_dir.mkdir()

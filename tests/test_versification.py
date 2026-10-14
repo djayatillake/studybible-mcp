@@ -22,6 +22,7 @@ from study_bible_mcp.parsers.biblical_versions import (
     import_biblical_versions,
     iter_lxx_rows,
     pair_psalm_superscriptions,
+    without_repeated_verses,
 )
 from study_bible_mcp.parsers.cross_references import (
     EnglishNumbering,
@@ -249,7 +250,7 @@ def test_a_run_of_verses_one_behind_brenton_is_realigned():
 
 
 def test_another_english_version_vetoes_a_move_brentons_english_does_not_share():
-    # Brenton's Greek is a verse out from his English (as in his Psalm 12).
+    # Brenton's Greek is a verse out from his English (as eBible's Psalm 12 was, uncorrected).
     verses = [SIRACH_1_1, SIRACH_1_2, SIRACH_1_3]
     rahlfs = list(zip(("12:1", "12:2", "12:3"), verses))
     greek = {"12:1": SIRACH_PROLOGUE, **dict(zip(("12:2", "12:3", "12:4"), verses))}
@@ -283,6 +284,145 @@ def test_iter_lxx_rows_takes_english_from_the_matching_brenton_verse(tmp_path):
         "Sir.1.1": "All wisdom cometh from the Lord, and is with him for ever.",
         "Sir.1.2": "Who can number the sand of the sea, and the drops of rain",
     }
+
+
+# Invented verses for 4 Maccabees 7:23-8:4, where Brenton prints Rahlfs 8:1
+# as 7:24 and splits Rahlfs 8:2 into 7:25 and 8:1.
+MACC = {
+    "7:23": "μονοσ γαρ ο σοφοσ και ανδρειοσ εστιν των παθων κυριοσ",
+    "8:1": "δια τουτο μειρακισκοι λογισμω φιλοσοφουντεσ χαλεπωτερων βασανιστηριων επεκρατησαν",
+    "8:2a": "επειδη πρωτην πειραν ενικηθη",
+    "8:2b": "τοτε σφοδρα περιπαθωσ εκελευσεν αλλουσ εβραιων αγαγειν πικροτερον βασανιζειν",
+    "8:3": "ταυτα διαταξαμενου τυραννου παρησαν αγομενοι γεραιασ μητροσ επτα αδελφοι",
+    "8:4": "ουσ ιδων τυραννοσ καθαπερ χορω μεσην μητερα περιεχοντασ ησθετο",
+}
+
+
+def _english_for(greek: dict[str, str]) -> dict[str, str]:
+    return {key: f"English {key} " + "word " * (len(text) // 6) for key, text in greek.items()}
+
+
+def test_a_verse_whose_brenton_number_went_to_another_verse_follows_its_text():
+    rahlfs = [
+        ("7:23", MACC["7:23"]), ("8:1", MACC["8:1"]), ("8:2", f"{MACC['8:2a']} {MACC['8:2b']}"),
+        ("8:3", MACC["8:3"]), ("8:4", MACC["8:4"]),
+    ]
+    greek = {
+        "7:23": MACC["7:23"], "7:24": MACC["8:1"], "7:25": MACC["8:2a"], "8:1": MACC["8:2b"],
+        "8:2": MACC["8:3"], "8:3": MACC["8:4"],
+    }
+    # Rahlfs 8:1 used to keep Brenton's 8:1, which went to Rahlfs 8:2.
+    assert align_brenton_keys(rahlfs, greek, _english_for(greek)) == {
+        "8:1": "7:24", "8:2": "8:1", "8:3": "8:2", "8:4": "8:3",
+    }
+
+
+def test_a_verse_within_the_brenton_verse_another_verse_took_keeps_it():
+    # Brenton prints Rahlfs 1:1-2 as one verse, 1:1 (Numbers 21:19-20).
+    short, long, last = MACC["8:2a"], MACC["8:2b"], MACC["8:3"]
+    rahlfs = [("1:1", short), ("1:2", long), ("1:3", last)]
+    greek = {"1:1": f"{short} {long}", "1:2": last, "1:3": MACC["8:4"]}
+    assert align_brenton_keys(rahlfs, greek, _english_for(greek)) == {"1:2": "1:1", "1:3": "1:2"}
+
+
+def test_a_verse_whose_brenton_number_went_elsewhere_and_has_no_match_loses_it():
+    rahlfs = [("1:1", MACC["7:23"]), ("1:2", MACC["8:3"]), ("1:3", MACC["8:4"])]
+    greek = {"1:1": MACC["8:3"], "1:2": MACC["8:4"], "1:3": MACC["8:1"]}
+    assert align_brenton_keys(rahlfs, greek, _english_for(greek)) == {"1:1": None, "1:2": "1:1", "1:3": "1:2"}
+
+
+# eBible's Greek repeats a neighbouring verse (Job 3:13-14, 1 Chronicles
+# 11:24-25, Numbers 34:10-11); Brenton's English does not.
+JOB_3 = {
+    "3:13": "νῦν ἂν κοιμηθεὶς ἡσύχασα, ὑπνώσας δὲ ἀνεπαυσάμην",
+    "3:14": "Νῦν ἂν κοιμηθεὶς ἡσύχασα, ὑπνώσας δὲ ἀνεπαυσάμην μετὰ βασιλέων βουλευτῶν γῆς οἳ ἐγαυριῶντο ἐπὶ ξίφεσιν,",
+}
+JOB_3_ENGLISH = {
+    "3:13": "Now I should have lain down and been quiet, I should have slept and been at rest,",
+    "3:14": "with kings and councillors of the earth, who gloried in their swords;",
+}
+CHRONICLES_11 = {
+    "11:24": "Ταῦτα ἐποίησε Βαναία υἱὸς Ἰωδαὲ, καὶ τούτῳ ὄνομα ἐν τοῖς τρισὶ τοῖς δυνατοῖς. Ὑπὲρ τοὺς "
+             "τριάκοντα ἦν ἔνδοξος οὗτος, καὶ πρὸς τοὺς τρεῖς οὐκ ἤρχετο· καὶ κατέστησεν αὐτὸν Δαυὶδ ἐπὶ "
+             "τὴν πατριὰν αὐτοῦ.",
+    "11:25": "Ὑπὲρ τοὺς τριάκοντα ἦν ἔνδοξος οὗτος, καὶ πρὸς τοὺς τρεῖς οὐκ ἤρχετο· καὶ κατέστησεν "
+             "αὐτὸν Δαυεὶδ ἐπὶ τὴν πατριὰν αὐτοῦ.",
+}
+CHRONICLES_11_ENGLISH = {
+    "11:24": "These things did Banaia son of Jodae, and his name was among the three mighties.",
+    "11:25": "He was distinguished beyond the thirty, yet he reached not to the first three: "
+             "and David set him over his family.",
+}
+NUMBERS_34 = {
+    "34:9": "Καὶ ἐξελεύσεται τὰ ὅρια Δεφρωνὰ, καὶ ἔσται ἡ διέξοδος αὐτοῦ Ἀρσεναΐν· τοῦτο ἔσται ὑμῖν ὅρια ἀπὸ Βοῤῥᾶ.",
+    "34:10": "Καὶ καταβήσεται τὰ ὅρια ἀπὸ Σεπεφαμὰρ Βηλὰ ἀπὸ ἀνατολῶν ἐπὶ πηγὰς, και καταβήσεται τὰ ὅρια "
+             "Βηλὰ ἐπὶ νώτου θαλάσσης Χενερὲθ ἀπὸ ἀνατολῶν.",
+    "34:11": "Καὶ καταβήσεται τὰ ὅρια ἀπὸ Σεπφαμὰρ Βηλὰ ἀπὸ ἀνατολῶν ἐπὶ πηγάς, καὶ καταβήσεται τὰ ὅρια "
+             "Βηλὰ ἐπὶ νώτου θαλάσσης Χενερὲθ ἀπὸ ἀνατολῶν.",
+}
+NUMBERS_34_ENGLISH = {
+    "34:9": "And the border shall go out to Dephrona, and its termination shall be at Arsenain; "
+            "this shall be your border from the north.",
+    "34:10": "And ye shall measure to yourselves the eastern border from Arsenain to Sepphamar.",
+    "34:11": "And the border shall go down from Sepphamar to Bela eastward to the fountains, and the "
+             "border shall go down from Bela behind the sea Chenereth eastward.",
+}
+NUMBERS_34_RAHLFS = {
+    "34:9": "καὶ ἐξελεύσεται τὰ ὅρια Δεφρωνα καὶ ἔσται ἡ διέξοδος αὐτοῦ Ασερναιν τοῦτο ἔσται ὑμῖν ὅρια ἀπὸ βορρᾶ",
+    "34:10": "καὶ καταμετρήσετε ὑμῖν αὐτοῖς τὰ ὅρια ἀνατολῶν ἀπὸ Ασερναιν Σεπφαμα",
+    "34:11": "καὶ καταβήσεται τὰ ὅρια ἀπὸ Σεπφαμ Αρβηλα ἀπὸ ἀνατολῶν ἐπὶ πηγάς καὶ καταβήσεται τὰ ὅρια "
+             "Βηλα ἐπὶ νώτου θαλάσσης Χεναρα ἀπὸ ἀνατολῶν",
+}
+
+
+def test_a_copy_of_the_verse_before_or_after_is_removed_from_a_verse():
+    assert without_repeated_verses(JOB_3, JOB_3_ENGLISH) == {
+        "3:13": JOB_3["3:13"], "3:14": "μετὰ βασιλέων βουλευτῶν γῆς οἳ ἐγαυριῶντο ἐπὶ ξίφεσιν,",
+    }
+    assert without_repeated_verses(CHRONICLES_11, CHRONICLES_11_ENGLISH) == {
+        "11:24": "Ταῦτα ἐποίησε Βαναία υἱὸς Ἰωδαὲ, καὶ τούτῳ ὄνομα ἐν τοῖς τρισὶ τοῖς δυνατοῖς.",
+        "11:25": CHRONICLES_11["11:25"],
+    }
+
+
+def test_a_verse_that_is_only_a_copy_of_its_neighbour_is_removed():
+    # Rahlfs tells which of the two is the copy; without it both go.
+    corrected = without_repeated_verses(NUMBERS_34, NUMBERS_34_ENGLISH, NUMBERS_34_RAHLFS)
+    assert corrected == {"34:9": NUMBERS_34["34:9"], "34:11": NUMBERS_34["34:11"]}
+    assert without_repeated_verses(NUMBERS_34, NUMBERS_34_ENGLISH) == {"34:9": NUMBERS_34["34:9"]}
+
+
+def test_a_refrain_brentons_english_repeats_too_is_kept():
+    greek = {
+        "37:8": "καὶ οἱ στύλοι αὐτῶν εἴκοσι, καὶ αἱ βάσεις αὐτῶν εἴκοσι.",
+        "37:9": "καὶ τὸ κλίτος τὸ πρὸς Βοῤῥᾶν, ἑκατὸν ἐφʼ ἑκατόν· καὶ οἱ στύλοι αὐτῶν εἴκοσι, καὶ αἱ βάσεις αὐτῶν εἴκοσι·",
+    }
+    english = {
+        "37:8": "and their posts twenty, and their sockets twenty;",
+        "37:9": "and on the north side a hundred every way, and their posts twenty and their sockets twenty.",
+    }
+    assert without_repeated_verses(greek, english) == greek
+
+
+def test_iter_lxx_rows_does_not_compare_a_verse_ebible_replaced_with_its_neighbour(tmp_path):
+    morphology = tmp_path / "morphology"
+    morphology.mkdir()
+    (morphology / "numbers.json").write_text(json.dumps([
+        {"ref": f"Num {ref}", "words": [_word(w) for w in text.split()]} for ref, text in NUMBERS_34_RAHLFS.items()
+    ]), encoding="utf-8")
+    rows = {
+        row["edition_reference"]: row
+        for row in (dict(zip(LXX_ROW_FIELDS, values)) for values in iter_lxx_rows(
+            morphology, {},
+            {("NUM", key): text for key, text in NUMBERS_34_ENGLISH.items()},
+            {("NUM", key): text for key, text in NUMBERS_34.items()},
+        ))
+    }
+    assert rows["Num.34.10"]["translation"] == NUMBERS_34_ENGLISH["34:10"]
+    assert rows["Num.34.10"]["brenton_greek_differs"] is None
+    # 34:11 is compared with its own Greek only, not the copy before it.
+    assert rows["Num.34.11"]["brenton_greek"] == NUMBERS_34["34:11"]
+    assert "Καὶ καταβήσεται" not in rows["Num.34.11"]["brenton_greek_difference"]
 
 
 # --- scripts/repair_versification.py ----------------------------------------

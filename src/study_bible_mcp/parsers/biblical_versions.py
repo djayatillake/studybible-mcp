@@ -214,11 +214,35 @@ _EDITION_SUFFIXES = {
 
 _OT_CODES = tuple(MT_BOOK_CODES.values())
 _REF_RE = re.compile(r"^(\d+):(\d+)([a-z]?)$", re.IGNORECASE)
-_USFM_NOTE_RE = re.compile(r"\\(?:f|x)\s.*?\\(?:f|x)\*", re.DOTALL)
-# Closing character markers (\add*, \+it*) never consume the following space;
-# opening markers (\add, \+it) consume the one delimiter space after them.
-_USFM_CLOSE_MARKER_RE = re.compile(r"\\\+?[a-z0-9-]+\*", re.IGNORECASE)
-_USFM_OPEN_MARKER_RE = re.compile(r"\\\+?[a-z0-9-]+\s?", re.IGNORECASE)
+
+# USFM is read as a stream of markers (\v, \p, \add, \+it, \add*, a milestone's
+# bare \*), not line by line, so verse, paragraph and note markers may stand
+# anywhere in a line and notes may run over several lines.
+_USFM_MARKER_RE = re.compile(r"\\(\+?[A-Za-z0-9-]*)(\*?)")
+# Text after these markers is a title, heading, label or introduction, not
+# verse text, until the next paragraph, verse or chapter marker.
+_USFM_HEADING_MARKERS = re.compile(
+    r"(?:id|ide|usfm|rem|sts|restore|h\d?|toca?\d|mte?\d?|ms\d?|mr|s\d?|sr|r|d|sp|sd\d?"
+    r"|cl|cd|lit|qa|qd|periph"
+    # introductions (\it, italic, is a character marker and keeps its words)
+    r"|imte?\d?|is\d?|ip|ipi|im|imi|ipq|imq|ipr|iq\d?|ib|ili\d?|iot|io\d?|iex|ie)"
+)
+# Paragraph, poetry, list and table markers: text after them continues the
+# verse in progress (a verse may run over several paragraphs or poetic lines).
+_USFM_PARAGRAPH_MARKERS = re.compile(
+    r"(?:p|m|po|pr|cls|pmo|pm|pmc|pmr|pi\d?|mi|nb|pc|ph\d?|q\d?|qr|qc|qm\d?"
+    r"|li\d?|lh|lf|lim\d?|tr|b|pb)"
+)
+# Character spans whose content is apparatus, not verse text: footnotes,
+# endnotes, cross-references, figures, inline quotation references, and
+# alternate or published verse and chapter numbers. Each ends at its own
+# closing marker (\f ... \f*).
+_USFM_DROPPED_SPANS = frozenset({"f", "fe", "ef", "x", "ex", "fig", "rq", "va", "vp", "ca", "cat"})
+# USFM 3 word attributes (\w λόγος|lemma="λόγος"\w*) end at the closing marker.
+_USFM_ATTRIBUTES_RE = re.compile(r"\|[^\\|]*(?=\\\+?[A-Za-z0-9-]*\*)")
+_USFM_CHAPTER_RE = re.compile(r"\s*(\d+)")
+# A verse number, lettered (12a), or a bridge (10-11) stored under its first verse.
+_USFM_VERSE_RE = re.compile(r"\s*(\d+)([A-Za-z]?)(?:[-‐–]\d+[A-Za-z]?)?")
 
 
 def _split_ref(reference: str) -> tuple[int, int, str]:
@@ -228,15 +252,116 @@ def _split_ref(reference: str) -> tuple[int, int, str]:
     return int(match.group(1)), int(match.group(2)), match.group(3).lower()
 
 
-def _clean_usfm(text: str) -> str:
-    text = _USFM_NOTE_RE.sub("", text)
-    text = _USFM_CLOSE_MARKER_RE.sub("", text)
-    text = _USFM_OPEN_MARKER_RE.sub("", text)
-    return re.sub(r"\s+", " ", text).strip()
+def _usfm_verses(content: str) -> dict[str, list[str]]:
+    """Split one USFM book into {"chapter:verse": [text pieces]}, markup removed.
+
+    Opening markers consume the one space that ends them; closing markers
+    (\\add*) consume nothing, so "is\\add* good" keeps its space. Text after
+    a chapter marker and before its first verse (an unnumbered introduction)
+    belongs to no verse. A verse number repeated within a chapter continues
+    that verse.
+    """
+    content = _USFM_ATTRIBUTES_RE.sub("", content.replace("~", " ").replace("//", " "))
+    verses: dict[str, list[str]] = {}
+    chapter: str | None = None
+    verse: str | None = None
+    heading = False
+    dropped: str | None = None  # the dropped span being skipped (f, x, ...)
+    position = 0
+
+    def keep(text: str) -> None:
+        if verse is not None and not heading and dropped is None and text:
+            verses[verse].append(text)
+
+    for match in _USFM_MARKER_RE.finditer(content):
+        if match.start() < position:  # inside a chapter or verse number already read
+            continue
+        keep(content[position:match.start()])
+        name, closing = match.group(1).lstrip("+"), match.group(2)
+        position = match.end()
+        if closing:
+            if dropped is not None and name == dropped:
+                dropped = None
+            continue
+        if position < len(content) and content[position] in " \t\r\n":
+            position += 1
+        if dropped is not None:
+            # A note never spans a verse, chapter or paragraph; an unclosed one ends there.
+            if name not in ("v", "c") and not _USFM_PARAGRAPH_MARKERS.fullmatch(name) \
+                    and not _USFM_HEADING_MARKERS.fullmatch(name):
+                continue
+            dropped = None
+        if name == "c":
+            number = _USFM_CHAPTER_RE.match(content, position)
+            if number:
+                chapter, verse, heading = number.group(1), None, False
+                position = number.end()
+        elif name == "v":
+            number = _USFM_VERSE_RE.match(content, position)
+            if number and chapter is not None:
+                verse = f"{chapter}:{number.group(1)}{number.group(2).lower()}"
+                verses.setdefault(verse, [])
+                heading = False
+                position = number.end()
+        elif name in _USFM_DROPPED_SPANS:
+            dropped = name
+        elif _USFM_PARAGRAPH_MARKERS.fullmatch(name):
+            heading = False
+        elif _USFM_HEADING_MARKERS.fullmatch(name):
+            heading = True
+    keep(content[position:])
+    return verses
+
+
+# Corrections to eBible's Brenton USFM (the pinned files), applied before it
+# is parsed: the book, why, and each (text as eBible has it, corrected text).
+# A correction applies only where every one of its texts occurs exactly once;
+# a file with none of them (a corrected upstream file, the other language) is
+# left alone, and a file with only some of them is an error.
+BRENTON_USFM_CORRECTIONS: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = (
+    (
+        "PSA",
+        "eBible's Greek Psalm 12 (20-PSAgrcbrent.usfm) lacks the marker of verse 2: its "
+        "words stand in a paragraph of verse 1, the title, so verses 3-5 are numbered 2-4 "
+        "and verse 6 is split between 5 and 6. Brenton's English and Rahlfs number the "
+        "Psalm 1-6, with 'I will sing to the Lord' in verse 6.",
+        (
+            ("\\p Ἕως πότε Κύριε ἐπιλήσῃ μου,", "\\p\n\\v 2 Ἕως πότε Κύριε ἐπιλήσῃ μου,"),
+            ("\\v 2 Ἕως τίνος θήσομαι", "\\v 3 Ἕως τίνος θήσομαι"),
+            ("\\v 3 Ἐπίβλεψον, εἰσάκουσόν μου", "\\v 4 Ἐπίβλεψον, εἰσάκουσόν μου"),
+            ("\\v 4 μή ποτε εἴποι", "\\v 5 μή ποτε εἴποι"),
+            ("\\v 5 Ἐγὼ δὲ ἐπὶ τῷ ἐλέει σου ἤλπισα", "\\v 6 Ἐγὼ δὲ ἐπὶ τῷ ἐλέει σου ἤλπισα"),
+            ("\\v 6 Ἄσω τῷ Κυρίῳ τῷ εὐεργετήσαντί με", "Ἄσω τῷ Κυρίῳ τῷ εὐεργετήσαντί με"),
+        ),
+    ),
+)
+
+
+def correct_brenton_usfm(book: str, content: str) -> str:
+    """Apply BRENTON_USFM_CORRECTIONS for ``book`` to one USFM file's content."""
+    for code, reason, replacements in BRENTON_USFM_CORRECTIONS:
+        if code != book:
+            continue
+        counts = [content.count(old) for old, _ in replacements]
+        if not any(counts):
+            continue
+        if counts != [1] * len(replacements):
+            raise ValueError(f"{book} USFM no longer matches its correction ({reason})")
+        for old, new in replacements:
+            content = content.replace(old, new)
+    return content
 
 
 def parse_brenton_usfm(directory: Path) -> dict[tuple[str, str], str]:
-    """Read eBible's Brenton USFM files into (book code, chapter:verse) text."""
+    """Read eBible's Brenton USFM files into (book code, chapter:verse) text.
+
+    Verse text runs from its verse marker to the next verse or chapter
+    marker, across paragraph and poetry markers (\\p, \\q1, \\m, \\nb, ...),
+    wherever in a line the markers stand. Headings, titles, introductions,
+    notes and cross-references are left out; character markup (\\add, \\nd,
+    \\+it, \\w ...|lemma\\w*) keeps its words. Known errors in eBible's
+    files are corrected first (BRENTON_USFM_CORRECTIONS).
+    """
     translations: dict[tuple[str, str], str] = {}
     for path in sorted(directory.glob("*.usfm")):
         content = path.read_text(encoding="utf-8-sig")
@@ -244,23 +369,8 @@ def parse_brenton_usfm(directory: Path) -> dict[tuple[str, str], str]:
         if not id_match:
             continue
         book = id_match.group(1)
-        chapter: str | None = None
-        current_key: tuple[str, str] | None = None
-        for line in content.splitlines():
-            chapter_match = re.match(r"^\\c\s+(\d+)", line)
-            if chapter_match:
-                chapter = chapter_match.group(1)
-                current_key = None
-                continue
-            verse_match = re.match(r"^\\v\s+(\d+[a-z]?(?:-\d+[a-z]?)?)\s*(.*)", line)
-            if verse_match and chapter:
-                current_key = (book, f"{chapter}:{verse_match.group(1)}")
-                translations[current_key] = _clean_usfm(verse_match.group(2))
-                continue
-            if current_key and line and not re.match(r"^\\(?:c|s|ms|mt|r|d|b|ib)\b", line):
-                continuation = _clean_usfm(line)
-                if continuation:
-                    translations[current_key] = f"{translations[current_key]} {continuation}".strip()
+        for reference, pieces in _usfm_verses(correct_brenton_usfm(book, content)).items():
+            translations[(book, reference)] = re.sub(r"\s+", " ", "".join(pieces)).strip()
     return translations
 
 
@@ -719,6 +829,8 @@ _ALIGNED = 0.5  # a Rahlfs verse this close to Brenton's verse of its number kee
 _REALIGN = 0.6  # a better Brenton verse must score at least this ...
 _REALIGN_GAIN = 0.25  # ... and this much more than the verse of the same number
 _REALIGN_ALONE = 0.85  # a realignment with no realigned neighbour needs this, in its chapter
+_CONTAINED = 0.8  # share of a Rahlfs verse's (weighted) words within a Brenton verse that holds it
+_NEARBY = 3  # Brenton verses this many places either side of a verse's own number are nearby
 # Brenton's English and Greek files share verse numbers; where one merges or
 # misnumbers verses, their lengths can disagree.
 _ENGLISH_GREEK_LENGTHS = (0.5, 2.6)
@@ -729,17 +841,86 @@ _ENGLISH_STOPWORDS = frozenset(
 )
 
 
+def _english_words(text: str) -> set[str]:
+    """An English verse's content words (first five letters)."""
+    return {
+        word[:5] for word in re.findall(r"[a-z]+", text.lower())
+        if len(word) > 2 and word not in _ENGLISH_STOPWORDS
+    }
+
+
 def _english_overlap(left: str, right: str) -> float:
     """Dice overlap of two English verses' content words (first five letters)."""
-    def words(text: str) -> set[str]:
-        return {
-            word[:5] for word in re.findall(r"[a-z]+", text.lower())
-            if len(word) > 2 and word not in _ENGLISH_STOPWORDS
-        }
-    left_words, right_words = words(left), words(right)
+    left_words, right_words = _english_words(left), _english_words(right)
     if not left_words or not right_words:
         return 0.0
     return 2 * len(left_words & right_words) / (len(left_words) + len(right_words))
+
+
+# A Brenton Greek verse repeating its neighbour (see without_repeated_verses):
+_REPEAT_COVERAGE = 0.9  # this much of the neighbour's words, in order, at one end of the verse ...
+_REPEAT_ENGLISH = 0.6  # ... where his English for the two shares less than this of its words
+_REPEAT_REMAINDER = 0.1  # a verse with no more than this left over is nothing but the copy
+
+
+def without_repeated_verses(
+    greek: dict[str, str], english: dict[str, str], rahlfs: dict[str, str] | None = None
+) -> dict[str, str]:
+    """One book of Brenton's Greek without the copies of a neighbouring verse it repeats.
+
+    eBible's transcription repeats a few verses by mistake: Job 3:14 and
+    3 Kingdoms 8:58 begin with the whole of the verse before, 1 Chronicles
+    11:24 ends with the whole of the verse after, and Numbers 34:10 is a second
+    copy of 34:11 instead of its own text. Brenton's English does not repeat
+    them, which tells a keying error from a refrain or formula (repeated in his
+    English too). ``greek`` and ``english`` map Brenton's verse numbers to his
+    text in file order; ``rahlfs`` maps Rahlfs verse numbers to the Rahlfs text.
+
+    The neighbour's words found again, in order, at the start or end of a
+    verse are removed from it. Where the two verses are the same text, the copy
+    is removed altogether: the one further from the Rahlfs verse of its number,
+    or both when Rahlfs cannot tell.
+    """
+    rahlfs = rahlfs or {}
+    corrected = dict(greek)
+    keys = list(greek)
+    for pair in zip(keys, keys[1:]):
+        if pair[0].split(":")[0] != pair[1].split(":")[0] or not all(key in corrected for key in pair):
+            continue
+        english_words = [_english_words(english.get(key, "")) for key in pair]
+        if not all(english_words) or len(english_words[0] & english_words[1]) >= _REPEAT_ENGLISH * min(
+            len(words) for words in english_words
+        ):
+            continue
+        tokens = {key: _greek_tokens(corrected[key].split(), 0) for key in pair}
+        short, long = sorted(pair, key=lambda key: len(tokens[key]))
+        blocks = [
+            block for block in difflib.SequenceMatcher(
+                None, [form for form, _, _ in tokens[short]], [form for form, _, _ in tokens[long]],
+                autojunk=False,
+            ).get_matching_blocks()
+            if block.size >= 2
+        ]
+        if not tokens[short] or sum(block.size for block in blocks) < _REPEAT_COVERAGE * len(tokens[short]):
+            continue
+        start, end = blocks[0].b, blocks[-1].b + blocks[-1].size
+        if start and end < len(tokens[long]):
+            continue  # inside the verse, not a copy appended to it
+        if len(tokens[long]) - (end - start) > _REPEAT_REMAINDER * len(tokens[long]):
+            words = corrected[long].split()
+            first_word, last_word = tokens[long][start][1], tokens[long][end - 1][2]
+            corrected[long] = " ".join(words[:first_word] + words[last_word + 1:])
+            continue
+
+        def own_match(key: str) -> float:
+            own, theirs = set(normalize_greek_text(rahlfs.get(key, ""))), {form for form, _, _ in tokens[key]}
+            return 2 * len(own & theirs) / (len(own) + len(theirs)) if own and theirs else 0.0
+
+        matches = {key: own_match(key) for key in pair}
+        for key in pair:
+            if matches[key] <= min(matches.values()):
+                del corrected[key]
+    return corrected
 
 
 def align_brenton_keys(
@@ -757,18 +938,23 @@ def align_brenton_keys(
     (the Letter of Jeremiah is one verse behind Brenton's; Brenton prints
     Sirach's prologue as 1:1-1:1g and its 1:1 as 1:1h; his Proverbs 24:22a-t
     is Rahlfs 30:1-14). The value is None for a verse whose Brenton verse
-    went to a closer match: its own number holds another verse's English.
+    went to a closer match, when no other Brenton verse holds it: its own
+    number holds another verse's English.
 
     A verse is moved only when its own number matches poorly, another Brenton
     verse matches it well and much better, that verse is not already matched
     by the Rahlfs verse of its own number, and Brenton's English and Greek for
     it are of comparable length. A move must also continue a neighbour's move
     (a run of renumbered verses), or match very closely within its chapter.
-    Words are weighted by rarity, so refrains (Daniel 3's "bless the Lord")
-    do not make verses match. ``reference_english`` (another English version
-    of a Rahlfs verse: the BSB of its MT verse) vetoes a move whose English is
-    further from it than the English of the verse's own number: Brenton's Greek
-    Psalm 12 is a verse out from his English, which is not.
+    A verse whose own Brenton verse was moved to another verse then follows
+    its text to wherever Brenton prints it (Brenton's 4 Maccabees 7:24-8:1 is
+    Rahlfs 8:1-2), unless it lies within that verse too. Words are weighted by
+    rarity, so refrains (Daniel 3's "bless the Lord") do not make verses
+    match. ``reference_english`` (another English version of a Rahlfs verse:
+    the BSB of its MT verse) vetoes a move whose English is further from it
+    than the English of the verse's own number, where Brenton's Greek is a
+    verse out from his English, which is not (eBible's Greek Psalm 12 was,
+    until BRENTON_USFM_CORRECTIONS restored its verse 2).
     """
     reference_english = reference_english or {}
     rahlfs_words = {ref: frozenset(normalize_greek_text(text)) for ref, text in rahlfs}
@@ -834,9 +1020,39 @@ def align_brenton_keys(
     for ref, (key, value) in accepted.items():
         if key not in best_for_key or value > accepted[best_for_key[key]][1]:
             best_for_key[key] = ref
-    return {
+    moved: dict[str, str | None] = {
         ref: key if best_for_key[key] == ref else None for ref, (key, _) in accepted.items()
     }
+
+    # So does a Rahlfs verse whose own number went to the verse it belongs to
+    # (Rahlfs 4 Maccabees 8:2 is Brenton's 7:25-8:1), unless it lies within that
+    # Brenton verse too (Brenton joins two Rahlfs verses). It takes the Brenton
+    # verse closest to it instead (Rahlfs 8:1 is Brenton's 7:24) when that is
+    # as close as an aligned verse, or else a nearby Brenton verse that holds
+    # it, provided Brenton's English for that verse is no further from the
+    # reference English than his English of its own number.
+    def within(words: frozenset, key: str) -> float:
+        total = sum(weight[word] for word in words)
+        return sum(weight[word] for word in words & brenton_words.get(key, frozenset())) / total if total else 0.0
+
+    for ref, words in rahlfs_words.items():
+        if ref in moved or ref not in best_for_key or within(words, ref) >= _CONTAINED:
+            continue
+        candidates = [key for key in brenton_words if key != ref and comparable_lengths(key)]
+        best = max(candidates, key=lambda key: score(words, brenton_words[key]), default=None)
+        if best is None or score(words, brenton_words[best]) < _ALIGNED:
+            nearby = [key for key in candidates if abs(position[key] - position[ref]) <= _NEARBY]
+            best = max(nearby, key=lambda key: within(words, key), default=None)
+            if best is None or within(words, best) < _CONTAINED:
+                moved[ref] = None
+                continue
+        reference = reference_english.get(ref)
+        if reference and _english_overlap(reference, brenton_english.get(best, "")) < _english_overlap(
+            reference, brenton_english.get(ref, "")
+        ):
+            continue
+        moved[ref] = best
+    return moved
 
 
 def iter_lxx_rows(
@@ -858,9 +1074,11 @@ def iter_lxx_rows(
     except where Brenton numbers the text differently (``align_brenton_keys``,
     checked against ``bsb``: BSB text by MT reference, when available).
     Rows carrying Brenton's English are compared with Brenton's own Greek for
-    the same verse: ``brenton_greek_differs`` is 1 when it differs from Rahlfs
-    (and Brenton's Greek plus a difference summary are stored), 0 when it
-    agrees, and NULL when there is no English or no Brenton Greek verse. Verses
+    the same verse, less any copy of a neighbouring verse that eBible's
+    transcription repeats (``without_repeated_verses``): ``brenton_greek_differs``
+    is 1 when it differs from Rahlfs (and Brenton's Greek plus a difference
+    summary are stored), 0 when it agrees, and NULL when there is no English or
+    no Brenton Greek verse (Numbers 34:10, which eBible replaces with 34:11). Verses
     whose English is the KJV Apocrypha (see ``is_kjv_apocrypha``) are not
     compared (NULL): that English does not translate Brenton's Greek.
     """
@@ -881,7 +1099,10 @@ def iter_lxx_rows(
         # Brenton numbers the text differently. 2 Esdras takes its English
         # from Brenton's Ezra and Nehemiah by MT verse instead.
         brenton_refs: list[str | None] = list(raw_refs)
+        book_greek = {key: text for (code, key), text in brenton_greek.items() if code == greek_code}
         if translation_code and slug != "2-esdras":
+            book_english = {key: text for (code, key), text in translations.items() if code == translation_code}
+            book_greek = without_repeated_verses(book_greek, book_english, dict(zip(raw_refs, texts)))
             reference_english = {}
             for raw_ref in raw_refs:
                 targets, _ = _mapping_targets(pairings.get((slug, raw_ref)) or [{}])
@@ -892,17 +1113,9 @@ def iter_lxx_rows(
                 ).strip()
                 if english:
                     reference_english[raw_ref] = english
-            moved = align_brenton_keys(
-                list(zip(raw_refs, texts)),
-                {key: text for (code, key), text in brenton_greek.items() if code == greek_code},
-                {key: text for (code, key), text in translations.items() if code == translation_code},
-                reference_english,
-            )
+            moved = align_brenton_keys(list(zip(raw_refs, texts)), book_greek, book_english, reference_english)
             brenton_refs = [moved.get(raw_ref, raw_ref) for raw_ref in raw_refs]
-        greek_texts = [
-            brenton_greek.get((greek_code, brenton_ref), "") if brenton_ref else ""
-            for brenton_ref in brenton_refs
-        ]
+        greek_texts = [book_greek.get(brenton_ref, "") if brenton_ref else "" for brenton_ref in brenton_refs]
         seen: set[tuple[str, str | None]] = set()
         for index, verse in enumerate(verses):
             raw_ref, text = raw_refs[index], texts[index]
