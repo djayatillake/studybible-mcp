@@ -19,6 +19,8 @@ Genre = Literal[
     "psalm",
     "wisdom",
     "apocalyptic",
+    "poetry",
+    "love_poetry",
 ]
 
 # Book to genre mapping
@@ -49,7 +51,9 @@ BOOK_GENRES: dict[str, Genre] = {
     "Job": "wisdom",
     "Pro": "wisdom",
     "Ecc": "wisdom",
-    "Sng": "wisdom",
+
+    # Love poetry
+    "Sng": "love_poetry",
 
     # Psalms
     "Psa": "psalm",
@@ -108,6 +112,18 @@ BOOK_GENRES: dict[str, Genre] = {
 
     # Apocalyptic
     "Rev": "apocalyptic",
+}
+
+# Chapters whose genre differs from their book's: songs and psalms set inside
+# narrative, law, or prophecy. Only chapters that are clearly poetic are listed.
+CHAPTER_GENRES: dict[tuple[str, int], Genre] = {
+    ("Exo", 15): "poetry",   # Song of the Sea
+    ("Deu", 32): "poetry",   # Song of Moses
+    ("Deu", 33): "poetry",   # Blessing of Moses
+    ("Jdg", 5): "poetry",    # Song of Deborah
+    ("2Sa", 22): "psalm",    # David's song (= Psalm 18)
+    ("Jon", 2): "psalm",     # Jonah's prayer
+    ("Hab", 3): "psalm",     # Habakkuk's prayer
 }
 
 # Genre-specific interpretation guidelines
@@ -310,6 +326,47 @@ GENRE_GUIDELINES: dict[Genre, dict] = {
             "What does this reveal about living skillfully before God?",
         ],
     },
+    "poetry": {
+        "name": "Hebrew Poetry (song within narrative or law)",
+        "key_principle": "Read as poetry (parallelism, imagery), then ask what the song does at this point in the book",
+        "approach": [
+            "Hebrew poetry works by parallelism: a second line echoes, sharpens, or contrasts the first",
+            "Imagery and hyperbole (God as rock, warrior, eagle) state truth figuratively",
+            "Ask why the song stands here: it often celebrates, interprets, or seals the events or covenant around it",
+            "Compare the prose account of the same events where there is one (Exod 14 and 15; Judg 4 and 5)",
+            "Later Scripture echoes these songs (Rev 15:3; Rom 10:19 and Heb 1:6 quote Deut 32)",
+        ],
+        "common_errors": [
+            "Reading poetic imagery as literal description or a step-by-step report",
+            "Cutting the song off from the narrative or covenant it closes",
+            "Pressing the poem's details against the prose account as contradictions",
+        ],
+        "application_questions": [
+            "What does the song reveal about God's character and his acts for his people?",
+            "How does it interpret the events or covenant around it?",
+            "How do later Scripture and the work of Christ take up its themes?",
+        ],
+    },
+    "love_poetry": {
+        "name": "Love Poetry (Song of Songs)",
+        "key_principle": "Lyric poems celebrating love between a man and a woman; read the imagery as poetry first",
+        "approach": [
+            "The Song is lyric love poetry whose speakers (the woman, the man, the friends) change without notice",
+            "Its imagery is sensory, drawn from gardens, nature, and royalty: metaphor, not an allegory of each detail",
+            "It celebrates faithful, exclusive love as God's good gift (Song 8:6-7; Gen 2:23-25)",
+            "Jewish and Christian readers have long heard in it God's love for his people and Christ's for the church (cf. Eph 5:31-32); build that on the plain sense, not in place of it",
+        ],
+        "common_errors": [
+            "Allegorizing every image and passing over the human love the poems describe",
+            "Treating the Song as embarrassing, or as a manual rather than poetry",
+            "Missing the refrain's warning not to stir up love before its time (2:7; 3:5; 8:4)",
+        ],
+        "application_questions": [
+            "What does this poem celebrate about love, desire, and faithfulness?",
+            "How does it reflect God's design for marriage (Gen 2:24)?",
+            "How does it point to the covenant love of God in Christ?",
+        ],
+    },
     "apocalyptic": {
         "name": "Revelation/Apocalyptic",
         "key_principle": "Apocalyptic imagery; already/not yet eschatology",
@@ -346,17 +403,26 @@ GREEK_HEBREW_TRIGGERS = [
 ]
 
 
-def get_genre(book_abbrev: str) -> Genre | None:
+def get_genre(book_abbrev: str, chapter: int | None = None) -> Genre | None:
     """
-    Get the genre for a biblical book.
+    Get the genre for a biblical book, or for one chapter of it.
 
     Args:
         book_abbrev: Three-letter book abbreviation (e.g., 'Gen', 'Rom')
+        chapter: Optional chapter; a poetic chapter inside a narrative or law
+            book (Exodus 15, Deuteronomy 32) has its own genre
 
     Returns:
-        The Genre for the book, or None if not found
+        The Genre, or None if not found
     """
+    if chapter is not None and (book_abbrev, chapter) in CHAPTER_GENRES:
+        return CHAPTER_GENRES[(book_abbrev, chapter)]
     return BOOK_GENRES.get(book_abbrev)
+
+
+def genre_name(genre: Genre) -> str:
+    """The display name of a genre ('Epistles (Letters)')."""
+    return GENRE_GUIDELINES.get(genre, {}).get("name", genre)
 
 
 def get_genre_from_reference(reference: str) -> Genre | None:
@@ -372,9 +438,9 @@ def get_genre_from_reference(reference: str) -> Genre | None:
     import re
 
     # Handle format like "Jhn.3.16"
-    match = re.match(r'^(\w{3})\.\d+\.\d+', reference)
+    match = re.match(r'^(\w{3})\.(\d+)\.\d+', reference)
     if match:
-        return BOOK_GENRES.get(match.group(1))
+        return get_genre(match.group(1), int(match.group(2)))
 
     # Handle format like "John 3:16" or "1 Corinthians 13:4"
     book_map = {
@@ -446,12 +512,12 @@ def get_genre_from_reference(reference: str) -> Genre | None:
         "revelation": "Rev", "rev": "Rev",
     }
 
-    match = re.match(r'^(\d?\s*[a-zA-Z]+)\s*\d+:\d+', reference.strip())
+    match = re.match(r'^(\d?\s*[a-zA-Z]+)\s*(\d+):\d+', reference.strip())
     if match:
         book_name = match.group(1).lower().strip()
         abbrev = book_map.get(book_name)
         if abbrev:
-            return BOOK_GENRES.get(abbrev)
+            return get_genre(abbrev, int(match.group(2)))
 
     return None
 

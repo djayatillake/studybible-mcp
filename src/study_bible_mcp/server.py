@@ -9,6 +9,7 @@ Supports stdio, SSE, and Streamable HTTP transports for local and remote deploym
 import asyncio
 import contextlib
 import difflib
+import functools
 import json
 import logging
 import os
@@ -34,12 +35,15 @@ from .database import (
     INTERPRETIVE_CASE_KEYS,
     StudyBibleDB,
     expand_single_chapter_reference,
+    fold_ancient_search_text,
 )
 from .hermeneutics import (
     format_genre_guidance,
+    genre_name,
     get_genre,
     get_genre_from_reference,
 )
+from .morphology import parse_fields
 from .tools import (
     ANCIENT_LINE_CONTEXT,
     ANCIENT_LOOKUP_DEFAULT,
@@ -63,6 +67,7 @@ from .tools import (
     format_lexicon_entry,
     format_name_entry,
     format_passage_entities,
+    format_passage_study_notes,
     format_person_events,
     format_place_history,
     format_research_sources,
@@ -76,6 +81,7 @@ from .tools import (
     mermaid_genealogy,
     mermaid_person_timeline,
     mermaid_place_network,
+    strongs_verse_note,
     verse_english,
 )
 
@@ -111,6 +117,56 @@ db: StudyBibleDB | None = None
 def text(msg: str) -> list[TextContent]:
     """Wrap a string in a single-element TextContent list."""
     return [TextContent(type="text", text=msg)]
+
+
+class ToolInputError(ValueError):
+    """An argument a handler cannot use; call_tool returns the message as the result."""
+
+
+def bounded_limit(value: Any, maximum: int) -> int:
+    """A ``limit`` argument as an int from 1 to ``maximum``, else ToolInputError.
+
+    Handlers call it as ``limit = bounded_limit(args.get("limit", N), MAX)`` before
+    touching the database, so the contract test can read the default N and a bad
+    value (0, -1, 'many', 2.5, null) gets one clear message naming the range.
+    """
+    limit = None
+    if not isinstance(value, bool):
+        if isinstance(value, int):
+            limit = value
+        elif isinstance(value, float) and value.is_integer():
+            limit = int(value)
+        elif isinstance(value, str) and value.strip().isdecimal():
+            limit = int(value)
+    if limit is None or not 1 <= limit <= maximum:
+        raise ToolInputError(f"'limit' must be an integer from 1 to {maximum}.")
+    return limit
+
+
+def returns_input_errors(handler):
+    """Return a ToolInputError's message as the result, also when the handler is called directly."""
+    @functools.wraps(handler)
+    async def wrapper(args: dict[str, Any]) -> list[TextContent]:
+        try:
+            return await handler(args)
+        except ToolInputError as error:
+            return text(str(error))
+    return wrapper
+
+
+# The largest ``limit`` each list tool accepts (defaults stay at most 4).
+ANCIENT_SEARCH_MAX = 20
+LEXICON_SEARCH_MAX = 20
+CROSS_REFERENCE_MAX = 50
+NAME_LOOKUP_MAX = 20
+STRONGS_SEARCH_MAX = 50
+SIMILAR_PASSAGES_MAX = 20
+THEOLOGY_MAX = 20
+ANE_CONTEXT_MAX = 30
+# Rows get_ane_context reads before choosing `limit` (more than any passage has).
+ANE_CONTEXT_FETCH = 500
+# get_key_terms prints at most this many full entries.
+KEY_TERMS_SHOWN = 2
 
 
 def get_db_path() -> Path:
@@ -179,9 +235,15 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
     try:
         return await handler(arguments)
+    except ToolInputError as e:
+        return text(str(e))
     except Exception as e:
         logger.exception(f"Error in tool {name}")
         return text(f"Error: {str(e)}")
+
+
+# word_study shows this many example passages (search_by_strongs lists more).
+WORD_STUDY_EXAMPLES = 4
 
 
 async def handle_word_study(args: dict[str, Any]) -> list[TextContent]:
@@ -202,7 +264,7 @@ async def handle_word_study(args: dict[str, Any]) -> list[TextContent]:
         return text("No entry found for the given word/Strong's number.")
 
     # Get verses where this word appears
-    verses = await db.get_verses_with_strongs(entry["strongs"], limit=5)
+    verses = await db.get_verses_with_strongs(entry["strongs"], limit=WORD_STUDY_EXAMPLES)
 
     result = format_lexicon_entry(entry)
 
@@ -358,9 +420,16 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
         first_numbered = next((key for key in verse_keys if key[1] > 0), shown_start)
         hint_reference = _passage_label(book_name, first_numbered, first_numbered)
 
-    genre = get_genre(book)
+    # One line names the genre; the guidance itself (~1 KB) only on request.
+    genre = get_genre(book, shown_start[0])
     if genre:
-        result += f"\n\n---\n{format_genre_guidance(genre)}"
+        if args.get("include_genre", False):
+            result += f"\n\n---\n{format_genre_guidance(genre)}"
+        else:
+            result += (
+                f"\n\n---\n*Genre: {genre_name(genre)}. "
+                f"Interpretive guidance: include_genre=true.*"
+            )
 
     # Hint: Torah Weave structural partners are available for Gen–Deu verses.
     # Kept as a one-line nudge so the agent can follow up with get_torah_weave
@@ -619,6 +688,7 @@ ANCIENT_UPGRADE_MESSAGE = (
 )
 
 
+@returns_input_errors
 async def handle_search_ancient_sources(args: dict[str, Any]) -> list[TextContent]:
     """Search registered ancient-source corpora with period and biblical-link filters."""
     query = args.get("query", "").strip()
@@ -636,12 +706,7 @@ async def handle_search_ancient_sources(args: dict[str, Any]) -> list[TextConten
     periods = CORPORA[corpus].periods if corpus else all_periods()
     if period and period not in periods:
         return text(f"Unsupported period: {period}. Periods: {', '.join(periods)}.")
-    try:
-        limit = int(args.get("limit", 4))
-    except (TypeError, ValueError):
-        return text("'limit' must be an integer from 1 to 20.")
-    if not 1 <= limit <= 20:
-        return text("'limit' must be an integer from 1 to 20.")
+    limit = bounded_limit(args.get("limit", 4), ANCIENT_SEARCH_MAX)
 
     biblical_reference = (args.get("biblical_reference") or "").strip() or None
     result = await db.search_ancient_sources(
@@ -686,10 +751,18 @@ async def handle_search_ancient_sources(args: dict[str, Any]) -> list[TextConten
         if period:
             filters.append(f"period={period}")
         scope = f" with filters {', '.join(filters)}" if filters else ""
-        return text(
+        message = (
             f"No {label} passage contains any of the search terms "
             f"({', '.join(result['terms'])}){scope}."
         )
+        if (
+            corpus and not _ORIGINAL_LETTERS.search(query)
+            and not await db.ancient_corpus_has_english(corpus)
+        ):
+            message += " " + await _original_script_hint(corpus, query)
+        elif corpus:
+            message += await _other_corpora_hint(query, corpus, biblical_reference, period)
+        return text(message)
     return text(
         format_ancient_source_results(
             query,
@@ -699,8 +772,57 @@ async def handle_search_ancient_sources(args: dict[str, Any]) -> list[TextConten
             period=period,
             match=result["match"],
             prefix_match=result["prefix_match"],
+            variants=result.get("variants"),
         )
     )
+
+
+_HINT_STOP = frozenset({"the", "and", "for", "with", "who", "his", "her", "from", "that", "this"})
+# Greek or Hebrew letters: a query in an original script.
+_ORIGINAL_LETTERS = re.compile(r"[\u0370-\u03ff\u1f00-\u1fff\u0590-\u05ff]")
+
+
+async def _original_script_hint(corpus: str, query: str) -> str:
+    """Why an English query finds nothing in an untranslated corpus, with Hebrew words to try."""
+    registered = CORPORA[corpus]
+    suggestions = []
+    words = [word for word in re.findall(r"[A-Za-z]{3,}", query) if word.lower() not in _HINT_STOP]
+    for word in words[:3]:
+        # The commonest entry glossed by the word itself ('righteousness' -> צדקה).
+        gloss = re.compile(rf"\b{re.escape(word.lower())}\b", re.IGNORECASE)
+        glossed = [
+            entry for entry in await db.search_lexicon(word, language="hebrew", limit=10)
+            if gloss.search(entry.get("short_definition") or "")
+        ]
+        if glossed:
+            entry = max(glossed, key=lambda entry: entry.get("usage_count") or 0)
+            hebrew = fold_ancient_search_text(entry["word"])
+            suggestions.append(f"{hebrew} ({entry['strongs']}, '{entry['short_definition']}')")
+    if not suggestions:
+        suggestions.append(f"'{registered.example_query}'")
+    return (
+        f"The {registered.label} corpus has no English translation: search it in "
+        f"{registered.original_language} script, e.g. {'; '.join(suggestions)}."
+    )
+
+
+async def _other_corpora_hint(
+    query: str, corpus: str, biblical_reference: str | None, period: str | None
+) -> str:
+    """' Other corpora match: …' when the same search finds passages outside ``corpus``."""
+    if period and period not in all_periods():
+        return ""
+    found = await db.search_ancient_sources(
+        query, corpus=None, biblical_reference=biblical_reference, period=period, limit=20
+    )
+    if found["status"] != "ok":
+        return ""
+    others = list(dict.fromkeys(
+        row["corpus"] for row in found["rows"] if row.get("corpus") != corpus
+    ))
+    if not others:
+        return ""
+    return f" Other corpora match ({', '.join(others)}): retry with corpus='all'."
 
 
 def _citable_works() -> str:
@@ -762,6 +884,7 @@ def _line_window(corpus, work, start: int, end: int) -> tuple[int, int] | None:
     return start - ANCIENT_LINE_CONTEXT, end + ANCIENT_LINE_CONTEXT
 
 
+@returns_input_errors
 async def handle_lookup_ancient_source(args: dict[str, Any]) -> list[TextContent]:
     """Resolve an ancient-source citation and return the overlapping passages."""
     citation = str(args.get("citation") or "").strip()
@@ -776,12 +899,7 @@ async def handle_lookup_ancient_source(args: dict[str, Any]) -> list[TextContent
             f"Unsupported ancient-source corpus '{corpus_key}'. Available corpora: "
             f"{', '.join(CORPORA)}."
         )
-    try:
-        limit = int(args.get("limit", ANCIENT_LOOKUP_DEFAULT))
-    except (TypeError, ValueError):
-        limit = 0
-    if not 1 <= limit <= ANCIENT_LOOKUP_LIMIT:
-        return text(f"'limit' must be an integer from 1 to {ANCIENT_LOOKUP_LIMIT}.")
+    limit = bounded_limit(args.get("limit", ANCIENT_LOOKUP_DEFAULT), ANCIENT_LOOKUP_LIMIT)
     corpora = [CORPORA[corpus_key]] if corpus_key else list(CORPORA.values())
     resolution = resolve_citation(citation, corpora)
     if resolution.status == "unknown_work":
@@ -861,11 +979,12 @@ async def handle_lookup_ancient_source(args: dict[str, Any]) -> list[TextContent
     )
 
 
+@returns_input_errors
 async def handle_search_lexicon(args: dict[str, Any]) -> list[TextContent]:
     """Handle search_lexicon tool - search across lexicon entries."""
     query = args.get("query", "")
     language = args.get("language")  # None means both
-    limit = args.get("limit", 4)
+    limit = bounded_limit(args.get("limit", 4), LEXICON_SEARCH_MAX)
 
     if not query:
         return text("Please provide a search query.")
@@ -898,13 +1017,13 @@ def _format_xref_target(raw: str) -> str:
     return raw
 
 
+@returns_input_errors
 async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]:
     """Handle get_cross_references tool - find related passages."""
     reference = args.get("reference")
     theme = args.get("theme")
     source_filter = args.get("source")
-    limit_raw = args.get("limit")
-    limit = int(limit_raw) if limit_raw is not None else 4
+    limit = bounded_limit(args.get("limit", 4), CROSS_REFERENCE_MAX)
     min_strength_raw = args.get("min_strength")
     min_strength = int(min_strength_raw) if min_strength_raw is not None else None
 
@@ -999,6 +1118,7 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
         return text("Please provide either 'reference' or 'theme'.")
 
 
+@returns_input_errors
 async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     """Handle lookup_name tool - get info about biblical names, enriched with ACAI data."""
     name = args.get("name", "")
@@ -1006,12 +1126,7 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
 
     if not name:
         return text("Please provide a name to look up.")
-    try:
-        limit = int(args.get("limit", 4))
-    except (TypeError, ValueError):
-        return text("'limit' must be an integer from 1 to 20.")
-    if not 1 <= limit <= 20:
-        return text("'limit' must be an integer from 1 to 20.")
+    limit = bounded_limit(args.get("limit", 4), NAME_LOOKUP_MAX)
 
     entries = await db.lookup_name(name, name_type=name_type, limit=limit)
 
@@ -1042,47 +1157,75 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     return text(result)
 
 
+def _morphology_lines(row: dict) -> list[str]:
+    """Header lines for one code: its expansion's fields, in order."""
+    fields = parse_fields(row.get("parsing"))
+    if fields:
+        return [f"**{label}**: {value}" for label, value in fields]
+    # An expansion not in Key=Value form: the stored columns, then the text.
+    lines = []
+    for column, label in (
+        ("part_of_speech", "Part of Speech"), ("person", "Person"), ("number", "Number"),
+        ("tense", "Tense"), ("voice", "Voice"), ("mood", "Mood"), ("case_value", "Case"),
+        ("gender", "Gender"),
+    ):
+        if row.get(column):
+            lines.append(f"**{label}**: {row[column]}")
+    if row.get("parsing") and row["parsing"] != row.get("part_of_speech"):
+        lines.append(f"\n**Full Parsing**: {row['parsing']}")
+    return lines
+
+
+def _morphology_summary(row: dict) -> str:
+    """One line for a code: 'Verb; Stem: Qal (...); Person: Third; ...'."""
+    fields = parse_fields(row.get("parsing"))
+    if not fields:
+        return row.get("parsing") or row.get("part_of_speech") or ""
+    return "; ".join(
+        value if label == "Part of Speech" else f"{label}: {value}" for label, value in fields
+    )
+
+
 async def handle_parse_morphology(args: dict[str, Any]) -> list[TextContent]:
     """Handle parse_morphology tool - explain grammatical codes."""
-    code = args.get("code", "")
+    code = (args.get("code") or "").strip()
     language = args.get("language", "greek")
 
     if not code:
         return text("Please provide a morphology code to parse.")
 
-    parsing = await db.get_morphology(code, language)
-
-    if not parsing:
+    found = await db.resolve_morphology(code, language)
+    if not found:
         return text(f"Unknown morphology code: {code}")
 
-    result = f"## Morphology: {code}\n\n"
-    result += f"**Language**: {parsing['language'].title()}\n"
-    result += f"**Part of Speech**: {parsing['part_of_speech']}\n"
+    if "ambiguous" in found:
+        lines = [f"## Morphology: {code}", "", "Codes are case-sensitive, and this one fits more than one:"]
+        for segment, rows in found["ambiguous"]:
+            for row in rows:
+                lines.append(f"- '{segment}' as **{row['code']}**: {_morphology_summary(row)}")
+        return text("\n".join(lines))
 
-    if parsing.get('person'):
-        result += f"**Person**: {parsing['person']}\n"
-    if parsing.get('number'):
-        result += f"**Number**: {parsing['number']}\n"
-    if parsing.get('tense'):
-        result += f"**Tense**: {parsing['tense']}\n"
-    if parsing.get('voice'):
-        result += f"**Voice**: {parsing['voice']}\n"
-    if parsing.get('mood'):
-        result += f"**Mood**: {parsing['mood']}\n"
-    if parsing.get('case_value'):
-        result += f"**Case**: {parsing['case_value']}\n"
-    if parsing.get('gender'):
-        result += f"**Gender**: {parsing['gender']}\n"
-
-    result += f"\n**Full Parsing**: {parsing['parsing']}\n"
-
-    return text(result)
+    parts = found["parts"]
+    language_name = found["language"].title()
+    if found["language"] == "hebrew" and parts[0][1]["code"].startswith("A"):
+        language_name = "Aramaic"
+    lines = [f"## Morphology: {code}", "", f"**Language**: {language_name}"]
+    if len(parts) == 1:
+        lines += _morphology_lines(parts[0][1])
+    else:
+        joiner = "/" if found["language"] == "hebrew" else "+"
+        lines.append(f"**Parts**: {len(parts)} words joined by '{joiner}'")
+        lines.append("")
+        for number, (segment, row) in enumerate(parts, 1):
+            lines.append(f"**{number}. {segment}**: {_morphology_summary(row)}")
+    return text("\n".join(lines) + "\n")
 
 
+@returns_input_errors
 async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
     """Handle search_by_strongs tool - find all verses with a Strong's number."""
     strongs = args.get("strongs", "")
-    limit = args.get("limit", 4)
+    limit = bounded_limit(args.get("limit", 4), STRONGS_SEARCH_MAX)
 
     if not strongs:
         return text("Please provide a Strong's number (e.g., 'G26' or 'H3068').")
@@ -1092,28 +1235,37 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
     if not entry:
         return text(f"Unknown Strong's number: {strongs}")
 
-    # Get verses
-    verses = await db.get_verses_with_strongs(strongs, limit=limit)
+    # One extra row says whether more exist; only then are they counted.
+    verses = await db.get_verses_with_strongs(strongs, limit=limit + 1)
+    more = len(verses) > limit
+    verses = verses[:limit]
 
     result = (
         f"## Verses with {strongs} ({entry['word']} - {entry['transliteration']})"
         f"{bsb_label(verses)}\n\n"
     )
     result += f"*{entry['short_definition']}*\n\n"
+    if more:
+        total = await db.count_verses_with_strongs(strongs)
+        result += (
+            f"*Showing {len(verses)} of {total} verses; raise limit "
+            f"(at most {STRONGS_SEARCH_MAX}) to see more.*\n\n"
+        )
 
     if verses:
         for v in verses:
-            result += f"**{v['reference']}**: {verse_english(v)}\n\n"
+            result += f"**{v['reference']}**: {verse_english(v)}{strongs_verse_note(v, strongs)}\n\n"
     else:
         result += "No verses found with this Strong's number in the database.\n"
 
     return text(result)
 
 
+@returns_input_errors
 async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent]:
     """Handle find_similar_passages tool - find semantically similar passages."""
-    reference = args.get("reference", "")
-    limit = args.get("limit", 4)
+    reference = args.get("reference", "").strip()
+    limit = bounded_limit(args.get("limit", 4), SIMILAR_PASSAGES_MAX)
 
     if not reference:
         return text("Please provide a verse reference (e.g., 'John 3:16').")
@@ -1128,21 +1280,48 @@ async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent
         return text("Vector embeddings have not been generated yet. "
                  "Run 'python scripts/generate_embeddings.py' to create them (~$0.01 via OpenAI API).")
 
+    # Embeddings are per verse: a range or chapter is searched from its first verse.
+    parsed = db.parse_passage_reference(reference)
+    if parsed is None:
+        return text(
+            f"Could not read '{reference}' as a verse reference. "
+            "Use 'Book chapter:verse', e.g. 'John 3:16' or 'Daniel 7:13'."
+        )
+    first_verse = parsed["start_verse"] or 1
+    source_reference = f"{parsed['book_name']} {parsed['start_chapter']}:{first_verse}"
+    range_note = ""
+    if parsed["start_verse"] is None or (parsed["end_chapter"], parsed["end_verse"]) != (
+        parsed["start_chapter"], parsed["start_verse"]
+    ):
+        range_note = (
+            f"*Similarity is computed from one verse: {source_reference}, the first "
+            f"verse of '{reference}'. Call again with another verse to search from it.*\n\n"
+        )
+
+    source_verse = await db.get_verse(source_reference)
+    if source_verse is None:
+        return text(
+            f"{source_reference} is not in the verse table: check the book, "
+            "chapter, and verse numbers."
+        )
+    if await db.get_verse_embedding(source_verse["id"]) is None:
+        return text(
+            f"{source_reference} has no pre-computed embedding, so similar passages "
+            "cannot be ranked from it. Try a neighbouring verse."
+        )
+
     # Find similar passages
-    similar = await db.find_similar_passages(reference, limit=limit)
+    similar = await db.find_similar_passages(source_reference, limit=limit)
 
     if not similar:
-        return text(f"No similar passages found for {reference}. "
-                 "The verse may not exist or embeddings may not be generated.")
+        return text(f"No similar passages found for {source_reference}.")
 
-    # Get the source verse for context
-    source_verse = await db.get_verse(reference)
-    source_genre = get_genre_from_reference(reference) if source_verse else None
+    source_genre = get_genre_from_reference(source_reference)
 
-    shown = [source_verse] if source_verse else []
+    shown = [source_verse]
     for passage in similar:
         shown += passage.get("preview_verses", [])
-    result = f"## Passages Similar to {reference}{bsb_label(shown)}\n\n"
+    result = f"## Passages Similar to {source_reference}{bsb_label(shown)}\n\n" + range_note
 
     if source_verse:
         result += f"**Source**: {verse_english(source_verse)}\n\n"
@@ -1221,28 +1400,49 @@ async def handle_get_study_notes(args: dict[str, Any]) -> list[TextContent]:
     if err := await _check_aquifer_data():
         return err
 
-    if chapter_only or ':' not in reference.strip():
-        # Chapter-level: with chapter_only, the chapter of any reference
-        # ('John 3:16' -> John 3); otherwise a whole-chapter reference
-        if chapter_only and (parsed := db.parse_passage_reference(reference)):
-            chapter = (parsed["book"], parsed["start_chapter"])
-        else:
-            chapter = _parse_single_chapter(reference)
-        if chapter:
-            notes = await db.get_chapter_study_notes(*chapter)
-        else:
-            # Try as verse reference
-            notes = await db.get_study_notes(reference)
-    else:
+    # A chapter (with chapter_only, the chapter of any reference: 'John 3:16'
+    # -> John 3) or a verse range is a passage: Tyndale notes in full and the
+    # long translator notes listed by verse. A single verse shows every note.
+    parsed = db.parse_passage_reference(reference)
+    passage = None
+    if chapter_only and parsed:
+        passage = (parsed["book"], parsed["book_name"], parsed["start_chapter"], None, None, None)
+    elif ':' not in reference.strip() and (chapter := _parse_single_chapter(reference)):
+        passage = (chapter[0], parsed["book_name"], chapter[1], None, None, None)
+    elif (
+        ':' in reference and parsed and parsed["start_verse"] is not None
+        and (parsed["end_chapter"], parsed["end_verse"]) != (parsed["start_chapter"], parsed["start_verse"])
+    ):
+        passage = (
+            parsed["book"], parsed["book_name"], parsed["start_chapter"], parsed["start_verse"],
+            parsed["end_chapter"], parsed["end_verse"] or 999,
+        )
+
+    if passage is None:
         notes = await db.get_study_notes(reference)
+        if not notes:
+            return text(f"No study notes found for {reference}.")
+        return text(f"## Study Notes: {reference}\n\n" + format_study_notes(notes))
 
+    book, book_name, start_chapter, start_verse, end_chapter, end_verse = passage
+    if start_verse is None:
+        label = f"{book_name} {start_chapter}"
+        notes = await db.get_chapter_study_notes(book, start_chapter)
+        bounds = await db.get_chapter_verse_bounds(book)
+        last_verse = bounds.get(start_chapter, (1, 0))[1] or max(
+            (int((note.get("end_ref") or note["start_ref"])[5:8]) for note in notes if note.get("start_ref")),
+            default=1,
+        )
+        span = ((start_chapter, 0), (start_chapter, last_verse))
+    else:
+        label = reference
+        notes = await db.get_study_notes_in_span(
+            book, start_chapter, start_verse, end_chapter, end_verse
+        )
+        span = ((start_chapter, start_verse), (end_chapter, end_verse))
     if not notes:
-        return text(f"No study notes found for {reference}.")
-
-    result = f"## Study Notes: {reference}\n\n"
-    result += format_study_notes(notes)
-
-    return text(result)
+        return text(f"No study notes found for {label}.")
+    return text(format_passage_study_notes(label, notes, book_name, span))
 
 
 async def handle_get_bible_dictionary(args: dict[str, Any]) -> list[TextContent]:
@@ -1251,6 +1451,10 @@ async def handle_get_bible_dictionary(args: dict[str, Any]) -> list[TextContent]
 
     if not topic:
         return text("Please provide a topic to look up.")
+    try:
+        offset = max(0, int(args.get("offset") or 0))
+    except (TypeError, ValueError):
+        return text("offset must be a whole number of characters (from a truncation note).")
 
     if err := await _check_aquifer_data():
         return err
@@ -1260,7 +1464,7 @@ async def handle_get_bible_dictionary(args: dict[str, Any]) -> list[TextContent]
     if not articles:
         return text(f"No dictionary article found for '{topic}'.")
 
-    result = format_dictionary_article(articles)
+    result = format_dictionary_article(articles, section=args.get("section") or None, offset=offset)
 
     return text(result)
 
@@ -1275,12 +1479,27 @@ async def handle_get_key_terms(args: dict[str, Any]) -> list[TextContent]:
     if err := await _check_aquifer_data():
         return err
 
-    terms = await db.get_key_terms(term)
+    found = await db.find_key_terms(term, limit=KEY_TERMS_SHOWN)
 
-    if not terms:
-        return text(f"No key term found for '{term}'.")
+    if not found["entries"]:
+        message = f"No key term found for '{term}'."
+        if found["mentions"]:
+            listed = ", ".join(f"'{title}'" for title in found["mentions"])
+            message += f" Key terms whose entries mention it most: {listed}."
+        else:
+            message += (
+                " Key terms are English titles such as 'grace', 'covenant', or "
+                "'Son of Man'; for a Greek or Hebrew word use word_study."
+            )
+        return text(message)
 
-    result = format_key_terms(terms)
+    result = ""
+    if found["match"] == "near":
+        result += f"*No key term is titled '{term}'; showing the nearest.*\n\n"
+    result += format_key_terms(found["entries"]).rstrip()
+    if found["other_titles"]:
+        listed = ", ".join(f"'{title}'" for title in found["other_titles"][:4])
+        result += f"\n\n*Related key terms: {listed}.*"
 
     return text(result)
 
@@ -1348,12 +1567,14 @@ def _refine_broad_entries(entries: list[dict], book_abbr: str, chapter: int | No
 
     return refined
 
+@returns_input_errors
 async def handle_get_ane_context(args: dict[str, Any]) -> list[TextContent]:
     """Handle get_ane_context tool - get Ancient Near East background."""
     reference = args.get("reference")
     dimension = args.get("dimension")
     period = args.get("period")
     detail_level = args.get("detail_level", "standard")
+    limit = bounded_limit(args.get("limit", 4), ANE_CONTEXT_MAX)
 
     has_data = await db.has_ane_data()
     if not has_data:
@@ -1365,17 +1586,25 @@ async def handle_get_ane_context(args: dict[str, Any]) -> list[TextContent]:
         result = format_ane_dimensions(dimensions)
         return text(result)
 
+    # Every match is fetched so the total can be reported; only `limit` are shown.
     entries = await db.get_ane_context(
         reference=reference,
         dimension=dimension,
         period=period,
+        limit=ANE_CONTEXT_FETCH,
     )
 
-    # Post-query: promote/filter broad entries using key_references
+    # Post-query: promote/filter broad entries using key_references, then put
+    # direct chapter matches first (each group keeps its relevance order).
     if reference and entries:
         parsed = db.parse_passage_reference(reference)
         if parsed:
             entries = _refine_broad_entries(entries, parsed["book"], parsed["start_chapter"])
+        entries.sort(key=lambda entry: (
+            entry.get("match_type") != "direct", entry.get("relevance_score") or 0,
+        ))
+    total = len(entries)
+    entries = entries[:limit]
 
     if not entries:
         parts = []
@@ -1391,6 +1620,12 @@ async def handle_get_ane_context(args: dict[str, Any]) -> list[TextContent]:
     if reference:
         header += f" for {reference}"
     header += "\n\n"
+    if total > len(entries):
+        header += (
+            f"*Showing {len(entries)} of {total} entries"
+            + (", direct chapter matches first" if reference else "")
+            + f"; raise limit (at most {ANE_CONTEXT_MAX}) or set dimension/period for more.*\n\n"
+        )
 
     result = header + format_ane_context(entries, detail_level=detail_level)
     return text(result)
@@ -1611,18 +1846,20 @@ async def handle_graph_enriched_search(args: dict[str, Any]) -> list[TextContent
 # Theological scholarship tool handler
 # =========================================================================
 
+@returns_input_errors
 async def handle_get_theology_context(args: dict[str, Any]) -> list[TextContent]:
     """Handle get_theology_context tool — theological scholarship by reference, theme, and/or author."""
-    author = args.get("author")
-    has_data = await db.has_theology_data(author=author)
+    author = (args.get("author") or "").strip().lower() or None
+    limit = bounded_limit(args.get("limit", 4), THEOLOGY_MAX)
+    has_data = await db.has_theology_data()
     if not has_data:
-        if author:
-            return text(f"No scholarship data found for author '{author}'. Run the import script first.")
         return text("Theological scholarship data not available. Run 'python scripts/import_heiser_content.py' first.")
+    if author and not await db.has_theology_data(author=author):
+        authors = ", ".join(await db.get_theology_authors())
+        return text(f"No scholarship by author '{author}'. Authors: {authors}.")
 
     reference = args.get("reference")
     theme = args.get("theme")
-    limit = args.get("limit", 4)
 
     # If neither provided, list themes
     if not reference and not theme:
@@ -1639,7 +1876,10 @@ async def handle_get_theology_context(args: dict[str, Any]) -> list[TextContent]
         query_desc = f"theme='{theme}'" if theme else f"reference='{reference}'"
         if author:
             query_desc += f" (author='{author}')"
-        return text(f"No theological scholarship found for {query_desc}.")
+        hint = ""
+        if theme and not await db.theology_theme_exists(theme):
+            hint = " No theme has that key; call with no arguments to list the themes."
+        return text(f"No theological scholarship found for {query_desc}.{hint}")
 
     author_label = author.capitalize() if author else "Theological"
     header = f"## {author_label} Scholarship Context"
@@ -1679,7 +1919,9 @@ async def handle_get_torah_weave(args: dict[str, Any]) -> list[TextContent]:
     for unit_id in unit_ids:
         unit_cells_by_unit[unit_id] = await db.get_torah_weave_unit_cells(unit_id)
 
-    result = format_torah_weave(reference, matches, unit_cells_by_unit)
+    result = format_torah_weave(
+        reference, matches, unit_cells_by_unit, explain=bool(args.get("explain", False))
+    )
     return text(result)
 
 
@@ -1734,13 +1976,13 @@ async def handle_get_textual_variant(args: dict[str, Any]) -> list[TextContent]:
     return text(format_textual_variant_cases(reference, cases, hints))
 
 
+@returns_input_errors
 async def handle_list_research_sources(args: dict[str, Any]) -> list[TextContent]:
     """Handle list_research_sources tool — curated open repositories to consult."""
     topic = (args.get("topic") or "").strip() or None
     query = (args.get("query") or "").strip() or None
     perspective = (args.get("perspective") or "").strip() or None
-    limit = args.get("limit") or RESEARCH_SOURCES_DEFAULT_LIMIT
-    limit = max(1, min(int(limit), RESEARCH_SOURCES_MAX_LIMIT))
+    limit = bounded_limit(args.get("limit", RESEARCH_SOURCES_DEFAULT_LIMIT), RESEARCH_SOURCES_MAX_LIMIT)
 
     matches = find_research_sources(topic=topic, perspective=perspective)
     return text(format_research_sources(
