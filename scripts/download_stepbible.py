@@ -14,6 +14,7 @@ This script downloads the following datasets:
 - ACAI: Entity annotations (--aquifer)
 """
 
+import hashlib
 import sys
 from pathlib import Path
 from urllib.parse import quote
@@ -24,11 +25,19 @@ from rich.console import Console
 
 console = Console()
 
-# STEPBible GitHub raw URLs - updated to match current repo structure
-BASE_URL = "https://raw.githubusercontent.com/STEPBible/STEPBible-Data/master"
+# Every source is pinned to the commit the deployed database was built from, and
+# each file's SHA-256 is checked (FILES below), so a fresh build reproduces it.
+# Unpinned URLs broke when STEPBible moved TIPNR, TEGMC and TEHMC into folders
+# (issue #2). To move to a newer release, change the commit and the checksums
+# together, and rebuild.
+STEPBIBLE_COMMIT = "043ffd0ab1166fb0a0a21fd30fa4a8af2070d51a"  # 2026-01-03
+BASE_URL = f"https://raw.githubusercontent.com/STEPBible/STEPBible-Data/{STEPBIBLE_COMMIT}"
 
-# BDB Hebrew lexicon from eliranwong (note: master branch, not main)
-BDB_URL = "https://raw.githubusercontent.com/eliranwong/unabridged-BDB-Hebrew-lexicon/master/DictBDB.json"
+# BDB Hebrew lexicon from eliranwong (last changed 2018-11-24)
+BDB_URL = (
+    "https://raw.githubusercontent.com/eliranwong/unabridged-BDB-Hebrew-lexicon/"
+    "6e8326c6884f8ef1399c7a365d660da9bb9e2d01/DictBDB.json"
+)
 
 # BibleAquifer base URLs
 AQUIFER_BASE = "https://raw.githubusercontent.com/BibleAquifer"
@@ -38,12 +47,14 @@ FILES = {
     "TFLSJ_1": {
         "url": f"{BASE_URL}/Lexicons/TFLSJ%20%200-5624%20-%20Translators%20Formatted%20full%20LSJ%20Bible%20lexicon%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TFLSJ_0-5624.txt",
+        "sha256": "fcc2845412132a7bb91fc3dbb5a544c807daf57e4791c4d9af61efe209e97691",
         "description": "Full LSJ Greek Lexicon (Strong's 0-5624)",
         "required": True,
     },
     "TFLSJ_2": {
         "url": f"{BASE_URL}/Lexicons/TFLSJ%20extra%20-%20Translators%20Formatted%20full%20LSJ%20Bible%20lexicon%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TFLSJ_extra.txt",
+        "sha256": "fdb2840067faa11301b208a343a9453fbe40b367e94eac981071261626201bc2",
         "description": "Full LSJ Greek Lexicon (extra entries)",
         "required": False,
     },
@@ -51,6 +62,7 @@ FILES = {
     "TBESG": {
         "url": f"{BASE_URL}/Lexicons/TBESG%20-%20Translators%20Brief%20lexicon%20of%20Extended%20Strongs%20for%20Greek%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TBESG.txt",
+        "sha256": "312f723d7b8ef263bbdfb0451c9b8057125804dfff390b6f8544cff2a84b57f4",
         "description": "Greek Lexicon - Brief (Extended Strong's)",
         "required": False,
     },
@@ -58,6 +70,7 @@ FILES = {
     "BDB": {
         "url": BDB_URL,
         "filename": "DictBDB.json",
+        "sha256": "5d826c580a4dd06f54a53d1e19b5e8c354aab0180e200849e3148b89f370e33d",
         "description": "Full BDB Hebrew Lexicon (Brown-Driver-Briggs)",
         "required": True,
     },
@@ -65,6 +78,7 @@ FILES = {
     "TBESH": {
         "url": f"{BASE_URL}/Lexicons/TBESH%20-%20Translators%20Brief%20lexicon%20of%20Extended%20Strongs%20for%20Hebrew%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TBESH.txt",
+        "sha256": "bdfdd17c1377aa5400618930fd0ea6f9a6f8d77ffdbbcd575b35d2d81c89401f",
         "description": "Hebrew Lexicon - Brief (Extended Strong's)",
         "required": False,
     },
@@ -73,12 +87,14 @@ FILES = {
     "TAGNT_1": {
         "url": f"{BASE_URL}/Translators%20Amalgamated%20OT%2BNT/TAGNT%20Mat-Jhn%20-%20Translators%20Amalgamated%20Greek%20NT%20-%20STEPBible.org%20CC-BY.txt",
         "filename": "TAGNT_Mat-Jhn.txt",
+        "sha256": "ab8eaaeb68e17a1dcfa34e1e9350358f22f03bc2a97244d848750ad81044bc8e",
         "description": "Tagged Greek NT (Matthew-John)",
         "required": False,
     },
     "TAGNT_2": {
         "url": f"{BASE_URL}/Translators%20Amalgamated%20OT%2BNT/TAGNT%20Act-Rev%20-%20Translators%20Amalgamated%20Greek%20NT%20-%20STEPBible.org%20CC-BY.txt",
         "filename": "TAGNT_Act-Rev.txt",
+        "sha256": "524e32375361e6d3fa2f7ef00b87605fdc4317a762f395651a05fdc31ad031b7",
         "description": "Tagged Greek NT (Acts-Revelation)",
         "required": False,
     },
@@ -87,24 +103,28 @@ FILES = {
     "TAHOT_1": {
         "url": f"{BASE_URL}/Translators%20Amalgamated%20OT%2BNT/TAHOT%20Gen-Deu%20-%20Translators%20Amalgamated%20Hebrew%20OT%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TAHOT_Gen-Deu.txt",
+        "sha256": "e9b8546ee48fe0bfc57c3b70f5f40e98d96580e803526d19026224e31753368b",
         "description": "Tagged Hebrew OT (Genesis-Deuteronomy)",
         "required": False,
     },
     "TAHOT_2": {
         "url": f"{BASE_URL}/Translators%20Amalgamated%20OT%2BNT/TAHOT%20Jos-Est%20-%20Translators%20Amalgamated%20Hebrew%20OT%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TAHOT_Jos-Est.txt",
+        "sha256": "195fee1dc3653bab33701f170734eb894ed647c10cd08cc61749375fe8b73775",
         "description": "Tagged Hebrew OT (Joshua-Esther)",
         "required": False,
     },
     "TAHOT_3": {
         "url": f"{BASE_URL}/Translators%20Amalgamated%20OT%2BNT/TAHOT%20Job-Sng%20-%20Translators%20Amalgamated%20Hebrew%20OT%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TAHOT_Job-Sng.txt",
+        "sha256": "84e118a97e5725e3847cdfdd593873513021c790c63cc91a0d41fca2b5db2ed5",
         "description": "Tagged Hebrew OT (Job-Song of Solomon)",
         "required": False,
     },
     "TAHOT_4": {
         "url": f"{BASE_URL}/Translators%20Amalgamated%20OT%2BNT/TAHOT%20Isa-Mal%20-%20Translators%20Amalgamated%20Hebrew%20OT%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TAHOT_Isa-Mal.txt",
+        "sha256": "f3ded203d2a74d6368932c97ae550d1d0754b271af491dc0dedf36fe3ba0bcc5",
         "description": "Tagged Hebrew OT (Isaiah-Malachi)",
         "required": False,
     },
@@ -113,6 +133,7 @@ FILES = {
     "TIPNR": {
         "url": f"{BASE_URL}/TIPNR%20-%20Translators%20Individualised%20Proper%20Names%20with%20all%20References%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TIPNR.txt",
+        "sha256": "f8a4b3f0adaacfda4349d8eb2bb75c3efe81f6b41ac07e0d48ec2bd192d2662b",
         "description": "Proper Names Database",
         "required": False,
     },
@@ -121,20 +142,23 @@ FILES = {
     "TEGMC": {
         "url": f"{BASE_URL}/TEGMC%20-%20Translators%20Expansion%20of%20Greek%20Morphhology%20Codes%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TEGMC.txt",
+        "sha256": "5f0416f7617019a6082285214903bde569a980d5fd3b88b8d7020d944e94de82",
         "description": "Greek Morphology Codes",
         "required": False,
     },
     "TEHMC": {
         "url": f"{BASE_URL}/TEHMC%20-%20Translators%20Expansion%20of%20Hebrew%20Morphology%20Codes%20-%20STEPBible.org%20CC%20BY.txt",
         "filename": "TEHMC.txt",
+        "sha256": "742177737465e7361d6100712c76d6c86eca13aacd9d1d0b9d64af01dd75abdc",
         "description": "Hebrew Morphology Codes",
         "required": False,
     },
 
     # Abbott-Smith Manual Greek Lexicon of the New Testament (TEI XML)
     "ABBOTT_SMITH": {
-        "url": "https://raw.githubusercontent.com/translatable-exegetical-tools/Abbott-Smith/master/abbott-smith.tei.xml",
+        "url": "https://raw.githubusercontent.com/translatable-exegetical-tools/Abbott-Smith/4048093cc09ea15203518f08f6ee32c300608979/abbott-smith.tei.xml",
         "filename": "abbott-smith.tei.xml",
+        "sha256": "99821bee411626b4aa3e674040297b54b267eff86cb4f9b7ef69a8bdb18b6f90",
         "description": "Abbott-Smith Manual Greek Lexicon (TEI XML)",
         "required": False,
     },
@@ -170,6 +194,11 @@ def download_sync(data_dir: Path, force: bool = False) -> bool:
 
             if filepath.exists() and not force:
                 console.print(f"  [dim]Skipping {file_info['filename']} (already exists)[/dim]")
+                if hashlib.sha256(filepath.read_bytes()).hexdigest() != file_info["sha256"]:
+                    console.print(
+                        "  [yellow]It differs from the pinned version; run with --force "
+                        "to replace it, or the build will not match the deployed data[/yellow]"
+                    )
                 success_count += 1
                 continue
 
@@ -178,6 +207,11 @@ def download_sync(data_dir: Path, force: bool = False) -> bool:
 
                 if response.status_code == 200:
                     content = response.content
+                    if hashlib.sha256(content).hexdigest() != file_info["sha256"]:
+                        console.print("  [red]✗[/red] Checksum mismatch; file not saved")
+                        if file_info.get("required"):
+                            required_failed.append(key)
+                        continue
                     filepath.write_bytes(content)
                     size_mb = len(content) / (1024 * 1024)
                     console.print(f"  [green]✓[/green] {file_info['filename']} ({size_mb:.1f} MB)")
