@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import re
 import sqlite3
 from pathlib import Path
 from types import SimpleNamespace
@@ -169,6 +170,18 @@ async def test_split_numbered_rows(mapped_db):
     assert "## Psa.23 superscription (Hebrew Psa.23.1)\n\n[gloss] a psalm of/ David\n" in psalm
 
 
+async def test_a_psalm_superscription_shows_the_bsb_heading(tmp_path, monkeypatch):
+    rows = [*BSB_ROWS, ("Psa.23.0", "A Psalm of David.")]
+    database = await _open(_build(tmp_path / "heading.db", bsb_rows=rows), monkeypatch)
+    try:
+        psalm = await _lookup("Psalm 23")
+        assert "## Psa.23 superscription (Hebrew Psa.23.1)\n\nA Psalm of David.\n" in psalm
+        assert "[gloss] a psalm of/ David" not in psalm
+        assert "The LORD is my shepherd (BSB test text)." in psalm
+    finally:
+        await database.close()
+
+
 async def test_verse_the_bsb_omits_shows_the_marked_gloss_without_a_bsb_label(mapped_db):
     output = await _lookup("Matthew 17:21")
     assert output.startswith("## Mat.17.21\n\n[gloss] this kind not goes out\n")
@@ -297,6 +310,9 @@ def sample_file(tmp_path, monkeypatch):
     path.write_bytes(SAMPLE.encode())
     monkeypatch.setattr(bsb, "BSB_SHA256", hashlib.sha256(path.read_bytes()).hexdigest())
     monkeypatch.setattr(bsb, "BSB_EXPECTED_VERSES", len(SAMPLE_ROWS))
+    headings = tmp_path / "headings.json"
+    headings.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(bsb, "BSB_PSALM_HEADINGS_PATH", headings)
     return path
 
 
@@ -355,10 +371,40 @@ def test_import_refuses_unpinned_changed_unlicensed_or_short_files(tmp_path, sam
     _assert_import_refused(conn, sample_file, "BSB_SHA256 is not set")
 
 
-def test_production_pin_is_unset_until_reviewed():
-    # Flip this test when the owner pins the reviewed file.
-    assert bsb.BSB_SHA256 is None
+def _with_heading(tmp_path, monkeypatch, sample_file, heading: str) -> Path:
+    path = tmp_path / "headed.txt"
+    path.write_bytes(SAMPLE.replace("Psalm 23:1\t", "Psalm 23:1\tA Psalm of David. ").encode())
+    monkeypatch.setattr(bsb, "BSB_SHA256", hashlib.sha256(path.read_bytes()).hexdigest())
+    bsb.BSB_PSALM_HEADINGS_PATH.write_text(json.dumps({"23": heading}), encoding="utf-8")
+    return path
+
+
+def test_import_moves_psalm_headings_to_verse_zero(tmp_path, sample_file, monkeypatch):
+    conn = _schema_conn(tmp_path / "headings.db")
+    headed = _with_heading(tmp_path, monkeypatch, sample_file, "A Psalm of David.")
+    assert bsb.import_bsb(conn, headed) == len(SAMPLE_ROWS) + 1
+    assert conn.execute(
+        "SELECT reference, book, chapter, verse, text FROM bsb_verses WHERE book = 'Psa' ORDER BY rowid"
+    ).fetchall() == [
+        ("Psa.23.0", "Psa", 23, 0, "A Psalm of David."),
+        ("Psa.23.1", "Psa", 23, 1, "The LORD is my shepherd (test text)."),
+    ]
+
+
+def test_import_refuses_a_psalm_whose_heading_has_changed(tmp_path, sample_file, monkeypatch):
+    conn = _schema_conn(tmp_path / "heading-changed.db")
+    bsb.import_bsb(conn, sample_file)
+    headed = _with_heading(tmp_path, monkeypatch, sample_file, "A Song of Ascents.")
+    _assert_import_refused(conn, headed, "does not start with its heading")
+
+
+def test_production_pin_and_psalm_headings():
+    assert re.fullmatch(r"[0-9a-f]{64}", bsb.BSB_SHA256)
     assert bsb.BSB_SOURCE_URL == "https://bereanbible.com/bsb.txt"
+    headings = bsb.load_psalm_headings()
+    assert len(headings) == 116 and set(headings) <= set(range(3, 146))
+    assert headings[3] == "A Psalm of David, when he fled from his son Absalom."
+    assert all(heading and heading == heading.strip() for heading in headings.values())
 
 
 # ---------------------------------------------------------------------------

@@ -1110,9 +1110,11 @@ The English verse text shown by `lookup_verse`, `search_by_strongs`,
 [Berean Standard Bible](https://bereanbible.com/), which its publisher has
 dedicated to the public domain. `scripts/download_bsb.py` fetches `bsb.txt`
 from bereanbible.com, which is unversioned, so the file is pinned by SHA-256
-(`BSB_SHA256` in `src/study_bible_mcp/parsers/bsb.py`); the download and import
-refuse to run until the pin is set and fail on a mismatch. The import also
-requires the file's own public-domain statement. Verses are matched by English
+(`BSB_SHA256` in `src/study_bible_mcp/parsers/bsb.py`, the edition downloaded
+on 2026-10-14); the download and import fail on any other file. The import also
+requires the file's own public-domain statement, and moves the Psalm headings
+the file prints at the start of verse 1 into verse 0 rows, so a Psalm's
+superscription shows its BSB heading and verse 1 is the verse alone. Verses are matched by English
 numbering, so split-numbered STEPBible rows (`Gen.32.1(32.2)`) get their BSB
 verse; where the BSB has no such verse the tools show the STEPBible gloss
 marked `[gloss]`, and without the table they show the gloss as before.
