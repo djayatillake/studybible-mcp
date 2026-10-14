@@ -845,7 +845,7 @@ async def handle_search_lexicon(args: dict[str, Any]) -> list[TextContent]:
     """Handle search_lexicon tool - search across lexicon entries."""
     query = args.get("query", "")
     language = args.get("language")  # None means both
-    limit = args.get("limit", 10)
+    limit = args.get("limit", 4)
 
     if not query:
         return text("Please provide a search query.")
@@ -884,7 +884,7 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
     theme = args.get("theme")
     source_filter = args.get("source")
     limit_raw = args.get("limit")
-    limit = int(limit_raw) if limit_raw is not None else 8
+    limit = int(limit_raw) if limit_raw is not None else 4
     min_strength_raw = args.get("min_strength")
     min_strength = int(min_strength_raw) if min_strength_raw is not None else None
 
@@ -986,8 +986,14 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
 
     if not name:
         return text("Please provide a name to look up.")
+    try:
+        limit = int(args.get("limit", 4))
+    except (TypeError, ValueError):
+        return text("'limit' must be an integer from 1 to 20.")
+    if not 1 <= limit <= 20:
+        return text("'limit' must be an integer from 1 to 20.")
 
-    entries = await db.lookup_name(name, name_type=name_type)
+    entries = await db.lookup_name(name, name_type=name_type, limit=limit)
 
     if not entries:
         return text(f"No entries found for '{name}'.")
@@ -1001,6 +1007,12 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     acai_by_entry: dict[tuple, dict | None] = {}
 
     result = f"## Biblical Names: {name}\n\n"
+    total = entries[0]["match_count"]
+    if total > len(entries):
+        result += (
+            f"*Showing {len(entries)} of {total} matching names; set type or raise "
+            "limit (at most 20) to see more.*\n\n"
+        )
 
     for entry in entries:
         acai_data = None
@@ -1058,7 +1070,7 @@ async def handle_parse_morphology(args: dict[str, Any]) -> list[TextContent]:
 async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
     """Handle search_by_strongs tool - find all verses with a Strong's number."""
     strongs = args.get("strongs", "")
-    limit = args.get("limit", 20)
+    limit = args.get("limit", 4)
 
     if not strongs:
         return text("Please provide a Strong's number (e.g., 'G26' or 'H3068').")
@@ -1086,7 +1098,7 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
 async def handle_find_similar_passages(args: dict[str, Any]) -> list[TextContent]:
     """Handle find_similar_passages tool - find semantically similar passages."""
     reference = args.get("reference", "")
-    limit = args.get("limit", 10)
+    limit = args.get("limit", 4)
 
     if not reference:
         return text("Please provide a verse reference (e.g., 'John 3:16').")
@@ -1588,7 +1600,7 @@ async def handle_get_theology_context(args: dict[str, Any]) -> list[TextContent]
 
     reference = args.get("reference")
     theme = args.get("theme")
-    limit = args.get("limit", 10)
+    limit = args.get("limit", 4)
 
     # If neither provided, list themes
     if not reference and not theme:
@@ -1899,36 +1911,57 @@ def _make_shared_routes():
     ]
 
 
-async def run_sse_server(host: str, port: int):
-    """Run the MCP server with SSE transport only (legacy)."""
-    try:
-        import uvicorn
-        from mcp.server.sse import SseServerTransport
-        from starlette.applications import Starlette
-        from starlette.middleware import Middleware
-        from starlette.middleware.cors import CORSMiddleware
-        from starlette.responses import JSONResponse
-        from starlette.routing import Route
-    except ImportError:
-        logger.error(
-            "SSE transport requires additional dependencies. "
-            "Install with: pip install 'study-bible-mcp[sse]' or pip install starlette uvicorn"
-        )
-        sys.exit(1)
+class _ASGIEndpoint:
+    """Route endpoint that passes the raw ASGI call straight to ``app``.
+
+    Starlette treats a function or method endpoint as request -> response and
+    sends whatever it returns, so an ASGI app that sends its own response and
+    returns None has to be routed as an object instead.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        await self.app(scope, receive, send)
+
+
+def _make_sse_routes():
+    """Create the legacy SSE transport routes shared by the SSE and HTTP transports.
+
+    GET /sse opens a session and tells the client to POST its messages to
+    /messages?session_id=<id>.
+    """
+    from mcp.server.sse import SseServerTransport
+    from starlette.routing import Route
 
     sse = SseServerTransport("/messages")
 
-    async def handle_sse(request):
-        async with sse.connect_sse(
-            request.scope, request.receive, request._send
-        ) as streams:
+    async def handle_sse(scope, receive, send):
+        async with sse.connect_sse(scope, receive, send) as streams:
             await server.run(
                 streams[0], streams[1],
                 server.create_initialization_options()
             )
 
-    async def handle_messages(request):
-        await sse.handle_post_message(request.scope, request.receive, request._send)
+    # Both handlers send their own response and return None (handle_post_message
+    # answers 202, or 400/404 for a bad or unknown session id), so they are routed
+    # as ASGI apps: as request -> response endpoints Starlette calls that None,
+    # raising TypeError on every POST and SSE disconnect. Route, not the SDK's
+    # Mount("/messages/"): a Mount 307-redirects the advertised /messages path.
+    return [
+        Route("/sse", endpoint=_ASGIEndpoint(handle_sse), methods=["GET"]),
+        Route("/messages", endpoint=_ASGIEndpoint(sse.handle_post_message), methods=["POST"]),
+    ]
+
+
+def build_sse_app():
+    """Build the ASGI app for the legacy SSE-only transport, behind the rate limiter."""
+    from starlette.applications import Starlette
+    from starlette.middleware import Middleware
+    from starlette.middleware.cors import CORSMiddleware
+    from starlette.responses import JSONResponse
+    from starlette.routing import Route
 
     async def root(request):
         return JSONResponse({
@@ -1949,8 +1982,7 @@ async def run_sse_server(host: str, port: int):
         routes=[
             Route("/", endpoint=root, methods=["GET"]),
             *_make_shared_routes(),
-            Route("/sse", endpoint=handle_sse),
-            Route("/messages", endpoint=handle_messages, methods=["POST"]),
+            *_make_sse_routes(),
         ],
         middleware=[
             Middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
@@ -1958,60 +1990,51 @@ async def run_sse_server(host: str, port: int):
         ],
     )
 
-    rate_limited_app = RateLimitMiddleware(app)
-    logger.info(f"Starting SSE server on {host}:{port}")
-
-    config = uvicorn.Config(rate_limited_app, host=host, port=port, log_level="info", access_log=True)
-    await uvicorn.Server(config).serve()
+    return RateLimitMiddleware(app)
 
 
-async def run_http_server(host: str, port: int):
-    """Run the MCP server with both Streamable HTTP and SSE transports.
-
-    Serves Streamable HTTP at /mcp and SSE at /sse for backwards compatibility.
-    """
+async def run_sse_server(host: str, port: int):
+    """Run the MCP server with SSE transport only (legacy)."""
     try:
-        from collections.abc import AsyncIterator
-
         import uvicorn
-        from mcp.server.sse import SseServerTransport
-        from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
-        from starlette.applications import Starlette
-        from starlette.middleware import Middleware
-        from starlette.middleware.cors import CORSMiddleware
-        from starlette.responses import JSONResponse
-        from starlette.routing import Mount, Route
+
+        app = build_sse_app()
     except ImportError:
         logger.error(
-            "HTTP transport requires additional dependencies. "
+            "SSE transport requires additional dependencies. "
             "Install with: pip install 'study-bible-mcp[sse]' or pip install starlette uvicorn"
         )
         sys.exit(1)
+
+    logger.info(f"Starting SSE server on {host}:{port}")
+
+    config = uvicorn.Config(app, host=host, port=port, log_level="info", access_log=True)
+    await uvicorn.Server(config).serve()
+
+
+def build_http_app():
+    """Build the ASGI app for the HTTP transport, behind the rate limiter.
+
+    Serves Streamable HTTP at /mcp and SSE at /sse for backwards compatibility.
+    """
+    from collections.abc import AsyncIterator
+
+    from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
+    from starlette.applications import Starlette
+    from starlette.middleware import Middleware
+    from starlette.middleware.cors import CORSMiddleware
+    from starlette.responses import JSONResponse
+    from starlette.routing import Mount, Route
 
     # Streamable HTTP session manager. Stateless: no server-side session table,
     # so a machine suspend/restart can never invalidate a client's session id
     # (this server is pure request/response — no server-initiated messages).
     session_manager = StreamableHTTPSessionManager(app=server, stateless=True)
 
-    # SSE transport for backwards compatibility
-    sse = SseServerTransport("/messages")
-
     @contextlib.asynccontextmanager
     async def lifespan(app: Starlette) -> AsyncIterator[None]:
         async with session_manager.run():
             yield
-
-    async def handle_sse(request):
-        async with sse.connect_sse(
-            request.scope, request.receive, request._send
-        ) as streams:
-            await server.run(
-                streams[0], streams[1],
-                server.create_initialization_options()
-            )
-
-    async def handle_messages(request):
-        await sse.handle_post_message(request.scope, request.receive, request._send)
 
     async def root(request):
         return JSONResponse({
@@ -2039,8 +2062,7 @@ async def run_http_server(host: str, port: int):
             Route("/", endpoint=root, methods=["GET"]),
             *_make_shared_routes(),
             Mount("/mcp", app=session_manager.handle_request),
-            Route("/sse", endpoint=handle_sse),
-            Route("/messages", endpoint=handle_messages, methods=["POST"]),
+            *_make_sse_routes(),
         ],
         middleware=[
             Middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
@@ -2048,12 +2070,30 @@ async def run_http_server(host: str, port: int):
         ],
     )
 
-    rate_limited_app = RateLimitMiddleware(app)
+    return RateLimitMiddleware(app)
+
+
+async def run_http_server(host: str, port: int):
+    """Run the MCP server with both Streamable HTTP and SSE transports.
+
+    Serves Streamable HTTP at /mcp and SSE at /sse for backwards compatibility.
+    """
+    try:
+        import uvicorn
+
+        app = build_http_app()
+    except ImportError:
+        logger.error(
+            "HTTP transport requires additional dependencies. "
+            "Install with: pip install 'study-bible-mcp[sse]' or pip install starlette uvicorn"
+        )
+        sys.exit(1)
+
     logger.info(f"Starting server on {host}:{port}")
     logger.info(f"  Streamable HTTP: http://{host}:{port}/mcp")
     logger.info(f"  SSE (legacy):    http://{host}:{port}/sse")
 
-    config = uvicorn.Config(rate_limited_app, host=host, port=port, log_level="info", access_log=True)
+    config = uvicorn.Config(app, host=host, port=port, log_level="info", access_log=True)
     await uvicorn.Server(config).serve()
 
 

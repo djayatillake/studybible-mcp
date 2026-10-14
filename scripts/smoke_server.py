@@ -37,11 +37,8 @@ TOOL_CASES: dict[str, tuple[dict, tuple[str, ...]]] = {
         ("biblical_version_verses",),
     ),
     "parse_morphology": ({"code": "V-AAI-3S", "language": "greek"}, ("morphology",)),
-    "search_by_strongs": ({"strongs": "G26", "limit": 5}, ("lexicon", "verses")),
-    "find_similar_passages": (
-        {"reference": "John 3:16", "limit": 5},
-        ("verses", "verse_vectors"),
-    ),
+    "search_by_strongs": ({"strongs": "G26"}, ("lexicon", "verses")),
+    "find_similar_passages": ({"reference": "John 3:16"}, ("verses", "verse_vectors")),
     "explore_genealogy": (
         {"person": "David", "direction": "ancestors", "generations": 3},
         ("graph_people", "graph_family_edges"),
@@ -64,10 +61,7 @@ TOOL_CASES: dict[str, tuple[dict, tuple[str, ...]]] = {
     "get_bible_dictionary": ({"topic": "covenant"}, ("aquifer_content",)),
     "get_key_terms": ({"term": "atonement"}, ("aquifer_content",)),
     "get_ane_context": ({"reference": "Genesis 15:1"}, ("ane_entries",)),
-    "get_theology_context": (
-        {"reference": "Psalm 82:1", "limit": 3},
-        ("theology_content",),
-    ),
+    "get_theology_context": ({"reference": "Psalm 82:1"}, ("theology_content",)),
     "get_torah_weave": (
         {"reference": "Genesis 1:1"},
         ("torah_weave_units", "torah_weave_cells"),

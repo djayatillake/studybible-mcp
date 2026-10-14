@@ -160,13 +160,13 @@ async def test_search_lexicon_language_filter(db):
     assert _lexicon_hits(output) == ["G0025", "G0026", "G5368"]
 
 
-async def test_search_lexicon_default_cap_is_ten(db):
+async def test_search_lexicon_default_cap_is_four(db):
     output = await call("search_lexicon", query="lampstand")
-    assert "Found 10 entries" in output
-    # Twelve entries match; the two with the lowest usage counts are cut.
-    assert _lexicon_hits(output) == [f"G{9000 + n:04d}" for n in range(1, 11)]
-    limited = await call("search_lexicon", query="lampstand", limit=3)
-    assert len(_lexicon_hits(limited)) == 3
+    assert "Found 4 entries" in output
+    # Twelve entries match; the eight with the lowest usage counts are cut.
+    assert _lexicon_hits(output) == [f"G{9000 + n:04d}" for n in range(1, 5)]
+    more = await call("search_lexicon", query="lampstand", limit=10)
+    assert _lexicon_hits(more) == [f"G{9000 + n:04d}" for n in range(1, 11)]
 
 
 async def test_search_lexicon_no_match_and_empty_query(db):
@@ -185,8 +185,16 @@ def _xref_targets(output: str) -> list[str]:
     return [f"{book}.{chapter}.{verse}" for book, chapter, verse in found]
 
 
-async def test_cross_references_default_cap_keeps_the_eight_strongest(db):
+async def test_cross_references_default_cap_keeps_the_four_strongest(db):
     output = await call("get_cross_references", reference="John 3:16")
+    assert "_4 reference(s) returned (cap limit=4;" in output
+    assert sorted(_xref_targets(output)) == sorted(XREF_JOHN_3_16_ORDER[:4])
+    assert "### Burnett" not in output
+    assert _xref_targets(_section(output, "### TSK")) == ["Rom.5.8", "1Jn.4.10"]
+
+
+async def test_cross_references_larger_limit_keeps_the_eight_strongest(db):
+    output = await call("get_cross_references", reference="John 3:16", limit=8)
     assert "_8 reference(s) returned (cap limit=8;" in output
     targets = _xref_targets(output)
     assert sorted(targets) == sorted(XREF_JOHN_3_16_ORDER[:8])
@@ -200,7 +208,7 @@ async def test_cross_references_default_cap_keeps_the_eight_strongest(db):
 
 
 async def test_cross_references_annotate_dataset_signals(db):
-    output = await call("get_cross_references", reference="John 3:16")
+    output = await call("get_cross_references", reference="John 3:16", limit=8)
     # The CH pair also has 40 TSK votes; it is shown once, as CH.
     assert "- 1Jn 4:9  *(canonical direction)*  *(also TSK: 40 votes)*" in output
     assert "- Rev 21:6  *(parallel)* — Gift of life (parallel)" in output
@@ -365,6 +373,57 @@ async def test_lookup_name_acai_matches_by_english_name_within_the_type(tmp_path
     assert "**ACAI Annotations**" not in ziph
 
 
+@pytest.fixture
+async def names_db(tmp_path, monkeypatch):
+    """Seven names containing 'ai', inserted so id order differs from match order."""
+    path = tmp_path / "names.db"
+    conn = sqlite3.connect(path)
+    create_schema(conn)
+    conn.executemany(
+        "INSERT INTO names (name, type, description, refs, relationships) VALUES (?, ?, ?, '[]', '{}')",
+        [("Sinai", "place", "Mountain."), ("Aijalon", "place", "Valley."),
+         ("Abigail", "person", "Wife of David."), ("Ai", "place", "City near Bethel."),
+         ("Aiah", "person", "Father of Rizpah."), ("Ai", "place", "City of Ammon."),
+         ("Mordecai", "person", "Cousin of Esther.")],
+    )
+    conn.commit()
+    conn.close()
+    database = await _connect(path, monkeypatch)
+    yield database
+    await database.close()
+
+
+def _name_hits(output: str) -> list[str]:
+    return re.findall(r"^### (.+)$", output, re.MULTILINE)
+
+
+async def test_lookup_name_default_cap_puts_exact_then_prefix_matches_first(names_db):
+    output = await call("lookup_name", name="ai")
+    assert _name_hits(output) == ["Ai", "Ai", "Aijalon", "Aiah"]
+    assert output.index("City near Bethel.") < output.index("City of Ammon.")
+    assert "*Showing 4 of 7 matching names; set type or raise limit (at most 20) to see more.*" in output
+
+
+async def test_lookup_name_limit_and_type_arguments(names_db):
+    output = await call("lookup_name", name="Ai", limit=20)
+    assert _name_hits(output) == ["Ai", "Ai", "Aijalon", "Aiah", "Sinai", "Abigail", "Mordecai"]
+    assert "*Showing" not in output
+    people = await call("lookup_name", name="Ai", type="person")
+    assert _name_hits(people) == ["Aiah", "Abigail", "Mordecai"]
+    assert "*Showing" not in people
+    one = await call("lookup_name", name="Ai", type="place", limit=1)
+    assert _name_hits(one) == ["Ai"]
+    assert "*Showing 1 of 4 matching names;" in one
+
+
+@pytest.mark.parametrize("limit", [0, 21, "many"])
+async def test_lookup_name_rejects_an_out_of_range_limit(names_db, limit):
+    assert (
+        await call("lookup_name", name="Ai", limit=limit)
+        == "'limit' must be an integer from 1 to 20."
+    )
+
+
 # ---------------------------------------------------------------------------
 # parse_morphology
 # ---------------------------------------------------------------------------
@@ -406,13 +465,14 @@ def _verse_hits(output: str) -> list[str]:
     return re.findall(r"^\*\*([1-3]?[A-Za-z]{2,3}\.\d+\.\d+)\*\*", output, re.MULTILINE)
 
 
-async def test_search_by_strongs_default_cap_is_twenty(db):
+async def test_search_by_strongs_default_cap_is_four(db):
     output = await call("search_by_strongs", strongs="G26")
     assert output.startswith("## Verses with G26 (ἀγάπη - agapē)\n\n*love, goodwill*")
     # 21 verses carry G0026.
-    assert _verse_hits(output) == [f"1Jn.4.{v}" for v in range(1, 21)]
+    assert _verse_hits(output) == [f"1Jn.4.{v}" for v in range(1, 5)]
     assert "**1Jn.4.1**: Beloved, love is from God (test text 1 John 4:1)." in output
-    assert len(_verse_hits(await call("search_by_strongs", strongs="G0026", limit=3))) == 3
+    more = await call("search_by_strongs", strongs="G0026", limit=20)
+    assert _verse_hits(more) == [f"1Jn.4.{v}" for v in range(1, 21)]
 
 
 async def test_search_by_strongs_known_word_without_verses(db):
@@ -453,12 +513,12 @@ async def test_similar_passages_rank_by_similarity_with_default_cap(vector_db):
     assert output.startswith("## Passages Similar to John 3:16\n\n**Source**: For God so loved")
     assert "Hermeneutical Caution" in output
     ranked = re.findall(r"^### (\d+)\. (\S+) \(([\d.]+)% similar\)", output, re.MULTILINE)
-    # Default limit 10 of 21 candidates, most similar first.
+    # Default limit 4 of 21 candidates, most similar first.
     assert [(int(rank), ref) for rank, ref, _ in ranked] == [
-        (v, f"1Jn.4.{v}") for v in range(1, 11)
+        (v, f"1Jn.4.{v}") for v in range(1, 5)
     ]
     assert [float(pct) for _, _, pct in ranked] == [
-        round(similarity_for(v) * 100, 1) for v in range(1, 11)
+        round(similarity_for(v) * 100, 1) for v in range(1, 5)
     ]
     # The passage containing the source verse is excluded although identical.
     assert "Jhn.3.16 - Jhn.3.17" not in output
@@ -471,6 +531,10 @@ async def test_similar_passages_rank_by_similarity_with_default_cap(vector_db):
 async def test_similar_passages_limit_argument(vector_db):
     output = await call("find_similar_passages", reference="John 3:16", limit=3)
     assert re.findall(r"^### \d+\. (\S+)", output, re.MULTILINE) == ["1Jn.4.1", "1Jn.4.2", "1Jn.4.3"]
+    output = await call("find_similar_passages", reference="John 3:16", limit=10)
+    assert re.findall(r"^### \d+\. (\S+)", output, re.MULTILINE) == [
+        f"1Jn.4.{v}" for v in range(1, 11)
+    ]
 
 
 async def test_similar_passages_without_an_embedding_or_verse(vector_db):
