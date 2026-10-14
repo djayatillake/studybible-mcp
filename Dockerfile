@@ -18,7 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install (includes sqlite-vec for vector search)
+# Install the locked runtime dependencies. requirements.txt is exported from
+# uv.lock (pinned, with hashes; includes sqlite-vec for vector search and the
+# web-server packages from the sse extra).
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -27,8 +29,8 @@ COPY pyproject.toml .
 COPY PRIVACY.md .
 COPY src/ src/
 
-# Install the package
-RUN pip install --no-cache-dir -e .
+# Install the package itself; its dependencies all came from the lock above
+RUN pip install --no-cache-dir --no-deps -e .
 
 # Create data directory for Fly.io volume mount
 RUN mkdir -p /data

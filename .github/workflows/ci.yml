@@ -64,8 +64,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build the runtime image
-        # The image installs from requirements.txt, which can drift from
-        # pyproject.toml; building it catches a broken runtime install.
+        # The image installs requirements.txt, exported from uv.lock (a contract
+        # test checks they match); building it catches a broken runtime install.
         run: docker build -t studybible-mcp:ci .
       - name: Server imports inside the image
         run: docker run --rm studybible-mcp:ci python -c "import study_bible_mcp.server"

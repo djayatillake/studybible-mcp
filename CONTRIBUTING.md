@@ -24,6 +24,12 @@ automatically: tool annotations, the tool-description budget, default result
 limits, smoke-runner coverage and JSON validity. If it fails, read its message
 before changing a number in it.
 
+Dependencies are declared in `pyproject.toml` and locked in `uv.lock`. The
+Docker image installs `requirements.txt`, which is exported from the lock. After
+changing a dependency, run `uv lock`, then
+`uv export --frozen --no-dev --extra sse --no-emit-project -o requirements.txt`;
+a contract test fails while the two differ.
+
 ## The full database
 
 The production database is about 800 MB. It is not in git, and it is deployed
