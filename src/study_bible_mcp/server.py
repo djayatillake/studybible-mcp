@@ -117,6 +117,12 @@ server = Server(
 
 # Database connection (initialized on startup)
 db: StudyBibleDB | None = None
+_db_lock: asyncio.Lock | None = None
+
+# Read-only connections tool calls run on, so parallel calls (a client often
+# sends several at once) do not queue behind one slow query. Override with
+# STUDY_BIBLE_DB_READERS; 0 runs every query on the one read-write connection.
+DB_READERS = 4
 
 
 def text(msg: str) -> list[TextContent]:
@@ -205,6 +211,32 @@ def get_db_path() -> Path:
     return local_db
 
 
+def _db_readers() -> int:
+    try:
+        return max(0, int(os.environ.get("STUDY_BIBLE_DB_READERS", DB_READERS)))
+    except ValueError:
+        return DB_READERS
+
+
+async def open_database() -> StudyBibleDB | None:
+    """The shared database, opened once on first use; None if the file is missing."""
+    global db, _db_lock
+    if db is not None:
+        return db
+    if _db_lock is None:
+        _db_lock = asyncio.Lock()
+    # Concurrent first calls must not each open (and leak) their own pool.
+    async with _db_lock:
+        if db is None:
+            db_path = get_db_path()
+            if not db_path.exists():
+                return None
+            database = StudyBibleDB(db_path, readers=_db_readers())
+            await database.connect()
+            db = database
+    return db
+
+
 @server.list_tools()
 async def list_tools() -> list[Tool]:
     """List all available Bible study tools."""
@@ -218,14 +250,11 @@ _REFERENCE_ARGUMENTS = ("reference", "biblical_reference")
 @server.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     """Handle tool calls."""
-    global db
-
-    if db is None:
-        db_path = get_db_path()
-        if not db_path.exists():
-            return text(f"Database not found at {db_path}. Please run 'python scripts/build_database.py' first.")
-        db = StudyBibleDB(db_path)
-        await db.connect()
+    if await open_database() is None:
+        return text(
+            f"Database not found at {get_db_path()}. "
+            "Please run 'python scripts/build_database.py' first."
+        )
 
     handler = _TOOL_HANDLERS.get(name)
     if not handler:
@@ -238,8 +267,12 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         if isinstance(arguments.get(key), str):
             arguments[key] = expand_single_chapter_reference(arguments[key])
 
+    # A read connection of its own, so parallel calls query in parallel (a
+    # stand-in database without a pool, as some tests use, runs as is).
+    reading = getattr(db, "reading", None)
     try:
-        return await handler(arguments)
+        async with reading() if reading else contextlib.nullcontext():
+            return await handler(arguments)
     except ToolInputError as e:
         return text(str(e))
     except Exception as e:

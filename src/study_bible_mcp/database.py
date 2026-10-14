@@ -4,6 +4,9 @@ Database layer for the Study Bible MCP server.
 Uses SQLite with async access via aiosqlite.
 """
 
+import asyncio
+import contextlib
+import contextvars
 import difflib
 import heapq
 import json
@@ -638,12 +641,33 @@ def _person_label(person: dict | None, fallback: str = "") -> str:
     return person.get("display_title") or person.get("name") or fallback
 
 
-class StudyBibleDB:
-    """Async SQLite database interface for Bible study data."""
+# The pooled read connection bound to the running task by StudyBibleDB.reading(),
+# as (database, connection). Context variables are per task, so concurrent tool
+# calls each see their own connection.
+_TASK_CONNECTION: contextvars.ContextVar[tuple[Any, aiosqlite.Connection] | None] = (
+    contextvars.ContextVar("study_bible_task_connection", default=None)
+)
 
-    def __init__(self, db_path: Path | str):
+
+class StudyBibleDB:
+    """Async SQLite database interface for Bible study data.
+
+    One aiosqlite connection runs its queries one at a time on its own thread,
+    so with a single connection a slow query (a vector scan) holds up every
+    other call. ``readers`` opens that many extra read-only connections; inside
+    ``async with db.reading():`` a task's queries run on one of them, so
+    concurrent tool calls query in parallel (WAL lets readers run together).
+    Outside ``reading()``, and with ``readers=0`` (the default, used by tests
+    and scripts), every query uses the one read-write connection as before.
+    The caches below are shared by all connections.
+    """
+
+    def __init__(self, db_path: Path | str, readers: int = 0):
         self.db_path = Path(db_path)
-        self.conn: aiosqlite.Connection | None = None
+        self.readers = max(0, int(readers))
+        self._conn: aiosqlite.Connection | None = None
+        self._reader_conns: list[aiosqlite.Connection] = []
+        self._reader_pool: asyncio.Queue[aiosqlite.Connection] | None = None
         self._vec_loaded = False
         self._vec_error: str | None = None
         self._has_bsb: bool | None = None
@@ -655,19 +679,69 @@ class StudyBibleDB:
         self._torah_numbering: dict[str, tuple[dict, dict]] = {}
         self._lexicon_index: LexiconIndex | None = None
 
+    @property
+    def conn(self) -> aiosqlite.Connection | None:
+        """The connection this task's queries use: its pooled reader inside
+        ``reading()``, else the read-write connection."""
+        bound = _TASK_CONNECTION.get()
+        if bound is not None and bound[0] is self:
+            return bound[1]
+        return self._conn
+
+    @conn.setter
+    def conn(self, value: aiosqlite.Connection | None) -> None:
+        self._conn = value
+
     async def connect(self):
-        """Open database connection."""
-        self.conn = await aiosqlite.connect(self.db_path)
-        self.conn.row_factory = aiosqlite.Row
-
+        """Open the read-write connection, then ``readers`` read-only ones."""
+        self._conn = await self._open_connection()
         # Try to load sqlite-vec extension for vector search
-        await self._load_sqlite_vec()
-
-    async def _load_sqlite_vec(self):
-        """Load sqlite-vec extension if available."""
+        self._vec_loaded, self._vec_error = await self._load_sqlite_vec(self._conn)
         if self._vec_loaded:
-            return
+            logger.info("sqlite-vec extension loaded successfully")
+        else:
+            logger.warning(self._vec_error)
+        if self.readers:
+            await self._open_readers()
 
+    async def _open_connection(self, read_only: bool = False) -> aiosqlite.Connection:
+        if read_only:
+            uri = f"{self.db_path.resolve().as_uri()}?mode=ro"
+            conn = await aiosqlite.connect(uri, uri=True)
+        else:
+            conn = await aiosqlite.connect(self.db_path)
+        conn.row_factory = aiosqlite.Row
+        return conn
+
+    async def _open_readers(self) -> None:
+        """Open the reader pool; a reader that fails is left out, never fatal."""
+        # Read the schema on the main connection first: on a WAL database that
+        # creates the -wal/-shm files a read-only connection cannot create.
+        await self._fetchone("SELECT COUNT(*) AS n FROM sqlite_master")
+        pool: asyncio.Queue[aiosqlite.Connection] = asyncio.Queue()
+        for _ in range(self.readers):
+            conn = None
+            try:
+                conn = await self._open_connection(read_only=True)
+                async with conn.execute("SELECT COUNT(*) FROM sqlite_master") as cursor:
+                    await cursor.fetchone()
+                if self._vec_loaded:
+                    loaded, error = await self._load_sqlite_vec(conn)
+                    if not loaded:
+                        raise RuntimeError(error)
+            except Exception as e:
+                logger.warning(f"Read connection unavailable, continuing without it: {e}")
+                if conn is not None:
+                    await conn.close()
+                continue
+            self._reader_conns.append(conn)
+            pool.put_nowait(conn)
+        if self._reader_conns:
+            self._reader_pool = pool
+
+    @staticmethod
+    async def _load_sqlite_vec(conn: aiosqlite.Connection) -> tuple[bool, str | None]:
+        """Load the sqlite-vec extension into ``conn``: (loaded, error message)."""
         try:
             import sqlite_vec
 
@@ -675,23 +749,49 @@ class StudyBibleDB:
             vec_path = sqlite_vec.loadable_path()
 
             # Use aiosqlite's built-in extension loading methods
-            await self.conn.enable_load_extension(True)
-            await self.conn.load_extension(vec_path)
-            await self.conn.enable_load_extension(False)
-            self._vec_loaded = True
-            logger.info("sqlite-vec extension loaded successfully")
+            await conn.enable_load_extension(True)
+            await conn.load_extension(vec_path)
+            await conn.enable_load_extension(False)
+            return True, None
         except ImportError:
-            self._vec_error = "sqlite-vec package not installed. Install with: pip install sqlite-vec"
-            logger.warning(self._vec_error)
+            return False, "sqlite-vec package not installed. Install with: pip install sqlite-vec"
         except Exception as e:
-            self._vec_error = f"Failed to load sqlite-vec extension: {e}"
-            logger.warning(self._vec_error)
+            return False, f"Failed to load sqlite-vec extension: {e}"
+
+    @property
+    def reader_count(self) -> int:
+        """Read-only connections open in the pool (0: queries share one connection)."""
+        return len(self._reader_conns)
+
+    @contextlib.asynccontextmanager
+    async def reading(self):
+        """Run the block's queries on a pooled read-only connection of its own.
+
+        Waits while every reader is busy. Without a pool, or inside another
+        ``reading()`` of this database, the block uses the current connection.
+        """
+        bound = _TASK_CONNECTION.get()
+        if self._reader_pool is None or (bound is not None and bound[0] is self):
+            yield
+            return
+        pool = self._reader_pool
+        conn = await pool.get()
+        token = _TASK_CONNECTION.set((self, conn))
+        try:
+            yield
+        finally:
+            _TASK_CONNECTION.reset(token)
+            pool.put_nowait(conn)
 
     async def close(self):
-        """Close database connection."""
-        if self.conn:
-            await self.conn.close()
-            self.conn = None
+        """Close the read-only connections and the read-write one."""
+        self._reader_pool = None
+        readers, self._reader_conns = self._reader_conns, []
+        for conn in readers:
+            await conn.close()
+        if self._conn:
+            await self._conn.close()
+            self._conn = None
 
     async def __aenter__(self):
         await self.connect()
@@ -1002,9 +1102,12 @@ class StudyBibleDB:
         """
         if self._moved_verses is not None:
             return self._moved_verses
-        self._moved_verses = {}
+        # Built in a local dict and published once complete: concurrent calls
+        # (one per pooled connection) must never see a half-built map.
+        moved: dict[str, tuple[int, int, int]] = {}
         if not await self.has_bsb_text():
-            return self._moved_verses
+            self._moved_verses = moved
+            return moved
         split: dict[str, tuple[int, str, str]] = {}
         for row in await self._fetchall(
             "SELECT id, reference FROM verses WHERE reference LIKE '%[%' ORDER BY id"
@@ -1016,7 +1119,8 @@ class StudyBibleDB:
                     row["id"], f"{book}.{chapter}.{verse}", f"{book}.{other_chapter}.{other_verse}"
                 )
         if not split:
-            return self._moved_verses
+            self._moved_verses = moved
+            return moved
         numbers = {ref for _, greek, kjv in split.values() for ref in (greek, kjv)}
         plain = {
             row["reference"]
@@ -1045,8 +1149,9 @@ class StudyBibleDB:
             row_id, greek, _ = split[ref]
             if target != greek:
                 _, chapter, verse = target.split(".")
-                self._moved_verses[ref] = (int(chapter), int(verse), row_id)
-        return self._moved_verses
+                moved[ref] = (int(chapter), int(verse), row_id)
+        self._moved_verses = moved
+        return moved
 
     async def english_verse_of_greek(self, book: str, chapter: int, verse: int) -> tuple[int, int] | None:
         """The BSB (chapter, verse) of a Greek verse the BSB numbers differently, else None."""
@@ -3536,14 +3641,14 @@ class StudyBibleDB:
                     confidence=excluded.confidence,
                     status=excluded.status,
                     last_updated=excluded.last_updated"""
-        async with self.conn.execute(sql, (
+        async with self._conn.execute(sql, (
             data["reference"], data["book"], data["chapter"], data["verse"],
             data["hlt_text"], data["hlt_text_annotated"],
             data.get("base_text_source", "MT"), data.get("variant_used"),
             data.get("word_data_hlt"), data.get("translation_notes"),
             data.get("confidence", "high"), data.get("status", "draft"),
         )) as cursor:
-            await self.conn.commit()
+            await self._conn.commit()
             return cursor.lastrowid
 
     async def upsert_hlt_annotation(self, data: dict) -> int:
@@ -3556,12 +3661,12 @@ class StudyBibleDB:
                     annotation_text=excluded.annotation_text,
                     explanation=excluded.explanation,
                     heiser_content_id=excluded.heiser_content_id"""
-        async with self.conn.execute(sql, (
+        async with self._conn.execute(sql, (
             data["reference"], data["annotation_type"], data["annotation_text"],
             data.get("word_position"), data["explanation"],
             data.get("heiser_content_id"),
         )) as cursor:
-            await self.conn.commit()
+            await self._conn.commit()
             return cursor.lastrowid
 
     async def upsert_hlt_study_note(self, data: dict) -> int:
@@ -3575,13 +3680,13 @@ class StudyBibleDB:
                     heiser_content_ids=excluded.heiser_content_ids,
                     related_verses=excluded.related_verses,
                     priority=excluded.priority"""
-        async with self.conn.execute(sql, (
+        async with self._conn.execute(sql, (
             data["reference"], data["book"], data["chapter"], data["verse"],
             data["note_type"], data["title"], data["content"],
             data.get("heiser_content_ids"), data.get("related_verses"),
             data.get("priority", 5),
         )) as cursor:
-            await self.conn.commit()
+            await self._conn.commit()
             return cursor.lastrowid
 
 
