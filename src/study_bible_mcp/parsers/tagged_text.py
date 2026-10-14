@@ -18,6 +18,8 @@ import re
 from collections.abc import Iterator
 from pathlib import Path
 
+from ..morphology import morphology_columns
+
 # A word row starts with its reference ("Mat.1.1#01=NKO", "Psa.3.0(3.1)#01=L").
 # The files also repeat column headers ("Word & Type", "Eng (Heb) Ref & Type")
 # and open with a summary table ("Types of words", "NKO / NK(O) / NK(o)").
@@ -84,12 +86,18 @@ def parse_greek_word(parts: list[str]) -> dict | None:
     """Parse a single Greek word from TAGNT.
 
     TAGNT columns:
-    0: Reference (Mat.1.1#01=NKO)
+    0: Reference and word type (Mat.1.1#01=NKO)
     1: Greek word with transliteration (Βίβλος (Biblos))
     2: English translation ([The] book)
     3: dStrongs=Grammar (G0976=N-NSF)
     4: Dictionary=Gloss (βίβλος=book)
     5: Editions (NA28+NA27+...)
+
+    The word type says which kinds of edition have the word: N Nestle-Aland,
+    K the KJV's Greek (TR), O others. A word without N or n is not in the
+    NA27/28 text that modern translations such as the BSB follow (the
+    "and fasting" of Mark 9:29), so it keeps its editions: "editions":
+    "Tyn+Treg+TR+Byz".
     """
     if len(parts) < 4:
         return None
@@ -134,6 +142,11 @@ def parse_greek_word(parts: list[str]) -> dict | None:
 
     if paragraph_end:
         result['paragraph_end'] = True
+
+    word_type = parts[0].partition('=')[2].strip()
+    if word_type and not re.search('[Nn]', word_type):
+        editions = parts[5].strip() if len(parts) > 5 else ''
+        result['editions'] = editions or word_type
 
     return result
 
@@ -310,8 +323,14 @@ def parse_morphology_codes(filepath: Path, language: str) -> Iterator[dict]:
     """
     Parse morphology expansion files (TEGMC or TEHMC).
 
-    Returns dictionaries mapping codes to their full descriptions.
+    Returns dictionaries mapping codes to their full descriptions, one per
+    code. Each code's block starts with "CODE<tab>Function=...; ..."; the brief
+    codes ("H:N-M", "Ps1c") have an example and a meaning column, and the
+    meaning is kept. Later tables in the files repeat some codes with other
+    text (TEGMC's closing "S-2PASM<tab>KJV" list, its "-1" ... "-5" example
+    rows); those never replace a Key=Value expansion.
     """
+    entries: dict[str, dict] = {}
     with open(filepath, encoding='utf-8') as f:
         for line in f:
             line = line.strip()
@@ -325,15 +344,32 @@ def parse_morphology_codes(filepath: Path, language: str) -> Iterator[dict]:
                 continue
 
             code = parts[0].strip()
-            parsing = parts[1].strip() if len(parts) > 1 else ''
+            parsing = parts[1].strip()
+            if code == 'Code' or code.startswith('"') or re.fullmatch(r'-\d+', parsing):
+                continue  # a table header, or a row of an example block
+            brief = '=' not in parsing and len(parts) > 2 and bool(parts[2].strip())
+            if brief:
+                parsing = parts[2].strip()  # brief code ("H:N-M", "Ps1c"): the Meaning column
 
             entry = parse_morph_code(code, parsing, language)
-            if entry:
-                yield entry
+            if not entry:
+                continue
+            if brief:
+                entry['part_of_speech'] = parsing
+            previous = entries.get(code)
+            if previous and '=' in previous['parsing'] and '=' not in parsing:
+                continue
+            entries.pop(code, None)
+            entries[code] = entry
+    yield from entries.values()
 
 
 def parse_morph_code(code: str, parsing: str, language: str) -> dict | None:
-    """Parse a single morphology code."""
+    """Parse a single morphology code.
+
+    The columns come from the expansion's Key=Value fields when it has them
+    (see ``morphology.morphology_columns``), and from the code otherwise.
+    """
     if not code:
         return None
 
@@ -350,6 +386,11 @@ def parse_morph_code(code: str, parsing: str, language: str) -> dict | None:
         'case_value': '',
         'gender': '',
     }
+
+    columns = morphology_columns(parsing)
+    if columns:
+        entry.update(columns)
+        return entry
 
     # Parse Greek Robinson codes (e.g., V-AAI-3S, N-GSF)
     if language == 'greek':
@@ -398,8 +439,13 @@ def parse_robinson_code(code: str, parsing: str, entry: dict) -> dict:
         mood_map = {'I': 'Indicative', 'S': 'Subjunctive', 'O': 'Optative',
                     'M': 'Imperative', 'N': 'Infinitive', 'P': 'Participle'}
 
+        # A leading digit marks a second tense form: V-2ADS-3S is 2nd Aorist.
+        second = verb_part[:1].isdigit()
+        if second:
+            verb_part = verb_part[1:]
         if len(verb_part) >= 1:
-            entry['tense'] = tense_map.get(verb_part[0], '')
+            tense = tense_map.get(verb_part[0], '')
+            entry['tense'] = f"2nd {tense}" if second and tense else tense
         if len(verb_part) >= 2:
             entry['voice'] = voice_map.get(verb_part[1], '')
         if len(verb_part) >= 3:
@@ -452,7 +498,9 @@ def parse_hebrew_morph(code: str, parsing: str, entry: dict) -> dict:
         'V': 'Verb',
     }
 
-    if code:
-        entry['part_of_speech'] = pos_map.get(code[0], code[0])
+    # The first letter is the language (H Hebrew, A Aramaic); the function follows.
+    function = code[1:2] if code[:1] in ('H', 'A') and len(code) > 1 else code[:1]
+    if function:
+        entry['part_of_speech'] = pos_map.get(function, function)
 
     return entry

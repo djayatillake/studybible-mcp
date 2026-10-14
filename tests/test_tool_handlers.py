@@ -474,10 +474,12 @@ async def test_parse_morphology_greek_verb_and_noun(db):
 async def test_parse_morphology_language_argument(db):
     hebrew = await call("parse_morphology", code="HVqp3ms", language="hebrew")
     assert "**Language**: Hebrew" in hebrew and "**Voice**: Qal" in hebrew
-    # The Greek code is not a Hebrew code.
+    # A Greek code passed as Hebrew is not a Hebrew code, so it is read as Greek.
+    greek = await call("parse_morphology", code="V-AAI-3S", language="hebrew")
+    assert "**Language**: Greek" in greek and "**Tense**: Aorist" in greek
     assert (
-        await call("parse_morphology", code="V-AAI-3S", language="hebrew")
-        == "Unknown morphology code: V-AAI-3S"
+        await call("parse_morphology", code="X-YYY", language="hebrew")
+        == "Unknown morphology code: X-YYY"
     )
 
 

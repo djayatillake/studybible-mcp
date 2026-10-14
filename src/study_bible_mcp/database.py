@@ -17,6 +17,8 @@ from typing import Any
 
 import aiosqlite
 
+from .lexicon_search import LexiconIndex, english_stem
+from .morphology import morphology_lookups
 from .parsers.biblical_versions import (
     BRENTON_GREEK_SOURCE_URL,
     BRENTON_TRANSLATION_NOTE,
@@ -598,6 +600,7 @@ class StudyBibleDB:
         self._has_bsb: bool | None = None
         self._moved_verses: dict[str, tuple[int, int, int]] | None = None
         self._torah_numbering: dict[str, tuple[dict, dict]] = {}
+        self._lexicon_index: LexiconIndex | None = None
 
     async def connect(self):
         """Open database connection."""
@@ -690,44 +693,135 @@ class StudyBibleDB:
             )
         return entry
 
+    async def lexicon_index(self) -> LexiconIndex:
+        """Folded transliterations of every lexicon entry (built once per connection)."""
+        if self._lexicon_index is None:
+            rows = await self._fetchall(
+                "SELECT strongs, language, transliteration, pronunciation, word, "
+                "short_definition, usage_count FROM lexicon"
+            )
+            self._lexicon_index = LexiconIndex(tuple(row.values()) for row in rows)
+        return self._lexicon_index
+
+    # Strong's numbers passed to SQL from the lexicon index, per tier: the
+    # most-used ones, far more than any result page.
+    _INDEX_MATCH_CAP = 300
+    # The opening of a full definition, where BDB and LSJ give the lead sense
+    # ("H8451. torah ... noun feminine direction, instruction, law; ...").
+    _LEAD_CHARS = 200
+
     async def search_lexicon(
         self,
         query: str,
         language: str | None = None,
         limit: int = 4
     ) -> list[dict]:
-        """Search lexicon by definition, transliteration, or word.
+        """Search lexicon by transliteration, gloss, word, or definition.
 
-        Entries whose gloss, word, or transliteration matches come before those
-        matching only in a long definition; then the most frequent words first.
+        Results are ranked in tiers, then by usage (most frequent first):
+
+        0. the query is the entry's transliteration or word, whatever the
+           spelling ('agape' = agapē, 'hesed' = checed/che.sed), unless the
+           query is itself an English gloss ('man', 'son', 'law'), so English
+           searches are not led by a look-alike transliteration;
+        1. the brief definition has the query as a word, or a form of it
+           ('love' in 'to love', 'lover', 'beloved'; not 'sin' in 'since');
+           or, for a transliteration or original-word query, the entry's
+           transliteration or word contains it;
+        2. the brief definition contains the query's stem ('propitiation' ->
+           'to propitiate', 'righteousness' -> 'righteous'), or the lead
+           sense of the full definition has the query as a word (BDB's
+           'direction, instruction, law' for torah);
+        3. the brief definition, lead sense, word or transliteration contains
+           the query some other way ('sin' in 'since', 'law' in
+           'daughter-in-law'), or an English query folds to the entry's
+           transliteration ('son' and tso'n);
+        4. the query appears only further into a full definition.
         """
-        query_lower = f"%{query.lower()}%"
+        query = query.strip()
+        if not query:
+            return []
+        language = language.lower() if language else None
+        index = await self.lexicon_index()
+        exact, partial = index.matches(query, language)
+        english = index.is_gloss(query, language)
+        lookalike: list[str] = []
+        if english:
+            # An English word ('son', 'law'): transliterations that fold to
+            # it (tso'n, la'ab) rank with the weak matches, and spelling-folded
+            # partial matches are not used.
+            exact, partial, lookalike = [], [], exact
+        cap = self._INDEX_MATCH_CAP
+        exact, partial, lookalike = exact[:cap], partial[:cap], lookalike[:cap]
+        glossed = index.gloss_matches(query, language)[:cap]
 
-        sql = """
-            SELECT * FROM lexicon
-            WHERE (
-                LOWER(short_definition) LIKE ?
-                OR LOWER(full_definition) LIKE ?
-                OR LOWER(transliteration) LIKE ?
-                OR LOWER(word) LIKE ?
-                OR LOWER(abbott_smith_def) LIKE ?
+        lowered = query.lower()
+        like = f"%{lowered}%"
+        stem = english_stem(query)
+        stem_like = f"%{stem}%" if stem else None
+        lead = f"LOWER(SUBSTR(full_definition, 1, {self._LEAD_CHARS}))"
+        word_glob = (
+            f"*[^a-z'-]{lowered}[^a-z'-]*" if re.fullmatch(r"[a-z][a-z ]*", lowered) else None
+        )
+
+        # (sql, params) fragments, joined in the order they appear in the query.
+        def in_list(values: list[str]) -> tuple[str, list]:
+            if not values:
+                return "0", []
+            return f"strongs IN ({','.join('?' * len(values))})", list(values)
+
+        def matches(column: str, pattern: str | None, op: str = "LIKE") -> tuple[str, list]:
+            if pattern is None:
+                return "0", []
+            if op == "GLOB":
+                return f"(' ' || {column} || ' ') GLOB ?", [pattern]
+            return f"{column} LIKE ?", [pattern]
+
+        def any_of(*fragments: tuple[str, list]) -> tuple[str, list]:
+            return (
+                "(" + " OR ".join(sql for sql, _ in fragments) + ")",
+                [param for _, values in fragments for param in values],
             )
-        """
-        params = [query_lower, query_lower, query_lower, query_lower, query_lower]
 
+        original = any_of(matches("LOWER(word)", like), matches("LOWER(transliteration)", like))
+        tiers = [
+            in_list(exact),
+            any_of(in_list(glossed), in_list(partial), ("0", []) if english else original),
+            any_of(matches("LOWER(short_definition)", stem_like), matches(lead, word_glob, "GLOB")),
+            any_of(
+                matches("LOWER(short_definition)", like), matches(lead, like), original,
+                in_list(lookalike),
+            ),
+        ]
+        tier_sql = "CASE " + " ".join(
+            f"WHEN {sql} THEN {number}" for number, (sql, _) in enumerate(tiers)
+        ) + f" ELSE {len(tiers)} END"
+        where_sql, where_params = any_of(
+            matches("LOWER(short_definition)", like),
+            matches("LOWER(short_definition)", stem_like),
+            matches("LOWER(full_definition)", like),
+            matches("LOWER(abbott_smith_def)", like),
+            original,
+            in_list(exact + partial + glossed + lookalike),
+        )
+        params = [param for _, values in tiers for param in values] + where_params
+        language_sql = ""
         if language:
-            sql += " AND language = ?"
-            params.append(language.lower())
-
-        sql += """
-            ORDER BY
-                CASE WHEN LOWER(short_definition) LIKE ? OR LOWER(word) LIKE ?
-                          OR LOWER(transliteration) LIKE ? THEN 0 ELSE 1 END,
-                usage_count DESC, strongs
-            LIMIT ?
-        """
-        params.extend([query_lower, query_lower, query_lower, limit])
-        return await self._fetchall(sql, params)
+            language_sql = "AND language = ?"
+            params.append(language)
+        params.append(limit)
+        rows = await self._fetchall(
+            f"""SELECT * FROM (
+                    SELECT *, {tier_sql} AS match_tier FROM lexicon
+                    WHERE {where_sql} {language_sql}
+                )
+                ORDER BY match_tier, usage_count DESC, strongs
+                LIMIT ?""",
+            params,
+        )
+        for row in rows:
+            row.pop("match_tier", None)
+        return rows
 
     async def get_related_words(self, strongs: str) -> list[dict]:
         """Get words related to a Strong's number."""
@@ -1332,6 +1426,40 @@ class StudyBibleDB:
     async def get_morphology(self, code: str, language: str = "greek") -> dict | None:
         """Get morphology parsing for a code."""
         return await self._fetchone("SELECT * FROM morphology WHERE code = ? AND language = ?", (code, language.lower()))
+
+    async def resolve_morphology(self, code: str, language: str | None = "greek") -> dict | None:
+        """Find the table rows for a code as the tagged text prints it.
+
+        Accepts compounds ('Hc/Vqw3ms', 'P-1NS + G2532=CONJ'), a missing
+        language letter ('Vqp3ms') and any case ('v-aai-3s'); see
+        ``morphology.morphology_lookups``. Returns {'language', 'parts':
+        [(segment, row)]}; or {'language', 'ambiguous': [(segment, rows)]} when
+        a segment matches only ignoring case and several codes then fit
+        ('hc' is 'HC' or 'Hc'); or None.
+        """
+        ambiguous = None
+        for lang, segments in morphology_lookups(code, language):
+            parts, unclear = [], []
+            for shown, stored in segments:
+                row = await self.get_morphology(stored, lang)
+                if row is None:
+                    rows = await self._fetchall(
+                        "SELECT * FROM morphology WHERE code = ? COLLATE NOCASE AND language = ? "
+                        "ORDER BY code",
+                        (stored, lang),
+                    )
+                    if not rows:
+                        break
+                    if len(rows) > 1:
+                        unclear.append((shown, rows))
+                        continue
+                    row = rows[0]
+                parts.append((shown, row))
+            else:
+                if not unclear:
+                    return {"language": lang, "parts": parts}
+                ambiguous = ambiguous or {"language": lang, "ambiguous": unclear}
+        return ambiguous
 
     # =========================================================================
     # Vector similarity queries
