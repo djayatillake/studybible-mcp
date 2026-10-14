@@ -49,6 +49,7 @@ data/dss/
 # (as in git worktrees); "data/lxx/" would match only a real directory.
 data/lxx
 data/ancient_sources
+data/bsb
 
 # Database (built from data, not committed)
 db/*.db

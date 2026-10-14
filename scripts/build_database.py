@@ -24,6 +24,7 @@ from study_bible_mcp.corpora import CORPORA
 from study_bible_mcp.database import create_schema
 from study_bible_mcp.parsers.ancient_sources import import_available_corpora
 from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
+from study_bible_mcp.parsers.bsb import BSB_FILENAME, import_bsb
 from study_bible_mcp.parsers.lexicon import (
     parse_abbott_smith,
     parse_bdb_lexicon,
@@ -150,6 +151,17 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
         tahot_files = find_tahot_files(data_dir)
         for tahot_path in tahot_files:
             import_verses(conn, tahot_path, "tahot", tahot_path.stem)
+
+        # Import the Berean Standard Bible, the English the verse tools show.
+        # A file that fails its pinned checksum or checks aborts the build.
+        bsb_path = data_dir / "bsb" / BSB_FILENAME
+        if bsb_path.exists():
+            console.print(f"  [green]✓[/green] Imported {import_bsb(conn, bsb_path)} BSB verses")
+        else:
+            console.print(
+                f"  [yellow]Skipping BSB text: {bsb_path} not found "
+                "(run scripts/download_bsb.py); verse tools fall back to word glosses[/yellow]"
+            )
 
         # Import proper names
         tipnr_path = data_dir / "TIPNR.txt"
@@ -904,7 +916,7 @@ def show_stats(conn: sqlite3.Connection):
     """Show database statistics."""
     console.print("\n[bold]Database Statistics:[/bold]")
 
-    tables = ["lexicon", "verses", "passages", "names", "morphology", "thematic_references"]
+    tables = ["lexicon", "verses", "bsb_verses", "passages", "names", "morphology", "thematic_references"]
 
     # Check for optional tables
     cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
