@@ -73,6 +73,21 @@ VERSES = [
     for v in range(1, 22)
 ]
 
+# BSB rows, loaded only by build_fixture_db(bsb=True). Gen 22:2 and 1 John 4:3
+# have none, so they fall back to the marked gloss; Gen.32.1 is matched by the
+# split-numbered row 'Gen.32.1(32.2)'. 1 John 4:1 is long enough to be cut in
+# a similar-passage preview.
+BSB_VERSES = [
+    ("Jhn.3.16", "Jhn", 3, 16, "For God so loved the world that He gave His Son (BSB test text)."),
+    ("Jhn.3.17", "Jhn", 3, 17, "For God did not send His Son to condemn (BSB test text)."),
+    ("Gen.22.1", "Gen", 22, 1, "Some time later God tested Abraham (BSB test text)."),
+    ("Gen.32.1", "Gen", 32, 1, "Jacob also went on his way (BSB test text)."),
+    ("1Jn.4.1", "1Jn", 4, 1, "Beloved, test the spirits (BSB test text 1 John 4:1). " * 12),
+] + [
+    (f"1Jn.4.{v}", "1Jn", 4, v, f"Beloved, let us love one another (BSB test text 1 John 4:{v}).")
+    for v in range(2, 22) if v != 3
+]
+
 # --- Names and ACAI ----------------------------------------------------------
 
 NAMES = [
@@ -319,10 +334,19 @@ def _load_sqlite_vec(conn: sqlite3.Connection) -> bool:
         return False
 
 
-def build_fixture_db(path: Path) -> bool:
-    """Create the fixture database at ``path``; return True if vectors were added."""
+def build_fixture_db(path: Path, bsb: bool = False) -> bool:
+    """Create the fixture database at ``path``; return True if vectors were added.
+
+    ``bsb`` loads BSB_VERSES; without it bsb_verses is empty and the verse
+    tools show the STEPBible gloss.
+    """
     conn = sqlite3.connect(path)
     create_schema(conn)
+    if bsb:
+        conn.executemany(
+            "INSERT INTO bsb_verses (reference, book, chapter, verse, text) VALUES (?, ?, ?, ?, ?)",
+            BSB_VERSES,
+        )
 
     conn.executemany(
         """INSERT INTO lexicon (strongs, language, word, transliteration, short_definition,

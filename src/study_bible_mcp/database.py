@@ -134,6 +134,14 @@ _NT_BOOKS = frozenset({
 _MT_BOOKS = frozenset(MT_BOOK_CODES.values())
 _LXX_ONLY_BOOKS = frozenset(LXX_BOOK_CODES.values()) - _MT_BOOKS
 _HEBREW_NUMBERING_RE = re.compile(r"\((\d+)\.(\d+)\)$")
+# A `verses` reference with a second numbering after the English one:
+# English(Hebrew) in the OT ('Gen.32.1(32.2)'), and in the NT the Greek
+# edition's verse with its KJV/English number in brackets ('Mat.17.15[17.14]')
+# or another numbering in braces ('Jhn.7.53{8.1}').
+_SPLIT_REFERENCE_RE = re.compile(r"^([^.]+)\.(\d+)\.(\d+)([(\[{])(\d+)\.(\d+)[)\]}]$")
+# Verse rows fetched for a similar-passage preview: ample for the 500
+# characters find_similar_passages shows.
+PASSAGE_PREVIEW_VERSES = 30
 _PASSAGE_RE = re.compile(
     r"^(?P<book>\d?\s*[a-z]+(?:\s+[a-z]+)*)\s*"
     r"(?P<c1>\d+)(?::(?P<v1>\d+)(?P<s1>[a-z]?))?"
@@ -463,6 +471,7 @@ class StudyBibleDB:
         self.conn: aiosqlite.Connection | None = None
         self._vec_loaded = False
         self._vec_error: str | None = None
+        self._has_bsb: bool | None = None
 
     async def connect(self):
         """Open database connection."""
@@ -642,35 +651,111 @@ class StudyBibleDB:
         verse number, so a row stored with split numbering such as
         ``Gen.32.1(32.2)`` is found. There is no substring match: a verse
         missing from the table returns None, not a neighbour ('Jhn.3.1' must
-        not return 'Jhn.3.16').
+        not return 'Jhn.3.16'). The row carries ``text_bsb`` (see
+        ``attach_bsb_text``).
         """
         normalized = self._normalize_reference(reference)
         verse = await self._fetchone("SELECT * FROM verses WHERE reference = ?", (normalized,))
+        if not verse:
+            parts = normalized.split(".")
+            if len(parts) != 3 or not (parts[1].isdecimal() and parts[2].isdecimal()):
+                return None
+            verse = await self._fetchone(
+                "SELECT * FROM verses WHERE book = ? AND chapter = ? AND verse = ? ORDER BY id LIMIT 1",
+                (parts[0], int(parts[1]), int(parts[2])),
+            )
         if verse:
-            return verse
-        parts = normalized.split(".")
-        if len(parts) != 3 or not (parts[1].isdecimal() and parts[2].isdecimal()):
-            return None
-        return await self._fetchone(
-            "SELECT * FROM verses WHERE book = ? AND chapter = ? AND verse = ? ORDER BY id LIMIT 1",
-            (parts[0], int(parts[1]), int(parts[2])),
-        )
+            await self.attach_bsb_text([verse])
+        return verse
 
     async def get_verses_with_strongs(self, strongs: str, limit: int = 4) -> list[dict]:
         """Find verses containing a specific Strong's number.
 
         Word data keeps STEPBible's one-letter sense suffix (H0430G), so a bare
         number also matches its suffixed forms; a suffixed number matches only
-        itself.
+        itself. Rows carry ``text_bsb`` (see ``attach_bsb_text``).
         """
         strongs = self._normalize_strongs(strongs)
         patterns = [f'%"{strongs}"%']
         if re.fullmatch(r"[GH]\d{4}", strongs):
             patterns.append(f'%"{strongs}_"%')
         where = " OR ".join("word_data LIKE ?" for _ in patterns)
-        return await self._fetchall(
+        return await self.attach_bsb_text(await self._fetchall(
             f"SELECT * FROM verses WHERE {where} LIMIT ?", (*patterns, limit)
-        )
+        ))
+
+    async def has_bsb_text(self) -> bool:
+        """True when the bsb_verses table exists and has rows (checked once per instance)."""
+        if self._has_bsb is None:
+            self._has_bsb = await self._table_has_rows("bsb_verses")
+        return self._has_bsb
+
+    async def _fetch_in(self, sql: str, values) -> list[dict]:
+        """Run ``sql``, which ends in ``IN``, over ``values`` in chunks; return every row."""
+        values = sorted(set(values))
+        rows: list[dict] = []
+        for start in range(0, len(values), 500):
+            chunk = values[start:start + 500]
+            rows += await self._fetchall(f"{sql} ({','.join('?' * len(chunk))})", chunk)
+        return rows
+
+    async def attach_bsb_text(self, rows: list[dict]) -> list[dict]:
+        """Set ``text_bsb`` on each `verses` row: its Berean Standard Bible text, or None.
+
+        Rows are left without the key when the database has no BSB, so callers
+        show the STEPBible gloss (``text_english``) as before. A row matches the
+        BSB verse with the same reference. A split-numbered row matches by its
+        English book, chapter and verse ('Gen.32.1(32.2)' -> 'Gen.32.1'),
+        except that:
+
+        - a row sharing its English verse with a plain-reference row gets None,
+          because the plain row carries that verse's BSB text
+          ('1Sa.20.42(21.1)' beside '1Sa.20.42', 'Mat.17.15[17.14]' beside
+          'Mat.17.15');
+        - an NT row whose bracketed English verse has no row of its own is
+          that verse ('2Co.13.13[13.14]' -> '2Co.13.14').
+
+        None also marks verses the BSB omits: the textual-variant verses
+        (Matt 17:21, Acts 8:37, ...) and the Psalm superscriptions.
+        """
+        if not rows or not await self.has_bsb_text():
+            return rows
+        wanted: dict[int, str] = {}
+        split: dict[int, re.Match] = {}
+        for index, row in enumerate(rows):
+            match = _SPLIT_REFERENCE_RE.match(row["reference"])
+            if match:
+                split[index] = match
+            else:
+                wanted[index] = row["reference"]
+        if split:
+            english = {index: ".".join(match.group(1, 2, 3)) for index, match in split.items()}
+            plain = {
+                row["reference"]
+                for row in await self._fetch_in(
+                    "SELECT reference FROM verses WHERE reference IN", english.values()
+                )
+            }
+            for index, match in split.items():
+                if english[index] in plain:
+                    continue
+                book, _, _, bracket, chapter, verse = match.groups()
+                if bracket == "[" and not await self._fetchone(
+                    "SELECT 1 FROM verses WHERE book = ? AND chapter = ? AND verse = ? LIMIT 1",
+                    (book, int(chapter), int(verse)),
+                ):
+                    wanted[index] = f"{book}.{chapter}.{verse}"
+                else:
+                    wanted[index] = english[index]
+        texts = {
+            row["reference"]: row["text"]
+            for row in await self._fetch_in(
+                "SELECT reference, text FROM bsb_verses WHERE reference IN", wanted.values()
+            )
+        }
+        for index, row in enumerate(rows):
+            row["text_bsb"] = texts.get(wanted.get(index))
+        return rows
 
     # "Luke 19", "Luke 19:1-3", "Luke 19:45-20:2", "Psalm 23-24", "Luk.19.1".
     _PASSAGE_RE = re.compile(
@@ -739,9 +824,10 @@ class StudyBibleDB:
         rather than ``reference`` strings, so OT rows whose reference carries
         English(Hebrew) split numbering such as ``Psa.40.6(40.7)`` are found.
         A verse stored as several rows (e.g. ``1Ch.12.4`` and
-        ``1Ch.12.4(12.5)``) returns every row, in source order.
+        ``1Ch.12.4(12.5)``) returns every row, in source order. Rows carry
+        ``text_bsb`` (see ``attach_bsb_text``).
         """
-        return await self._fetchall(
+        return await self.attach_bsb_text(await self._fetchall(
             """SELECT * FROM verses
                WHERE book = ?
                  AND chapter BETWEEN ? AND ?
@@ -750,7 +836,7 @@ class StudyBibleDB:
                ORDER BY chapter, verse, id""",
             (book, start_chapter, end_chapter, start_chapter, start_verse,
              end_chapter, end_verse),
-        )
+        ))
 
     async def get_lxx_quote_hints_for_passage(
         self,
@@ -1050,7 +1136,12 @@ class StudyBibleDB:
         reference: str,
         limit: int = 4
     ) -> list[dict]:
-        """Find passages semantically similar to a verse reference."""
+        """Find passages semantically similar to a verse reference.
+
+        With the BSB loaded, each passage also carries ``preview_verses``: its
+        first PASSAGE_PREVIEW_VERSES verse rows with ``text_bsb``, to show in
+        place of the gloss in ``text_combined``.
+        """
         # First, get the verse
         verse = await self.get_verse(reference)
         if not verse:
@@ -1069,6 +1160,7 @@ class StudyBibleDB:
         # Search against passage embeddings
         sql = """
             SELECT p.id, p.reference_start, p.reference_end, p.book,
+                   p.start_verse_id, p.end_verse_id,
                    p.text_combined, p.verse_count, p.section_type,
                    vec_distance_cosine(pv.embedding, ?) as distance
             FROM passage_vectors pv
@@ -1094,7 +1186,14 @@ class StudyBibleDB:
                 # Convert distance to similarity score (0-1, higher is better)
                 d['similarity'] = 1.0 - d['distance']
                 results.append(d)
-            return results
+        if await self.has_bsb_text():
+            for d in results:
+                d["preview_verses"] = await self.attach_bsb_text(await self._fetchall(
+                    """SELECT reference, book, chapter, verse, text_english FROM verses
+                       WHERE id BETWEEN ? AND ? ORDER BY id LIMIT ?""",
+                    (d["start_verse_id"], d["end_verse_id"], PASSAGE_PREVIEW_VERSES),
+                ))
+        return results
 
     # =========================================================================
     # Graph queries (Theographic Bible Metadata)
@@ -2613,6 +2712,18 @@ def create_schema(conn: sqlite3.Connection):
         );
         CREATE INDEX IF NOT EXISTS idx_verses_reference ON verses(reference);
         CREATE INDEX IF NOT EXISTS idx_verses_book ON verses(book);
+
+        -- Berean Standard Bible (public domain), one row per English verse in
+        -- canonical order: the readable English the verse tools show. Imported
+        -- by parsers/bsb.py; the index mirrors the production table.
+        CREATE TABLE IF NOT EXISTS bsb_verses (
+            reference TEXT UNIQUE NOT NULL,
+            book TEXT NOT NULL,
+            chapter INTEGER,
+            verse INTEGER,
+            text TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_bsb_ref ON bsb_verses(reference);
 
         -- Passages table (verses grouped by section markers)
         CREATE TABLE IF NOT EXISTS passages (

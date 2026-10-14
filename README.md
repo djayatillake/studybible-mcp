@@ -119,6 +119,7 @@ The server includes a pre-built SQLite database (~600MB) containing:
 |-------|------|---------|
 | `lexicon` | 19,391 | Greek (Full LSJ + Abbott-Smith NT) and Hebrew (Full BDB) word definitions with Strong's numbers |
 | `verses` | 31,280 | Every verse of the Bible with morphology tags |
+| `bsb_verses` | 31,086 | Berean Standard Bible text, the English the verse tools show |
 | `passages` | 5,290 | Verses grouped by ancient section markers |
 | `names` | 4,299 | Biblical people, places, and things |
 | `morphology` | 2,768 | Grammatical parsing code definitions |
@@ -154,7 +155,7 @@ Retrieve a verse, verse range, or whole chapter with its original language text 
 
 **Accepted references**: a verse (`John 3:16`), a range within a chapter (`Luke 19:1-3`; an en dash also works), a cross-chapter range (`Luke 19:45-20:2`), or whole chapters (`Psalm 23`, `Psalm 23-24`). Single-chapter books (Obadiah, Philemon, 2 John, 3 John, Jude) may be cited by verse alone, as is conventional: `Jude 3` means `Jude 1:3` and a bare `Jude` means the whole book. This applies to every tool's `reference` argument. Verses are matched by English chapter/verse numbering, so Old Testament verses whose Hebrew numbering differs (e.g. `Psalm 40:6`, stored as `Psa.40.6(40.7)`) are found, and an English verse stored as several source rows returns all of them. A Psalm superscription, which is verse 1 in the Hebrew, is headed as such (`Psa.82 superscription (Hebrew Psa.82.1)`). A passage returns at most 50 verses; longer requests (e.g. `Psalm 119`) open with a note naming the reference that continues the passage. Unknown books, missing chapters or verses, and reversed ranges get a message saying what exists.
 
-**What it returns**: English word-by-word gloss text, original Greek/Hebrew text, word-by-word breakdown with Strong's numbers, optional morphological parsing, and genre-specific interpretation guidance. Notes about cross-references, Torah Weave partners, and NT/OT LXX quotations appear once per lookup; for a passage they name a verse to pass to those single-verse tools.
+**What it returns**: English text from the Berean Standard Bible (labelled `(BSB)` once per response; STEPBible's word-by-word gloss, marked `[gloss]`, stands in for the few verses the BSB lacks, such as Psalm superscriptions and Matthew 17:21), original Greek/Hebrew text, word-by-word breakdown with Strong's numbers, optional morphological parsing, and genre-specific interpretation guidance. Notes about cross-references, Torah Weave partners, and NT/OT LXX quotations appear once per lookup; for a passage they name a verse to pass to those single-verse tools.
 
 **Example**:
 ```
@@ -1053,12 +1054,14 @@ studybible-mcp/
 │       ├── acai.py            # ACAI entity annotation parser
 │       ├── ane_context.py     # ANE cultural context parser
 │       ├── biblical_versions.py # MT/LXX text, morphology, and versification
+│       ├── bsb.py             # Berean Standard Bible (bsb.txt) parser and importer
 │       ├── ancient_sources.py # Generic corpus importer (passages, FTS, links)
 │       ├── tagged_text.py     # TAGNT/TAHOT morphology parsers
 │       └── proper_names.py    # TIPNR name parser
 ├── scripts/
 │   ├── download_stepbible.py  # Download base source data (--aquifer flag)
 │   ├── download_biblical_versions.py # Download pinned LXX/Brenton sources
+│   ├── download_bsb.py        # Download the pinned Berean Standard Bible text
 │   ├── download_ancient_sources.py # Download every registered ancient corpus
 │   ├── build_database.py      # Build SQLite database
 │   ├── generate_embeddings.py # Generate vector embeddings
@@ -1096,6 +1099,20 @@ Biblical text and brief lexicon data come from the [STEPBible project](https://w
 | **TAHOT** | Translators Amalgamated Hebrew OT (4 parts) | Every word of the Hebrew OT with morphology, Strong's numbers, glosses |
 | **TIPNR** | Translators Proper Names | 4,299 biblical people, places, and things with references |
 | **TEGMC/TEHMC** | Morphology Codes | Grammatical parsing code definitions |
+
+### Berean Standard Bible
+
+The English verse text shown by `lookup_verse`, `search_by_strongs`,
+`word_study`, `find_similar_passages` and `graph_enriched_search` is the
+[Berean Standard Bible](https://bereanbible.com/), which its publisher has
+dedicated to the public domain. `scripts/download_bsb.py` fetches `bsb.txt`
+from bereanbible.com, which is unversioned, so the file is pinned by SHA-256
+(`BSB_SHA256` in `src/study_bible_mcp/parsers/bsb.py`); the download and import
+refuse to run until the pin is set and fail on a mismatch. The import also
+requires the file's own public-domain statement. Verses are matched by English
+numbering, so split-numbered STEPBible rows (`Gen.32.1(32.2)`) get their BSB
+verse; where the BSB has no such verse the tools show the STEPBible gloss
+marked `[gloss]`, and without the table they show the gloss as before.
 
 ### Septuagint and MT versification
 
