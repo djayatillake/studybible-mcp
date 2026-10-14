@@ -12,6 +12,7 @@ once a bug is fixed the strict XPASS fails the run until the mark is removed.
 
 from __future__ import annotations
 
+import json
 import re
 import sqlite3
 from types import SimpleNamespace
@@ -20,6 +21,7 @@ import pytest
 
 import study_bible_mcp.server as server
 from study_bible_mcp.database import StudyBibleDB, create_schema
+from study_bible_mcp.tools import format_name_entry
 
 from .tool_handler_fixture import (
     GRAPH_FAMILY_EDGES,
@@ -314,34 +316,83 @@ async def test_lookup_name_acai_annotations_belong_to_their_own_entry(db):
     assert "**Referenced in**" not in city
 
 
-async def test_lookup_name_acai_matches_each_entry_by_its_own_name_and_type(tmp_path, monkeypatch):
-    # The built database keys ACAI entities as 'type:Name'. The tribe of Judah
-    # has more references than the person; a place merely containing the name
-    # has no ACAI entity of its own.
+async def _acai_db(tmp_path, monkeypatch, names, entities, *, legacy=False):
+    """A database of names (name, type, first ref) and ACAI entities, connected as server.db."""
     path = tmp_path / "acai.db"
     conn = sqlite3.connect(path)
     create_schema(conn)
+    if legacy:  # acai_entities as built before tipnr_keys
+        conn.execute("ALTER TABLE acai_entities DROP COLUMN tipnr_keys")
     conn.executemany(
-        "INSERT INTO names (name, type, description, refs, relationships) VALUES (?, ?, ?, '[]', '{}')",
-        [("Judah", "person", "Fourth son of Jacob."), ("Bethlehem-judah", "place", "Town in Judah.")],
+        "INSERT INTO names (name, type, description, refs, relationships) VALUES (?, ?, ?, ?, '{}')",
+        [(name, kind, f"{name} at {ref}.", json.dumps([ref])) for name, kind, ref in names],
     )
+    columns = ("id", "entity_type", "name", "roles", "reference_count") + (() if legacy else ("tipnr_keys",))
     conn.executemany(
-        "INSERT INTO acai_entities (id, entity_type, name, roles, reference_count) VALUES (?, ?, ?, ?, ?)",
-        [("group:Judah", "group", "group:Judah", '["Tribe"]', 728),
-         ("person:Judah", "person", "person:Judah", '["Patriarch"]', 80)],
+        f"INSERT INTO acai_entities ({', '.join(columns)}) VALUES ({', '.join('?' for _ in columns)})",
+        [row[:len(columns)] for row in entities],
     )
     conn.commit()
     conn.close()
-    database = await _connect(path, monkeypatch)
+    return await _connect(path, monkeypatch)
+
+
+# Three of TIPNR's Judahs and a place containing the name. ACAI records the
+# patriarch as both the person and the tribe; it has no entity for the Judah
+# of Neh.11.9, while the Judah of Neh.12.8 is in ACAI but not in these names.
+JUDAH_NAMES = [("Judah", "person", "Gen.29.35"), ("Judah", "person", "Ezr.10.23"),
+               ("Judah", "person", "Neh.11.9"), ("Bethlehem-judah", "place", "Jdg.17.7")]
+JUDAH_ACAI = [
+    ("group:Judah", "group", "Tribe of Judah", '["Tribe"]', 728, '["Judah@Gen.29.35"]'),
+    ("person:Judah", "person", "Judah", '["Patriarch"]', 80, '["Judah@Gen.29.35"]'),
+    ("person:Judah.2", "person", "Judah", '["Priest"]', 1, '["Judah@Ezr.10.23"]'),
+    ("person:Judah.3", "person", "Judah", '["Musician"]', 300, '["Judah@Neh.12.8"]'),
+]
+
+
+async def test_lookup_name_acai_matches_each_entry_by_its_tipnr_entry(tmp_path, monkeypatch):
+    database = await _acai_db(tmp_path, monkeypatch, JUDAH_NAMES, JUDAH_ACAI)
+    try:
+        output = await call("lookup_name", name="Judah", limit=10)
+    finally:
+        await database.close()
+    patriarch, levite, other, place = output.split("\n---\n")[:4]
+    assert "**Roles**: Patriarch\n**Referenced in**: 80 verses" in patriarch
+    assert "**Roles**: Priest\n**Referenced in**: 1 verses" in levite
+    assert "Judah at Neh.11.9." in other and "**ACAI Annotations**" not in other
+    assert "### Bethlehem-judah\n" in place and "**ACAI Annotations**" not in place
+    assert "Tribe" not in output and "Musician" not in output
+
+
+async def test_lookup_name_acai_places_get_their_own_entity(tmp_path, monkeypatch):
+    names = [("Ai", "place", "Gen.12.8"), ("Ai", "place", "Jer.49.3")]
+    entities = [("place:Ai", "place", "Ai", '["City of Canaan"]', 39, '["Ai@Gen.12.8"]'),
+                ("place:Ai.2", "place", "Ai", '["City of Ammon"]', 1, '["Ai@Jer.49.3"]')]
+    database = await _acai_db(tmp_path, monkeypatch, names, entities)
+    try:
+        output = await call("lookup_name", name="Ai", type="place")
+    finally:
+        await database.close()
+    canaan, ammon = output.split("\n---\n")[:2]
+    assert "Ai at Gen.12.8." in canaan and "**Roles**: City of Canaan" in canaan
+    assert "Ai at Jer.49.3." in ammon and "**Roles**: City of Ammon" in ammon
+
+
+def test_name_entry_lists_only_other_variant_names():
+    output = format_name_entry({"name": "Ai", "type": "place"},
+                               acai_data={"referred_to_as": '["Ai", "Hai", "Aiath"]'})
+    assert "**Also known as**: Hai, Aiath\n" in output
+
+
+async def test_lookup_name_without_tipnr_keys_shows_no_acai(tmp_path, monkeypatch):
+    # A database from before acai_entities.tipnr_keys: names, but no ACAI lines.
+    database = await _acai_db(tmp_path, monkeypatch, JUDAH_NAMES, JUDAH_ACAI, legacy=True)
     try:
         output = await call("lookup_name", name="Judah")
     finally:
         await database.close()
-    person, place = output.split("\n---\n")[:2]
-    assert "### Judah\n" in person and "### Bethlehem-judah\n" in place
-    assert "**Roles**: Patriarch\n**Referenced in**: 80 verses" in person
-    assert "**ACAI Annotations**" not in place
-    assert "Tribe" not in output
+    assert "Judah at Gen.29.35." in output
+    assert "**ACAI Annotations**" not in output
 
 
 @pytest.fixture

@@ -836,6 +836,7 @@ def import_acai_entities(conn: sqlite3.Connection, acai_dir: Path):
                         entity.get('key_references'),
                         entity.get('reference_count', 0),
                         entity.get('speeches_count', 0),
+                        entity.get('tipnr_keys'),
                     ))
                     count += 1
 
@@ -844,8 +845,8 @@ def import_acai_entities(conn: sqlite3.Connection, acai_dir: Path):
                             INSERT OR REPLACE INTO acai_entities
                             (id, entity_type, name, gender, description, roles,
                              father_id, mother_id, partners, offspring, siblings,
-                             referred_to_as, key_references, reference_count, speeches_count)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                             referred_to_as, key_references, reference_count, speeches_count, tipnr_keys)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """, batch)
                         conn.commit()
                         batch = []
@@ -857,8 +858,8 @@ def import_acai_entities(conn: sqlite3.Connection, acai_dir: Path):
                 INSERT OR REPLACE INTO acai_entities
                 (id, entity_type, name, gender, description, roles,
                  father_id, mother_id, partners, offspring, siblings,
-                 referred_to_as, key_references, reference_count, speeches_count)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 referred_to_as, key_references, reference_count, speeches_count, tipnr_keys)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, batch)
             conn.commit()
 
