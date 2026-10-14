@@ -24,7 +24,7 @@
     {
       "theme_key": "watchers_tradition",
       "theme_label": "Watchers Tradition",
-      "description": "The tradition preserved in 1 Enoch, Jubilees, and other Second Temple literature about the divine beings (Watchers) who transgressed their proper domain by taking human wives and teaching forbidden knowledge. This tradition is referenced in Genesis 6, Jude 6-7, 2 Peter 2:4-5, and underlies the Leviticus 16 scapegoat ritual (Azazel).",
+      "description": "The tradition preserved in non-canonical Second Temple literature (1 Enoch, Jubilees and others) about the divine beings (Watchers) who transgressed their proper domain by taking human wives and teaching forbidden knowledge. This tradition is referenced in Genesis 6, Jude 6-7, 2 Peter 2:4-5, and underlies the Leviticus 16 scapegoat ritual (Azazel).",
       "parent_theme": null,
       "heiser_key_works": ["reversing_hermon", "unseen_realm", "demons"]
     },
@@ -52,7 +52,7 @@
     {
       "theme_key": "nachash_serpent",
       "theme_label": "The Nachash / Shining Serpent",
-      "description": "The Hebrew word nachash has three meanings: serpent (noun), to practice divination (verb), and shining/bronze (adjective). The Eden figure is best understood as a luminous divine being (a 'shining one'), an anointed guardian cherub (Ezekiel 28:14) who was a member of the divine council before his rebellion. Not a mere talking snake but a supernatural adversary.",
+      "description": "The Hebrew word nachash has three meanings: serpent (noun), to practice divination (verb), and shining/bronze (adjective). Heiser reads the Eden figure as a luminous divine being (a 'shining one'), an anointed guardian cherub (Ezekiel 28:14) who was a member of the divine council before his rebellion. Not a mere talking snake but a supernatural adversary. The 'shining one' etymology is speculative (ANE method_002 lists it under 'do not build arguments on'); the case for a supernatural serpent rests on Genesis 3 read with Ezekiel 28 and Revelation 12:9.",
       "parent_theme": "edenic_rebellion",
       "heiser_key_works": ["unseen_realm", "supernatural", "demons"]
     },
@@ -73,7 +73,7 @@
     {
       "theme_key": "sons_of_god",
       "theme_label": "Sons of God / Bene Elohim",
-      "description": "The Hebrew phrase bene elohim (sons of God) and bene elim (sons of the gods/mighty ones) refers to divine beings — members of the heavenly host and divine council. Despite the Sethite interpretation popularized in the rabbinic period, every OT use refers to supernatural beings (Job 1:6, 2:1, 38:7, Psalm 29:1, 82:6, 89:6, Genesis 6:2,4, Deuteronomy 32:8).",
+      "description": "The Hebrew phrase bene elohim (sons of God) and bene elim (sons of the gods/mighty ones) refers to divine beings — members of the heavenly host and divine council. Despite later readings of the phrase as humans (rulers or judges in rabbinic tradition, e.g. Targum Onkelos 'sons of the great ones'; the line of Seth among Christian writers from Julius Africanus to Augustine), Heiser argues that every OT use refers to supernatural beings (Job 1:6, 2:1, 38:7, Psalm 29:1, 82:6, 89:6, Genesis 6:2,4, Deuteronomy 32:8).",
       "parent_theme": "divine_council",
       "heiser_key_works": ["unseen_realm", "supernatural", "deut32_paper", "reversing_hermon"]
     },
@@ -94,7 +94,7 @@
     {
       "theme_key": "cherem_warfare",
       "theme_label": "Cherem / Holy War",
-      "description": "The practice of total devotion/destruction (cherem) in the conquest of Canaan is understood in light of the Nephilim bloodlines. The giant clans (Anakim, Rephaim, Emim, Zamzummim) were descendants of the Nephilim, and their destruction was the elimination of the corrupt divine-human hybrid lineage — not genocide of ordinary peoples. The conquest targeted specific Nephilim-infested territories.",
+      "description": "Heiser reads the practice of total devotion/destruction (cherem) in the conquest of Canaan in light of the Nephilim bloodlines. In his view the giant clans (Anakim, Rephaim, Emim, Zamzummim) were descendants of the Nephilim, their destruction was the elimination of the corrupt divine-human hybrid lineage rather than of ordinary peoples, and the conquest targeted specific Nephilim-infested territories. This is contested: the cherem commands name the peoples of Canaan, not only giant clans (Deut 7:1-2; 20:16-17), and give their wickedness and idolatry as the grounds (Gen 15:16; Deut 9:4-5; 20:18).",
       "parent_theme": "nephilim_giants",
       "heiser_key_works": ["unseen_realm", "supernatural"]
     },

@@ -143,7 +143,7 @@ async def test_import_keeps_variant_evidence_and_interpretation_separate(tmp_pat
     cases = await _cases(db_path, "Deuteronomy 32:8")
     [interpretive] = await _cases(db_path, "Psalm 82:6")
 
-    assert imported == 30
+    assert imported == 31
     assert legacy_tables == []
     assert len(cases) == 1
 

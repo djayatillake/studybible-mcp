@@ -499,8 +499,8 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
         elif interpretive_cases:
             result += (
                 f"\n\n---\n*Translation and interpretation notes catalogued for this "
-                f"verse (no manuscript variant): translation decisions and attributed "
-                f"analysis via `get_textual_variant` (reference='{hint_reference}').*"
+                f"verse (no manuscript variant): attributed analysis via "
+                f"`get_textual_variant` (reference='{hint_reference}').*"
             )
     else:
         if variant_cases:
@@ -512,9 +512,9 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
         if interpretive_cases:
             result += (
                 f"\n\n---\n*Translation and interpretation notes (no manuscript variant) "
-                f"catalogued in this passage: {cued(interpretive_cases)}. Translation "
-                f"decisions and attributed analysis via `get_textual_variant` with one "
-                f"of those verses as the reference.*"
+                f"catalogued in this passage: {cued(interpretive_cases)}. Attributed "
+                f"analysis via `get_textual_variant` with one of those verses as the "
+                f"reference.*"
             )
 
     # Hint: NT↔OT quotation alignment, usually an LXX-form quotation. Surfaces

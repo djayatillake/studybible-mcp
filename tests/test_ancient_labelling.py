@@ -147,7 +147,7 @@ def test_committed_editorial_notes_file_is_valid():
 
     assert isinstance(notes, EditorialNotes)
     assert set(json.loads(COMMITTED_NOTES_PATH.read_text(encoding="utf-8"))) == {"notes", "links"}
-    assert (len(notes.notes), len(notes.links)) == (46, 29)
+    assert (len(notes.notes), len(notes.links)) == (46, 40)
     by_citation = {note.citation: note for note in notes.notes}
     # Onkelos is cited by English verse: the Peniel verse is Gen 32:30 (MT 32:31).
     assert "Targum Onkelos Genesis 32:30" in by_citation
