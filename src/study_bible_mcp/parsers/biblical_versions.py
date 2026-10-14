@@ -214,11 +214,35 @@ _EDITION_SUFFIXES = {
 
 _OT_CODES = tuple(MT_BOOK_CODES.values())
 _REF_RE = re.compile(r"^(\d+):(\d+)([a-z]?)$", re.IGNORECASE)
-_USFM_NOTE_RE = re.compile(r"\\(?:f|x)\s.*?\\(?:f|x)\*", re.DOTALL)
-# Closing character markers (\add*, \+it*) never consume the following space;
-# opening markers (\add, \+it) consume the one delimiter space after them.
-_USFM_CLOSE_MARKER_RE = re.compile(r"\\\+?[a-z0-9-]+\*", re.IGNORECASE)
-_USFM_OPEN_MARKER_RE = re.compile(r"\\\+?[a-z0-9-]+\s?", re.IGNORECASE)
+
+# USFM is read as a stream of markers (\v, \p, \add, \+it, \add*, a milestone's
+# bare \*), not line by line, so verse, paragraph and note markers may stand
+# anywhere in a line and notes may run over several lines.
+_USFM_MARKER_RE = re.compile(r"\\(\+?[A-Za-z0-9-]*)(\*?)")
+# Text after these markers is a title, heading, label or introduction, not
+# verse text, until the next paragraph, verse or chapter marker.
+_USFM_HEADING_MARKERS = re.compile(
+    r"(?:id|ide|usfm|rem|sts|restore|h\d?|toca?\d|mte?\d?|ms\d?|mr|s\d?|sr|r|d|sp|sd\d?"
+    r"|cl|cd|lit|qa|qd|periph"
+    # introductions (\it, italic, is a character marker and keeps its words)
+    r"|imte?\d?|is\d?|ip|ipi|im|imi|ipq|imq|ipr|iq\d?|ib|ili\d?|iot|io\d?|iex|ie)"
+)
+# Paragraph, poetry, list and table markers: text after them continues the
+# verse in progress (a verse may run over several paragraphs or poetic lines).
+_USFM_PARAGRAPH_MARKERS = re.compile(
+    r"(?:p|m|po|pr|cls|pmo|pm|pmc|pmr|pi\d?|mi|nb|pc|ph\d?|q\d?|qr|qc|qm\d?"
+    r"|li\d?|lh|lf|lim\d?|tr|b|pb)"
+)
+# Character spans whose content is apparatus, not verse text: footnotes,
+# endnotes, cross-references, figures, inline quotation references, and
+# alternate or published verse and chapter numbers. Each ends at its own
+# closing marker (\f ... \f*).
+_USFM_DROPPED_SPANS = frozenset({"f", "fe", "ef", "x", "ex", "fig", "rq", "va", "vp", "ca", "cat"})
+# USFM 3 word attributes (\w λόγος|lemma="λόγος"\w*) end at the closing marker.
+_USFM_ATTRIBUTES_RE = re.compile(r"\|[^\\|]*(?=\\\+?[A-Za-z0-9-]*\*)")
+_USFM_CHAPTER_RE = re.compile(r"\s*(\d+)")
+# A verse number, lettered (12a), or a bridge (10-11) stored under its first verse.
+_USFM_VERSE_RE = re.compile(r"\s*(\d+)([A-Za-z]?)(?:[-‐–]\d+[A-Za-z]?)?")
 
 
 def _split_ref(reference: str) -> tuple[int, int, str]:
@@ -228,15 +252,76 @@ def _split_ref(reference: str) -> tuple[int, int, str]:
     return int(match.group(1)), int(match.group(2)), match.group(3).lower()
 
 
-def _clean_usfm(text: str) -> str:
-    text = _USFM_NOTE_RE.sub("", text)
-    text = _USFM_CLOSE_MARKER_RE.sub("", text)
-    text = _USFM_OPEN_MARKER_RE.sub("", text)
-    return re.sub(r"\s+", " ", text).strip()
+def _usfm_verses(content: str) -> dict[str, list[str]]:
+    """Split one USFM book into {"chapter:verse": [text pieces]}, markup removed.
+
+    Opening markers consume the one space that ends them; closing markers
+    (\\add*) consume nothing, so "is\\add* good" keeps its space. Text after
+    a chapter marker and before its first verse (an unnumbered introduction)
+    belongs to no verse. A verse number repeated within a chapter continues
+    that verse.
+    """
+    content = _USFM_ATTRIBUTES_RE.sub("", content.replace("~", " ").replace("//", " "))
+    verses: dict[str, list[str]] = {}
+    chapter: str | None = None
+    verse: str | None = None
+    heading = False
+    dropped: str | None = None  # the dropped span being skipped (f, x, ...)
+    position = 0
+
+    def keep(text: str) -> None:
+        if verse is not None and not heading and dropped is None and text:
+            verses[verse].append(text)
+
+    for match in _USFM_MARKER_RE.finditer(content):
+        if match.start() < position:  # inside a chapter or verse number already read
+            continue
+        keep(content[position:match.start()])
+        name, closing = match.group(1).lstrip("+"), match.group(2)
+        position = match.end()
+        if closing:
+            if dropped is not None and name == dropped:
+                dropped = None
+            continue
+        if position < len(content) and content[position] in " \t\r\n":
+            position += 1
+        if dropped is not None:
+            # A note never spans a verse, chapter or paragraph; an unclosed one ends there.
+            if name not in ("v", "c") and not _USFM_PARAGRAPH_MARKERS.fullmatch(name) \
+                    and not _USFM_HEADING_MARKERS.fullmatch(name):
+                continue
+            dropped = None
+        if name == "c":
+            number = _USFM_CHAPTER_RE.match(content, position)
+            if number:
+                chapter, verse, heading = number.group(1), None, False
+                position = number.end()
+        elif name == "v":
+            number = _USFM_VERSE_RE.match(content, position)
+            if number and chapter is not None:
+                verse = f"{chapter}:{number.group(1)}{number.group(2).lower()}"
+                verses.setdefault(verse, [])
+                heading = False
+                position = number.end()
+        elif name in _USFM_DROPPED_SPANS:
+            dropped = name
+        elif _USFM_PARAGRAPH_MARKERS.fullmatch(name):
+            heading = False
+        elif _USFM_HEADING_MARKERS.fullmatch(name):
+            heading = True
+    keep(content[position:])
+    return verses
 
 
 def parse_brenton_usfm(directory: Path) -> dict[tuple[str, str], str]:
-    """Read eBible's Brenton USFM files into (book code, chapter:verse) text."""
+    """Read eBible's Brenton USFM files into (book code, chapter:verse) text.
+
+    Verse text runs from its verse marker to the next verse or chapter
+    marker, across paragraph and poetry markers (\\p, \\q1, \\m, \\nb, ...),
+    wherever in a line the markers stand. Headings, titles, introductions,
+    notes and cross-references are left out; character markup (\\add, \\nd,
+    \\+it, \\w ...|lemma\\w*) keeps its words.
+    """
     translations: dict[tuple[str, str], str] = {}
     for path in sorted(directory.glob("*.usfm")):
         content = path.read_text(encoding="utf-8-sig")
@@ -244,23 +329,8 @@ def parse_brenton_usfm(directory: Path) -> dict[tuple[str, str], str]:
         if not id_match:
             continue
         book = id_match.group(1)
-        chapter: str | None = None
-        current_key: tuple[str, str] | None = None
-        for line in content.splitlines():
-            chapter_match = re.match(r"^\\c\s+(\d+)", line)
-            if chapter_match:
-                chapter = chapter_match.group(1)
-                current_key = None
-                continue
-            verse_match = re.match(r"^\\v\s+(\d+[a-z]?(?:-\d+[a-z]?)?)\s*(.*)", line)
-            if verse_match and chapter:
-                current_key = (book, f"{chapter}:{verse_match.group(1)}")
-                translations[current_key] = _clean_usfm(verse_match.group(2))
-                continue
-            if current_key and line and not re.match(r"^\\(?:c|s|ms|mt|r|d|b|ib)\b", line):
-                continuation = _clean_usfm(line)
-                if continuation:
-                    translations[current_key] = f"{translations[current_key]} {continuation}".strip()
+        for reference, pieces in _usfm_verses(content).items():
+            translations[(book, reference)] = re.sub(r"\s+", " ", "".join(pieces)).strip()
     return translations
 
 

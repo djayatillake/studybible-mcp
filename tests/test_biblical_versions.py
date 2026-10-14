@@ -250,6 +250,69 @@ def test_brenton_markers_keep_word_spacing(tmp_path):
     assert translations[("GEN", "81:6")] == "and all of you children of the most High."
 
 
+def _parse_usfm(tmp_path: Path, body: str) -> dict[str, str]:
+    (tmp_path / "test.usfm").write_text(f"\\id TST - test\n\\h Test\n\\mt1 TEST\n{body}", encoding="utf-8")
+    return {reference: text for (_, reference), text in parse_brenton_usfm(tmp_path).items()}
+
+
+def test_usfm_verse_markers_may_stand_anywhere_in_a_line(tmp_path):
+    assert _parse_usfm(tmp_path, (
+        "\\c 1\n\\p \\v 9 Inline first, \\v 10 then the next.\n"
+        "\\q1 \\v 11 A poetic line\n\\q2 and its second line;\n"
+        "\\m \\v 12 after a margin paragraph \\v 13 and on.\n"
+        "\\p It continues verse 13 across a paragraph.\n"
+        "\\c 2\n\\li1 \\v 1 A list item \\li2 and a sub-item.\n"
+    )) == {
+        "1:9": "Inline first,",
+        "1:10": "then the next.",
+        "1:11": "A poetic line and its second line;",
+        "1:12": "after a margin paragraph",
+        "1:13": "and on. It continues verse 13 across a paragraph.",
+        "2:1": "A list item and a sub-item.",
+    }
+
+
+def test_usfm_numbering_is_read_from_lettered_and_bridged_verses(tmp_path):
+    assert _parse_usfm(tmp_path, (
+        "\\c 3\n\\v 12a First half; \\v 12b second half.\n"
+        "\\v 14-15 A bridge is stored under its first verse.\n"
+        "\\v 16 One part\n\\p \\v 16 and a repeated number continues it.\n"
+    )) == {
+        "3:12a": "First half;",
+        "3:12b": "second half.",
+        "3:14": "A bridge is stored under its first verse.",
+        "3:16": "One part and a repeated number continues it.",
+    }
+
+
+def test_usfm_notes_headings_and_published_numbers_are_not_verse_text(tmp_path):
+    assert _parse_usfm(tmp_path, (
+        "\\c 1\n\\ip An introduction.\n\\p Words before the first verse.\n"
+        "\\v 1 In the \\f + \\fr 1:1 \\ft a note\nthat runs over \\fq two\\fq* lines\\f*beginning\n"
+        "\\s1 ΣΟΦΙΑ ΣΕΙΡΑΧ.\n\\r (Gen 1:1)\n\\p God made the heaven.\n"
+        "\\v 2 \\vp 2a\\vp* The earth \\va 3\\va* was \\x - \\xo 1:2 \\xt Jer 4:23\\x*unsightly.\n"
+        "\\ms2 A major section\n\\d A Psalm title\n\\v 3 After the headings.\n"
+        "\\v 4 An unclosed \\f + \\ft note\n\\v 5 ends at the next verse.\n"
+    )) == {
+        "1:1": "In the beginning God made the heaven.",
+        "1:2": "The earth was unsightly.",
+        "1:3": "After the headings.",
+        "1:4": "An unclosed",
+        "1:5": "ends at the next verse.",
+    }
+
+
+def test_usfm_character_markup_keeps_its_words(tmp_path):
+    assert _parse_usfm(tmp_path, (
+        "\\c 1\n\\v 1 The \\nd Lord\\nd* \\add is\\add* \\+it good\\+it*, "
+        "\\w λόγος|lemma=\"λόγος\" strong=\"G3056\"\\w* and \\w χάρις|χάρις\\w*~too.\n"
+        "\\v 2 \\qt-s |who=\"David\"\\*Selah \\qs Pause\\qs*.\\qt-e\\*\n"
+    )) == {
+        "1:1": "The Lord is good, λόγος and χάρις too.",
+        "1:2": "Selah Pause.",
+    }
+
+
 def test_brenton_is_attached_only_to_its_own_recension(tmp_path):
     morphology_dir = tmp_path / "morphology"
     morphology_dir.mkdir()
