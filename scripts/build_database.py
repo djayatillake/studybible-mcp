@@ -34,8 +34,9 @@ from study_bible_mcp.parsers.lexicon import (
     parse_hebrew_lexicon,
     parse_tflsj_lexicon,
 )
-from study_bible_mcp.parsers.proper_names import parse_tipnr
+from study_bible_mcp.parsers.proper_names import apply_tipnr_corrections, parse_tipnr
 from study_bible_mcp.parsers.tagged_text import parse_morphology_codes, parse_tagnt, parse_tahot
+from study_bible_mcp.parsers.theographic import load_curated
 
 console = Console()
 
@@ -486,7 +487,8 @@ def import_names(conn: sqlite3.Connection, filepath: Path, name: str):
     ) as progress:
         task = progress.add_task(f"  {name}", total=None)
 
-        for entry in parse_tipnr(filepath):
+        corrections = load_curated()["tipnr"]
+        for entry in apply_tipnr_corrections(parse_tipnr(filepath), corrections, require_all=True):
             batch.append((
                 entry['name'],
                 entry['name_original'],

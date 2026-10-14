@@ -5,13 +5,14 @@ Uses SQLite with async access via aiosqlite.
 """
 
 import difflib
+import heapq
 import json
 import logging
+import math
 import re
 import sqlite3
 import struct
 import unicodedata
-from collections import deque
 from pathlib import Path
 from typing import Any
 
@@ -589,6 +590,54 @@ def _sort_theme_lists(rows: list[dict]) -> list[dict]:
 INTERPRETIVE_CASE_KEYS = frozenset({"MT_preserved", "translation_choice"})
 
 
+# --- People in the Theographic graph -----------------------------------------
+
+_PERSON_COLUMNS = (
+    "id", "name", "also_called", "gender", "birth_year", "death_year",
+    "birth_place_id", "death_place_id",
+)
+# Never a link in a family connection: God is recorded as the father of Adam
+# and Eve, which would otherwise join everyone through Him.
+_NOT_FAMILY_LINKS = frozenset({"god_1324", "holy_spirit_7400"})
+
+
+def _fold_name(text: str | None) -> str:
+    """A name compared without case, underscores or extra spaces."""
+    return re.sub(r"\s+", " ", (text or "").replace("_", " ")).strip().casefold()
+
+
+def _person_match_tier(person: dict, query: str, raw: str = "") -> int | None:
+    """How well a graph person matches a folded query (lower is better), or None."""
+    if (raw or query) == person["id"].casefold():
+        return 0
+    name = _fold_name(person["name"])
+    title = _fold_name(person.get("display_title"))
+    surname = _fold_name(person.get("surname"))
+    if query != name and query in (title, f"{name} {surname}" if surname else None):
+        return 1
+    base, _, aside = (person.get("display_title") or "").partition(" (")
+    if query == name or (base and query == _fold_name(base)):
+        return 2
+    others = [surname] if surname else []
+    others += [_fold_name(alias) for alias in (person.get("also_called") or "").split(",")
+               if alias.strip()[:1].isupper()]
+    aside = aside.rstrip(")")
+    if aside[:1].isupper() and " " not in aside:
+        others.append(_fold_name(aside))
+    if query in others:
+        return 3
+    if len(query) >= 3 and (name.startswith(query) or title.startswith(query)):
+        return 4
+    return None
+
+
+def _person_label(person: dict | None, fallback: str = "") -> str:
+    """A person's display title ('Mary (Mother of Jesus)'), else name."""
+    if not person:
+        return fallback
+    return person.get("display_title") or person.get("name") or fallback
+
+
 class StudyBibleDB:
     """Async SQLite database interface for Bible study data."""
 
@@ -598,6 +647,10 @@ class StudyBibleDB:
         self._vec_loaded = False
         self._vec_error: str | None = None
         self._has_bsb: bool | None = None
+        self._graph_people_cols: set[str] | None = None
+        self._people_index: list[dict] | None = None
+        self._family_graph: dict | None = None
+        self._acai_keys: bool | None = None
         self._moved_verses: dict[str, tuple[int, int, int]] | None = None
         self._torah_numbering: dict[str, tuple[dict, dict]] = {}
         self._lexicon_index: LexiconIndex | None = None
@@ -1405,19 +1458,49 @@ class StudyBibleDB:
     ) -> list[dict]:
         """Look up a biblical name: exact matches first, then prefix, then substring.
 
-        Matching ignores case. Each row carries ``match_count``, the number of
-        names that match before ``limit`` is applied.
+        Matching ignores case, and a space matches TIPNR's underscore ('Mary
+        Magdalene' finds 'Mary_Magdalene'); a name whose first word is the
+        query ('Mary_Magdalene' for 'Mary') counts as exact. Within each tier
+        the best-known entry comes first: the one ACAI records in the most
+        verses, then the one with the most TIPNR references. Each row carries
+        ``match_count``, the number of names that match before ``limit``.
         """
+        query = re.sub(r"\s+", " ", name.replace("_", " ")).strip()
+        pattern = query.replace(" ", "_")
         type_filter = " AND type = ?" if name_type else ""
-        params = [f"%{name}%", *([name_type] if name_type else []), name, f"{name}%", limit]
+        if await self._acai_has_tipnr_keys():
+            prominence = """ac AS (
+                    SELECT REPLACE(k.value, '_', '') AS tkey, MAX(a.reference_count) AS rc
+                    FROM acai_entities a, json_each(a.tipnr_keys) k
+                    WHERE REPLACE(k.value, '_', '') IN (SELECT tkey FROM m)
+                    GROUP BY 1)"""
+            join = "LEFT JOIN ac USING (tkey)"
+            rank = "COALESCE(ac.rc, 0) DESC,"
+        else:
+            prominence = "ac AS (SELECT NULL AS tkey)"
+            join = rank = ""
         return await self._fetchall(
-            f"""SELECT *, COUNT(*) OVER () AS match_count FROM names
-                WHERE name LIKE ?{type_filter}
-                ORDER BY CASE WHEN name = ? COLLATE NOCASE THEN 0
-                              WHEN name LIKE ? THEN 1 ELSE 2 END, id
+            f"""WITH m AS (
+                    SELECT *,
+                        CASE WHEN REPLACE(name, '_', ' ') = ? COLLATE NOCASE
+                                  OR REPLACE(name, '_', ' ') LIKE ? THEN 0
+                             WHEN name LIKE ? THEN 1 ELSE 2 END AS match_tier,
+                        REPLACE(name, '_', '') || '@' || json_extract(refs, '$[0]') AS tkey
+                    FROM names WHERE name LIKE ?{type_filter}),
+                {prominence}
+                SELECT m.*, COUNT(*) OVER () AS match_count FROM m {join}
+                ORDER BY match_tier, {rank} json_array_length(m.refs) DESC, m.id
                 LIMIT ?""",
-            params,
+            [query, f"{query} %", f"{pattern}%", f"%{pattern}%",
+             *([name_type] if name_type else []), limit],
         )
+
+    async def _acai_has_tipnr_keys(self) -> bool:
+        """Whether acai_entities has the tipnr_keys column (databases before it do not)."""
+        if self._acai_keys is None:
+            async with self.conn.execute("PRAGMA table_info(acai_entities)") as cursor:
+                self._acai_keys = any(row[1] == "tipnr_keys" for row in await cursor.fetchall())
+        return self._acai_keys
 
     # =========================================================================
     # Morphology queries
@@ -1588,204 +1671,231 @@ class StudyBibleDB:
     # Graph queries (Theographic Bible Metadata)
     # =========================================================================
 
-    async def graph_find_person(self, name: str) -> list[dict]:
-        """Find a person by name (fuzzy match).
+    async def _graph_people_columns(self) -> set[str]:
+        if self._graph_people_cols is None:
+            async with self.conn.execute("PRAGMA table_info(graph_people)") as cursor:
+                self._graph_people_cols = {row[1] for row in await cursor.fetchall()}
+        return self._graph_people_cols
 
-        Orders by: exact name match first, then by number of aliases
-        (more aliases = more prominent biblical figure), then family edges.
+    async def _graph_people_index(self) -> list[dict]:
+        """Every person's naming columns and verse count, loaded once."""
+        if self._people_index is None:
+            available = await self._graph_people_columns()
+            columns = [c for c in (*_PERSON_COLUMNS, "display_title", "surname") if c in available]
+            people = await self._fetchall(f"SELECT {', '.join(columns)} FROM graph_people")
+            async with self.conn.execute(
+                """SELECT entity_id, COUNT(*) FROM graph_verse_mentions
+                   WHERE entity_type = 'person' GROUP BY entity_id"""
+            ) as cursor:
+                counts = dict(await cursor.fetchall())
+            for person in people:
+                person.setdefault("display_title", None)
+                person.setdefault("surname", None)
+                person["verse_count"] = counts.get(person["id"], 0)
+            self._people_index = people
+        return self._people_index
+
+    async def graph_find_person(self, name: str) -> list[dict]:
+        """People matching a name, best match first.
+
+        Tiers: a person id ('mary_1939'); a full title or name with surname
+        ('Simon Peter', 'Pontius Pilate', 'Mary Magdalene'); the name or the
+        title before its parenthesis ('Jacob' for 'Jacob (Israel)'); another
+        name (a surname such as 'Peter', an alias such as 'Abram', a
+        parenthesised alternative such as 'Israel'); a prefix of the name.
+        Within a tier the person mentioned in the most verses comes first, so
+        'Mary' is the mother of Jesus and 'Jacob' the patriarch. Each row
+        carries ``match_tier`` and ``verse_count``.
         """
-        return await self._fetchall(
-            """SELECT p.* FROM graph_people p
-               LEFT JOIN (
-                   SELECT from_person_id as pid, COUNT(*) as cnt FROM graph_family_edges GROUP BY from_person_id
-                   UNION ALL
-                   SELECT to_person_id, COUNT(*) FROM graph_family_edges GROUP BY to_person_id
-               ) fe ON fe.pid = p.id
-               WHERE LOWER(p.name) = LOWER(?)
-                  OR LOWER(p.also_called) LIKE LOWER(?)
-               GROUP BY p.id
-               ORDER BY
-                   CASE WHEN LOWER(p.name) = LOWER(?) THEN 0 ELSE 1 END,
-                   LENGTH(COALESCE(p.also_called, '')) DESC,
-                   COALESCE(SUM(fe.cnt), 0) DESC
-               LIMIT 10""",
-            (name, f"%{name}%", name),
-        )
+        query = _fold_name(name)
+        if not query:
+            return []
+        raw = name.strip().casefold()
+        found = []
+        for person in await self._graph_people_index():
+            tier = _person_match_tier(person, query, raw)
+            if tier is not None:
+                found.append({**person, "match_tier": tier})
+        found.sort(key=lambda p: (p["match_tier"], -p["verse_count"], p["id"]))
+        return found
 
     async def graph_find_place(self, name: str) -> list[dict]:
-        """Find a place by name (fuzzy match).
+        """Find a place by name or id (fuzzy match).
 
-        Orders by: exact name match first, then names starting with the
-        query, then other substring matches; ties go to the place mentioned
-        in the most verses (e.g. the Ai of Joshua 7-8 over the Ai of Jer 49:3).
+        Orders by: the id itself, then the exact name, then names starting
+        with the query, then other substring matches; among same-tier places
+        the one with the most recorded events comes first (Samuel's Ramah,
+        not the Ramah of Josh 18:25 with none), then the one mentioned in the
+        most verses (the Ai of Joshua 7-8 over the Ai of Jer 49:3). Rows carry
+        ``event_count`` and ``verse_count``.
         """
         return await self._fetchall(
-            """SELECT p.* FROM graph_places p
-               WHERE LOWER(p.name) LIKE LOWER(?)
+            """SELECT p.*,
+                   (SELECT COUNT(*) FROM graph_event_place_edges ep
+                    WHERE ep.place_id = p.id) AS event_count,
+                   (SELECT COUNT(*) FROM graph_verse_mentions vm
+                    WHERE vm.entity_type = 'place' AND vm.entity_id = p.id) AS verse_count
+               FROM graph_places p
+               WHERE LOWER(p.name) LIKE LOWER(?) OR p.id = ?
                ORDER BY
                    CASE
+                       WHEN p.id = ? THEN -1
                        WHEN LOWER(p.name) = LOWER(?) THEN 0
                        WHEN LOWER(p.name) LIKE LOWER(?) THEN 1
                        ELSE 2
                    END,
-                   (SELECT COUNT(*) FROM graph_verse_mentions vm
-                    WHERE vm.entity_type = 'place' AND vm.entity_id = p.id) DESC
+                   event_count DESC, verse_count DESC, p.id
                LIMIT 10""",
-            (f"%{name}%", name, f"{name}%"),
+            (f"%{name}%", name.strip(), name.strip(), name, f"{name}%"),
         )
 
-    async def graph_get_ancestors(
-        self, person_id: str, max_generations: int = 10
-    ) -> list[dict]:
-        """Get ancestors using recursive CTE.
+    async def graph_get_people(self, person_ids) -> dict[str, dict]:
+        """Naming and date columns of the given people, by id."""
+        wanted = set(person_ids)
+        return {p["id"]: p for p in await self._graph_people_index() if p["id"] in wanted}
 
-        Each row's ``child_id`` is the person one generation down whose parent
-        it is (None for the starting person).
+    async def graph_lineage(
+        self, person_id: str, direction: str, generations: int, max_people: int = 200
+    ) -> dict:
+        """A person's ancestors (direction 'ancestors') or descendants, each person once.
+
+        Walks father/mother links a generation at a time, so each relative is
+        listed at the nearest generation it is reached, under the relative one
+        generation nearer through whom it was first reached (``via``). Returns
+        {"people": [row], "edges": [(parent_id, child_id, relationship)],
+        "truncated": bool}, where edges are every recorded parent link among
+        the people listed (including the starting person), and truncated says
+        whether ``max_people`` cut the walk short.
         """
-        return await self._fetchall("""
-            WITH RECURSIVE ancestors AS (
-                SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
-                       0 as generation, 'self' as relationship,
-                       NULL as child_id
-                FROM graph_people p WHERE p.id = ?
-
-                UNION ALL
-
-                SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
-                       a.generation + 1,
-                       e.relationship_type,
-                       e.to_person_id
-                FROM ancestors a
-                JOIN graph_family_edges e ON e.to_person_id = a.id
-                JOIN graph_people p ON p.id = e.from_person_id
-                WHERE e.relationship_type IN ('father_of', 'mother_of')
-                  AND a.generation < ?
+        up = direction == "ancestors"
+        near_col, far_col = ("to_person_id", "from_person_id") if up else ("from_person_id", "to_person_id")
+        generation_of = {person_id: 0}
+        listed: list[dict] = []
+        edges: dict[tuple, None] = {}
+        frontier = [person_id]
+        truncated = False
+        for generation in range(1, generations + 1):
+            if not frontier or truncated:
+                break
+            order = {pid: index for index, pid in enumerate(frontier)}
+            placeholders = ", ".join("?" for _ in frontier)
+            rows = await self._fetchall(
+                f"""SELECT {near_col} AS near, {far_col} AS far, relationship_type
+                    FROM graph_family_edges
+                    WHERE {near_col} IN ({placeholders})
+                      AND relationship_type IN ('father_of', 'mother_of')""",
+                frontier,
             )
-            SELECT * FROM ancestors ORDER BY generation
-        """, (person_id, max_generations))
+            rows.sort(key=lambda r: (order[r["near"]], r["relationship_type"] != "father_of", r["far"]))
+            next_frontier = []
+            for row in rows:
+                parent, child = (row["far"], row["near"]) if up else (row["near"], row["far"])
+                if row["far"] not in generation_of:
+                    if len(listed) >= max_people:
+                        truncated = True
+                        continue
+                    generation_of[row["far"]] = generation
+                    listed.append({"id": row["far"], "generation": generation, "via": row["near"],
+                                   "relationship": row["relationship_type"]})
+                    next_frontier.append(row["far"])
+                edges[(parent, child, row["relationship_type"])] = None
+            frontier = next_frontier
+        details = await self.graph_get_people([p["id"] for p in listed])
+        for person in listed:
+            person.update({k: v for k, v in details.get(person["id"], {}).items() if k != "id"})
+            person.setdefault("name", person["id"])
+        return {"people": listed, "edges": list(edges), "truncated": truncated}
 
-    async def graph_get_descendants(
-        self, person_id: str, max_generations: int = 10
-    ) -> list[dict]:
-        """Get descendants using recursive CTE."""
-        return await self._fetchall("""
-            WITH RECURSIVE descendants AS (
-                SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
-                       0 as generation, 'self' as relationship
-                FROM graph_people p WHERE p.id = ?
+    async def _family_adjacency(self) -> dict[str, list[tuple[str, str, int]]]:
+        """Person id -> [(neighbour id, relationship from the person, cost)], loaded once.
 
-                UNION ALL
+        Parent and child links cost 1, siblings 2 (as a shared parent would),
+        spouses 3, so a connection runs through descent where one exists.
+        """
+        if self._family_graph is None:
+            adjacency: dict[str, list[tuple[str, str, int]]] = {}
+            async with self.conn.execute(
+                "SELECT from_person_id, to_person_id, relationship_type FROM graph_family_edges"
+            ) as cursor:
+                for source, target, relationship in await cursor.fetchall():
+                    if relationship in ("father_of", "mother_of"):
+                        forward, backward, cost = relationship, "child_of", 1
+                    elif relationship == "sibling_of":
+                        forward, backward, cost = relationship, relationship, 2
+                    else:
+                        forward, backward, cost = relationship, relationship, 3
+                    adjacency.setdefault(source, []).append((target, forward, cost))
+                    adjacency.setdefault(target, []).append((source, backward, cost))
+            self._family_graph = adjacency
+        return self._family_graph
 
-                SELECT p.id, p.name, p.gender, p.birth_year, p.death_year,
-                       d.generation + 1,
-                       e.relationship_type
-                FROM descendants d
-                JOIN graph_family_edges e ON e.from_person_id = d.id
-                JOIN graph_people p ON p.id = e.to_person_id
-                WHERE e.relationship_type IN ('father_of', 'mother_of')
-                  AND d.generation < ?
-            )
-            SELECT * FROM descendants ORDER BY generation
-        """, (person_id, max_generations))
+    async def graph_find_path(self, person1_id: str, person2_id: str) -> list[dict]:
+        """The closest family connection between two people, as steps.
 
-    async def graph_find_path(
-        self, person1_id: str, person2_id: str, max_depth: int = 15
-    ) -> list[dict]:
-        """Find shortest relationship path between two people using Python-side BFS.
-
-        Returns list of dicts with from_name, to_name, relationship_type for each step.
+        A cheapest-path search over the whole family graph (a few thousand
+        people, so no depth cap), preferring parent-child lines to marriages
+        and siblings, then fewer steps. God and the Holy Spirit are not used
+        as links between people. Each step has current_id, next_id,
+        relationship_type ('father_of', 'mother_of', 'child_of', 'sibling_of',
+        'partner_of': what current is to next), from_name and to_name.
+        Returns [] when the two are the same person or not connected.
         """
         if person1_id == person2_id:
             return []
-
-        # Build adjacency list from the (small) family edges table
-        adjacency: dict[str, list[tuple[str, str]]] = {}  # person_id -> [(neighbor_id, rel_type)]
-        async with self.conn.execute(
-            "SELECT from_person_id, to_person_id, relationship_type FROM graph_family_edges"
-        ) as cursor:
-            for row in await cursor.fetchall():
-                fid, tid, rel = row[0], row[1], row[2]
-                adjacency.setdefault(fid, []).append((tid, rel))
-                # Reverse edge for bidirectional traversal
-                reverse_rel = rel
-                if rel == "father_of" or rel == "mother_of":
-                    reverse_rel = "child_of"
-                elif rel == "child_of":
-                    reverse_rel = "parent_of"
-                adjacency.setdefault(tid, []).append((fid, reverse_rel))
-
-        # BFS
-        queue = deque([(person1_id, [person1_id])])
-        visited = {person1_id}
-
-        while queue:
-            current, path = queue.popleft()
-            if len(path) - 1 >= max_depth:
+        adjacency = await self._family_adjacency()
+        best = {person1_id: (0, 0)}
+        previous: dict[str, tuple[str, str]] = {}
+        heap = [(0, 0, person1_id)]
+        while heap:
+            cost, steps, current = heapq.heappop(heap)
+            if current == person2_id:
+                break
+            if (cost, steps) > best.get(current, (cost, steps)):
                 continue
-
-            for neighbor_id, rel_type in adjacency.get(current, []):
-                if neighbor_id in visited:
-                    continue
-                new_path = path + [neighbor_id]
-                if neighbor_id == person2_id:
-                    # Reconstruct path with names and relationships
-                    result = []
-                    # Walk the path and find the relationship at each step
-                    for i in range(len(new_path) - 1):
-                        from_id = new_path[i]
-                        to_id = new_path[i + 1]
-                        # Find the relationship type for this edge
-                        step_rel = "related_to"
-                        for nid, rt in adjacency.get(from_id, []):
-                            if nid == to_id:
-                                step_rel = rt
-                                break
-                        result.append({
-                            "current_id": from_id,
-                            "next_id": to_id,
-                            "relationship_type": step_rel,
-                            "depth": i + 1,
-                            "from_name": from_id,  # placeholder, resolved below
-                            "to_name": to_id,       # placeholder, resolved below
-                        })
-
-                    # Resolve names
-                    all_ids = list(set(new_path))
-                    placeholders = ",".join("?" * len(all_ids))
-                    name_map = {}
-                    async with self.conn.execute(
-                        f"SELECT id, name FROM graph_people WHERE id IN ({placeholders})",
-                        all_ids
-                    ) as cursor:
-                        for row in await cursor.fetchall():
-                            name_map[row[0]] = row[1]
-
-                    for step in result:
-                        step["from_name"] = name_map.get(step["current_id"], step["current_id"])
-                        step["to_name"] = name_map.get(step["next_id"], step["next_id"])
-
-                    return result
-
-                visited.add(neighbor_id)
-                queue.append((neighbor_id, new_path))
-
-        return []  # No path found
+            if current in _NOT_FAMILY_LINKS and current != person1_id:
+                continue
+            for neighbour, relationship, weight in adjacency.get(current, ()):
+                candidate = (cost + weight, steps + 1)
+                if candidate < best.get(neighbour, (math.inf, math.inf)):
+                    best[neighbour] = candidate
+                    previous[neighbour] = (current, relationship)
+                    heapq.heappush(heap, (*candidate, neighbour))
+        if person2_id not in previous:
+            return []
+        chain = [person2_id]
+        while chain[-1] != person1_id:
+            chain.append(previous[chain[-1]][0])
+        chain.reverse()
+        names = await self.graph_get_people(chain)
+        result = []
+        for depth, (current, following) in enumerate(zip(chain, chain[1:]), start=1):
+            result.append({
+                "current_id": current,
+                "next_id": following,
+                "relationship_type": previous[following][1],
+                "depth": depth,
+                "from_name": _person_label(names.get(current), current),
+                "to_name": _person_label(names.get(following), following),
+            })
+        return result
 
     async def graph_get_family(self, person_id: str) -> dict:
-        """Get immediate family of a person."""
-        return {
+        """Immediate family of a person, each relative once."""
+        family = {
             "parents": await self._fetchall(
                 """SELECT p.*, e.relationship_type FROM graph_family_edges e
                    JOIN graph_people p ON p.id = e.from_person_id
                    WHERE e.to_person_id = ?
-                     AND e.relationship_type IN ('father_of', 'mother_of')""",
+                     AND e.relationship_type IN ('father_of', 'mother_of')
+                   ORDER BY e.relationship_type, p.id""",
                 (person_id,),
             ),
             "children": await self._fetchall(
                 """SELECT p.*, e.relationship_type FROM graph_family_edges e
                    JOIN graph_people p ON p.id = e.to_person_id
                    WHERE e.from_person_id = ?
-                     AND e.relationship_type IN ('father_of', 'mother_of')""",
+                     AND e.relationship_type IN ('father_of', 'mother_of')
+                   ORDER BY p.name, p.id""",
                 (person_id,),
             ),
             "partners": await self._fetchall(
@@ -1794,7 +1904,8 @@ class StudyBibleDB:
                        WHEN e.from_person_id = ? THEN e.to_person_id
                        ELSE e.from_person_id END
                    WHERE (e.from_person_id = ? OR e.to_person_id = ?)
-                     AND e.relationship_type = 'partner_of'""",
+                     AND e.relationship_type = 'partner_of'
+                   ORDER BY p.name, p.id""",
                 (person_id, person_id, person_id),
             ),
             "siblings": await self._fetchall(
@@ -1803,37 +1914,83 @@ class StudyBibleDB:
                        WHEN e.from_person_id = ? THEN e.to_person_id
                        ELSE e.from_person_id END
                    WHERE (e.from_person_id = ? OR e.to_person_id = ?)
-                     AND e.relationship_type = 'sibling_of'""",
+                     AND e.relationship_type = 'sibling_of'
+                   ORDER BY p.name, p.id""",
                 (person_id, person_id, person_id),
             ),
         }
+        # Spouses are recorded from both sides, so each would appear twice
+        for key, people in family.items():
+            seen = set()
+            family[key] = [p for p in people if not (p["id"] in seen or seen.add(p["id"]))]
+        return family
+
+    async def graph_relatives(self, person_ids: list[str]) -> dict[str, set[str]]:
+        """Each given person's parents, children, spouses and siblings, as ids."""
+        if not person_ids:
+            return {}
+        placeholders = ", ".join("?" for _ in person_ids)
+        relatives: dict[str, set[str]] = {pid: set() for pid in person_ids}
+        async with self.conn.execute(
+            f"""SELECT from_person_id, to_person_id FROM graph_family_edges
+                WHERE from_person_id IN ({placeholders}) OR to_person_id IN ({placeholders})""",
+            [*person_ids, *person_ids],
+        ) as cursor:
+            for source, target in await cursor.fetchall():
+                if source in relatives:
+                    relatives[source].add(target)
+                if target in relatives:
+                    relatives[target].add(source)
+        return relatives
 
     async def graph_get_person_events(self, person_id: str) -> list[dict]:
-        """Get all events a person participated in."""
+        """Every event a person took part in, in chronological order."""
         return await self._fetchall(
             """SELECT e.* FROM graph_person_event_edges pe
                JOIN graph_events e ON e.id = pe.event_id
                WHERE pe.person_id = ?
-               ORDER BY e.sort_key""",
+               ORDER BY e.sort_key, e.id""",
             (person_id,),
         )
 
-    async def graph_get_event_places(self, event_id: str) -> list[dict]:
-        """Get all places where an event occurred."""
-        return await self._fetchall(
-            """SELECT p.* FROM graph_event_place_edges ep
-               JOIN graph_places p ON p.id = ep.place_id
-               WHERE ep.event_id = ?""",
-            (event_id,),
-        )
+    async def graph_get_events_places(self, event_ids: list[str]) -> dict[str, list[dict]]:
+        """The places of each of the given events, by event id (one query)."""
+        if not event_ids:
+            return {}
+        placeholders = ", ".join("?" for _ in event_ids)
+        places: dict[str, list[dict]] = {}
+        for row in await self._fetchall(
+            f"""SELECT ep.event_id, p.* FROM graph_event_place_edges ep
+                JOIN graph_places p ON p.id = ep.place_id
+                WHERE ep.event_id IN ({placeholders})
+                ORDER BY ep.event_id, p.name""",
+            list(event_ids),
+        ):
+            places.setdefault(row.pop("event_id"), []).append(row)
+        return places
+
+    async def graph_get_event_verses(self, event_ids: list[str]) -> dict[str, list[str]]:
+        """The Theographic verse references of each of the given events, by event id."""
+        if not event_ids:
+            return {}
+        placeholders = ", ".join("?" for _ in event_ids)
+        verses: dict[str, list[str]] = {}
+        async with self.conn.execute(
+            f"""SELECT entity_id, verse_ref FROM graph_verse_mentions
+                WHERE entity_type = 'event' AND entity_id IN ({placeholders})""",
+            list(event_ids),
+        ) as cursor:
+            for event_id, ref in await cursor.fetchall():
+                verses.setdefault(event_id, []).append(ref)
+        return verses
 
     async def graph_get_place_events(self, place_id: str) -> list[dict]:
-        """Get all events at a place."""
+        """Every event at a place, in chronological order."""
         return await self._fetchall(
             """SELECT e.* FROM graph_event_place_edges ep
                JOIN graph_events e ON e.id = ep.event_id
                WHERE ep.place_id = ?
-               ORDER BY e.sort_key""",
+               ORDER BY e.sort_key, e.id""",
             (place_id,),
         )
 
@@ -2229,22 +2386,23 @@ class StudyBibleDB:
                 refs = json.loads(entry.get("refs") or "[]")
             except (TypeError, ValueError):
                 refs = []
-            keys.append(f"{entry['name']}@{refs[0]}" if refs else None)
+            # ACAI writes some TIPNR names without the underscore ('MaryMagdalene')
+            keys.append(f"{entry['name'].replace('_', '')}@{refs[0]}" if refs else None)
         wanted = sorted({key for key in keys if key})
         if not wanted:
             return [None] * len(entries)
 
         placeholders = ", ".join("?" for _ in wanted)
         rows = await self._fetchall(
-            f"""SELECT k.value AS tipnr_key, a.*
+            f"""SELECT REPLACE(k.value, '_', '') AS tipnr_key, a.*
                 FROM acai_entities a, json_each(a.tipnr_keys) k
-                WHERE k.value IN ({placeholders})""",
+                WHERE REPLACE(k.value, '_', '') IN ({placeholders})""",
             wanted,
         )
         found = []
         for entry, key in zip(entries, keys):
             entity_type = entry.get("type")
-            own_id = f"{entity_type}:{entry['name'].replace(' ', '')}".lower()
+            own_id = f"{entity_type}:{re.sub(r'[ _]', '', entry['name'])}".lower()
             candidates = [row for row in rows if row["tipnr_key"] == key]
             if not candidates:
                 found.append(None)
@@ -3559,7 +3717,9 @@ def create_schema(conn: sqlite3.Connection):
             death_year INTEGER,
             birth_place_id TEXT,
             death_place_id TEXT,
-            description TEXT
+            description TEXT,
+            display_title TEXT,           -- e.g. "Simon Peter"; NULL when it is the name
+            surname TEXT                  -- e.g. "Peter", "Pilate", "Magdalene"
         );
         CREATE INDEX IF NOT EXISTS idx_graph_people_name ON graph_people(name);
 
@@ -3577,9 +3737,9 @@ def create_schema(conn: sqlite3.Connection):
         CREATE TABLE IF NOT EXISTS graph_events (
             id TEXT PRIMARY KEY,          -- event_id as text
             title TEXT NOT NULL,
-            start_year INTEGER,
+            start_year INTEGER,           -- astronomical: 0 is 1 BC, -3 is 4 BC
             duration TEXT,
-            sort_key REAL
+            sort_key REAL                 -- chronological rank (parsers/theographic.py)
         );
         CREATE INDEX IF NOT EXISTS idx_graph_events_title ON graph_events(title);
 

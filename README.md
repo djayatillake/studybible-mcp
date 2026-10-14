@@ -578,9 +578,9 @@ and translation guidance.
 
 #### 11. `explore_genealogy`
 
-Trace family relationships (ancestors or descendants) for a biblical person using genealogical data for 1,100+ persons.
+Trace family relationships (ancestors or descendants, 1 to 40 generations) for a biblical person using the parent links of 2,000 persons.
 
-**What it returns**: Family tree with generation numbers and relationship types, immediate family (spouse, siblings), Mermaid diagram.
+**What it returns**: Each ancestor or descendant once, generation by generation, with whose parent or child they are (and curated notes such as Joseph as Jesus' legal father), immediate family (spouse, siblings), and a Mermaid diagram when the tree has at most 40 people. Dictionary articles are left to `get_bible_dictionary`.
 
 **Example**:
 ```
@@ -596,19 +596,19 @@ spouse(s), siblings, Mermaid flowchart diagram.
 
 Find all events a biblical person participated in, in chronological order.
 
-**What it returns**: Timeline of a person's life events with locations and approximate dates, Mermaid timeline diagram.
+**What it returns**: Each event once, in chronological order, with its approximate date (Theographic chronology), places, and passage. Names resolve as Scripture uses them ('Peter', 'Jacob' the patriarch), and the tool says which namesake it chose.
 
 #### 13. `explore_place`
 
 Explore the biblical history of a geographic location.
 
-**What it returns**: Events at the location, people born or who died there, coordinates, Mermaid network diagram.
+**What it returns**: Events at the location in chronological order with their passages, people born or who died there, coordinates, Mermaid network diagram.
 
 #### 14. `find_connection`
 
 Find the family relationship path between two biblical people.
 
-**What it returns**: Shortest relationship path through parent, child, sibling, and partner relationships, Mermaid flowchart.
+**What it returns**: The closest relationship path through parent, child, sibling, and partner relationships, preferring lines of descent, summarised and listed compactly, with a Mermaid flowchart for paths of up to 12 steps.
 
 **Example**:
 ```
@@ -1464,7 +1464,7 @@ Rich entity annotations from [BibleAquifer/ACAI](https://github.com/BibleAquifer
 
 ### Theographic Bible Metadata
 
-Graph data for genealogy, events, and places from [Theographic](https://github.com/robertrouse/theographic-bible-metadata). Used by the `explore_genealogy`, `explore_person_events`, `explore_place`, `find_connection`, `people_in_passage`, and `graph_enriched_search` tools.
+Graph data for genealogy, events, and places from [Theographic](https://github.com/robertrouse/theographic-bible-metadata), with curated corrections and twenty added events (the binding of Isaac, the burning bush, the fall of Jerusalem ...) in [`src/study_bible_mcp/parsers/graph_curated.json`](src/study_bible_mcp/parsers/graph_curated.json). Used by the `explore_genealogy`, `explore_person_events`, `explore_place`, `find_connection`, `people_in_passage`, and `graph_enriched_search` tools.
 
 ### Ancient Near East Context
 

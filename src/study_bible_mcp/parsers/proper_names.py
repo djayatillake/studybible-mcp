@@ -17,7 +17,7 @@ Example: Aaron@Exo.4.14-Heb=H0175	High Priest living at the time of Egypt and Wi
 
 import json
 import re
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 
 
@@ -41,6 +41,9 @@ def parse_tipnr(filepath: Path) -> Iterator[dict]:
     # "$========== PLACE" and "$========== PERSON+PLACE" records have place
     # columns (map links where a person has a spouse and children)
     place_record = False
+    # "$========== OTHER" records are neither people nor places: deities,
+    # angels, festivals, months, the temple pillars Jachin and Boaz
+    other_record = False
 
     with open(filepath, encoding='utf-8') as f:
         for line in f:
@@ -54,6 +57,7 @@ def parse_tipnr(filepath: Path) -> Iterator[dict]:
             after_marker = line.lstrip('$').startswith('==========')
             if after_marker:
                 place_record = 'PLACE' in line.upper()
+                other_record = 'OTHER' in line.upper()
 
             # Section markers (without $) indicate type
             # e.g., "========== PERSON(s)" marks person sections
@@ -79,7 +83,8 @@ def parse_tipnr(filepath: Path) -> Iterator[dict]:
                 continue
 
             # Parse entry
-            entry = parse_entry(line, 'place' if place_record else current_section)
+            section = 'place' if place_record else 'thing' if other_record else current_section
+            entry = parse_entry(line, section)
             if entry:
                 yield entry
 
@@ -188,8 +193,8 @@ def parse_entry(line: str, section_type: str) -> dict | None:
     name_original = extract_original_name(summary)
 
     # Determine type from section, description, gender, and relationships
-    if section_type == 'place':
-        entry_type = 'place'
+    if section_type in ('place', 'thing'):
+        entry_type = section_type
     else:
         entry_type = determine_type(section_type, description, gender, relationships)
 
@@ -332,3 +337,57 @@ def determine_type(section_type: str, description: str, gender: str, relationshi
 def parse_simple_names(filepath: Path) -> Iterator[dict]:
     """Legacy parser - redirects to main parser."""
     yield from parse_tipnr(filepath)
+
+
+def apply_tipnr_corrections(
+    entries: Iterable[dict], corrections: list[dict], require_all: bool = False
+) -> Iterator[dict]:
+    """Apply the curated corrections of graph_curated.json ("tipnr") to parsed entries.
+
+    Each correction names an entry as 'Name@FirstRef' and a field: a
+    relationship ('parents', 'children' ...) whose list it replaces ('to'
+    null removes it), or 'description', in which it replaces the text 'from'
+    with 'to'. An entry already holding the corrected value is left alone;
+    one holding neither raises CuratedNameError, as does (with require_all)
+    a correction whose entry is missing.
+    """
+    by_entry: dict[str, list[dict]] = {}
+    for fix in corrections:
+        by_entry.setdefault(fix["entry"], []).append(fix)
+    used = set()
+    for entry in entries:
+        refs = json.loads(entry.get("references") or "[]")
+        key = f"{entry['name']}@{refs[0]}" if refs else None
+        fixes = by_entry.get(key)
+        if fixes:
+            used.add(key)
+            entry = dict(entry)
+            relationships = json.loads(entry.get("relationships") or "{}")
+            for fix in fixes:
+                field = fix["field"]
+                if field == "description":
+                    text = entry["description"]
+                    if fix["to"] in text:
+                        continue
+                    if text.count(fix["from"]) != 1:
+                        raise CuratedNameError(f"{key}: description no longer contains {fix['from']!r}")
+                    entry["description"] = text.replace(fix["from"], fix["to"])
+                    continue
+                current = relationships.get(field)
+                if current == fix["to"]:
+                    continue
+                if current != fix["from"]:
+                    raise CuratedNameError(f"{key}: {field} is {current!r}, expected {fix['from']!r}")
+                if fix["to"] is None:
+                    del relationships[field]
+                else:
+                    relationships[field] = fix["to"]
+            entry["relationships"] = json.dumps(relationships, ensure_ascii=False)
+        yield entry
+    missing = set(by_entry) - used
+    if require_all and missing:
+        raise CuratedNameError(f"TIPNR has no entries {sorted(missing)} that graph_curated.json corrects")
+
+
+class CuratedNameError(ValueError):
+    """A curated TIPNR correction no longer matches the source."""
