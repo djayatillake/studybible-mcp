@@ -346,7 +346,7 @@ word or a biblical concept, and for distinguishing between near-synonyms.""",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Maximum results to return. Default: 10"
+                    "description": "Maximum results to return. Default: 4"
                 }
             },
             "required": ["query"]
@@ -402,12 +402,12 @@ Revelation's subject is "apocalyptic". The CH dataset partly compensates
 quotation or allusion the topical index misses, as may `find_similar_passages`
 for verbal parallels.
 
-**Adaptive default — `limit` is a cap, not a target.** Default `limit=8`. Rows
+**Adaptive default — `limit` is a cap, not a target.** Default `limit=4`. Rows
 are returned in tier-then-strength order, and tier-1 noise (low-vote TSK) is
 suppressed by default whenever the verse has at least 3 rows from tier 2+. So:
 
-  - Signal-rich anchors return 6–8 strong refs spanning curated, scholarly,
-    and consensus-TSK sources.
+  - Signal-rich anchors return up to `limit` strong refs from curated,
+    scholarly, and consensus-TSK sources.
   - Signal-poor anchors return only what passes the bar; a short result set
     means the verse has few well-attested links, not that the query failed.
 
@@ -478,7 +478,7 @@ long-tail is wanted.""",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Cap on rows returned (not a target). Default 8. The returned count may be smaller when the verse has fewer rows above the noise floor. Values of 20–30 combined with `source='tsk'` or `min_strength=0` return the long tail."
+                    "description": "Cap on rows returned (not a target). Default 4. The returned count may be smaller when the verse has fewer rows above the noise floor. Values of 20–30 combined with `source='tsk'` or `min_strength=0` return the long tail."
                 },
                 "min_strength": {
                     "type": "integer",
@@ -516,6 +516,13 @@ location's full history by `explore_place`.""",
                     "type": "string",
                     "enum": ["person", "place", "thing"],
                     "description": "Filter by type. Omit to search all types."
+                },
+                "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20,
+                    "default": 4,
+                    "description": "Maximum entries; exact name matches come first. Default: 4"
                 }
             },
             "required": ["name"]
@@ -565,7 +572,7 @@ carries across occurrences.""",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Maximum verses to return. Default: 20"
+                    "description": "Maximum verses to return. Default: 4"
                 }
             },
             "required": ["strongs"]
@@ -610,7 +617,7 @@ the cross-reference tradition.""",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Number of similar passages to return. Default: 10"
+                    "description": "Number of similar passages to return. Default: 4"
                 }
             },
             "required": ["reference"]
@@ -945,7 +952,7 @@ limits that apply to ANE parallels generally.""",
         annotations=ToolAnnotations(title="Theological Scholarship", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
         description="""Get theological scholarship context for a Bible passage or theme.
 
-Returns scholarly content from multiple authors (Heiser, Bradley, etc.) with verse mappings and theme links. When no author is specified, returns all scholars' content for the query — allowing side-by-side comparison.
+Returns scholarly content from multiple authors (Heiser, Bradley, etc.) with verse mappings and theme links. When no author is specified, every scholar's content is searched (theme results alternate between authors), allowing side-by-side comparison.
 
 Coverage by topic, with the author and theme keys that hold it:
 - The divine council (Psalm 82, Deuteronomy 32, Job 1-2) — Heiser
@@ -993,7 +1000,7 @@ Query by verse reference, theme key, and/or author. For other authors, see
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Maximum entries to return. Default: 10"
+                    "description": "Maximum entries to return. Default: 4"
                 }
             }
         }

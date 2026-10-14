@@ -6,7 +6,8 @@ These encode rules reviewers otherwise enforce by hand:
 - tool descriptions and schemas, which are sent to the model in every session,
   stay within a budget, so growth is a deliberate, visible change;
 - list-returning tools default to a small number of results;
-- the full-database smoke runner has a case for every tool.
+- the full-database smoke runner has a case for every tool;
+- requirements.txt, which the Docker image installs, matches uv.lock.
 """
 
 from __future__ import annotations
@@ -14,6 +15,8 @@ from __future__ import annotations
 import ast
 import importlib.util
 import json
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -35,15 +38,6 @@ PER_TOOL_BUDGET = 7_500
 
 # List-returning tools default to at most this many results.
 DEFAULT_LIMIT_CAP = 4
-# Tools that predate the cap, with their current defaults. Tightening one means
-# lowering it here; adding a tool here needs a reason in the pull request.
-LEGACY_LIMIT_DEFAULTS = {
-    "search_lexicon": 10,
-    "get_cross_references": 8,
-    "search_by_strongs": 20,
-    "find_similar_passages": 10,
-    "get_theology_context": 10,
-}
 
 
 def _tool_size(tool) -> int:
@@ -142,19 +136,9 @@ def test_list_tools_default_to_a_small_number_of_results():
         f"recognisably: {sorted(schema_limits - set(defaults))}"
     )
     for name, default in sorted(defaults.items()):
-        cap = LEGACY_LIMIT_DEFAULTS.get(name, DEFAULT_LIMIT_CAP)
-        assert default <= cap, (
-            f"{name} defaults to {default} results; the cap is {cap}. List tools "
-            f"default to at most {DEFAULT_LIMIT_CAP} so outputs stay small."
-        )
-
-
-def test_legacy_limit_exceptions_are_still_needed():
-    defaults = _handler_limit_defaults()
-    for name, recorded in LEGACY_LIMIT_DEFAULTS.items():
-        assert defaults.get(name) == recorded, (
-            f"{name} now defaults to {defaults.get(name)}; update or remove its "
-            "LEGACY_LIMIT_DEFAULTS entry so the exception list stays accurate."
+        assert default <= DEFAULT_LIMIT_CAP, (
+            f"{name} defaults to {default} results. List tools default to at most "
+            f"{DEFAULT_LIMIT_CAP} so outputs stay small."
         )
 
 
@@ -187,3 +171,29 @@ def test_every_tracked_json_file_parses():
         except (OSError, ValueError) as error:
             failures.append(f"{path.relative_to(ROOT)}: {error}")
     assert not failures, "Unparseable JSON:\n" + "\n".join(failures)
+
+
+# The Docker image installs requirements.txt, exported from uv.lock by this command.
+REQUIREMENTS_EXPORT = "uv export --frozen --no-dev --extra sse --no-emit-project"
+
+
+def _requirement_lines(text: str) -> list[str]:
+    # Comments (the generated header and "# via" annotations) are not compared.
+    lines = (line.strip() for line in text.splitlines())
+    return [line for line in lines if line and not line.startswith("#")]
+
+
+def test_requirements_txt_matches_the_lock():
+    uv = os.environ.get("UV") or shutil.which("uv")
+    if not uv:
+        pytest.skip("uv is unavailable, so the lock cannot be exported")
+    export = subprocess.run(
+        [uv, *REQUIREMENTS_EXPORT.split()[1:], "--offline"],
+        cwd=ROOT, capture_output=True, text=True,
+    )
+    assert export.returncode == 0, export.stderr
+    committed = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+    assert _requirement_lines(committed) == _requirement_lines(export.stdout), (
+        "requirements.txt differs from uv.lock. After changing dependencies in "
+        f"pyproject.toml, run `uv lock`, then `{REQUIREMENTS_EXPORT} -o requirements.txt`."
+    )

@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from study_bible_mcp.corpora import CORPORA
 from study_bible_mcp.database import create_schema
+from study_bible_mcp.lexicon_usage import update_usage_counts
 from study_bible_mcp.parsers.ancient_sources import import_available_corpora
 from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
 from study_bible_mcp.parsers.bsb import BSB_FILENAME, import_bsb
@@ -162,6 +163,10 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
                 f"  [yellow]Skipping BSB text: {bsb_path} not found "
                 "(run scripts/download_bsb.py); verse tools fall back to word glosses[/yellow]"
             )
+
+        # Word frequencies come from the tagged text, not the lexicon sources
+        changed, counted = update_usage_counts(conn)
+        console.print(f"  [green]✓[/green] Usage counts for {counted} lexicon entries")
 
         # Import proper names
         tipnr_path = data_dir / "TIPNR.txt"

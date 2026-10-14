@@ -44,7 +44,7 @@ LEXICON = [
     ("H0430", "hebrew", "אֱלֹהִים", "elohim", "God, gods", "God; also gods, divine beings.", 2600, {}),
 ]
 
-# Twelve entries matching "lampstand", for the search_lexicon default cap (10).
+# Twelve entries matching "lampstand", for the search_lexicon default cap (4).
 LAMPSTAND_FILLER = [
     (f"G{9000 + n:04d}", "greek", f"λυχνία{n}", f"luchnia{n}", f"lampstand (filler {n:02d})",
      f"Synthetic lampstand entry {n:02d}.", 100 - n, {})
@@ -53,7 +53,7 @@ LAMPSTAND_FILLER = [
 
 # --- Verses ----------------------------------------------------------------
 
-# 1 John 4:1-21 all carry G0026, for the search_by_strongs (20) and
+# 1 John 4:1-21 all carry G0026, for the search_by_strongs (4) and
 # word_study example-passage (5) caps.
 VERSES = [
     ("Jhn.3.16", "Jhn", 3, 16, "For God so loved the world (test text).", "οὕτως γὰρ ἠγάπησεν",
