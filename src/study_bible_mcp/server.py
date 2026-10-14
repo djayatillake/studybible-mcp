@@ -2375,7 +2375,10 @@ async def run_sse_server(host: str, port: int):
 
     logger.info(f"Starting SSE server on {host}:{port}")
 
-    config = uvicorn.Config(app, host=host, port=port, log_level="info", access_log=True)
+    # Trust Fly's proxy headers so the app sees https and any redirect it issues
+    # points at https://, not http://.
+    config = uvicorn.Config(app, host=host, port=port, log_level="info", access_log=True,
+                            proxy_headers=True, forwarded_allow_ips="*")
     await uvicorn.Server(config).serve()
 
 
@@ -2428,6 +2431,10 @@ def build_http_app():
         routes=[
             Route("/", endpoint=root, methods=["GET"]),
             *_make_shared_routes(),
+            # Serve /mcp itself, not just /mcp/: a Mount alone answers /mcp with a
+            # 307 to /mcp/, which claude.ai's connector client does not follow.
+            Route("/mcp", endpoint=_ASGIEndpoint(session_manager.handle_request),
+                  methods=["GET", "POST", "DELETE"]),
             Mount("/mcp", app=session_manager.handle_request),
             *_make_sse_routes(),
         ],
@@ -2460,7 +2467,10 @@ async def run_http_server(host: str, port: int):
     logger.info(f"  Streamable HTTP: http://{host}:{port}/mcp")
     logger.info(f"  SSE (legacy):    http://{host}:{port}/sse")
 
-    config = uvicorn.Config(app, host=host, port=port, log_level="info", access_log=True)
+    # Trust Fly's proxy headers so the app sees https and any redirect it issues
+    # points at https://, not http://.
+    config = uvicorn.Config(app, host=host, port=port, log_level="info", access_log=True,
+                            proxy_headers=True, forwarded_allow_ips="*")
     await uvicorn.Server(config).serve()
 
 
