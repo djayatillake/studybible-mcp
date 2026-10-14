@@ -1583,28 +1583,50 @@ class StudyBibleDB:
         """Check if acai_entities table exists and has data."""
         return await self._table_has_rows("acai_entities")
 
-    async def get_acai_entity(self, name: str, entity_type: str | None = None) -> dict | None:
-        """Get the ACAI entity for exactly this name (case-insensitive).
+    async def get_acai_entities_for_names(self, entries: list[dict]) -> list[dict | None]:
+        """The ACAI entity of each names entry, or None if ACAI has none.
 
-        Matches the entity's English name, or with ``entity_type`` an
-        ACAI-style key such as 'person:David' or 'place:CityOfDavid'. With
-        ``entity_type`` a name match must be of that type, and the exact key
-        wins over a namesake ('person:Judah' over 'person:Judah.2'). No
-        substring matching, so 'Ai' never returns 'Sinai'.
+        A names entry is a TIPNR entry, identified by its name and first
+        reference ('Ezra@Ezr.7.1'), and ACAI lists the TIPNR entries each of
+        its entities is (tipnr_keys), so namesakes such as the Ezra of
+        Neh.12.1 get their own entity, never the scribe's. Where a place and
+        its people share an entry (Edom, the Edomites), the entry's own type
+        wins. One query for all the entries.
         """
-        keys = [name.lower()]
-        if entity_type:
-            keys.append(f"{entity_type}:{name.replace(' ', '')}".lower())
-        placeholders = ", ".join("?" for _ in keys)
-        return await self._fetchone(
-            f"""SELECT * FROM acai_entities
-                WHERE LOWER(id) IN ({placeholders})
-                   OR (LOWER(name) = ? AND entity_type = COALESCE(?, entity_type))
-                ORDER BY LOWER(id) IN ({placeholders}) DESC, entity_type = ? DESC,
-                         reference_count DESC
-                LIMIT 1""",
-            (*keys, name.lower(), entity_type, *keys, entity_type),
+        keys = []
+        for entry in entries:
+            try:
+                refs = json.loads(entry.get("refs") or "[]")
+            except (TypeError, ValueError):
+                refs = []
+            keys.append(f"{entry['name']}@{refs[0]}" if refs else None)
+        wanted = sorted({key for key in keys if key})
+        if not wanted:
+            return [None] * len(entries)
+
+        placeholders = ", ".join("?" for _ in wanted)
+        rows = await self._fetchall(
+            f"""SELECT k.value AS tipnr_key, a.*
+                FROM acai_entities a, json_each(a.tipnr_keys) k
+                WHERE k.value IN ({placeholders})""",
+            wanted,
         )
+        found = []
+        for entry, key in zip(entries, keys):
+            entity_type = entry.get("type")
+            own_id = f"{entity_type}:{entry['name'].replace(' ', '')}".lower()
+            candidates = [row for row in rows if row["tipnr_key"] == key]
+            if not candidates:
+                found.append(None)
+                continue
+            best = dict(max(
+                candidates,
+                key=lambda row: (row["entity_type"] == entity_type, row["id"].lower() == own_id,
+                                 row["reference_count"] or 0),
+            ))
+            del best["tipnr_key"]
+            found.append(best)
+        return found
 
     # =========================================================================
     # ANE (Ancient Near East) context queries
@@ -2828,7 +2850,8 @@ def create_schema(conn: sqlite3.Connection):
             referred_to_as TEXT,
             key_references TEXT,
             reference_count INTEGER,
-            speeches_count INTEGER
+            speeches_count INTEGER,
+            tipnr_keys TEXT  -- JSON list of the TIPNR entries ('Name@FirstRef') it is
         );
         CREATE INDEX IF NOT EXISTS idx_acai_type ON acai_entities(entity_type);
         CREATE INDEX IF NOT EXISTS idx_acai_name ON acai_entities(name);

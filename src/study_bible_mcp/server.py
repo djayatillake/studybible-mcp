@@ -998,13 +998,14 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     if not entries:
         return text(f"No entries found for '{name}'.")
 
-    # ACAI enrichment, looked up by each entry's own name and type so that
-    # 'City of David' is not annotated with King David's data
+    # ACAI enrichment, matched to each entry's own TIPNR entry so that
+    # namesakes and 'City of David' are not annotated with King David's data
+    acai: list[dict | None] = [None] * len(entries)
     try:
-        has_acai = await db.has_acai_data()
+        if await db.has_acai_data():
+            acai = await db.get_acai_entities_for_names(entries)
     except Exception:
-        has_acai = False
-    acai_by_entry: dict[tuple, dict | None] = {}
+        pass  # e.g. a database from before acai_entities.tipnr_keys
 
     result = f"## Biblical Names: {name}\n\n"
     total = entries[0]["match_count"]
@@ -1014,16 +1015,7 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
             "limit (at most 20) to see more.*\n\n"
         )
 
-    for entry in entries:
-        acai_data = None
-        if has_acai:
-            key = (entry["name"], entry.get("type"))
-            if key not in acai_by_entry:
-                try:
-                    acai_by_entry[key] = await db.get_acai_entity(*key)
-                except Exception:
-                    acai_by_entry[key] = None
-            acai_data = acai_by_entry[key]
+    for entry, acai_data in zip(entries, acai):
         result += format_name_entry(entry, acai_data=acai_data)
         result += "\n---\n\n"
 

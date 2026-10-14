@@ -111,10 +111,19 @@ def _extract_entity(data: dict, entity_type: str) -> dict | None:
     offspring = _get_relationship_list(data, 'offspring', 'children', 'child')
     siblings = _get_relationship_list(data, 'siblings', 'brothers', 'sisters')
 
-    # Variant names
-    referred_to_as = data.get('referredToAs', data.get('also_known_as', []))
+    # Variant names: the English alternate labels that are names (ACAI's own
+    # referred_to_as lists related entities' keys, e.g. keyterm:Believe for
+    # Faith; lower-case labels are renderings such as "his" for Moses)
+    referred_to_as = eng.get('alternate_labels') or data.get(
+        'referredToAs', data.get('also_known_as', [])
+    )
     if isinstance(referred_to_as, list):
-        referred_to_as_json = json.dumps(referred_to_as)
+        variants = []
+        for label in referred_to_as:
+            label = str(label).strip()
+            if label[:1].isupper() and label.lower() != name.lower() and label not in variants:
+                variants.append(label)
+        referred_to_as_json = json.dumps(variants)
     else:
         referred_to_as_json = json.dumps([str(referred_to_as)]) if referred_to_as else '[]'
 
@@ -130,6 +139,16 @@ def _extract_entity(data: dict, entity_type: str) -> dict | None:
     if isinstance(speeches, dict):
         speeches = [s for group in speeches.values() if isinstance(group, list) for s in group]
     speeches_count = len(speeches) if isinstance(speeches, list) else 0
+
+    # The TIPNR entries this entity is, keyed as names rows are (name + first
+    # reference): 'Ezra@Ezr.7.1-Neh' -> 'Ezra@Ezr.7.1'. 'Alt|Name@Ref' keys
+    # are another name of an entry, which the names table does not list.
+    tipnr_keys = []
+    for source_key in (data.get('alternate_sources') or {}).get('tipnr') or []:
+        tipnr_name, _, first_ref = source_key.partition('@')
+        key = f"{tipnr_name}@{first_ref.split('-')[0]}"
+        if '|' not in tipnr_name and key not in tipnr_keys:
+            tipnr_keys.append(key)
 
     return {
         'id': str(entity_id),
@@ -147,6 +166,7 @@ def _extract_entity(data: dict, entity_type: str) -> dict | None:
         'key_references': key_references_json,
         'reference_count': reference_count,
         'speeches_count': speeches_count,
+        'tipnr_keys': json.dumps(tipnr_keys),
     }
 
 

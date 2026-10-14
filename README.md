@@ -124,7 +124,7 @@ The server includes a pre-built SQLite database (~600MB) containing:
 | `morphology` | 2,768 | Grammatical parsing code definitions |
 | `thematic_references` | 22 | Core theological theme cross-references |
 | `aquifer_content` | 102,673 | Study notes, dictionary articles, translation notes, key terms |
-| `acai_entities` | 3,175 | Rich entity annotations (people, places, groups, key terms) |
+| `acai_entities` | 6,019 | Rich entity annotations (people, places, groups, key terms) |
 | `ane_entries` | 87 | Ancient Near East cultural context entries across 12 dimensions |
 | `ane_book_mappings` | 314 | Maps ANE entries to biblical books and chapter ranges |
 | `verse_vectors` | 31,280 | OpenAI embeddings for semantic search |
@@ -1429,10 +1429,10 @@ Rich entity annotations from [BibleAquifer/ACAI](https://github.com/BibleAquifer
 
 | Type | Count | Content |
 |------|-------|---------|
-| People | ~2,500 | Family relationships, variant names, roles, speech attributions, verse references |
-| Places | ~400 | Geographic entities with biblical references |
-| Groups | ~200 | People groups, nations, tribes |
-| Key Terms | ~75 | Annotated theological concepts |
+| People | 3,426 | Family relationships, variant names, roles, speech attributions, verse references |
+| Places | 1,418 | Geographic entities with biblical references |
+| Groups | 307 | People groups, nations, tribes |
+| Key Terms | 868 | Annotated theological concepts |
 
 ### Theographic Bible Metadata
 

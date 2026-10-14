@@ -38,6 +38,9 @@ def parse_tipnr(filepath: Path) -> Iterator[dict]:
     # the notes before and after the records also have "Name@Ref" lines
     # ("(?) indicates ... Jahdai@1Ch.2.47"), which are not entries.
     after_marker = False
+    # "$========== PLACE" and "$========== PERSON+PLACE" records have place
+    # columns (map links where a person has a spouse and children)
+    place_record = False
 
     with open(filepath, encoding='utf-8') as f:
         for line in f:
@@ -49,6 +52,8 @@ def parse_tipnr(filepath: Path) -> Iterator[dict]:
 
             starts_record = after_marker
             after_marker = line.lstrip('$').startswith('==========')
+            if after_marker:
+                place_record = 'PLACE' in line.upper()
 
             # Section markers (without $) indicate type
             # e.g., "========== PERSON(s)" marks person sections
@@ -74,7 +79,7 @@ def parse_tipnr(filepath: Path) -> Iterator[dict]:
                 continue
 
             # Parse entry
-            entry = parse_entry(line, current_section)
+            entry = parse_entry(line, 'place' if place_record else current_section)
             if entry:
                 yield entry
 
@@ -146,6 +151,17 @@ def parse_entry(line: str, section_type: str) -> dict | None:
         if offspring:
             relationships['children'] = offspring
 
+    # Place records: 2 founder / origin, 3 people living there, 4-5 Google Maps
+    # and Palopenmaps links, 6 geographical area. Founders and people are
+    # Name@Ref; a few records have a note there instead.
+    if section_type == 'place':
+        relationships = {}
+        for key, column in (('founder', 2), ('inhabitants', 3)):
+            field = parts[column] if len(parts) > column else ''
+            linked = [part for part in re.split(r'[,+]', field) if '@' in part]
+            if linked:
+                relationships[key] = parse_relationship_field(','.join(linked))
+
     # Tribe (column 6)
     tribe = ''
     if len(parts) > 6 and parts[6].strip():
@@ -172,7 +188,10 @@ def parse_entry(line: str, section_type: str) -> dict | None:
     name_original = extract_original_name(summary)
 
     # Determine type from section, description, gender, and relationships
-    entry_type = determine_type(section_type, description, gender, relationships)
+    if section_type == 'place':
+        entry_type = 'place'
+    else:
+        entry_type = determine_type(section_type, description, gender, relationships)
 
     return {
         'name': name,

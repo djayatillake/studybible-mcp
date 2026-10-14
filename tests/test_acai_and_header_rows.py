@@ -30,9 +30,12 @@ from study_bible_mcp.parsers.tagged_text import parse_tagnt, parse_tahot
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 
 
-def _entity(entity_id: str, label: str, description: str | None, **fields) -> dict:
+def _entity(entity_id: str, label: str, description: str | None, alternate_labels=None,
+            **fields) -> dict:
     """An ACAI entity file: no top-level name, English text under localizations."""
     eng: dict = {"preferred_label": label, "descriptions": []}
+    if alternate_labels:
+        eng["alternate_labels"] = alternate_labels
     if description:
         eng["descriptions"].append(
             {"source": "acai", "gloss": label, "article": entity_id, "description": description}
@@ -50,6 +53,8 @@ def _entity(entity_id: str, label: str, description: str | None, **fields) -> di
 EZRA = _entity(
     "person:Ezra", "Ezra",
     "A Levite who served as both a priest and a scribe after the Israelite exile.",
+    alternate_labels=["Ezra ", "Esdras", "his", "Esdras"], referred_to_as=["person:Ezra.2"],
+    alternate_sources={"tipnr": ["Ezra@Ezr.7.1-Neh", "Scribe|Ezra@Ezr.7.1-Neh"]},
     gender="male", father="person:Seraiah.2", siblings=["person:Jehozadak"],
     roles=["Priest", "Scribe"], key_references=["15007001"],
     references=["15007001", "15007006", "16008001"],
@@ -57,7 +62,8 @@ EZRA = _entity(
                       {"quote_type": "Normal", "words": ["o160080060021"]}],
               "SBLGNT": [{"quote_type": "Normal", "words": ["n0"]}]},
 )
-MISGAB = _entity("place:Misgab.1", "Misgab", None, references=["24048001"])
+MISGAB = _entity("place:Misgab.1", "Misgab", None, references=["24048001"],
+                 alternate_sources={"tipnr": ["Misgab@Jer.48.1"]})
 
 
 # ---------------------------------------------------------------------------
@@ -79,6 +85,9 @@ def test_acai_entity_takes_the_english_label_description_and_speeches(tmp_path):
     assert entity["roles"] == '["Priest", "Scribe"]'
     assert entity["father_id"] == "person:Seraiah.2"
     assert entity["reference_count"] == 3
+    # Spelling variants, not ACAI's related entities; TIPNR keys as names rows have them.
+    assert entity["referred_to_as"] == '["Esdras"]'
+    assert entity["tipnr_keys"] == '["Ezra@Ezr.7.1"]'
 
 
 def test_acai_entity_without_a_description(tmp_path):
@@ -137,7 +146,12 @@ TIPNR_LINES = [
     "– Named\tEzra@Ezr.7.1-Neh\tH5830G«H5830=עֶזְרָא\tEzra\thttps://www.stepbible.org/\tEzr.7.1",
     "@Briefest= Scribe",
     "$========== PLACE",
-    "Misgab@Jer.48.1=H4869B\tWord sometimes translated as a place name\t\t\t\t\tMoab"
+    "Bethlehem@Gen.35.19-Mic=H1035G\tBethlehem\tSalma@1Ch.2.51-=H8007H\t\t"
+    "https://www.google.com/maps/@31.704,35.207,14z\thttps://palopenmaps.org/view/9999/@31.704,35.207"
+    "\tJudea\t#A town in Judea first mentioned at Gen.35.19.\tPlace",
+    "$========== PLACE",
+    "Misgab@Jer.48.1=H4869B\tWord sometimes translated as a place name\t\t\t"
+    "https://www.google.com/maps/@0,14z\thttps://palopenmaps.org/view/9999/@0\tMoab"
     "\t#A location in Moab only mentioned at Jer.48.1.\tPlace",
     "PEOPLE:\t\t\t\t\t\t>",
     "SEPARATED Immanuel/Emmanuel from Jesus; Hermes/Mercurius from Paul; Judith@Gen.26.34/Oholibamah"
@@ -151,10 +165,24 @@ def test_tipnr_reads_only_the_records_after_a_marker(tmp_path):
 
     entries = list(parse_tipnr(path))
 
-    assert [e["name"] for e in entries] == ["Ezra", "Misgab"]
+    assert [e["name"] for e in entries] == ["Ezra", "Bethlehem", "Misgab"]
     assert json.loads(entries[0]["relationships"]) == {
         "parents": ["Seraiah"], "siblings": ["Jehozadak"]
     }
+
+
+def test_tipnr_place_columns_are_not_family(tmp_path):
+    # A place has founder and people-living-there columns where a person has
+    # parents and siblings, then map links where a person has a spouse and children.
+    path = tmp_path / "TIPNR.txt"
+    path.write_text("\n".join(TIPNR_LINES) + "\n", encoding="utf-8")
+
+    bethlehem, misgab = list(parse_tipnr(path))[1:]
+
+    assert (bethlehem["type"], json.loads(bethlehem["relationships"])) == (
+        "place", {"founder": ["Salma"]}
+    )
+    assert (misgab["type"], misgab["relationships"]) == ("place", "{}")
 
 
 # ---------------------------------------------------------------------------
@@ -238,6 +266,14 @@ def test_acai_download_fails_on_a_truncated_tree_or_missing_file(tmp_path):
 # scripts/repair_acai_and_header_rows.py
 # ---------------------------------------------------------------------------
 
+# What the old parser read from the place records' map links.
+OLD_PLACE_RELATIONSHIPS = {
+    "Bethlehem": {"parents": ["Salma"], "spouse": ["https://www.google.com/maps/", "35.207", "14z"],
+                  "children": ["https://palopenmaps.org/view/9999/", "35.207"]},
+    "Misgab": {"spouse": ["https://www.google.com/maps/", "14z"],
+               "children": ["https://palopenmaps.org/view/9999/"]},
+}
+
 VERSES = [  # (reference, book, chapter, verse): a header row between two verses
     ("Mal.4.5(3.23)", "Mal", 4, 5),
     ("Eng (Heb) Ref & Type", "Eng (Heb) Ref & Type", 0, 0),
@@ -261,7 +297,9 @@ def stale_db(tmp_path):
     path = tmp_path / "study_bible.db"
     conn = sqlite3.connect(path)
     create_schema(conn)
-    # The old importer: the key as name, no description, and Misgab.1 cut off.
+    # The old importer: no tipnr_keys, the key as name, no description, and
+    # Misgab.1 cut off.
+    conn.execute("ALTER TABLE acai_entities DROP COLUMN tipnr_keys")
     conn.execute(
         "INSERT INTO acai_entities (id, entity_type, name, roles, reference_count, speeches_count) "
         "VALUES ('person:Ezra', 'person', 'person:Ezra', '[\"Priest\", \"Scribe\"]', 3, 0)"
@@ -275,7 +313,8 @@ def stale_db(tmp_path):
         "INSERT INTO names (name, name_original, type, description, refs, relationships) "
         "VALUES (?, ?, ?, ?, ?, ?)",
         [(e["name"], e["name_original"], e["type"], e["description"], e["references"],
-          e["relationships"]) for e in parse_tipnr(tipnr)],
+          json.dumps(OLD_PLACE_RELATIONSHIPS.get(e["name"]) or json.loads(e["relationships"])))
+         for e in parse_tipnr(tipnr)],
     )
     for reference, book, chapter, verse in VERSES:
         verse_id = conn.execute(
@@ -294,13 +333,15 @@ def stale_db(tmp_path):
 
 def _contents(path) -> dict:
     conn = sqlite3.connect(path)
+    columns = [row[1] for row in conn.execute("PRAGMA table_info(acai_entities)")]
+    keys = ", tipnr_keys" if "tipnr_keys" in columns else ""
     contents = {
         "acai": conn.execute(
-            "SELECT id, name, description, speeches_count FROM acai_entities ORDER BY id"
+            f"SELECT id, name, description, speeches_count{keys} FROM acai_entities ORDER BY id"
         ).fetchall(),
         "verses": [r for (r,) in conn.execute("SELECT reference FROM verses ORDER BY id")],
         "passages": [r for (r,) in conn.execute("SELECT reference_start FROM passages ORDER BY id")],
-        "names": [r for (r,) in conn.execute("SELECT name FROM names ORDER BY id")],
+        "names": conn.execute("SELECT name, relationships FROM names ORDER BY id").fetchall(),
     }
     conn.close()
     return contents
@@ -309,12 +350,14 @@ def _contents(path) -> dict:
 REPAIRED = {
     "acai": [
         ("person:Ezra", "Ezra",
-         "A Levite who served as both a priest and a scribe after the Israelite exile.", 3),
-        ("place:Misgab.1", "Misgab", None, 0),
+         "A Levite who served as both a priest and a scribe after the Israelite exile.", 3,
+         '["Ezra@Ezr.7.1"]'),
+        ("place:Misgab.1", "Misgab", None, 0, '["Misgab@Jer.48.1"]'),
     ],
     "verses": ["Mal.4.5(3.23)", "Mal.4.6(3.24)"],
     "passages": ["Mal.4.5(3.23)", "Mal.4.6(3.24)"],
-    "names": ["Ezra", "Misgab"],
+    "names": [("Ezra", '{"parents": ["Seraiah"], "siblings": ["Jehozadak"]}'),
+              ("Bethlehem", '{"founder": ["Salma"]}'), ("Misgab", "{}")],
 }
 
 
@@ -331,6 +374,7 @@ def test_repair_from_source_is_idempotent_and_writes_a_patch(stale_db, tmp_path,
     out = capsys.readouterr().out
     assert "replaced acai_entities with 2 rows" in out
     assert "deleted 1 of 1 verses rows, 1 of 1 passages rows, 1 of 1 names rows" in out
+    assert "corrected the relationships of 2 of 2 names rows" in out
     with gzip.open(patch, "rt", encoding="utf-8") as handle:
         saved = json.load(handle)
     assert [row[0] for row in saved["acai_entities"]["rows"]] == ["person:Ezra", "place:Misgab.1"]
@@ -340,6 +384,7 @@ def test_repair_from_source_is_idempotent_and_writes_a_patch(stale_db, tmp_path,
     out = capsys.readouterr().out
     assert "acai_entities already held them" in out
     assert "deleted 0 of 0 verses rows" in out
+    assert "corrected the relationships of 0 of 0 names rows" in out
     assert _contents(path) == REPAIRED
 
 
@@ -387,6 +432,18 @@ def test_patch_refuses_a_database_that_differs(stale_db, tmp_path, monkeypatch, 
     before = _contents(copy)
     assert _run(monkeypatch, copy, "--apply-patch", patch) == 1
     assert "1 names rows no longer hold the expected values (first ids: 1)" in capsys.readouterr().err
+    assert _contents(copy) == before  # tipnr_keys was added, then rolled back
+
+    # So are relationships edited since the patch was made.
+    conn = sqlite3.connect(copy)
+    conn.execute("UPDATE names SET name = '(?) indicates  a decision based on an ambiguity e.g. Jahdai' "
+                 "WHERE id = 1")
+    conn.execute("UPDATE names SET relationships = '{\"founder\": [\"Mesha\"]}' WHERE name = 'Misgab'")
+    conn.commit()
+    conn.close()
+    before = _contents(copy)
+    assert _run(monkeypatch, copy, "--apply-patch", patch) == 1
+    assert "1 names rows no longer hold the expected relationships" in capsys.readouterr().err
     assert _contents(copy) == before
 
 

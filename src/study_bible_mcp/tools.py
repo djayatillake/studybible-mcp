@@ -2167,8 +2167,11 @@ def format_name_entry(entry: dict, acai_data: dict | None = None) -> str:
         if acai_data.get('description'):
             acai_parts.append(f"**Description**: {acai_data['description']}")
 
-        # Variant names
-        variants = _parse_json_field(acai_data.get('referred_to_as'))
+        # Variant names, other than the entry's own
+        variants = [
+            v for v in _parse_json_field(acai_data.get('referred_to_as')) or []
+            if str(v).lower() != entry['name'].lower()
+        ]
         if variants:
             acai_parts.append(f"**Also known as**: {', '.join(str(v) for v in variants[:5])}")
 

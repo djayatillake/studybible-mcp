@@ -86,7 +86,7 @@ NAMES = [
 
 ACAI = [
     ("david", "person", "David", "male", "Second king of Israel.", json.dumps(["king", "shepherd"]),
-     json.dumps(["son of Jesse"]), 1118, 120),
+     json.dumps(["son of Jesse"]), 1118, 120, json.dumps(["David@1Sa.16.13"])),
 ]
 
 # --- Morphology --------------------------------------------------------------
@@ -347,8 +347,8 @@ def build_fixture_db(path: Path) -> bool:
     )
     conn.executemany(
         """INSERT INTO acai_entities (id, entity_type, name, gender, description, roles,
-               referred_to_as, reference_count, speeches_count)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               referred_to_as, reference_count, speeches_count, tipnr_keys)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         ACAI,
     )
     conn.executemany(
