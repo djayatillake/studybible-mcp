@@ -80,7 +80,7 @@ This guide covers running your own instance of the Study Bible MCP server.
    python -m study_bible_mcp.server --transport stdio
    ```
 
-   For network access (Streamable HTTP at `/mcp/`, with legacy SSE at `/sse`):
+   For network access (Streamable HTTP at `/mcp/`, with the deprecated legacy SSE transport at `/sse`):
    ```bash
    python -m study_bible_mcp.server --transport http --port 8080
    ```
@@ -213,6 +213,10 @@ https://your-studybible-mcp.fly.dev/mcp/
 | `STUDY_BIBLE_DB` | Path to SQLite database | Auto-detected |
 | `PORT` | Server port for HTTP/SSE transports | `8080` |
 | `TRANSPORT` | Transport mode (`stdio`, `sse`, or `http`) | `stdio` |
+| `STUDY_BIBLE_DB_READERS` | Read-only database connections that tool calls run on in parallel (`0`: one shared connection) | `4` |
+| `STUDY_BIBLE_LOG_DIR` | Directory for the HTTP server's rotating `server.log` (empty: console only) | `logs/` beside the database |
+| `STUDY_BIBLE_LOG_KEY` | Key for the daily client hash in log lines | random, kept in `<log dir>/.client-key` |
+| `GIT_COMMIT` | Commit shown in the startup log line (`fly deploy --build-arg GIT_COMMIT=$(git rev-parse --short HEAD)`) | `unknown` |
 
 ---
 
@@ -236,9 +240,36 @@ For Docker, restart the container with the rebuilt database mount. On Fly.io, up
 
 ## Monitoring (Fly.io)
 
-View logs:
+View live logs (Fly keeps only recent lines):
 ```bash
 fly logs
+```
+
+The HTTP server also writes a rotating log on the volume, `/data/logs/server.log`
+(5 MB, plus `server.log.1` to `.3`), so earlier incidents can be read back:
+```bash
+fly ssh console -C "tail -n 100 /data/logs/server.log"
+# or open a shell on the machine and search it there:
+fly ssh console
+grep -E 'WARNING|ERROR' /data/logs/server.log | tail -n 50
+```
+One line per event, times in UTC. `tool:` lines give each call's outcome,
+duration, output size and a short argument summary (`SLOW` past 2 s); `http:`
+lines each request's status and duration (`idle=` marks the first request after
+5 quiet minutes); `sse:` lines legacy SSE sessions (`open`, `close`, and `stale`
+for a POST to an unknown session, once per session id, then a count every 10
+minutes); `study-bible-mcp:` lines startup (version, commit, database,
+sqlite-vec), shutdown, event-loop stalls and clock jumps (a suspended machine
+resuming). Clients appear as a network prefix plus a daily keyed hash
+(`203.0.113.*~3fa1c2`), never a full IP address.
+
+Count legacy SSE use on one day, in a `fly ssh console` shell (distinct
+clients that opened a stream, SSE sessions opened, and distinct stale session
+ids):
+```bash
+cat /data/logs/server.log* | grep '^2026-10-15' | grep ' sse: open ' | grep -o 'client=[^ ]*' | sort -u | wc -l
+cat /data/logs/server.log* | grep '^2026-10-15' | grep -c ' sse: open '
+cat /data/logs/server.log* | grep '^2026-10-15' | grep ' sse: stale ' | grep -o 'sid=[0-9a-f]*' | sort -u | wc -l
 ```
 
 Check status:

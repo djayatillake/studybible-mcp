@@ -11,7 +11,7 @@ The Study Bible MCP server is a stateless, read-only Bible study tool. It does n
 - **No user data is collected or stored.** The server processes each query independently and retains nothing between requests.
 - **No cookies, tracking pixels, or analytics** are used.
 - **No personally identifiable information (PII)** is requested or recorded.
-- **No logs of user queries** are persisted. Standard HTTP access logs may be retained temporarily by the hosting provider (Fly.io) for operational purposes, but these are not used for analytics or user profiling.
+- Standard HTTP access logs may be retained temporarily by the hosting provider (Fly.io) for operational purposes, but these are not used for analytics or user profiling.
 
 ## Database Content
 

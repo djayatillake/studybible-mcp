@@ -45,6 +45,15 @@ from .hermeneutics import (
     get_genre_from_reference,
 )
 from .morphology import parse_fields
+from .observability import (
+    RequestLogMiddleware,
+    client_tag,
+    configure_logging,
+    log_tool_call,
+    request_ip,
+    stats,
+    watch_event_loop,
+)
 from .tools import (
     ANCIENT_LINE_CONTEXT,
     ANCIENT_LOOKUP_DEFAULT,
@@ -117,6 +126,12 @@ server = Server(
 
 # Database connection (initialized on startup)
 db: StudyBibleDB | None = None
+_db_lock: asyncio.Lock | None = None
+
+# Read-only connections tool calls run on, so parallel calls (a client often
+# sends several at once) do not queue behind one slow query. Override with
+# STUDY_BIBLE_DB_READERS; 0 runs every query on the one read-write connection.
+DB_READERS = 4
 
 
 def text(msg: str) -> list[TextContent]:
@@ -205,6 +220,32 @@ def get_db_path() -> Path:
     return local_db
 
 
+def _db_readers() -> int:
+    try:
+        return max(0, int(os.environ.get("STUDY_BIBLE_DB_READERS", DB_READERS)))
+    except ValueError:
+        return DB_READERS
+
+
+async def open_database() -> StudyBibleDB | None:
+    """The shared database, opened once on first use; None if the file is missing."""
+    global db, _db_lock
+    if db is not None:
+        return db
+    if _db_lock is None:
+        _db_lock = asyncio.Lock()
+    # Concurrent first calls must not each open (and leak) their own pool.
+    async with _db_lock:
+        if db is None:
+            db_path = get_db_path()
+            if not db_path.exists():
+                return None
+            database = StudyBibleDB(db_path, readers=_db_readers())
+            await database.connect()
+            db = database
+    return db
+
+
 @server.list_tools()
 async def list_tools() -> list[Tool]:
     """List all available Bible study tools."""
@@ -217,34 +258,55 @@ _REFERENCE_ARGUMENTS = ("reference", "biblical_reference")
 
 @server.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
-    """Handle tool calls."""
-    global db
-
-    if db is None:
-        db_path = get_db_path()
-        if not db_path.exists():
-            return text(f"Database not found at {db_path}. Please run 'python scripts/build_database.py' first.")
-        db = StudyBibleDB(db_path)
-        await db.connect()
-
-    handler = _TOOL_HANDLERS.get(name)
-    if not handler:
-        return text(f"Unknown tool: {name}")
-
-    # Single-chapter books are cited by verse alone ("Jude 3"); every tool
-    # parses chapter:verse, so rewrite those citations once at the boundary.
-    arguments = dict(arguments or {})
-    for key in _REFERENCE_ARGUMENTS:
-        if isinstance(arguments.get(key), str):
-            arguments[key] = expand_single_chapter_reference(arguments[key])
-
+    """Handle tool calls, logging each one (outcome, duration, size, arguments)."""
+    start = time.monotonic()
+    requested = arguments
+    result: list[TextContent] = []
+    outcome, wait, failure = "ok", 0.0, None
     try:
-        return await handler(arguments)
-    except ToolInputError as e:
-        return text(str(e))
-    except Exception as e:
-        logger.exception(f"Error in tool {name}")
-        return text(f"Error: {str(e)}")
+        if await open_database() is None:
+            outcome = "no-database"
+            result = text(
+                f"Database not found at {get_db_path()}. "
+                "Please run 'python scripts/build_database.py' first."
+            )
+            return result
+
+        handler = _TOOL_HANDLERS.get(name)
+        if not handler:
+            outcome = "unknown-tool"
+            result = text(f"Unknown tool: {name}")
+            return result
+
+        # Single-chapter books are cited by verse alone ("Jude 3"); every tool
+        # parses chapter:verse, so rewrite those citations once at the boundary.
+        arguments = dict(arguments or {})
+        for key in _REFERENCE_ARGUMENTS:
+            if isinstance(arguments.get(key), str):
+                arguments[key] = expand_single_chapter_reference(arguments[key])
+
+        # A read connection of its own, so parallel calls query in parallel (a
+        # stand-in database without a pool, as some tests use, runs as is).
+        reading = getattr(db, "reading", None)
+        try:
+            async with reading() if reading else contextlib.nullcontext():
+                wait = time.monotonic() - start
+                result = await handler(arguments)
+        except ToolInputError as e:
+            outcome = "bad-input"
+            result = text(str(e))
+        except Exception as e:
+            outcome, failure = "error", e
+            result = text(f"Error: {str(e)}")
+        return result
+    except asyncio.CancelledError:
+        outcome = "cancelled"
+        raise
+    finally:
+        log_tool_call(
+            name, requested, time.monotonic() - start,
+            sum(len(getattr(item, "text", "")) for item in result), outcome, wait, failure,
+        )
 
 
 # word_study shows this many example passages (search_by_strongs lists more).
@@ -2147,6 +2209,8 @@ class RateLimitMiddleware:
         self._requests: dict[str, list[float]] = defaultdict(list)
         # per-IP static-asset counters: [count since last log, last log time]
         self._static_hits: dict[str, list[float]] = defaultdict(lambda: [0, 0.0])
+        # per-IP time of the last "rate limited" line (one per window)
+        self._limited_logged: dict[str, float] = {}
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
@@ -2157,10 +2221,7 @@ class RateLimitMiddleware:
         # proxy, so prefer the real-client headers it sets
         headers = {k.decode("latin-1").lower(): v.decode("latin-1")
                    for k, v in scope.get("headers", [])}
-        client = scope.get("client")
-        ip = (headers.get("fly-client-ip")
-              or (headers.get("x-forwarded-for") or "").split(",")[0].strip()
-              or (client[0] if client else "unknown"))
+        ip = request_ip(scope, headers) or "unknown"
 
         # Skip rate limiting for health checks and static assets
         path = scope.get("path", "")
@@ -2172,7 +2233,7 @@ class RateLimitMiddleware:
             now = time.monotonic()
             if now - hits[1] >= 60:
                 logger.info(
-                    f"static: {int(hits[0])} request(s) for {path} from {ip} "
+                    f"static: {int(hits[0])} request(s) for {path} from {client_tag(ip)} "
                     f"(ua={headers.get('user-agent', '?')[:80]})"
                 )
                 self._static_hits[ip] = [0, now]
@@ -2190,6 +2251,12 @@ class RateLimitMiddleware:
         self._requests[ip] = [t for t in timestamps if t > window_start]
 
         if len(self._requests[ip]) >= self.max_requests:
+            if now - self._limited_logged.get(ip, -self.window_seconds) >= self.window_seconds:
+                self._limited_logged[ip] = now
+                logger.warning(
+                    f"rate limited: client={client_tag(ip)} over {self.max_requests} requests "
+                    f"in {self.window_seconds}s (last: {scope.get('method')} {path[:80]})"
+                )
             from starlette.responses import JSONResponse
             response = JSONResponse(
                 {"error": "Rate limit exceeded. Max 100 requests per minute."},
@@ -2293,23 +2360,64 @@ class _ASGIEndpoint:
         await self.app(scope, receive, send)
 
 
+# The SSE stream sends a comment line this often while idle, so Fly's proxy
+# (and any other) never closes a quiet session as idle. sse-starlette's
+# default is 15 s today; pinned so a library upgrade cannot lengthen it.
+SSE_PING_SECONDS = 15
+
+
+def _make_sse_transport():
+    """The SDK's SSE transport, made to forget a session once its stream closes.
+
+    SseServerTransport keeps each session's writer after the client
+    disconnects. A POST to that session id was then answered 202 Accepted and
+    the message dropped (the send on the closed stream raised after the
+    response), so the client's call hung until it timed out. Now a closed
+    session is answered like an unknown one: 404 "Could not find session".
+
+    404 is kept for unknown and expired sessions (the SDK's answer): no SSE
+    client treats any status as "reconnect" (the TypeScript and Python SDKs
+    raise on every non-2xx POST, e.g. "Error POSTing to endpoint (HTTP 404)"),
+    and 404 is what the Streamable HTTP spec defines for an expired session,
+    on which clients must start a new one.
+    """
+    from mcp.server.sse import SseServerTransport
+
+    class ForgetfulSseTransport(SseServerTransport):
+        def forget_closed_sessions(self) -> None:
+            for session_id, writer in list(self._read_stream_writers.items()):
+                counts = writer.statistics()
+                if not counts.open_send_streams or not counts.open_receive_streams:
+                    del self._read_stream_writers[session_id]
+
+        async def handle_post_message(self, scope, receive, send) -> None:
+            self.forget_closed_sessions()
+            await super().handle_post_message(scope, receive, send)
+
+    return ForgetfulSseTransport("/messages")
+
+
 def _make_sse_routes():
     """Create the legacy SSE transport routes shared by the SSE and HTTP transports.
 
     GET /sse opens a session and tells the client to POST its messages to
-    /messages?session_id=<id>.
+    /messages?session_id=<id>. Deprecated: clients should use /mcp/.
     """
-    from mcp.server.sse import SseServerTransport
+    from sse_starlette import EventSourceResponse
     from starlette.routing import Route
 
-    sse = SseServerTransport("/messages")
+    EventSourceResponse.DEFAULT_PING_INTERVAL = SSE_PING_SECONDS
+    sse = _make_sse_transport()
 
     async def handle_sse(scope, receive, send):
-        async with sse.connect_sse(scope, receive, send) as streams:
-            await server.run(
-                streams[0], streams[1],
-                server.create_initialization_options()
-            )
+        try:
+            async with sse.connect_sse(scope, receive, send) as streams:
+                await server.run(
+                    streams[0], streams[1],
+                    server.create_initialization_options()
+                )
+        finally:
+            sse.forget_closed_sessions()
 
     # Both handlers send their own response and return None (handle_post_message
     # answers 202, or 400/404 for a bad or unknown session id), so they are routed
@@ -2337,8 +2445,8 @@ def build_sse_app():
             "description": ROOT_DESCRIPTION,
             "transport": "sse",
             "endpoints": {
-                "/sse": "SSE connection endpoint",
-                "/messages": "Message POST endpoint",
+                "/sse": "SSE connection endpoint (deprecated; use /mcp/ — will be removed)",
+                "/messages": "Message POST endpoint (deprecated with /sse)",
                 "/health": "Health check",
                 "/privacy": "Privacy policy",
             },
@@ -2352,6 +2460,7 @@ def build_sse_app():
             *_make_sse_routes(),
         ],
         middleware=[
+            Middleware(RequestLogMiddleware),
             Middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
                        allow_methods=["*"], allow_headers=["*"])
         ],
@@ -2363,7 +2472,7 @@ def build_sse_app():
 async def run_sse_server(host: str, port: int):
     """Run the MCP server with SSE transport only (legacy)."""
     try:
-        import uvicorn
+        import uvicorn  # noqa: F401 (imported to fail here when the extra is missing)
 
         app = build_sse_app()
     except ImportError:
@@ -2374,12 +2483,95 @@ async def run_sse_server(host: str, port: int):
         sys.exit(1)
 
     logger.info(f"Starting SSE server on {host}:{port}")
+    await _serve(uvicorn_config(app, host, port), "sse")
+
+
+def uvicorn_config(app, host: str, port: int):
+    """The uvicorn settings both HTTP transports run with."""
+    import uvicorn
 
     # Trust Fly's proxy headers so the app sees https and any redirect it issues
-    # points at https://, not http://.
-    config = uvicorn.Config(app, host=host, port=port, log_level="info", access_log=True,
-                            proxy_headers=True, forwarded_allow_ips="*")
-    await uvicorn.Server(config).serve()
+    # points at https://, not http://. log_config=None leaves logging as
+    # configure_logging set it (console + rotating file); the access log is
+    # off because RequestLogMiddleware logs each request with the client's
+    # address anonymised (with proxy headers trusted, uvicorn's would show it).
+    return uvicorn.Config(
+        app, host=host, port=port, log_level="info", log_config=None, access_log=False,
+        proxy_headers=True, forwarded_allow_ips="*",
+    )
+
+
+def _package_version() -> str:
+    try:
+        from importlib.metadata import version
+
+        return version("studybible-mcp")
+    except Exception:
+        return "unknown"
+
+
+async def _log_startup(transport: str) -> None:
+    """Log what is running: version, commit, machine, database, sqlite-vec."""
+    import platform
+    import sqlite3
+
+    env = os.environ
+    logger.info(
+        f"startup: studybible-mcp {_package_version()} "
+        f"commit={env.get('GIT_COMMIT') or 'unknown'} transport={transport} pid={os.getpid()} "
+        f"python={platform.python_version()} sqlite={sqlite3.sqlite_version} "
+        f"machine={env.get('FLY_MACHINE_ID', '-')} region={env.get('FLY_REGION', '-')} "
+        f"image={env.get('FLY_IMAGE_REF', '-')}"
+    )
+    db_path = get_db_path()
+    try:
+        database = await open_database()
+    except Exception:
+        logger.exception(f"database: {db_path} failed to open")
+        return
+    if database is None:
+        logger.error(f"database: {db_path} MISSING; tools will report it")
+        return
+    info = db_path.stat()
+    modified = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(info.st_mtime))
+    journal = await database._fetchone("PRAGMA journal_mode")
+    vec = "loaded" if database._vec_loaded else f"unavailable ({database._vec_error})"
+    logger.info(
+        f"database: {db_path} {info.st_size / 1e6:.1f} MB modified {modified} "
+        f"journal={next(iter(journal.values())) if journal else '?'} sqlite-vec={vec} "
+        f"readers={database.reader_count}"
+    )
+
+
+def _exit_on_sigterm(signum, frame):
+    raise SystemExit(128 + signum)
+
+
+async def _serve(config, transport: str) -> None:
+    """Serve until uvicorn stops, logging startup, loop stalls and shutdown."""
+    import signal
+
+    import uvicorn
+
+    started = time.monotonic()
+    await _log_startup(transport)
+    watchdog = asyncio.create_task(watch_event_loop())
+    # uvicorn shuts down gracefully on SIGTERM, then re-raises the signal once
+    # serve() returns. Under the default handler that killed the process on
+    # the spot, before the shutdown line and the queued log records were
+    # written; this handler exits through the finally block below instead.
+    with contextlib.suppress(ValueError):  # not the main thread
+        signal.signal(signal.SIGTERM, _exit_on_sigterm)
+    try:
+        await uvicorn.Server(config).serve()
+    finally:
+        watchdog.cancel()
+        logger.info(
+            f"shutdown: uptime {time.monotonic() - started:.0f}s, {stats['calls']} tool calls "
+            f"({stats['errors']} errors, {stats['slow']} slow)"
+        )
+        if db is not None and hasattr(db, "close"):
+            await db.close()
 
 
 def build_http_app():
@@ -2393,7 +2585,7 @@ def build_http_app():
     from starlette.applications import Starlette
     from starlette.middleware import Middleware
     from starlette.middleware.cors import CORSMiddleware
-    from starlette.responses import JSONResponse
+    from starlette.responses import JSONResponse, Response
     from starlette.routing import Mount, Route
 
     # Streamable HTTP session manager. Stateless: no server-side session table,
@@ -2414,8 +2606,8 @@ def build_http_app():
             "transports": ["streamable-http", "sse"],
             "endpoints": {
                 "/mcp": "Streamable HTTP MCP endpoint (recommended)",
-                "/sse": "SSE connection endpoint (legacy)",
-                "/messages": "SSE message POST endpoint",
+                "/sse": "SSE connection endpoint (deprecated; use /mcp/ — will be removed)",
+                "/messages": "SSE message POST endpoint (deprecated with /sse)",
                 "/health": "Health check",
                 "/privacy": "Privacy policy",
                 "/static/icon.png": "Server icon",
@@ -2426,6 +2618,18 @@ def build_http_app():
             "tools": [tool.name for tool in TOOLS],
         })
 
+    async def streamable_http(scope, receive, send):
+        # Stateless and pure request/response: the server never sends unprompted
+        # messages, so a client's GET stream would sit open forever, counting
+        # against Fly's connection limit (94 of 100 were held this way when calls
+        # began to stall). The spec lets a server refuse that stream with 405.
+        if scope["type"] == "http" and scope["method"] == "GET":
+            refusal = Response("Method Not Allowed", status_code=405,
+                               headers={"Allow": "POST, DELETE"})
+            await refusal(scope, receive, send)
+            return
+        await session_manager.handle_request(scope, receive, send)
+
     app = Starlette(
         lifespan=lifespan,
         routes=[
@@ -2433,12 +2637,13 @@ def build_http_app():
             *_make_shared_routes(),
             # Serve /mcp itself, not just /mcp/: a Mount alone answers /mcp with a
             # 307 to /mcp/, which claude.ai's connector client does not follow.
-            Route("/mcp", endpoint=_ASGIEndpoint(session_manager.handle_request),
+            Route("/mcp", endpoint=_ASGIEndpoint(streamable_http),
                   methods=["GET", "POST", "DELETE"]),
-            Mount("/mcp", app=session_manager.handle_request),
+            Mount("/mcp", app=streamable_http),
             *_make_sse_routes(),
         ],
         middleware=[
+            Middleware(RequestLogMiddleware),
             Middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
                        allow_methods=["*"], allow_headers=["*"])
         ],
@@ -2453,7 +2658,7 @@ async def run_http_server(host: str, port: int):
     Serves Streamable HTTP at /mcp and SSE at /sse for backwards compatibility.
     """
     try:
-        import uvicorn
+        import uvicorn  # noqa: F401 (imported to fail here when the extra is missing)
 
         app = build_http_app()
     except ImportError:
@@ -2463,15 +2668,10 @@ async def run_http_server(host: str, port: int):
         )
         sys.exit(1)
 
-    logger.info(f"Starting server on {host}:{port}")
-    logger.info(f"  Streamable HTTP: http://{host}:{port}/mcp")
-    logger.info(f"  SSE (legacy):    http://{host}:{port}/sse")
-
-    # Trust Fly's proxy headers so the app sees https and any redirect it issues
-    # points at https://, not http://.
-    config = uvicorn.Config(app, host=host, port=port, log_level="info", access_log=True,
-                            proxy_headers=True, forwarded_allow_ips="*")
-    await uvicorn.Server(config).serve()
+    logger.info(
+        f"Starting server on {host}:{port}: Streamable HTTP at /mcp/, SSE (deprecated) at /sse"
+    )
+    await _serve(uvicorn_config(app, host, port), "http")
 
 
 @click.command()
@@ -2492,14 +2692,28 @@ def main(transport: str, host: str, port: int, db_path: str | None):
     if db_path:
         os.environ["STUDY_BIBLE_DB"] = db_path
 
+    if transport in ("sse", "http"):
+        # The HTTP server also keeps a rotating log beside the database
+        # (/data/logs on Fly) unless STUDY_BIBLE_LOG_DIR names another
+        # directory, or is empty for console only.
+        log_dir = os.environ.get("STUDY_BIBLE_LOG_DIR")
+        if log_dir is None:
+            log_dir = str(get_db_path().parent / "logs")
+        log_path = configure_logging(Path(log_dir) if log_dir else None)
+        logger.info(f"logging to {log_path or 'console only'}")
+
     logger.info(f"Starting Study Bible MCP server (transport: {transport})")
 
     if transport == "stdio":
         asyncio.run(run_server())
-    elif transport == "sse":
-        asyncio.run(run_sse_server(host, port))
-    elif transport == "http":
-        asyncio.run(run_http_server(host, port))
+        return
+    try:
+        if transport == "sse":
+            asyncio.run(run_sse_server(host, port))
+        elif transport == "http":
+            asyncio.run(run_http_server(host, port))
+    except KeyboardInterrupt:  # SIGINT (Fly's default kill signal), after a graceful stop
+        sys.exit(130)
 
 
 if __name__ == "__main__":

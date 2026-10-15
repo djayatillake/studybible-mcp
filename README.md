@@ -8,7 +8,7 @@ A Bible study assistant for Claude that provides full scholarly lexicons (LSJ Gr
 
 1. Open **Settings** → **Connectors**
 2. Click **Add Custom Connector**
-3. Paste: `https://studybible-mcp.fly.dev/sse`
+3. Paste: `https://studybible-mcp.fly.dev/mcp/`
 4. Restart Claude Desktop
 
 That's it. No signup, no API keys, no downloads.
@@ -16,7 +16,7 @@ That's it. No signup, no API keys, no downloads.
 ### Claude Code
 
 ```bash
-claude mcp add study-bible https://studybible-mcp.fly.dev/sse
+claude mcp add --transport http study-bible https://studybible-mcp.fly.dev/mcp/
 ```
 
 ### ChatGPT (Developer Mode)
@@ -34,7 +34,7 @@ Add to your MCP configuration (usually `.cursor/mcp.json`, `.windsurf/mcp.json`,
   "mcpServers": {
     "study-bible": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://studybible-mcp.fly.dev/sse"]
+      "args": ["-y", "mcp-remote", "https://studybible-mcp.fly.dev/mcp/"]
     }
   }
 }
@@ -62,7 +62,7 @@ If you prefer editing config files directly:
   "mcpServers": {
     "study-bible": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://studybible-mcp.fly.dev/sse"]
+      "args": ["-y", "mcp-remote", "https://studybible-mcp.fly.dev/mcp/"]
     }
   }
 }
@@ -72,6 +72,14 @@ Config file locations:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
+
+### Transports
+
+| Endpoint | Transport | Status |
+|----------|-----------|--------|
+| `https://studybible-mcp.fly.dev/mcp/` | Streamable HTTP (stateless; `/mcp` without the slash works too) | **Recommended** |
+| `https://studybible-mcp.fly.dev/sse` (+ `/messages`) | Legacy HTTP+SSE | **Deprecated**: still served for existing connectors, but will be removed. Re-add the connector with the `/mcp/` URL. |
+| `studybible-mcp --transport stdio` | stdio (local) | Supported |
 
 ---
 
@@ -546,7 +554,7 @@ Look up a topic in the Tyndale Bible Dictionary.
 
 **When Claude uses it**: User needs background information on a biblical topic, historical or cultural context, or a detailed article about a person, place, or concept.
 
-**What it returns**: The dictionary article from a collection of 500+ topical articles covering biblical people, places, theological concepts, cultural practices, historical background, and archaeological findings. A long article comes about 4,000 characters at a time, ending with the `offset` to continue from and the headings of the sections still to come (`section="The Sinai Covenant"` reads one section).
+**What it returns**: The dictionary article from a collection of 500+ topical articles covering biblical people, places, theological concepts, cultural practices, historical background, and archaeological findings. A long article comes about 4,000 characters at a time, ending with the `offset` to continue from and the headings of the sections still to come (`section="The Sinai Covenant"` reads one section). When no article is titled exactly as the topic, it returns at most four: titles containing the topic first (`Gilboa` gives Mount Gilboa), then articles that mention it.
 
 **Example**:
 ```

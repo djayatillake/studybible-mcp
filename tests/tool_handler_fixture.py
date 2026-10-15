@@ -273,10 +273,20 @@ AQUIFER = [
     (650, "translation_notes_uw", "Romans 8:19-21", "Rom", "45008019", "45008021", 8,
      "unfoldingWord note on Romans 8:19-21 (test).", 1),
 ] + [
-    # Twelve articles matching "jubilee", for the dictionary search cap (10).
+    # Twelve articles matching "jubilee", for the dictionary search cap (4).
     (100 + n, "dictionary", f"Jubilee note {n:02d}", None, None, None, None,
      f"Synthetic jubilee article {n:02d}.", 0)
     for n in range(1, 13)
+] + [
+    # No title is "Gilboa": the title containing it comes before the shorter
+    # title whose article only mentions it.
+    (120, "dictionary", "Saul", None, None, None, None,
+     "Saul fell on Mount Gilboa (test article).", 0),
+    (121, "dictionary", "Mount Gilboa", None, None, None, None,
+     "A ridge above the Jezreel valley (test article).", 0),
+    # Mentions jubilee but is not titled for it, so loses to the title matches.
+    (122, "dictionary", "Year", None, None, None, None,
+     "Every fiftieth year was a jubilee (test article).", 0),
 ]
 
 # --- ANE context -------------------------------------------------------------

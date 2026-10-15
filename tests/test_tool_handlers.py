@@ -938,7 +938,11 @@ async def test_bible_dictionary_prefers_an_exact_title(db):
 
 async def test_bible_dictionary_caps_matches_and_truncates_articles(db):
     output = await call("get_bible_dictionary", topic="jubilee")
-    assert len(re.findall(r"^## Jubilee note \d+$", output, re.MULTILINE)) == 10  # of 12
+    titles = re.findall(r"^## (.+)$", output, re.MULTILINE)
+    # Four of the twelve titled matches; "Year" only mentions jubilee.
+    assert titles == [f"Jubilee note {n:02d}" for n in range(1, 5)]
+    gilboa = await call("get_bible_dictionary", topic="Gilboa")
+    assert re.findall(r"^## (.+)$", gilboa, re.MULTILINE) == ["Mount Gilboa", "Saul"]
     long_article = await call("get_bible_dictionary", topic="Tabernacle")
     assert re.search(
         r'\*\[Truncated — 2,152 more characters\. Call get_bible_dictionary again with '
