@@ -109,16 +109,33 @@ then call them (batch independent calls in parallel):
   `get_ane_context`, `get_bible_dictionary`, `explore_place`.
 - **`get_ane_context` gotcha:** a chapter reference often returns nothing — fall back
   to `dimension=` + `period=` (e.g. `legal_covenant`/`patriarchal`, `gender_family`,
-  `social_structure`; periods: patriarchal, exodus_conquest, …, roman).
+  `social_structure`; periods: patriarchal, exodus_conquest, …, roman). A
+  dimension/period query is not ranked: it returns the first 4 entries in file order,
+  so if the topic you need isn't among them, add `limit=` with `detail_level="brief"`.
 - **Atonement/ransom/sacrifice trigger:** whenever a reading touches the cross,
-  sacrifice, ransom, blood, Leviticus, or Hebrews, pull **all three** before writing:
-  `get_theology_context(theme="atonement_models")` (the substitution-vs-representation
-  synthesis + the ransom saying), `get_ane_context(dimension="ane_methodology")` for
-  `method_008` (the representation-frame read-order), and
-  `get_ane_context(dimension="religious_practices", period="exodus_conquest")` for the
-  Rillera/Milgrom non-penal cult cells. **Default frame = representation** (inclusive,
-  last Adam / union); penal substitution is a true juridical facet *inside* it, never
-  bare exclusive place-taking. (Avoids the PSA-default error — see those cells.)
+  sacrifice, ransom, blood, Leviticus, or Hebrews, pull **both sides** before writing:
+  - *Penal substitution:* `get_theology_context(theme="penal_substitution")` (Owen and
+    Stott).
+  - *Representation and the non-penal reading of the cult:*
+    `get_theology_context(theme="atonement_models")` (two Stott entries beside the
+    substitution-vs-representation synthesis and the ransom-saying note) and
+    `get_ane_context(reference="Leviticus 16", limit=6, detail_level="brief")`, which
+    returns `method_008` (the representation read-order) and the Milgrom/Rillera cells
+    on kipper, hand-leaning, the cult's ceiling, Hebrews and Azazel. Don't use
+    `dimension="ane_methodology"` or `dimension="religious_practices"` for these: at
+    the default limit they return unrelated entries.
+  - The reading's own `get_ane_context(reference=…)` call still applies; Hebrews 9–10,
+    Romans 3 and Mark 10 have atonement cells of their own.
+
+  **No default frame.** The study doesn't take a side between penal substitution and
+  representation. Let the passage's own vocabulary show which register it speaks in:
+  altar and blood (purgation), slave-market (ransom), law-court (curse, condemnation,
+  justification), or head and body (in Adam / in Christ). Attribute each reading to
+  those who hold it ("Stott reads…; Milgrom and Rillera argue…"). `method_008` and the
+  synthesis notes argue for representation first; quote that as their position, not
+  the study's conclusion, and keep the ANE cells' confidence tiers (well-grounded vs.
+  requires connecting texts). Don't present penal substitution as the only or obvious
+  reading either.
 - **Context economy** (see memory): list tools default to a few high-signal results —
   trust the strength ordering, don't pad or crank limits without reason.
 
