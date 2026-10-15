@@ -50,9 +50,12 @@
       ],
       "interpretive_significance": "Reading Genesis 3 against the Gilgamesh and Adapa traditions reveals that the biblical account is engaging a well-known ANE question — why do humans die? — and offering a distinctive theological answer. Mortality in Genesis is not the result of divine selfishness (as in Gilgamesh) or trickery (as in Adapa) but of human rebellion against the Creator's command. This transforms the 'quest for immortality' from a mythological adventure into a moral and relational problem that the rest of Scripture's redemptive narrative addresses.",
       "period": "patriarchal",
-      "books": ["Gen", "Ecc"],
-      "chapter_start": 2,
-      "chapter_end": 3,
+      "books": [
+        {"book": "Gen", "chapter_start": 2, "chapter_end": 3},
+        {"book": "Ecc", "chapter_start": 3, "chapter_end": 3},
+        {"book": "Ecc", "chapter_start": 9, "chapter_end": 9},
+        {"book": "Ecc", "chapter_start": 12, "chapter_end": 12}
+      ],
       "key_references": ["Gen 2:9", "Gen 2:17", "Gen 3:19", "Gen 3:22-24", "Ecc 3:19-21", "Ecc 9:5-10", "Ecc 12:7"],
       "scholarly_sources": ["Levenson, Resurrection and the Restoration of Israel", "Heidel, The Gilgamesh Epic and Old Testament Parallels", "Wright, The Early History of Heaven", "Day, 'The Development of Belief in Life after Death in Ancient Israel' in After the Exile"]
     },

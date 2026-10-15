@@ -2,6 +2,37 @@
 
 ---
 
+## ANE entries mapped to the chapters each book cites
+
+`get_ane_context(reference=...)` ranks entries by the chapters they are
+mapped to. Twenty-one entries listed several books with one chapter range,
+and the import copied that range to every book: the temple-as-cosmos entry,
+written for Exodus 25-40, was also mapped to 1 Kings 25-40 (a chapter past
+the book's end), Ezekiel 25-40 and Revelation 25-40. It came up for Revelation
+25 and not for Revelation 21, which it cites. Likewise Genesis 20 drew the
+Sabbath and sacrifice-as-feeding entries, and Jude drew nothing for the
+Watchers.
+
+- Each book of those entries now has its own ranges, taken from the entry's
+  key references, with the original range kept for the book it was written
+  for (Leviticus 1-27, 2 Kings 1-25 and Deuteronomy 1-34 in the three
+  ambiguous cases). The temple entry now comes up for 1 Kings 6, Ezekiel 40
+  and Revelation 21; Isaiah 44 draws the idol-manufacture entry, Exodus 20
+  the divine-rest entry, and Jude 6 the Watchers entry.
+- Nahum was coded `Nah` in one entry, so Nahum queries never matched it; it is
+  now `Nam`, the code references parse to.
+- The import refuses an entry that gives one chapter range for several books.
+- 2 Chronicles stays listed in the high-places entry without a chapter, so it
+  surfaces for 2 Chronicles only once the entry cites a 2 Chronicles verse.
+
+`scripts/repair_ane_book_mappings.py` swaps an existing database's
+`ane_book_mappings` rows (478) for the corrected ones (492), from the data
+files or from a patch applied with the standard library; it refuses, changing
+nothing, unless the table holds the old import's rows or the corrected ones.
+The code and the database can be deployed in either order.
+
+---
+
 ## ACAI annotations moved to the entities they describe
 
 `lookup_name` showed some ACAI annotations on the wrong person or place. The

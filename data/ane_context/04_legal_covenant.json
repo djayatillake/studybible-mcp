@@ -14,9 +14,10 @@
       ],
       "interpretive_significance": "Recognizing the treaty form reveals that Deuteronomy is not simply a law code but a covenant document defining a political-theological relationship. When Yahweh says 'You shall have no other gods before me,' this is treaty language demanding exclusive vassalage, not merely a theological preference. The command to 'love the LORD your God' is not primarily emotional but covenantal — a demand for political fidelity mirroring what a suzerain required from a vassal. This reframes the entire Sinai covenant as a diplomatic arrangement in which Yahweh, the Great King, binds Israel to himself through both grace (historical prologue) and obligation (stipulations).",
       "period": "exodus_conquest",
-      "books": ["Exo", "Deu"],
-      "chapter_start": 1,
-      "chapter_end": 34,
+      "books": [
+        {"book": "Exo", "chapter_start": 19, "chapter_end": 20},
+        {"book": "Deu", "chapter_start": 1, "chapter_end": 34}
+      ],
       "key_references": ["Exo 19:3-6", "Exo 20:1-17", "Deu 1:1-5", "Deu 5:1-21", "Deu 27:1-26", "Deu 28:1-68", "Deu 30:19"],
       "scholarly_sources": ["Mendenhall, 'Covenant Forms in Israelite Tradition' (Biblical Archaeologist, 1954)", "Kitchen, On the Reliability of the Old Testament", "Weinfeld, Deuteronomy and the Deuteronomic School", "McCarthy, Treaty and Covenant (Analecta Biblica)"]
     },
@@ -32,9 +33,12 @@
       ],
       "interpretive_significance": "Comparing Israelite and ANE law codes reveals that biblical law participates in a shared legal tradition while introducing distinctive elements: law is grounded in divine covenant rather than royal decree, all persons are subject to the same penalties regardless of class, and even the king is bound by the law (Deut 17:18-20). The lex talionis, often misread as primitive brutality, was actually a principle of proportional limitation — the punishment must not exceed the injury — and likely functioned as a basis for negotiated compensation rather than literal application.",
       "period": "exodus_conquest",
-      "books": ["Exo", "Lev", "Deu"],
-      "chapter_start": 20,
-      "chapter_end": 25,
+      "books": [
+        {"book": "Exo", "chapter_start": 20, "chapter_end": 25},
+        {"book": "Lev", "chapter_start": 24, "chapter_end": 24},
+        {"book": "Deu", "chapter_start": 17, "chapter_end": 17},
+        {"book": "Deu", "chapter_start": 19, "chapter_end": 19}
+      ],
       "key_references": ["Exo 21:23-25", "Exo 22:1-15", "Lev 24:19-20", "Deu 19:21", "Deu 17:18-20"],
       "scholarly_sources": ["Westbrook, Studies in Biblical and Cuneiform Law", "Hallo, 'Biblical History in Its Near Eastern Setting' in Scripture in Context", "Roth, Law Collections from Mesopotamia and Asia Minor", "Jackson, Wisdom-Laws: A Study of the Mishpatim of Exodus 21:1-22:16"]
     },
@@ -50,9 +54,11 @@
       ],
       "interpretive_significance": "The cutting ritual illuminates why 'covenant' and 'cut' are linguistically bound in Hebrew (karat berit). More theologically, Genesis 15 shows God assuming the full weight of the covenant curse upon himself — a pattern that New Testament authors see fulfilled in the cross. Understanding the self-imprecatory oath also explains Jeremiah 34's horror at covenant violation: the violators have invoked destruction on themselves. This ritual context transforms the Abrahamic covenant from an abstract promise into a blood-oath of binding divine commitment.",
       "period": "patriarchal",
-      "books": ["Gen", "Jer"],
-      "chapter_start": 15,
-      "chapter_end": 15,
+      "books": [
+        {"book": "Gen", "chapter_start": 15, "chapter_end": 15},
+        {"book": "Gen", "chapter_start": 17, "chapter_end": 17},
+        {"book": "Jer", "chapter_start": 34, "chapter_end": 34}
+      ],
       "key_references": ["Gen 15:9-21", "Jer 34:18-20", "Gen 17:1-14"],
       "scholarly_sources": ["Mendenhall, 'Covenant Forms in Israelite Tradition'", "Weinfeld, 'The Covenant of Grant in the Old Testament and in the Ancient Near East' (JAOS, 1970)", "Hallo, Context of Scripture, vol. 2 (Sefire treaty texts)", "Tadmor, 'Treaty and Oath in the Ancient Near East'"]
     },
@@ -106,9 +112,11 @@
       ],
       "interpretive_significance": "The cities of refuge reveal a legal system wrestling with competing demands: the blood avenger's clan obligation, the accidental killer's right to life, and the theological reality that innocent blood pollutes the land. The high priest's death functioning as a release mechanism (Num 35:25, 28) introduces a substitutionary logic that later interpreters, including the author of Hebrews, connect to Christ's high-priestly death. The system also demonstrates Israel's effort to bring blood vengeance under communal legal control rather than leaving it to private retribution — a major step in the development of criminal jurisprudence.",
       "period": "exodus_conquest",
-      "books": ["Num", "Deu", "Jos"],
-      "chapter_start": 35,
-      "chapter_end": 35,
+      "books": [
+        {"book": "Num", "chapter_start": 35, "chapter_end": 35},
+        {"book": "Deu", "chapter_start": 19, "chapter_end": 19},
+        {"book": "Jos", "chapter_start": 20, "chapter_end": 20}
+      ],
       "key_references": ["Num 35:9-34", "Deu 19:1-13", "Jos 20:1-9", "1Ki 1:50-53", "Heb 6:18"],
       "scholarly_sources": ["Milgrom, Numbers (JPS Torah Commentary)", "Greenberg, 'The Biblical Conception of Asylum' (JBL, 1959)", "Westbrook, Studies in Biblical and Cuneiform Law", "Frymer-Kensky, 'Pollution, Purification, and Purgation in Biblical Israel'"]
     },
@@ -124,9 +132,11 @@
       ],
       "interpretive_significance": "The two-witness rule is not arbitrary but reflects a deeply held conviction that human life must be protected from the power of accusation. In a culture without forensic evidence, multiple concordant witnesses were the primary safeguard against judicial murder. The false witness penalty creates powerful deterrence: lying under oath carries the same consequences as the crime itself. Understanding the courtroom setting of the ninth commandment prevents reducing it to a general prohibition of lying and reveals its concern with the integrity of the justice system — a matter of life and death. The New Testament's adoption of these evidentiary standards (Matt 18:16; 1 Tim 5:19) shows the enduring influence of Deuteronomic legal procedure on early Christian governance.",
       "period": "exodus_conquest",
-      "books": ["Deu", "Mat"],
-      "chapter_start": 19,
-      "chapter_end": 19,
+      "books": [
+        {"book": "Deu", "chapter_start": 17, "chapter_end": 17},
+        {"book": "Deu", "chapter_start": 19, "chapter_end": 19},
+        {"book": "Mat", "chapter_start": 18, "chapter_end": 18}
+      ],
       "key_references": ["Exo 20:16", "Deu 17:6-7", "Deu 19:15-21", "Mat 18:16", "2Co 13:1", "1Ti 5:19"],
       "scholarly_sources": ["Weinfeld, Deuteronomy and the Deuteronomic School", "Westbrook, 'Crimes and Punishments' (Anchor Bible Dictionary)", "Wells, The Law of Testimony in the Pentateuchal Codes", "Hallo, Context of Scripture, vol. 1 (Hittite court instructions)"]
     },
