@@ -264,3 +264,12 @@ async def test_redirects_point_at_https_behind_the_proxy():
     finally:
         runner.should_exit = True
         await task
+
+
+async def test_mcp_refuses_get_streams_so_idle_clients_hold_no_connection():
+    app = server.build_http_app()
+    async with app.app.router.lifespan_context(app.app), _client(app) as client:
+        for path in ("/mcp", "/mcp/"):
+            response = await client.get(path, headers={"accept": "text/event-stream"})
+            assert response.status_code == 405, path
+            assert response.headers["allow"] == "POST, DELETE"

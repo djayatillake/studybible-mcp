@@ -1,18 +1,17 @@
 # Privacy Policy — Study Bible MCP Server
 
-**Last updated**: 15 October 2026
+**Last updated**: 17 March 2026
 
 ## Summary
 
-The Study Bible MCP server is a stateless, read-only Bible study tool. It does not collect or transmit personal data. To diagnose errors and slowness it keeps a small, short-lived operational log on its own disk, described below, which never records a full IP address.
+The Study Bible MCP server is a stateless, read-only Bible study tool. It does not collect, store, or transmit any personal data.
 
 ## Data Collection
 
 - **No user data is collected or stored.** The server processes each query independently and retains nothing between requests.
 - **No cookies, tracking pixels, or analytics** are used.
 - **No personally identifiable information (PII)** is requested or recorded.
-- **Operational log.** The server keeps a rotating log file on its own disk, capped at about 20 MB, so older lines are overwritten (typically after days to a few weeks). For each request it records the time, endpoint, response status and duration; for each tool call, the tool name, a short excerpt of its arguments (such as a Bible reference, a Strong's number or search words, each cut to 40 characters), the size of the result and the time taken; and, for both, the client software's user-agent and a pseudonymous network tag. The tag keeps only the first three parts of an IPv4 address (the first three groups of IPv6) plus a keyed hash of the full address that changes every day (for example `203.0.113.*~3fa1c2`); the full IP address is never written. The log is used only to find and fix faults, is not shared, and is not used for analytics or user profiling.
-- Standard HTTP access logs may also be retained temporarily by the hosting provider (Fly.io) for operational purposes.
+- Standard HTTP access logs may be retained temporarily by the hosting provider (Fly.io) for operational purposes, but these are not used for analytics or user profiling.
 
 ## Database Content
 

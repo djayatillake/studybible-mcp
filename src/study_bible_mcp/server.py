@@ -2585,7 +2585,7 @@ def build_http_app():
     from starlette.applications import Starlette
     from starlette.middleware import Middleware
     from starlette.middleware.cors import CORSMiddleware
-    from starlette.responses import JSONResponse
+    from starlette.responses import JSONResponse, Response
     from starlette.routing import Mount, Route
 
     # Streamable HTTP session manager. Stateless: no server-side session table,
@@ -2618,6 +2618,18 @@ def build_http_app():
             "tools": [tool.name for tool in TOOLS],
         })
 
+    async def streamable_http(scope, receive, send):
+        # Stateless and pure request/response: the server never sends unprompted
+        # messages, so a client's GET stream would sit open forever, counting
+        # against Fly's connection limit (94 of 100 were held this way when calls
+        # began to stall). The spec lets a server refuse that stream with 405.
+        if scope["type"] == "http" and scope["method"] == "GET":
+            refusal = Response("Method Not Allowed", status_code=405,
+                               headers={"Allow": "POST, DELETE"})
+            await refusal(scope, receive, send)
+            return
+        await session_manager.handle_request(scope, receive, send)
+
     app = Starlette(
         lifespan=lifespan,
         routes=[
@@ -2625,9 +2637,9 @@ def build_http_app():
             *_make_shared_routes(),
             # Serve /mcp itself, not just /mcp/: a Mount alone answers /mcp with a
             # 307 to /mcp/, which claude.ai's connector client does not follow.
-            Route("/mcp", endpoint=_ASGIEndpoint(session_manager.handle_request),
+            Route("/mcp", endpoint=_ASGIEndpoint(streamable_http),
                   methods=["GET", "POST", "DELETE"]),
-            Mount("/mcp", app=session_manager.handle_request),
+            Mount("/mcp", app=streamable_http),
             *_make_sse_routes(),
         ],
         middleware=[
