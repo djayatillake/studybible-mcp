@@ -50,9 +50,12 @@
       ],
       "interpretive_significance": "Understanding functional ontology prevents forcing modern creation/evolution debates onto Genesis 1, which operates within a different conceptual framework. The text's primary claim is that Yahweh alone assigns function and purpose to every element of the cosmos — a direct counter to polytheistic accounts where different gods control different domains.",
       "period": "patriarchal",
-      "books": ["Gen", "Psa", "Job", "Isa"],
-      "chapter_start": 1,
-      "chapter_end": 2,
+      "books": [
+        {"book": "Gen", "chapter_start": 1, "chapter_end": 2},
+        {"book": "Psa", "chapter_start": 33, "chapter_end": 33},
+        {"book": "Job", "chapter_start": 38, "chapter_end": 39},
+        {"book": "Isa", "chapter_start": 45, "chapter_end": 45}
+      ],
       "key_references": ["Gen 1:1-2:3", "Psalm 33:6-9", "Isaiah 45:18", "Job 38:1-39:30"],
       "scholarly_sources": ["Walton, The Lost World of Genesis One, Proposition 2-5", "Tsumura, Creation and Destruction", "Van Leeuwen, 'bara' in NIDOTTE"]
     },
@@ -68,9 +71,13 @@
       ],
       "interpretive_significance": "The cosmic mountain concept illuminates why mountains are theologically significant throughout Scripture (Sinai, Zion, Carmel, the mount of transfiguration, the mount of ascension). It also explains the temple's symbolic architecture as a microcosm of creation and the escalating holiness of space from the court to the Holy of Holies.",
       "period": "patriarchal",
-      "books": ["Gen", "Exo", "Psa", "Isa", "Ezk"],
-      "chapter_start": 2,
-      "chapter_end": 3,
+      "books": [
+        {"book": "Gen", "chapter_start": 2, "chapter_end": 3},
+        {"book": "Exo", "chapter_start": 19, "chapter_end": 19},
+        {"book": "Psa", "chapter_start": 48, "chapter_end": 48},
+        {"book": "Isa", "chapter_start": 14, "chapter_end": 14},
+        {"book": "Ezk", "chapter_start": 28, "chapter_end": 28}
+      ],
       "key_references": ["Gen 2:10-14", "Exodus 19:16-20", "Psalm 48:1-2", "Isaiah 14:13", "Ezekiel 28:13-14"],
       "scholarly_sources": ["Clifford, The Cosmic Mountain in Canaan and the Old Testament", "Levenson, Sinai and Zion", "Beale, The Temple and the Church's Mission"]
     },
@@ -86,9 +93,11 @@
       ],
       "interpretive_significance": "This transforms our reading of the Sabbath commandment: it is not primarily about physical rest but about acknowledging God's sovereign rule over creation. The temple language in Genesis 1 also establishes a creation-temple-rest pattern that runs through the entire Bible (tabernacle, Solomon's temple, eschatological rest in Hebrews 3-4, new creation as temple in Revelation 21).",
       "period": "patriarchal",
-      "books": ["Gen", "Exo", "Heb"],
-      "chapter_start": 1,
-      "chapter_end": 2,
+      "books": [
+        {"book": "Gen", "chapter_start": 1, "chapter_end": 2},
+        {"book": "Exo", "chapter_start": 20, "chapter_end": 20},
+        {"book": "Heb", "chapter_start": 4, "chapter_end": 4}
+      ],
       "key_references": ["Gen 2:1-3", "Exodus 20:8-11", "Psalm 132:7-8", "Hebrews 4:1-11"],
       "scholarly_sources": ["Walton, The Lost World of Genesis One, Proposition 14", "Levenson, Creation and the Persistence of Evil", "Middleton, The Liberating Image"]
     },
@@ -104,9 +113,15 @@
       ],
       "interpretive_significance": "Biblical allusions to chaos monsters are poetic and theological, not mythological — they celebrate Yahweh's absolute sovereignty over all forces of disorder. This background illuminates why Jesus calming the storm (Mark 4:39) carried such theological weight for the disciples: he was doing what only Yahweh does — commanding chaos into order.",
       "period": "patriarchal",
-      "books": ["Gen", "Job", "Psa", "Isa"],
-      "chapter_start": 1,
-      "chapter_end": 1,
+      "books": [
+        {"book": "Gen", "chapter_start": 1, "chapter_end": 1},
+        {"book": "Job", "chapter_start": 26, "chapter_end": 26},
+        {"book": "Job", "chapter_start": 41, "chapter_end": 41},
+        {"book": "Psa", "chapter_start": 74, "chapter_end": 74},
+        {"book": "Psa", "chapter_start": 89, "chapter_end": 89},
+        {"book": "Isa", "chapter_start": 27, "chapter_end": 27},
+        {"book": "Isa", "chapter_start": 51, "chapter_end": 51}
+      ],
       "key_references": ["Gen 1:2", "Job 26:12-13", "Job 41:1-34", "Psalm 74:13-14", "Psalm 89:9-10", "Isaiah 27:1", "Isaiah 51:9-10"],
       "scholarly_sources": ["Day, God's Conflict with the Dragon and the Sea", "Gunkel, Creation and Chaos in the Primeval Era and the Eschaton", "Tsumura, The Earth and the Waters in Genesis 1 and 2"]
     },
@@ -122,9 +137,12 @@
       ],
       "interpretive_significance": "Understanding the ANE royal background reveals the revolutionary social implications of Genesis 1: every person has inherent dignity and royal vocation, not just rulers. This undergirds biblical ethics regarding human rights, equality, and the wrongness of oppression. James 3:9 draws on this when condemning cursing people 'made in the likeness of God.'",
       "period": "patriarchal",
-      "books": ["Gen", "Psa"],
-      "chapter_start": 1,
-      "chapter_end": 2,
+      "books": [
+        {"book": "Gen", "chapter_start": 1, "chapter_end": 2},
+        {"book": "Gen", "chapter_start": 5, "chapter_end": 5},
+        {"book": "Gen", "chapter_start": 9, "chapter_end": 9},
+        {"book": "Psa", "chapter_start": 8, "chapter_end": 8}
+      ],
       "key_references": ["Gen 1:26-28", "Gen 5:1-3", "Gen 9:6", "Psalm 8:3-8", "James 3:9"],
       "scholarly_sources": ["Middleton, The Liberating Image", "Clines, 'The Image of God in Man' (Tyndale Bulletin 1968)", "Garr, In His Own Image and Likeness"]
     },
@@ -140,9 +158,13 @@
       ],
       "interpretive_significance": "The divine council background offers a widely held reading of the 'us' in Genesis 1:26 (the heavenly court; Heiser and others), beside other readings (a plural of self-deliberation; in the historic Christian reading, an intimation of the Trinity). It illuminates the heavenly scenes in Job, Isaiah 6, and 1 Kings 22, and explains Psalm 82's dramatic scene of God judging 'the gods.' It shows how the Bible engages ANE concepts to assert Yahweh's incomparable sovereignty.",
       "period": "patriarchal",
-      "books": ["Gen", "Job", "Psa", "Isa", "1Ki"],
-      "chapter_start": 1,
-      "chapter_end": 3,
+      "books": [
+        {"book": "Gen", "chapter_start": 1, "chapter_end": 3},
+        {"book": "Job", "chapter_start": 1, "chapter_end": 1},
+        {"book": "Psa", "chapter_start": 82, "chapter_end": 82},
+        {"book": "Isa", "chapter_start": 6, "chapter_end": 6},
+        {"book": "1Ki", "chapter_start": 22, "chapter_end": 22}
+      ],
       "key_references": ["Gen 1:26", "Gen 3:22", "Job 1:6-12", "1 Kings 22:19-23", "Psalm 82:1-8", "Isaiah 6:1-8"],
       "scholarly_sources": ["Heiser, The Unseen Realm", "Mullen, The Divine Council in Canaanite and Early Hebrew Literature", "Smith, The Origins of Biblical Monotheism"]
     },
@@ -158,9 +180,13 @@
       ],
       "interpretive_significance": "The supernatural reading of Gen 6:1-4 is not a fringe interpretation but the oldest attested understanding, and the only one in the surviving Second Temple sources. Recovering it illuminates the severity of the flood judgment (cosmic boundary violation, not merely human sin), the NT references in Jude and 2 Peter (which become opaque without the Watchers tradition), the origin of 'unclean spirits' in the Gospels, and the broader biblical theme of divine beings who rebel against their assigned roles within God's council.",
       "period": "patriarchal",
-      "books": ["Gen", "Dan", "Jud", "2Pe", "1Pe"],
-      "chapter_start": 6,
-      "chapter_end": 6,
+      "books": [
+        {"book": "Gen", "chapter_start": 6, "chapter_end": 6},
+        {"book": "Dan", "chapter_start": 4, "chapter_end": 4},
+        {"book": "Jud", "chapter_start": 1, "chapter_end": 1},
+        {"book": "2Pe", "chapter_start": 2, "chapter_end": 2},
+        {"book": "1Pe", "chapter_start": 3, "chapter_end": 3}
+      ],
       "key_references": ["Gen 6:1-4", "Job 1:6", "Job 38:7", "Dan 4:13", "Jude 6", "Jude 14-15", "2 Pet 2:4", "1 Pet 3:19-20"],
       "scholarly_sources": ["Heiser, The Unseen Realm, ch. 12-13", "Stuckenbruck, The Myth of Rebellious Angels", "Archie Wright, The Origin of Evil Spirits (WUNT)", "VanderKam, 'The Interpretation of Genesis in 1 Enoch' in The Bible at Qumran"]
     },
@@ -176,9 +202,12 @@
       ],
       "interpretive_significance": "Reading the Genesis 3 serpent as a supernatural being rather than a talking animal resolves several interpretive puzzles: why the serpent has theological knowledge, why its punishment involves cosmic enmity between lineages (Gen 3:15), why Paul calls Satan 'the serpent' (2 Cor 11:3), and why Revelation identifies the dragon as 'the ancient serpent.' The Ezek 28 connection illuminates the nature of the rebellion — a guardian cherub overstepping his assigned role, the same pattern as the Watchers transgression in Gen 6.",
       "period": "patriarchal",
-      "books": ["Gen", "Ezk", "Isa", "Rev"],
-      "chapter_start": 3,
-      "chapter_end": 3,
+      "books": [
+        {"book": "Gen", "chapter_start": 3, "chapter_end": 3},
+        {"book": "Ezk", "chapter_start": 28, "chapter_end": 28},
+        {"book": "Isa", "chapter_start": 14, "chapter_end": 14},
+        {"book": "Rev", "chapter_start": 12, "chapter_end": 12}
+      ],
       "key_references": ["Gen 3:1-15", "Ezek 28:11-19", "Isa 14:12-15", "Rev 12:9", "2 Cor 11:3"],
       "scholarly_sources": ["Heiser, The Unseen Realm, ch. 9-10", "Day, God's Conflict with the Dragon and the Sea", "Walton, Genesis (NIVAC)", "Page, Powers of Evil: A Biblical Study of Satan and Demons"]
     },

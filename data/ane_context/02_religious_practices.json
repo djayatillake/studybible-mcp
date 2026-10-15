@@ -14,9 +14,11 @@
       ],
       "interpretive_significance": "Understanding sacrifice-as-feeding prevents misreading Israelite sacrifice as a magical transaction to appease an angry deity. The 'pleasing aroma' language retains ANE sacrificial vocabulary but the theology is transformed: God does not need food but receives the worshiper's devotion. This also illuminates Hebrews' argument that Christ's sacrifice ends the entire system.\n\nThe meal-as-allegiance frame adds a crucial positive dimension alongside the feeding critique: sacrifice is not merely 'not-feeding-God' but positively declaring allegiance to YHWH's household. The one who offers a sacrifice at YHWH's altar is eating at YHWH's table, performing household membership and loyalty. Paul operates directly on this logic: 'Are not those who eat the sacrifices participants in the altar?' (1 Cor 10:18). The act of sacrifice declares whose household you belong to — which is precisely why eating at an idol's table is incompatible with eating at the Lord's table (1 Cor 10:21). See relig_009 for the full meals-as-allegiance framework.",
       "period": "patriarchal",
-      "books": ["Gen", "Lev", "Psa"],
-      "chapter_start": 1,
-      "chapter_end": 27,
+      "books": [
+        {"book": "Gen", "chapter_start": 8, "chapter_end": 8},
+        {"book": "Lev", "chapter_start": 1, "chapter_end": 27},
+        {"book": "Psa", "chapter_start": 50, "chapter_end": 50}
+      ],
       "key_references": ["Gen 8:20-21", "Lev 1:9", "Lev 21:6", "Psalm 50:7-15", "Isaiah 1:11-17"],
       "scholarly_sources": ["Milgrom, Leviticus (Anchor Bible)", "Anderson, Sacrifices and Offerings in Ancient Israel", "Oppenheim, Ancient Mesopotamia, ch. 3"]
     },
@@ -32,9 +34,12 @@
       ],
       "interpretive_significance": "The temple-as-cosmos concept connects creation, tabernacle, temple, and new creation into a single theological trajectory. When the temple veil tears at Jesus' death (Mark 15:38), it signals the barrier between God's realm and the human realm being removed — a cosmic-level event, not merely a curtain malfunction. Revelation 21's 'no temple' in the new Jerusalem represents the ultimate fulfillment: all creation becomes God's dwelling place.\n\nSee also relig_010 for the domestic/household dimension of the temple. Both the cosmic microcosm frame and the domestic household frame are simultaneously operative: the temple is both a model of the cosmos and the deity's personal residence. Neither frame alone captures the full picture.",
       "period": "exodus_conquest",
-      "books": ["Exo", "1Ki", "Ezk", "Rev"],
-      "chapter_start": 25,
-      "chapter_end": 40,
+      "books": [
+        {"book": "Exo", "chapter_start": 25, "chapter_end": 40},
+        {"book": "1Ki", "chapter_start": 6, "chapter_end": 6},
+        {"book": "Ezk", "chapter_start": 40, "chapter_end": 48},
+        {"book": "Rev", "chapter_start": 21, "chapter_end": 21}
+      ],
       "key_references": ["Exodus 25:8-9", "Exodus 26:31-33", "1 Kings 6:1-38", "Ezekiel 40-48", "Revelation 21:22"],
       "scholarly_sources": ["Beale, The Temple and the Church's Mission", "Hurowitz, I Have Built You an Exalted House", "Lundquist, 'The Common Temple Ideology of the ANE' in The Temple in Antiquity"]
     },
@@ -50,9 +55,14 @@
       ],
       "interpretive_significance": "Biblical idol polemic is not attacking 'primitive stupidity' but sophisticated theology. ANE peoples did not worship the wood/stone itself but the divine presence believed to inhabit it. The biblical critique goes deeper: no image can capture God's nature, and the image-making process itself is an attempt to control the divine. This illuminates why the second commandment prohibits images even of Yahweh, not just of other gods.",
       "period": "divided_monarchy",
-      "books": ["Exo", "Deu", "Isa", "Jer", "Psa"],
-      "chapter_start": 20,
-      "chapter_end": 20,
+      "books": [
+        {"book": "Exo", "chapter_start": 20, "chapter_end": 20},
+        {"book": "Deu", "chapter_start": 4, "chapter_end": 4},
+        {"book": "Isa", "chapter_start": 40, "chapter_end": 40},
+        {"book": "Isa", "chapter_start": 44, "chapter_end": 44},
+        {"book": "Jer", "chapter_start": 10, "chapter_end": 10},
+        {"book": "Psa", "chapter_start": 115, "chapter_end": 115}
+      ],
       "key_references": ["Exodus 20:4-6", "Deuteronomy 4:15-19", "Isaiah 40:18-20", "Isaiah 44:9-20", "Jeremiah 10:1-16", "Psalm 115:4-8"],
       "scholarly_sources": ["Dick, Born in Heaven, Made on Earth", "Walker & Dick, The Induction of the Cult Image in Ancient Mesopotamia", "Halbertal & Margalit, Idolatry"]
     },
@@ -68,9 +78,12 @@
       ],
       "interpretive_significance": "Understanding purity as sacred boundary maintenance (not hygiene) prevents moralizing Levitical laws. The issue is access to God's presence, not cleanliness. This illuminates why Jesus touching lepers and the dead was shocking — and why it signaled a new era where holiness flows outward rather than impurity flowing inward (Mark 5:25-34).",
       "period": "exodus_conquest",
-      "books": ["Lev", "Num", "Mrk"],
-      "chapter_start": 11,
-      "chapter_end": 15,
+      "books": [
+        {"book": "Lev", "chapter_start": 11, "chapter_end": 15},
+        {"book": "Num", "chapter_start": 19, "chapter_end": 19},
+        {"book": "Mrk", "chapter_start": 1, "chapter_end": 1},
+        {"book": "Mrk", "chapter_start": 5, "chapter_end": 5}
+      ],
       "key_references": ["Lev 11:1-47", "Lev 12:1-8", "Lev 15:1-33", "Numbers 19:11-22", "Mark 5:25-34", "Mark 1:40-45"],
       "scholarly_sources": ["Milgrom, Leviticus (Anchor Bible)", "Wright, The Disposal of Impurity", "Klawans, Impurity and Sin in Ancient Judaism"]
     },
@@ -86,9 +99,12 @@
       ],
       "interpretive_significance": "The divination-vs-prophecy contrast explains why Israel's prophets were so different from ANE religious figures. It also illuminates the Deuteronomic test for true prophecy (18:21-22): since the prophet claims to speak God's own words, accuracy is non-negotiable. This background makes Saul's visit to the medium at Endor (1 Sam 28) an act of covenantal betrayal, not merely superstition.",
       "period": "exodus_conquest",
-      "books": ["Deu", "1Sa", "Jer", "Ezk"],
-      "chapter_start": 18,
-      "chapter_end": 18,
+      "books": [
+        {"book": "Deu", "chapter_start": 18, "chapter_end": 18},
+        {"book": "1Sa", "chapter_start": 28, "chapter_end": 28},
+        {"book": "Jer", "chapter_start": 27, "chapter_end": 27},
+        {"book": "Ezk", "chapter_start": 13, "chapter_end": 13}
+      ],
       "key_references": ["Deuteronomy 18:9-22", "1 Samuel 28:3-25", "Jeremiah 27:9-10", "Ezekiel 13:1-9"],
       "scholarly_sources": ["Cryer, Divination in Ancient Israel and Its Near Eastern Environment", "Nissinen, Prophets and Prophecy in the Ancient Near East", "Huffmon, 'The Origins of Prophecy' in Magnalia Dei"]
     },
@@ -104,9 +120,12 @@
       ],
       "interpretive_significance": "The Sabbath's social dimension — rest for slaves, immigrants, and animals — was revolutionary in the ANE. It demonstrates that Israel's religious practices had ethical implications absent from comparable ANE observances. The dual grounding in creation (Exodus 20:11) and liberation (Deuteronomy 5:15) shows Sabbath as simultaneously cosmic and social justice.",
       "period": "exodus_conquest",
-      "books": ["Gen", "Exo", "Deu"],
-      "chapter_start": 20,
-      "chapter_end": 20,
+      "books": [
+        {"book": "Gen", "chapter_start": 2, "chapter_end": 2},
+        {"book": "Exo", "chapter_start": 20, "chapter_end": 20},
+        {"book": "Exo", "chapter_start": 31, "chapter_end": 31},
+        {"book": "Deu", "chapter_start": 5, "chapter_end": 5}
+      ],
       "key_references": ["Gen 2:1-3", "Exodus 20:8-11", "Exodus 31:12-17", "Deuteronomy 5:12-15", "Isaiah 58:13-14"],
       "scholarly_sources": ["Heschel, The Sabbath", "Andreasen, The Old Testament Sabbath", "Robinson, 'The Idea of Rest in the Old Testament and the Search for the Basic Character of Sabbath' (ZAW 1980)"]
     },
@@ -122,9 +141,13 @@
       ],
       "interpretive_significance": "The high places controversy illuminates the book of Kings' evaluation criteria: kings are judged primarily on whether they centralized worship and removed high places. This is not mere administrative preference but theological conviction that multiple worship sites inevitably led to syncretism. It also explains Josiah's reform (2 Kings 22-23) and the Deuteronomic ideal of one central sanctuary.",
       "period": "judges_early_monarchy",
-      "books": ["1Sa", "1Ki", "2Ki", "2Ch"],
-      "chapter_start": 1,
-      "chapter_end": 25,
+      "books": [
+        {"book": "1Sa", "chapter_start": 9, "chapter_end": 9},
+        {"book": "1Ki", "chapter_start": 3, "chapter_end": 3},
+        {"book": "1Ki", "chapter_start": 14, "chapter_end": 14},
+        {"book": "2Ki", "chapter_start": 1, "chapter_end": 25},
+        {"book": "2Ch", "chapter_start": null, "chapter_end": null}
+      ],
       "key_references": ["1 Sam 9:12-14", "1 Kings 3:2-4", "1 Kings 14:23", "2 Kings 18:4", "2 Kings 23:1-20"],
       "scholarly_sources": ["Nakhai, Archaeology and the Religions of Canaan and Israel", "Barrick, The King and the Cemeteries (Supplements to Vetus Testamentum)", "Dever, Did God Have a Wife?"]
     },

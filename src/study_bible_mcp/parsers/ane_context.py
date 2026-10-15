@@ -75,9 +75,18 @@ def parse_ane_context_file(filepath: Path) -> Iterator[dict]:
         # Build book mappings — supports two formats:
         # Old: "books": ["Gen", "Exo"], "chapter_start": null, "chapter_end": null
         # New: "books": [{"book": "Gen", "chapter_start": 6, "chapter_end": 6}, ...]
+        # An entry-level chapter range belongs to one book, so the old format
+        # may carry one only with a single book; copying it to every listed
+        # book mapped e.g. a temple entry's Exodus 25-40 onto Revelation 25-40.
         books = entry_data.get("books", [])
         chapter_start = entry_data.get("chapter_start")
         chapter_end = entry_data.get("chapter_end")
+        plain_books = [book for book in books if not isinstance(book, dict)]
+        if (chapter_start is not None or chapter_end is not None) and len(plain_books) > 1:
+            raise ValueError(
+                f"{entry_id}: one chapter range ({chapter_start}-{chapter_end}) for "
+                f"{len(plain_books)} books; give each book its own range"
+            )
 
         book_mappings = []
         for book in books:
