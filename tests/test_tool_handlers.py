@@ -1242,3 +1242,24 @@ def test_lexicon_entry_is_cleaned_and_compact():
     abbott = output[output.index("### Abbott-Smith"):output.index("### LSJ Senses")]
     assert len(abbott) < LEXICON_DEFINITION_LIMIT + 200
     assert "Sentence of commentary.\n\n*[Definition cut — the full entry is in Abbott-Smith]*" in abbott
+
+
+async def test_search_by_strongs_pages_with_offset(db):
+    first = await call("search_by_strongs", strongs="G26", limit=8)
+    assert "*Next page: offset=8.*" in first
+    second = await call("search_by_strongs", strongs="G26", limit=8, offset=8)
+    assert "*Showing 9–16 of 21 verses;" in second and "*Next page: offset=16.*" in second
+    last = await call("search_by_strongs", strongs="G26", limit=8, offset=16)
+    assert "*Showing 17–21 of 21 verses;" in last and "Next page" not in last
+    pages = _verse_hits(first) + _verse_hits(second) + _verse_hits(last)
+    assert pages == [f"1Jn.4.{v}" for v in range(1, 22)]
+    assert "No more verses with G26 at offset 21." in await call("search_by_strongs", strongs="G26", offset=21)
+    assert "'offset' must be" in await call("search_by_strongs", strongs="G26", offset=-1)
+
+
+async def test_lookup_name_pages_with_offset(names_db):
+    first = await call("lookup_name", name="Ai", limit=4)
+    assert "*Next page: offset=4.*" in first
+    rest = await call("lookup_name", name="Ai", limit=4, offset=4)
+    assert _name_hits(rest) == ["Sinai", "Abigail", "Mordecai"]
+    assert "*Showing 5–7 of 7 matching names;" in rest and "Next page" not in rest

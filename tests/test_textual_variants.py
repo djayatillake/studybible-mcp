@@ -637,6 +637,7 @@ def test_upgrade_is_repeatable_and_failure_leaves_original_untouched(
     assert first["textual_variant_cases"] == second["textual_variant_cases"] == 4
     assert first_snapshot == second_snapshot
     assert first["josephus_passages"] == second["josephus_passages"] == 1
+    assert first["strongs_index_rows"] == second["strongs_index_rows"]
     assert not database.with_name(database.name + ".upgrade-tmp").exists()
 
     original_bytes = database.read_bytes()

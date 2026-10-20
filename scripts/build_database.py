@@ -21,7 +21,7 @@ from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from study_bible_mcp.corpora import CORPORA
-from study_bible_mcp.database import create_schema
+from study_bible_mcp.database import build_strongs_index, create_schema
 from study_bible_mcp.lexicon_glosses import update_brief_definitions
 from study_bible_mcp.lexicon_usage import update_usage_counts
 from study_bible_mcp.parsers.ancient_sources import import_available_corpora
@@ -241,6 +241,8 @@ def build_database(data_dir: Path, db_path: Path, rebuild: bool = False):
                 )
             else:
                 console.print(f"  [green]✓[/green] Imported {count} {label} passages")
+
+        console.print(f"  [green]✓[/green] Indexed {build_strongs_index(conn)} Strong's number occurrences")
 
         # Optimize
         console.print("\nOptimizing database...")

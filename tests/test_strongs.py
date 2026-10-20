@@ -14,7 +14,7 @@ import pytest
 
 import scripts.repair_hebrew_word_strongs as repair
 import study_bible_mcp.server as server
-from study_bible_mcp.database import StudyBibleDB, create_schema
+from study_bible_mcp.database import StudyBibleDB, build_strongs_index, create_schema
 from study_bible_mcp.parsers.tagged_text import parse_hebrew_word, parse_tahot
 
 # Genesis 1:1, first three words, in TAHOT's column layout.
@@ -188,6 +188,20 @@ def test_repair_from_source_is_idempotent_and_writes_a_patch(stale_db, tmp_path,
 
     assert _run(monkeypatch, path, "--data-dir", data_dir) == 0
     assert "corrects 0 Hebrew words" in capsys.readouterr().out
+
+
+def test_repair_keeps_an_existing_strongs_index_current(stale_db, monkeypatch):
+    path, data_dir = stale_db
+    conn = sqlite3.connect(path)
+    build_strongs_index(conn)
+    conn.commit()
+    conn.close()
+
+    assert _run(monkeypatch, path, "--data-dir", data_dir) == 0
+    conn = sqlite3.connect(path)
+    indexed = {row[0] for row in conn.execute("SELECT strongs FROM verse_strongs")}
+    conn.close()
+    assert indexed == {"H7225G", "H1254A", "H0430G"}
 
 
 def test_patch_repairs_a_copy_and_refuses_a_mismatch(stale_db, tmp_path, monkeypatch, capsys):

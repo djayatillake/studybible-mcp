@@ -163,6 +163,30 @@ def bounded_limit(value: Any, maximum: int) -> int:
     return limit
 
 
+def bounded_offset(value: Any) -> int:
+    """An ``offset`` argument (results to skip, for the next page) as an int >= 0."""
+    if value is None:
+        return 0
+    if not isinstance(value, bool):
+        if isinstance(value, int) and value >= 0:
+            return value
+        if isinstance(value, float) and value.is_integer() and value >= 0:
+            return int(value)
+        if isinstance(value, str) and value.strip().isdecimal():
+            return int(value)
+    raise ToolInputError("'offset' must be a whole number of results to skip (0 or more).")
+
+
+def page_window(offset: int, shown: int) -> str:
+    """'4' on the first page, else '5–8': the results a 'Showing … of N' note covers."""
+    return f"{offset + 1}–{offset + shown}" if offset else str(shown)
+
+
+def next_page_note(offset: int, shown: int, more: bool) -> str:
+    """The note naming the offset that continues a paged list, when more remain."""
+    return f"*Next page: offset={offset + shown}.*\n\n" if more else ""
+
+
 def returns_input_errors(handler):
     """Return a ToolInputError's message as the result, also when the handler is called directly."""
     @functools.wraps(handler)
@@ -1061,16 +1085,24 @@ async def handle_search_lexicon(args: dict[str, Any]) -> list[TextContent]:
     query = args.get("query", "")
     language = args.get("language")  # None means both
     limit = bounded_limit(args.get("limit", 4), LEXICON_SEARCH_MAX)
+    offset = bounded_offset(args.get("offset"))
 
     if not query:
         return text("Please provide a search query.")
 
-    entries = await db.search_lexicon(query, language=language, limit=limit)
+    # One extra row says whether another page exists.
+    entries = (await db.search_lexicon(query, language=language, limit=offset + limit + 1))[offset:]
+    more = len(entries) > limit
+    entries = entries[:limit]
 
     if not entries:
+        if offset:
+            return text(f"No more entries for '{query}' at offset {offset}.")
         return text(f"No entries found for '{query}'.")
 
-    result = f"## Lexicon Search: '{query}'\n\nFound {len(entries)} entries:\n\n"
+    shown = f" (results {page_window(offset, len(entries))})" if offset else ""
+    result = f"## Lexicon Search: '{query}'\n\nFound {len(entries)} entries{shown}:\n\n"
+    result += next_page_note(offset, len(entries), more)
 
     for entry in entries:
         result += f"### {entry['strongs']} - {entry['word']} ({entry['transliteration']})\n"
@@ -1100,6 +1132,7 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
     theme = args.get("theme")
     source_filter = args.get("source")
     limit = bounded_limit(args.get("limit", 4), CROSS_REFERENCE_MAX)
+    offset = bounded_offset(args.get("offset"))
     min_strength_raw = args.get("min_strength")
     min_strength = int(min_strength_raw) if min_strength_raw is not None else None
 
@@ -1117,9 +1150,15 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
         refs = await db.get_cross_references(
             reference,
             source_filter=source_filter,
-            limit=limit,
+            limit=offset + limit + 1,
             min_strength=min_strength,
         )
+        # Rows are ranked, so a page is a slice; the extra row says whether another exists.
+        refs = refs[offset:]
+        more = len(refs) > limit
+        refs = refs[:limit]
+        if not refs and offset:
+            return text(f"No more cross-references for {reference} at offset {offset}.")
         if not refs:
             return text(
                 f"No cross-references found for {reference}."
@@ -1138,6 +1177,9 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
             f"Sources: CH = Harrison/Romhild curated; Gage = Bradley/Gage John↔Rev typology; "
             f"Burnett = JSPL 5.2 (2015) deification chain; TSK = Treasury of Scripture Knowledge._\n\n"
         )
+        if offset:
+            result += f"*Results {page_window(offset, len(refs))}.*\n\n"
+        result += next_page_note(offset, len(refs), more)
 
         def fmt_target_with_meta(ref, *, show_tier=True):
             tier = ref.get("tier")
@@ -1203,10 +1245,13 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
     if not name:
         return text("Please provide a name to look up.")
     limit = bounded_limit(args.get("limit", 4), NAME_LOOKUP_MAX)
+    offset = bounded_offset(args.get("offset"))
 
-    entries = await db.lookup_name(name, name_type=name_type, limit=limit)
+    entries = (await db.lookup_name(name, name_type=name_type, limit=offset + limit))[offset:]
 
     if not entries:
+        if offset:
+            return text(f"No more names matching '{name}' at offset {offset}.")
         return text(f"No entries found for '{name}'.")
 
     # ACAI enrichment, matched to each entry's own TIPNR entry so that
@@ -1220,12 +1265,14 @@ async def handle_lookup_name(args: dict[str, Any]) -> list[TextContent]:
 
     result = f"## Biblical Names: {name}\n\n"
     total = entries[0]["match_count"]
-    if total > len(entries):
+    more = total > offset + len(entries)
+    if more or offset:
         how = "raise limit" if name_type else "set type or raise limit"
         result += (
-            f"*Showing {len(entries)} of {total} matching names; {how} "
+            f"*Showing {page_window(offset, len(entries))} of {total} matching names; {how} "
             "(at most 20) to see more.*\n\n"
         )
+        result += next_page_note(offset, len(entries), more)
 
     for entry, acai_data in zip(entries, acai):
         result += format_name_entry(entry, acai_data=acai_data)
@@ -1303,6 +1350,7 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
     """Handle search_by_strongs tool - find all verses with a Strong's number."""
     strongs = args.get("strongs", "")
     limit = bounded_limit(args.get("limit", 4), STRONGS_SEARCH_MAX)
+    offset = bounded_offset(args.get("offset"))
 
     if not strongs:
         return text("Please provide a Strong's number (e.g., 'G26' or 'H3068').")
@@ -1313,21 +1361,24 @@ async def handle_search_by_strongs(args: dict[str, Any]) -> list[TextContent]:
         return text(f"Unknown Strong's number: {strongs}")
 
     # One extra row says whether more exist; only then are they counted.
-    verses = await db.get_verses_with_strongs(strongs, limit=limit + 1)
+    verses = await db.get_verses_with_strongs(strongs, limit=limit + 1, offset=offset)
     more = len(verses) > limit
     verses = verses[:limit]
+    if offset and not verses:
+        return text(f"No more verses with {strongs} at offset {offset}.")
 
     result = (
         f"## Verses with {strongs} ({entry['word']} - {entry['transliteration']})"
         f"{bsb_label(verses)}\n\n"
     )
     result += f"*{entry['short_definition']}*\n\n"
-    if more:
+    if more or offset:
         total = await db.count_verses_with_strongs(strongs)
         result += (
-            f"*Showing {len(verses)} of {total} verses; raise limit "
+            f"*Showing {page_window(offset, len(verses))} of {total} verses; raise limit "
             f"(at most {STRONGS_SEARCH_MAX}) to see more.*\n\n"
         )
+        result += next_page_note(offset, len(verses), more)
 
     if verses:
         for v in verses:
@@ -1955,6 +2006,7 @@ async def handle_get_theology_context(args: dict[str, Any]) -> list[TextContent]
     """Handle get_theology_context tool — theological scholarship by reference, theme, and/or author."""
     author = (args.get("author") or "").strip().lower() or None
     limit = bounded_limit(args.get("limit", 4), THEOLOGY_MAX)
+    offset = bounded_offset(args.get("offset"))
     has_data = await db.has_theology_data()
     if not has_data:
         return text("Theological scholarship data not available. Run 'python scripts/import_heiser_content.py' first.")
@@ -1972,10 +2024,18 @@ async def handle_get_theology_context(args: dict[str, Any]) -> list[TextContent]
 
     entries = []
     if theme:
-        entries = await db.get_theology_context_by_theme(theme, author=author, limit=limit)
+        entries = await db.get_theology_context_by_theme(theme, author=author, limit=offset + limit + 1)
     elif reference:
-        entries = await db.get_theology_context_by_reference(reference, author=author, limit=limit)
+        entries = await db.get_theology_context_by_reference(
+            reference, author=author, limit=offset + limit + 1
+        )
+    # Entries are ranked, so a page is a slice; the extra row says whether another exists.
+    entries = entries[offset:]
+    more = len(entries) > limit
+    entries = entries[:limit]
 
+    if not entries and offset:
+        return text(f"No more theological scholarship at offset {offset}.")
     if not entries:
         query_desc = f"theme='{theme}'" if theme else f"reference='{reference}'"
         if author:
@@ -1992,6 +2052,9 @@ async def handle_get_theology_context(args: dict[str, Any]) -> list[TextContent]
     if theme:
         header += f" — theme: {theme}"
     header += "\n\n"
+    if offset:
+        header += f"*Results {page_window(offset, len(entries))}.*\n\n"
+    header += next_page_note(offset, len(entries), more)
 
     result = header + format_theology_context(entries)
     return text(result)

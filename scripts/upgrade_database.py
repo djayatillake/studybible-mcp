@@ -40,7 +40,7 @@ from import_heiser_content import import_nt_ot_lxx_quote_hints, import_textual_v
 from migrate_textual_variants import migrate
 
 from study_bible_mcp.corpora import CORPORA
-from study_bible_mcp.database import create_schema
+from study_bible_mcp.database import build_strongs_index, create_schema
 from study_bible_mcp.parsers.ancient_sources import import_available_corpora, missing_corpora
 from study_bible_mcp.parsers.biblical_versions import import_biblical_versions
 
@@ -102,6 +102,7 @@ def upgrade(database: Path, data_dir: Path) -> dict[str, int]:
         hints_path = data_dir / "heiser" / "lxx_quote_hints.json"
         if hints_path.exists():
             bundled_hints = import_nt_ot_lxx_quote_hints(conn, hints_path)
+        strongs_index = build_strongs_index(conn)
         conn.execute("ANALYZE")
         conn.commit()
 
@@ -139,6 +140,7 @@ def upgrade(database: Path, data_dir: Path) -> dict[str, int]:
         "bundled_variant_cases": variants,
         "bundled_quotation_hints": bundled_hints,
         "textual_variant_cases": variant_cases,
+        "strongs_index_rows": strongs_index,
     }
 
 

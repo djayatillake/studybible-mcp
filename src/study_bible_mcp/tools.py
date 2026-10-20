@@ -81,6 +81,12 @@ def _truncate(text: str, limit: int, suffix: str = "\n\n*[Truncated]*") -> str:
     return text if cut >= len(text) else text[:cut] + suffix
 
 
+# The ``offset`` argument of the paged list tools.
+OFFSET_PARAMETER = {
+    "type": "integer",
+    "description": "Results to skip (from a 'Next page' note)",
+}
+
 RESEARCH_SOURCES_DEFAULT_LIMIT = 4
 # With no topic or perspective, these lead the list so the default is a mix: an
 # evangelical journal, a Bible reference tool, Jewish primary texts, and an
@@ -374,6 +380,7 @@ word or a biblical concept, and for distinguishing between near-synonyms.""",
                     "enum": ["greek", "hebrew"],
                     "description": "Limit search to one language. Omit to search both."
                 },
+                "offset": OFFSET_PARAMETER,
                 "limit": {
                     "type": "integer",
                     "description": "Maximum results (1-20). Default: 4"
@@ -500,6 +507,7 @@ long-tail is wanted.""",
                     "enum": ["ch", "tsk", "gage", "burnett"],
                     "description": "Optional dataset filter when using `reference`. 'ch' = Harrison/Romhild curated; 'tsk' = Treasury of Scripture Knowledge; 'gage' = Gage/Bradley John↔Revelation typology; 'burnett' = Burnett's Gen 15:5 / Rom 4:18 deification chain (JSPL 5.2). Default: all four, ranked CH/Gage > Burnett > TSK."
                 },
+                "offset": OFFSET_PARAMETER,
                 "limit": {
                     "type": "integer",
                     "description": "Cap on rows returned (not a target), 1-50. Default 4. The returned count may be smaller when the verse has fewer rows above the noise floor. Values of 20–30 combined with `source='tsk'` or `min_strength=0` return the long tail."
@@ -542,6 +550,7 @@ location's full history by `explore_place`.""",
                     "enum": ["person", "place", "thing"],
                     "description": "Filter by type. Omit to search all types."
                 },
+                "offset": OFFSET_PARAMETER,
                 "limit": {
                     "type": "integer",
                     "minimum": 1,
@@ -598,6 +607,7 @@ carries across occurrences.""",
                     "type": "string",
                     "description": "Strong's number (e.g., 'G26', 'H430')"
                 },
+                "offset": OFFSET_PARAMETER,
                 "limit": {
                     "type": "integer",
                     "description": "Maximum verses (1-50). Default: 4"
@@ -1037,6 +1047,7 @@ Query by verse reference, theme key, and/or author. For other authors, see
                     "type": "string",
                     "description": "Filter by author: 'heiser', 'bradley', 'owen', 'stott', 'lennox'. Omit to get all scholars' content."
                 },
+                "offset": OFFSET_PARAMETER,
                 "limit": {
                     "type": "integer",
                     "description": "Maximum entries (1-20). Default: 4"

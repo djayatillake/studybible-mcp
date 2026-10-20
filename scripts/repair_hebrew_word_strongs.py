@@ -35,6 +35,10 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+from study_bible_mcp.database import build_strongs_index, table_exists
+
 TAHOT_FILES = ("TAHOT_Gen-Deu.txt", "TAHOT_Jos-Est.txt", "TAHOT_Job-Sng.txt", "TAHOT_Isa-Mal.txt")
 
 
@@ -141,6 +145,8 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 1
+        if verses and table_exists(conn, "verse_strongs"):
+            build_strongs_index(conn)
         conn.commit()
     finally:
         conn.close()

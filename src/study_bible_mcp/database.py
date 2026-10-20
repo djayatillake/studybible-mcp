@@ -671,6 +671,7 @@ class StudyBibleDB:
         self._vec_loaded = False
         self._vec_error: str | None = None
         self._has_bsb: bool | None = None
+        self._has_strongs_index: bool | None = None
         self._graph_people_cols: set[str] | None = None
         self._people_index: list[dict] | None = None
         self._family_graph: dict | None = None
@@ -1043,31 +1044,53 @@ class StudyBibleDB:
             return None
         return merge_english_verses(rows)[0]
 
-    async def get_verses_with_strongs(self, strongs: str, limit: int = 4) -> list[dict]:
-        """Find verses containing a specific Strong's number.
+    async def get_verses_with_strongs(
+        self, strongs: str, limit: int = 4, offset: int = 0
+    ) -> list[dict]:
+        """Find verses containing a specific Strong's number, in canonical order.
 
         Word data keeps STEPBible's one-letter sense suffix (H0430G), so a bare
         number also matches its suffixed forms; a suffixed number matches only
-        itself. Rows carry ``text_bsb`` (see ``attach_bsb_text``).
+        itself. ``offset`` skips that many verses (for the next page). Rows
+        carry ``text_bsb`` (see ``attach_bsb_text``).
         """
-        where, patterns = self._strongs_word_data_filter(strongs)
+        where, params = await self._strongs_verse_filter(strongs)
         return await self.attach_bsb_text(await self._fetchall(
-            f"SELECT * FROM verses WHERE {where} LIMIT ?", (*patterns, limit)
+            f"SELECT * FROM verses WHERE {where} ORDER BY id LIMIT ? OFFSET ?",
+            (*params, limit, offset),
         ))
 
     async def count_verses_with_strongs(self, strongs: str) -> int:
         """How many verses ``get_verses_with_strongs`` could return without a limit."""
-        where, patterns = self._strongs_word_data_filter(strongs)
-        row = await self._fetchone(f"SELECT COUNT(*) AS n FROM verses WHERE {where}", patterns)
+        where, params = await self._strongs_verse_filter(strongs)
+        row = await self._fetchone(f"SELECT COUNT(*) AS n FROM verses WHERE {where}", params)
         return row["n"] if row else 0
 
-    def _strongs_word_data_filter(self, strongs: str) -> tuple[str, list[str]]:
-        """SQL condition on verses.word_data, and its LIKE patterns, for a Strong's number."""
+    async def _strongs_verse_filter(self, strongs: str) -> tuple[str, list[str]]:
+        """SQL condition on verses, and its parameters, for a Strong's number.
+
+        Looks the number up in the verse_strongs index when the database has it
+        (see build_strongs_index), else scans word_data with LIKE.
+        """
         strongs = self._normalize_strongs(strongs)
+        bare = re.fullmatch(r"[GH]\d{4}", strongs)
+        if await self.has_strongs_index():
+            if bare:
+                return (
+                    "id IN (SELECT verse_id FROM verse_strongs WHERE strongs = ? OR strongs GLOB ?)",
+                    [strongs, f"{strongs}?"],
+                )
+            return "id IN (SELECT verse_id FROM verse_strongs WHERE strongs = ?)", [strongs]
         patterns = [f'%"{strongs}"%']
-        if re.fullmatch(r"[GH]\d{4}", strongs):
+        if bare:
             patterns.append(f'%"{strongs}_"%')
         return " OR ".join("word_data LIKE ?" for _ in patterns), patterns
+
+    async def has_strongs_index(self) -> bool:
+        """True when the verse_strongs table exists and has rows (checked once per instance)."""
+        if self._has_strongs_index is None:
+            self._has_strongs_index = await self._table_has_rows("verse_strongs")
+        return self._has_strongs_index
 
     async def has_bsb_text(self) -> bool:
         """True when the bsb_verses table exists and has rows (checked once per instance)."""
@@ -4574,3 +4597,33 @@ def create_vector_tables(conn: sqlite3.Connection):
         );
     """)
     conn.commit()
+
+
+def table_exists(conn: sqlite3.Connection, name: str) -> bool:
+    return conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", (name,)
+    ).fetchone() is not None
+
+
+def build_strongs_index(conn: sqlite3.Connection) -> int:
+    """Rebuild verse_strongs, the Strong's number -> verse index; return its row count.
+
+    search_by_strongs and word_study look numbers up here instead of scanning
+    every verse's word data (without the table they fall back to that scan).
+    Built from verses.word_data, so it is rebuilt whenever that changes; it
+    is replaced as a whole, so rebuilding is idempotent. Does not commit.
+    """
+    pairs = set()
+    for verse_id, word_data in conn.execute(
+        "SELECT id, word_data FROM verses WHERE word_data IS NOT NULL AND word_data != ''"
+    ):
+        for word in json.loads(word_data):
+            if isinstance(word, dict) and isinstance(word.get("strongs"), str) and word["strongs"]:
+                pairs.add((word["strongs"], verse_id))
+    conn.execute("DROP TABLE IF EXISTS verse_strongs")
+    conn.execute(
+        "CREATE TABLE verse_strongs (strongs TEXT NOT NULL, verse_id INTEGER NOT NULL, "
+        "PRIMARY KEY (strongs, verse_id)) WITHOUT ROWID"
+    )
+    conn.executemany("INSERT INTO verse_strongs VALUES (?, ?)", sorted(pairs))
+    return len(pairs)

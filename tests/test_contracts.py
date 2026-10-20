@@ -35,7 +35,8 @@ SERVER_PATH = ROOT / "src" / "study_bible_mcp" / "server.py"
 # Characters of description plus JSON input schema, summed over every tool. The
 # whole list rides along with every request, so raising this is a deliberate
 # trade-off to make visible in review, not a number to bump in passing.
-TOOL_LIST_BUDGET = 41_000
+# Raised from 41,000 for the 'offset' argument of the five paged list tools.
+TOOL_LIST_BUDGET = 41_500
 # No single tool may grow past this (get_cross_references is the largest).
 PER_TOOL_BUDGET = 7_500
 
