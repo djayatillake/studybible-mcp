@@ -239,10 +239,17 @@ def client_tag(ip: str | None) -> str:
     return f"{network}~{digest[:6]}"
 
 
+# The header in which the proxy in front of the server passes the client's
+# address: Fly-Client-IP on Fly. A deployment behind another proxy names that
+# proxy's header instead. It must be one the proxy always sets, replacing any
+# value the client sent; otherwise a client can choose its own address.
+CLIENT_IP_HEADER = os.environ.get("STUDY_BIBLE_CLIENT_IP_HEADER", "Fly-Client-IP").lower()
+
+
 def request_ip(scope: dict, headers: dict[str, str]) -> str | None:
-    """The real client address behind Fly's proxy."""
+    """The real client address behind the proxy (see CLIENT_IP_HEADER)."""
     client = scope.get("client")
-    return (headers.get("fly-client-ip")
+    return (headers.get(CLIENT_IP_HEADER)
             or (headers.get("x-forwarded-for") or "").split(",")[0].strip()
             or (client[0] if client else None))
 

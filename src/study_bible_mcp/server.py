@@ -2211,6 +2211,7 @@ class RateLimitMiddleware:
         self._static_hits: dict[str, list[float]] = defaultdict(lambda: [0, 0.0])
         # per-IP time of the last "rate limited" line (one per window)
         self._limited_logged: dict[str, float] = {}
+        self._last_sweep = time.monotonic()
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
@@ -2245,6 +2246,8 @@ class RateLimitMiddleware:
 
         now = time.monotonic()
         window_start = now - self.window_seconds
+        if now - self._last_sweep >= self.window_seconds:
+            self._sweep(window_start)
 
         # Prune old entries and check count
         timestamps = self._requests[ip]
@@ -2268,6 +2271,19 @@ class RateLimitMiddleware:
 
         self._requests[ip].append(now)
         await self.app(scope, receive, send)
+
+    def _sweep(self, window_start: float) -> None:
+        """Forget addresses with nothing in the current window, so the tables stay small."""
+        self._last_sweep = time.monotonic()
+        self._requests = defaultdict(list, {
+            ip: times for ip, times in self._requests.items() if times and times[-1] > window_start
+        })
+        self._static_hits = defaultdict(lambda: [0, 0.0], {
+            ip: hits for ip, hits in self._static_hits.items() if hits[1] > window_start
+        })
+        self._limited_logged = {
+            ip: logged for ip, logged in self._limited_logged.items() if logged > window_start
+        }
 
 
 # =========================================================================
