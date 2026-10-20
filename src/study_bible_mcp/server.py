@@ -110,8 +110,12 @@ logging.basicConfig(
 logger = logging.getLogger("study-bible-mcp")
 
 # Initialize server with purple cross icon
-# Use URL-based icon for better compatibility with Claude Desktop
-ICON_URL = "https://studybible-mcp.fly.dev/static/icon.png"
+# Use URL-based icon for better compatibility with Claude Desktop. Another
+# deployment sets STUDY_BIBLE_ICON_URL to its own /static/icon.png.
+ICON_URL = os.environ.get("STUDY_BIBLE_ICON_URL", "https://studybible-mcp.fly.dev/static/icon.png")
+
+# STUDY_BIBLE_DATABASE_DOWNLOAD=0 turns off the public /download/study_bible.db route.
+DATABASE_DOWNLOAD = os.environ.get("STUDY_BIBLE_DATABASE_DOWNLOAD", "1") != "0"
 server = Server(
     "study-bible",
     version="1.0.0",
@@ -2340,7 +2344,8 @@ def _make_shared_routes():
     return [
         Route("/health", endpoint=health_check, methods=["GET"]),
         Route("/static/icon.png", endpoint=serve_icon, methods=["GET"]),
-        Route("/download/study_bible.db", endpoint=serve_database, methods=["GET"]),
+        *([Route("/download/study_bible.db", endpoint=serve_database, methods=["GET"])]
+          if DATABASE_DOWNLOAD else []),
         Route("/privacy", endpoint=privacy_policy, methods=["GET"]),
     ]
 
@@ -2611,9 +2616,9 @@ def build_http_app():
                 "/health": "Health check",
                 "/privacy": "Privacy policy",
                 "/static/icon.png": "Server icon",
-                "/download/study_bible.db": (
+                **({"/download/study_bible.db": (
                     "Download pre-built database (~750MB; includes CC BY-NC and CC BY-SA texts)"
-                ),
+                )} if DATABASE_DOWNLOAD else {}),
             },
             "tools": [tool.name for tool in TOOLS],
         })
