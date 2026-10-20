@@ -1734,22 +1734,33 @@ class StudyBibleDB:
         # Convert embedding to bytes for sqlite-vec
         embedding_bytes = struct.pack(f'{len(embedding)}f', *embedding)
 
-        # Search against passage embeddings
+        # sqlite-vec's nearest-neighbour search ranks by L2 distance. The
+        # embeddings are unit vectors, so that is the cosine ranking, and the
+        # cosine distance is L2² / 2. Passages containing the verse are dropped,
+        # so ask for that many extra neighbours.
+        containing = await self._fetchone(
+            "SELECT COUNT(*) AS n FROM passages WHERE start_verse_id <= ? AND end_verse_id >= ?",
+            (verse_id, verse_id),
+        )
         sql = """
+            WITH nearest AS (
+                SELECT passage_id, distance FROM passage_vectors
+                WHERE embedding MATCH ? AND k = ?
+            )
             SELECT p.id, p.reference_start, p.reference_end, p.book,
                    p.start_verse_id, p.end_verse_id,
                    p.text_combined, p.verse_count, p.section_type,
-                   vec_distance_cosine(pv.embedding, ?) as distance
-            FROM passage_vectors pv
-            JOIN passages p ON p.id = pv.passage_id
+                   nearest.distance * nearest.distance / 2 AS distance
+            FROM nearest
+            JOIN passages p ON p.id = nearest.passage_id
             WHERE NOT (p.start_verse_id <= ? AND p.end_verse_id >= ?)
-            ORDER BY distance
+            ORDER BY nearest.distance
             LIMIT ?
         """
 
         async with self.conn.execute(
             sql,
-            (embedding_bytes, verse_id, verse_id, limit)
+            (embedding_bytes, limit + containing["n"], verse_id, verse_id, limit)
         ) as cursor:
             rows = await cursor.fetchall()
             results = []
