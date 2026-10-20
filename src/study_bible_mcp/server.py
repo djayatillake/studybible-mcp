@@ -364,7 +364,7 @@ def _passage_label(book_name: str, start: tuple[int, int], end: tuple[int, int])
 
 
 async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
-    """Handle lookup_verse tool - get scripture text with optional Greek/Hebrew.
+    """Show one reference for lookup_verse - scripture text with optional Greek/Hebrew.
 
     Accepts single verses, verse ranges, cross-chapter ranges, and whole
     chapters. Verses are matched on English numbering, so OT rows stored with
@@ -641,6 +641,59 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
     xref_hint += ".*"
     result += xref_hint
 
+    return text(result)
+
+
+# lookup_verse shows at most this many references per call, each as one
+# handle_lookup_verse passage (so each capped at LOOKUP_VERSE_MAX_VERSES verses).
+LOOKUP_VERSE_MAX_REFERENCES = 10
+
+_BOOK_AND_REST = re.compile(r"^(\d?\s*[A-Za-z][A-Za-z .]*?)\s*(\d.*)$")
+
+
+def split_references(reference: str) -> list[str]:
+    """Split 'John 3:16; Rom 8:28-30, 31' into standalone references.
+
+    ';' separates references. Within one, ',' continues the same book, and a
+    bare verse number continues the last chapter: 'Rom 8:28-30, 31' gives
+    'Rom 8:28-30' and 'Rom 8:31'; 'Psalm 23, 24' gives 'Psalm 23' and 'Psalm 24'.
+    """
+    references = []
+    for part in filter(None, (p.strip() for p in reference.split(";"))):
+        match = _BOOK_AND_REST.match(part)
+        if not match or "," not in part:
+            references.append(part)
+            continue
+        book, chapter = match[1].strip(), None
+        for piece in filter(None, (p.strip() for p in match[2].split(","))):
+            if ":" in piece:
+                chapter = re.findall(r"(\d+):", piece)[-1]
+                references.append(f"{book} {piece}")
+            elif chapter:
+                references.append(f"{book} {chapter}:{piece}")
+            else:
+                references.append(f"{book} {piece}")
+    return references
+
+
+async def handle_lookup_references(args: dict[str, Any]) -> list[TextContent]:
+    """Handle lookup_verse tool - one or more references, each shown by handle_lookup_verse."""
+    references = split_references(args.get("reference", ""))
+    if len(references) <= 1:
+        return await handle_lookup_verse(args)
+
+    shown = references[:LOOKUP_VERSE_MAX_REFERENCES]
+    sections = [
+        (await handle_lookup_verse({**args, "reference": expand_single_chapter_reference(ref)}))[0].text
+        for ref in shown
+    ]
+    result = "\n\n---\n\n".join(sections)
+    if len(references) > len(shown):
+        rest = "; ".join(references[len(shown):])
+        result += (
+            f"\n\n---\n*Showing the first {len(shown)} of {len(references)} references. "
+            f"Continue with reference='{rest}'.*"
+        )
     return text(result)
 
 
@@ -2158,7 +2211,7 @@ async def handle_list_research_sources(args: dict[str, Any]) -> list[TextContent
 
 _TOOL_HANDLERS = {
     "word_study": handle_word_study,
-    "lookup_verse": handle_lookup_verse,
+    "lookup_verse": handle_lookup_references,
     "compare_biblical_versions": handle_compare_biblical_versions,
     "search_ancient_sources": handle_search_ancient_sources,
     "lookup_ancient_source": handle_lookup_ancient_source,

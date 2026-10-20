@@ -143,7 +143,7 @@ term's underlying vocabulary, or the semantic range behind an English rendering.
     Tool(
         name="lookup_verse",
         annotations=ToolAnnotations(title="Lookup Verse", readOnlyHint=True, destructiveHint=False, idempotentHint=True),
-        description="""Look up the text of a Bible verse, verse range, or whole chapter, in English and in the original language.
+        description="""Look up the text of a Bible verse, verse range, or whole chapter (or several, joined by ';'), in English and in the original language.
 
 Returns, for each verse in canonical order:
 - The English text: the Berean Standard Bible (BSB), or STEPBible's word
@@ -164,7 +164,7 @@ may be cited by verse alone ('Jude 3', 'Philemon 6', '3 John 4'); 'Jude 1' is th
 whole chapter. Numbering is
 English; a Psalm superscription (verse 1 in the Hebrew) is labelled as the
 superscription. Returns at most 50 verses per call, with a note naming the
-reference that continues a longer passage.
+reference that continues a longer passage. At most 10 references per call.
 
 Relevant whenever the verified wording of a passage, or its original-language
 form, is needed.""",
@@ -173,7 +173,7 @@ form, is needed.""",
             "properties": {
                 "reference": {
                     "type": "string",
-                    "description": "Bible reference (e.g., 'John 3:16', 'Luke 19:1-3', 'Luke 19:45-20:2', or a whole chapter such as 'Psalm 23')"
+                    "description": "Bible reference (e.g., 'John 3:16', 'Luke 19:1-3', 'Luke 19:45-20:2', a whole chapter such as 'Psalm 23', or 'John 3:16; Romans 8:28-30, 31')"
                 },
                 "include_original": {
                     "type": "boolean",
