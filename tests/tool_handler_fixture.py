@@ -124,12 +124,12 @@ XREF_JOHN_3_16_ORDER = [
     "Rom.5.8",    # tsk 600 votes: tier 3, score 9
     "1Jn.4.10",   # tsk 150: tier 3, score 7, 150 votes
     "1Jn.4.9",    # ch rel 3: tier 3, score 7, also 40 TSK votes
-    "Rev.21.6",   # gage parallel: tier 3, score 7
+    "Rev.21.6",   # gage tighter: tier 2, score 7 (gage beats burnett on ties)
     "Rom.4.18",   # burnett: tier 2, score 7
     "Rom.8.32",   # tsk 60: tier 2, score 6
     "Heb.2.9",    # tsk 30: tier 2, score 5
     "Eph.2.4",    # tsk 25: tier 2, score 5
-    "Rev.22.17",  # gage chiastic: tier 2, score 3
+    "Rev.22.17",  # gage looser: tier 2, score 3
     "Tit.3.4",    # tsk 12: tier 1
     "Isa.9.6",    # tsk 3: tier 1
 ]
@@ -138,14 +138,14 @@ XREF_JOHN_3_16_ORDER = [
 CROSS_REFERENCES = [
     ("Jhn.3.16", "Isa.9.6", "tsk", 3, None),
     ("Jhn.3.16", "Eph.2.4", "tsk", 25, None),
-    ("Jhn.3.16", "Rev.22.17", "gage", 1, "Water of life (chiastic echo)"),
+    ("Jhn.3.16", "Rev.22.17", "gage", 1, "Water of life"),
     ("Jhn.3.16", "Tit.3.4", "tsk", 12, None),
     ("Jhn.3.16", "Rom.4.18", "burnett", 5, "JSPL 5.2 step 3"),
     ("Jhn.3.16", "1Jn.4.9", "tsk", 40, None),
     ("Jhn.3.16", "Heb.2.9", "tsk", 30, None),
     ("Jhn.3.16", "Rom.8.32", "tsk", 60, None),
     ("Jhn.3.16", "1Jn.4.9", "ch", 3, None),
-    ("Jhn.3.16", "Rev.21.6", "gage", 3, "Gift of life (parallel)"),
+    ("Jhn.3.16", "Rev.21.6", "gage", 3, "Gift of life"),
     ("Jhn.3.16", "1Jn.4.10", "tsk", 150, None),
     ("Jhn.3.16", "Rom.5.8", "tsk", 600, None),
     # Ruth 1:1 is signal-poor: only tier-1 rows, which are kept.

@@ -1402,13 +1402,13 @@ class StudyBibleDB:
         """Get cross-references for a verse, ordered by strength.
 
         Tiers (high to low):
-          tier 3 — CH (Harrison/Romhild, hand-curated), Gage parallel (the
-                   tighter Gage/Bradley John↔Rev pairings), and TSK pairs with
+          tier 3 — CH (Harrison/Romhild, hand-curated) and TSK pairs with
                    ≥100 votes (the "breakthrough" rule: top ~0.4% of TSK is
                    near-universal cross-reference and competes with curated).
           tier 2 — Burnett (single-scholar argued chain, JSPL 5.2 (2015)),
-                   Gage chiastic (the "looser connections" sheet), and TSK
-                   pairs with 20–99 votes (top ~5%).
+                   Gage/Bradley John↔Rev typological pairs (both sheets:
+                   one reading, not consensus), and TSK pairs with 20–99
+                   votes (top ~5%).
           tier 1 — everything else (low-vote TSK long-tail).
 
         Within a tier, ranks by a normalized strength score (CH rel*2+1, Gage
@@ -1457,10 +1457,15 @@ class StudyBibleDB:
                 f"AND (type != 'tsk' OR relevance >= {int(min_strength)})"
             )
 
-        # Tier mapping (Option B — split Gage + TSK breakthrough):
-        #   tier 3: ch (any), gage rel=3 (parallel), tsk votes>=100
-        #   tier 2: burnett, gage rel=1 (chiastic), tsk votes 20..99
+        # Tier mapping (TSK breakthrough):
+        #   tier 3: ch (any), tsk votes>=100
+        #   tier 2: burnett, gage (both sheets), tsk votes 20..99
         #   tier 1: everything else (low-vote tsk noise)
+        # Gage's tighter sheet (rel=3) was tier 3 until 2026-11. It moved down
+        # because it is one scholar's typological reading, like Burnett, and
+        # the John 1 ↔ Rev 1 layout behind it failed Bradley's blind re-tests
+        # (2026-10-29). Its strength score (7) still ranks it above the looser
+        # sheet (3) and TSK 20..99 within tier 2.
         # Within-tier strength score normalises curated and TSK signals onto
         # a comparable 1..9 scale so a 500-vote TSK link surfaces above a
         # CH rel=2 within tier 3, but a 100-vote TSK ties with CH rel=3.
@@ -1469,7 +1474,6 @@ class StudyBibleDB:
                 SELECT source, target, type, relevance, note,
                        CASE
                            WHEN type = 'ch' THEN 3
-                           WHEN type = 'gage' AND relevance >= 3 THEN 3
                            WHEN type = 'gage' THEN 2
                            WHEN type = 'burnett' THEN 2
                            WHEN type = 'tsk' AND relevance >= 100 THEN 3
