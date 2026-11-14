@@ -396,8 +396,6 @@ database draws from four scholarly sources, returned in a three-tier ranking:
   **Tier 3 (top, "consensus and curated"):**
     - **CH** — Harrison & Romhild's curated dataset (~58k links, OT-only as
       source). Hand-vetted; high-relevance pairs flagged canonical-direction.
-    - **Gage parallel** — the tighter pairings from Warren Gage's John ↔
-      Revelation typological reading (Bradley/Gage, John/Rev only).
     - **TSK ≥100 votes** — TSK pairs with crowd-source consensus that strong
       are near-universal cross-references (top ~0.4% of TSK) and break
       through to compete with curated.
@@ -405,8 +403,8 @@ database draws from four scholarly sources, returned in a three-tier ranking:
   **Tier 2 ("argued and acknowledged"):**
     - **Burnett** — David A. Burnett's argued chain for the Gen 15:5 / Rom
       4:18 "star-like seed" deification reading (JSPL 5.2, 2015). ~30 pairs.
-    - **Gage chiastic** — the looser-typology sheet of Bradley/Gage (the
-      source spreadsheet labels these "looser connections, just noting").
+    - **Gage/Bradley** — John ↔ Revelation typological pairs (Warren Gage's
+      pairings, extended by Craig Bradley; John/Rev only).
     - **TSK 20–99 votes** — solid topical links acknowledged across
       commentaries (top ~5%).
 
@@ -465,14 +463,19 @@ dataset:
         direction of the pair, often part of a thematic circle (top 78% of CH)
     no tag (rel=0) — present in CH but unflagged (still hand-curated)
 
-  Gage (John ↔ Revelation typology):
-    relevance=3 ("parallel" tier) — tighter pairings from the parallel-reading
-        of John 1 ↔ Revelation 1
-    relevance=1 ("chiastic" tier) — looser thematic echoes across the full
-        John-Revelation chiasm; the source spreadsheet flags these as
-        "looser connections, just noting"
-    The `note` field carries the thematic tags + commentary + per-row
-    attribution (Bradley vs Gage). Treat as canonical-typology, not topical.
+  Gage/Bradley (John ↔ Revelation typology):
+    relevance=3 ("tighter") — pairs from the sheet reading John 1 beside
+        Revelation 1
+    relevance=1 ("looser") — pairs from the sheet reading John 1 against
+        Revelation 22; the spreadsheet calls these "looser connections, just
+        noting"
+    Paired verses share wording well above chance, so each pair is a real
+    echo. The layouts they were charted in are not: Bradley's blind re-tests
+    (2026) found no same-position, mirror (chiastic) or two-sided-scroll
+    structure across the two books. Cite a pair as a verbal or typological
+    echo, never as evidence that John and Revelation form one scroll or
+    chiasm. The `note` field carries the thematic tags, commentary and
+    attribution (Bradley vs Gage).
 
   Burnett (single-paper argued chain):
     All Burnett rows are at relevance=5 by convention — they're explicit
@@ -498,7 +501,7 @@ long-tail is wanted.""",
                 "source": {
                     "type": "string",
                     "enum": ["ch", "tsk", "gage", "burnett"],
-                    "description": "Optional dataset filter when using `reference`. 'ch' = Harrison/Romhild curated; 'tsk' = Treasury of Scripture Knowledge; 'gage' = Gage/Bradley John↔Revelation typology; 'burnett' = Burnett's Gen 15:5 / Rom 4:18 deification chain (JSPL 5.2). Default: all four, ranked CH/Gage > Burnett > TSK."
+                    "description": "Optional dataset filter when using `reference`. 'ch' = Harrison/Romhild curated; 'tsk' = Treasury of Scripture Knowledge; 'gage' = Gage/Bradley John↔Revelation typology; 'burnett' = Burnett's Gen 15:5 / Rom 4:18 deification chain (JSPL 5.2). Default: all four, in the tier order described above."
                 },
                 "limit": {
                     "type": "integer",

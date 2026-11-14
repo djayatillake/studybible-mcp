@@ -1174,7 +1174,7 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
             result += f"### Gage / Bradley (John↔Rev typology) — {len(gage_refs)}\n"
             for ref in gage_refs:
                 rel = ref.get("relevance", 0)
-                tier_tag = "parallel" if rel >= 3 else "chiastic (looser)"
+                tier_tag = "tighter" if rel >= 3 else "looser"
                 note = ref.get("note") or ""
                 result += f"- {_format_xref_target(ref['target'])}  *({tier_tag})*"
                 if note:
