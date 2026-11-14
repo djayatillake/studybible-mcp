@@ -221,9 +221,23 @@ async def test_cross_references_annotate_dataset_signals(db):
     output = await call("get_cross_references", reference="John 3:16", limit=8)
     # The CH pair also has 40 TSK votes; it is shown once, as CH.
     assert "- 1Jn 4:9  *(canonical direction)*  *(also TSK: 40 votes)*" in output
-    assert "- Rev 21:6  *(parallel)* — Gift of life (parallel)" in output
+    assert "- Rev 21:6  *(tighter)* — Gift of life" in output
     assert "- Rom 4:18 — JSPL 5.2 step 3" in output
     assert "- Rom 5:8  *(votes: 600)*" in output
+    assert "parallel" not in output and "chiastic" not in output
+
+
+async def test_cross_references_rank_both_gage_sheets_in_tier_two(db):
+    # Gage/Bradley pairs are one scholar's typological reading, ranked with
+    # Burnett rather than with the curated CH set; the tighter sheet keeps
+    # its higher strength score within the tier.
+    rows = await db.get_cross_references("John 3:16", source_filter="gage", limit=10)
+    assert {(r["target"], r["tier"], r["strength_score"]) for r in rows} == {
+        ("Rev.21.6", 2, 7),
+        ("Rev.22.17", 2, 3),
+    }
+    output = await call("get_cross_references", reference="John 3:16", source="gage")
+    assert "- Rev 22:17  *(looser)* — Water of life" in output
 
 
 async def test_cross_references_suppress_tier_one_on_a_signal_rich_verse(db):
