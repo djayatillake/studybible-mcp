@@ -20,6 +20,7 @@
   h2{font-size:1.28rem;margin:2.6rem 0 .3rem;font-weight:600;border-bottom:1px solid var(--rule);padding-bottom:.3rem}
   h3{font-size:1.1rem;margin:2rem 0 .2rem;font-weight:600;color:var(--accent)}
   h3 .ref{color:var(--ink)}
+  h3 a{color:inherit;text-decoration-color:var(--rule);text-underline-offset:.18em}
   p{margin:.7rem 0}
   blockquote{margin:1rem 0;padding:.7rem 1.1rem;background:var(--quote);
              border-left:3px solid var(--accent);border-radius:2px}
@@ -46,6 +47,8 @@
   * NEVER start an <li>/<p>/<blockquote>/heading with Hebrew (renders right-to-left in Substack):
     write <em>chesed</em> (<strong>חֶסֶד</strong>, H2617) — …  Run scripts/check_html.py when done.
   * Keep the literal "<h2>Part One — The Readings</h2>" heading (audio intro-strip).
+  * Start each Part One h3 with its reference ("2 Kings 4:18–37"), written plainly:
+    scripts/seed_bible_links.py then links it to that chapter on Seed Bible.
   Order: kicker -> h1(passages) -> orn -> banner -> intro -> Part One
          -> [optional connections list: h2 + ol] -> Part Two -> Part Three appendix
          -> orn -> On Sources -> sdg.
@@ -62,7 +65,9 @@
 <p class="orn">❦</p>
 
 <!-- ---- one block per reading (repeat); split a long reading into movements,
-     each with its own h3 + verses + commentary ------------------------------- -->
+     each with its own h3 + verses + commentary. Write the h3 plainly; after assembly,
+     seed_bible_links.py turns its reference into
+     <a href="https://seedbible.org/?translation=BSB&amp;book=2KI&amp;chapter=4&amp;verse=18-37">2 Kings 4:18–37</a> -->
 <h3>{{Passage}} <span class="ref">— {{one-line description}}</span></h3>
 <blockquote class="verses">
 <sup>1</sup> {{verse text}}<br>

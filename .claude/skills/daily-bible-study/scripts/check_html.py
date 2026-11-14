@@ -11,6 +11,7 @@ Fails (exit 1) if any of these is wrong:
   * a block (li, p, blockquote, h2, h3) whose first visible character is Hebrew: Substack, like any
     browser using dir="auto", lays a Hebrew-first block out right-to-left and scrambles the line.
     Lead with English instead:  <em>chesed</em> (<strong>חֶסֶד</strong>, H2617) — goodness…
+  * a Part One reading heading without its Seed Bible link (run seed_bible_links.py to add them)
 
 Warns (does not fail) when a Part One bullet's bold label contains script: clean.py strips a script-bearing
 <strong> whole, so the spoken label would vanish.
@@ -22,6 +23,7 @@ import re
 import sys
 
 from bs4 import BeautifulSoup
+from seed_bible_links import SEED_BIBLE_URL, part_one_headings
 
 HEB = re.compile(r'[֐-׿؀-ۿ]')
 SCRIPT = re.compile(r'[֐-׿Ͱ-Ͽἀ-῿]')
@@ -62,6 +64,12 @@ def main(path):
             rtl.append(t[:50])
     if rtl:
         fails.append('%d block(s) start with Hebrew and will render right-to-left in Substack, e.g. %s' % (len(rtl), rtl[:3]))
+
+    unlinked = [h.get_text(' ', strip=True)[:50] for h in part_one_headings(soup)
+                if not any(a.get('href', '').startswith(SEED_BIBLE_URL) for a in h.find_all('a'))]
+    if unlinked:
+        fails.append('%d Part One heading(s) lack a Seed Bible link (run seed_bible_links.py), e.g. %s'
+                     % (len(unlinked), unlinked[:3]))
 
     part = None
     counts = {'one': 0, 'two': 0, 'three': 0}

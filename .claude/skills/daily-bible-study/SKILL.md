@@ -257,14 +257,22 @@ file rather than hand-typing verses:** write a short Python script in the scratc
 parses the saved `pull_bsb.py` output (`===== <Passage> =====` headers, `N  text` lines),
 emits each `blockquote.verses` from it, holds the prose as HTML strings, takes the
 `<head>` from the template, and refuses to overwrite an existing file. That way no verse
-is retyped, and full passages are guaranteed. After writing, run the checker:
+is retyped, and full passages are guaranteed. After writing, link the reading headings to
+Seed Bible, then run the checker:
 ```bash
+.venv-tts/bin/python "$SKILL_DIR/scripts/seed_bible_links.py" podcast/dayN/Bible_in_a_Year_Study_DayN.html
 .venv-tts/bin/python "$SKILL_DIR/scripts/check_html.py" podcast/dayN/Bible_in_a_Year_Study_DayN.html
 ```
-It must print `OK`. It fails on more than one `<div>`, a non-flat wrap, a missing or repeated
-"Part One — The Readings", script outside `<strong>`, and any block that starts with Hebrew
-(see the RTL rule below). It also prints the `<sup>` count (= reading verses plus Part Two
-lead quotes) and the word count per part with an estimate of spoken minutes.
+`seed_bible_links.py` wraps the reference that starts each Part One `<h3>` in a link to that
+chapter in the BSB on seedbible.org, with the section's verses highlighted (`Psalm 23` → the
+bare chapter). The link adds no spoken words, since the audio reads the heading's text, and
+re-running it is harmless. It exits 1 and names any Part One heading that doesn't start with a
+reference it can resolve; fix the heading rather than leave it unlinked. The checker must print
+`OK`. It fails on more than one `<div>`, a non-flat wrap, a missing or repeated
+"Part One — The Readings", script outside `<strong>`, any block that starts with Hebrew
+(see the RTL rule below), and a Part One heading without its Seed Bible link. It also prints
+the `<sup>` count (= reading verses plus Part Two lead quotes) and the word count per part
+with an estimate of spoken minutes.
 
 **Structural rules that keep the audio pipeline working — do not break these:**
 - Everything is a **direct child of the single `<div class="wrap">`** (flat). No
