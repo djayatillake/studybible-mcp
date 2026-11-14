@@ -15,6 +15,7 @@ from study_bible_mcp.hermeneutics import (
     get_genre,
     get_genre_from_reference,
 )
+from study_bible_mcp.tools import _SEED_BIBLE_BOOKS, seed_bible_line, seed_bible_url
 
 
 def _verse_row(reference, book, chapter, verse):
@@ -192,6 +193,45 @@ async def test_range_past_chapter_end_is_clamped_with_note(lookup_db):
     output = await _lookup("Luke 19:47-60")
     assert _verse_headings(output) == ["Luk.19.47", "Luk.19.48"]
     assert "Luke 19 ends at verse 48" in output
+
+
+_SEED = "https://seedbible.org/?translation=BSB&book="
+
+
+@pytest.mark.parametrize(
+    ("reference", "label", "url"),
+    [
+        ("John 3:16", "John 3", f"{_SEED}JHN&chapter=3&verse=16"),
+        ("Luke 19:1-3", "Luke 19", f"{_SEED}LUK&chapter=19&verse=1-3"),
+        ("Luke 19", "Luke 19", f"{_SEED}LUK&chapter=19"),
+        # A range covering the whole chapter links the bare chapter.
+        ("Luke 19:1-48", "Luke 19", f"{_SEED}LUK&chapter=19"),
+        # A cross-chapter range opens its first chapter, to that chapter's end.
+        ("Luke 19:45-20:2", "Luke 19", f"{_SEED}LUK&chapter=19&verse=45-48"),
+        ("Luke 19:47-60", "Luke 19", f"{_SEED}LUK&chapter=19&verse=47-48"),
+        ("Psalm 40:6-8", "Ps 40", f"{_SEED}PSA&chapter=40&verse=6-8"),
+        # A psalm superscription (English verse 0) links the chapter.
+        ("Psalm 40:0", "Ps 40", f"{_SEED}PSA&chapter=40"),
+        ("1 Chronicles 12:4", "1 Chr 12", f"{_SEED}1CH&chapter=12&verse=4"),
+        ("Jude 3", "Jude 1", f"{_SEED}JUD&chapter=1&verse=3"),
+    ],
+)
+async def test_lookup_ends_with_a_seed_bible_link(lookup_db, reference, label, url):
+    output = (await server.call_tool("lookup_verse", {"reference": reference}))[0].text
+    assert output.endswith(f"\n\n---\n*Read in context on Seed Bible: [{label}, BSB]({url}).*")
+    assert output.count("seedbible.org") == 1
+
+
+def test_seed_bible_books_are_the_66_usfm_codes():
+    usfm = (
+        "GEN EXO LEV NUM DEU JOS JDG RUT 1SA 2SA 1KI 2KI 1CH 2CH EZR NEH EST JOB PSA PRO "
+        "ECC SNG ISA JER LAM EZK DAN HOS JOL AMO OBA JON MIC NAM HAB ZEP HAG ZEC MAL "
+        "MAT MRK LUK JHN ACT ROM 1CO 2CO GAL EPH PHP COL 1TH 2TH 1TI 2TI TIT PHM HEB "
+        "JAS 1PE 2PE 1JN 2JN 3JN JUD REV"
+    ).split()
+    assert sorted(code.upper() for code in _SEED_BIBLE_BOOKS) == sorted(usfm)
+    assert seed_bible_url("Tob", 1, 1) is None
+    assert seed_bible_line("Sir", 1) == ""
 
 
 @pytest.mark.parametrize(

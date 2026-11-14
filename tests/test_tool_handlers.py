@@ -927,6 +927,23 @@ async def test_study_notes_chapter_only_returns_the_whole_chapter(db):
     assert "Nicodemus came to Jesus by night" in output
 
 
+@pytest.mark.parametrize(
+    ("args", "label", "url"),
+    [
+        ({"reference": "John 3:16"}, "John 3", "book=JHN&chapter=3&verse=16"),
+        ({"reference": "John 3"}, "John 3", "book=JHN&chapter=3"),
+        ({"reference": "John 3:16", "chapter_only": True}, "John 3", "book=JHN&chapter=3"),
+        ({"reference": "Romans 8:20-22"}, "Rom 8", "book=ROM&chapter=8&verse=20-22"),
+    ],
+)
+async def test_study_notes_end_with_a_seed_bible_link(db, args, label, url):
+    output = await call("get_study_notes", **args)
+    assert output.endswith(
+        f"\n\n---\n*Read in context on Seed Bible: "
+        f"[{label}, BSB](https://seedbible.org/?translation=BSB&{url}).*"
+    )
+
+
 async def test_bible_dictionary_prefers_an_exact_title(db):
     output = await call("get_bible_dictionary", topic="abraham")
     assert output.startswith("## Abraham\n\nAbraham, father of the faithful (test article).")
