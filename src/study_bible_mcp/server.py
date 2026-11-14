@@ -94,6 +94,7 @@ from .tools import (
     mermaid_genealogy,
     mermaid_place_network,
     person_label,
+    seed_bible_line,
     strongs_verse_note,
     verse_english,
     verse_reference,
@@ -640,6 +641,17 @@ async def handle_lookup_verse(args: dict[str, Any]) -> list[TextContent]:
         )
     xref_hint += ".*"
     result += xref_hint
+
+    # A reader link to the passage in its chapter. A cross-chapter range opens
+    # its first chapter, highlighted from the start verse to the chapter's end;
+    # a span covering a whole chapter links the bare chapter.
+    link_start = link_end = 0
+    if not whole_chapters:
+        link_end = end_verse if end_chapter == start_chapter else last
+        link_start = max(start_verse, 1) if link_end else 0
+        if link_start <= max(first, 1) and link_end >= last and link_start != link_end:
+            link_start = link_end = 0
+    result += seed_bible_line(book, start_chapter, link_start, link_end)
 
     return text(result)
 
@@ -1501,9 +1513,18 @@ async def handle_get_study_notes(args: dict[str, Any]) -> list[TextContent]:
         notes = await db.get_study_notes(reference)
         if not notes:
             return text(f"No study notes found for {reference}.")
-        return text(f"## Study Notes: {reference}\n\n" + format_study_notes(notes))
+        link = ""
+        if parsed and parsed["start_verse"] is not None:
+            link = seed_bible_line(parsed["book"], parsed["start_chapter"], parsed["start_verse"])
+        return text(f"## Study Notes: {reference}\n\n" + format_study_notes(notes) + link)
 
     book, book_name, start_chapter, start_verse, end_chapter, end_verse = passage
+    # A reader link: a span within one chapter is highlighted; a chapter or a
+    # cross-chapter span opens its (first) chapter.
+    if start_verse is not None and end_chapter == start_chapter and end_verse != 999:
+        link = seed_bible_line(book, start_chapter, start_verse, end_verse)
+    else:
+        link = seed_bible_line(book, start_chapter)
     if start_verse is None:
         label = f"{book_name} {start_chapter}"
         notes = await db.get_chapter_study_notes(book, start_chapter)
@@ -1521,7 +1542,7 @@ async def handle_get_study_notes(args: dict[str, Any]) -> list[TextContent]:
         span = ((start_chapter, start_verse), (end_chapter, end_verse))
     if not notes:
         return text(f"No study notes found for {label}.")
-    return text(format_passage_study_notes(label, notes, book_name, span))
+    return text(format_passage_study_notes(label, notes, book_name, span) + link)
 
 
 async def handle_get_bible_dictionary(args: dict[str, Any]) -> list[TextContent]:

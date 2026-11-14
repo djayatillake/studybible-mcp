@@ -1647,6 +1647,51 @@ def bsb_label(verses: list[dict]) -> str:
     return " (BSB)" if any(verse.get("text_bsb") for verse in verses) else ""
 
 
+# Seed Bible (seedbible.org) opens a chapter in its web reader, highlighting
+# any verses named. Its book parameter is the USFM code, which for the 66
+# canonical books is this project's code uppercased ('Ezk' -> 'EZK'). The BSB
+# is named explicitly: without a translation English readers get Seed Bible's
+# default (the Accessible Ancients Bible), not the text these tools quote.
+SEED_BIBLE_URL = "https://seedbible.org/"
+SEED_BIBLE_TRANSLATION = "BSB"
+_SEED_BIBLE_BOOKS = frozenset(list(BOOK_DISPLAY_NAMES)[:66])
+
+
+def seed_bible_url(book: str, chapter: int, start_verse: int = 0, end_verse: int = 0) -> str | None:
+    """A Seed Bible link to ``book`` ``chapter`` in the BSB, or None outside the 66 books.
+
+    Verses from ``start_verse`` to ``end_verse`` (one verse when ``end_verse``
+    is not after it) are highlighted; 0 (a psalm superscription, or none
+    given) links the bare chapter.
+    """
+    if book not in _SEED_BIBLE_BOOKS or chapter < 1:
+        return None
+    url = (
+        f"{SEED_BIBLE_URL}?translation={SEED_BIBLE_TRANSLATION}"
+        f"&book={book.upper()}&chapter={chapter}"
+    )
+    if start_verse > 0:
+        url += f"&verse={start_verse}"
+        if end_verse > start_verse:
+            url += f"-{end_verse}"
+    return url
+
+
+def seed_bible_line(book: str, chapter: int, start_verse: int = 0, end_verse: int = 0) -> str:
+    """The closing '*Read in context: ...*' block for a passage, or '' outside the 66 books.
+
+    The link is labelled with the chapter it opens ('Luke 19, BSB'); not
+    '(BSB)', which marks a response heading whose text is the BSB.
+    """
+    url = seed_bible_url(book, chapter, start_verse, end_verse)
+    if url is None:
+        return ""
+    return (
+        f"\n\n---\n*Read in context on Seed Bible: [{BOOK_DISPLAY_NAMES[book]} {chapter}, "
+        f"{SEED_BIBLE_TRANSLATION}]({url}).*"
+    )
+
+
 def format_verse(
     verse: dict,
     include_original: bool = True,
