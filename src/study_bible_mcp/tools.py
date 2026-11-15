@@ -475,7 +475,7 @@ dataset:
     structure across the two books. Cite a pair as a verbal or typological
     echo, never as evidence that John and Revelation form one scroll or
     chiasm. The `note` field carries the thematic tags, commentary and
-    attribution (Bradley vs Gage).
+    attribution (Bradley vs Gage). A pair spanning several verses is one row.
 
   Burnett (single-paper argued chain):
     All Burnett rows are at relevance=5 by convention — they're explicit

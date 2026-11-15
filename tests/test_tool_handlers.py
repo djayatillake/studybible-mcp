@@ -240,6 +240,33 @@ async def test_cross_references_rank_both_gage_sheets_in_tier_two(db):
     assert "- Rev 22:17  *(looser)* — Water of life" in output
 
 
+async def test_cross_references_merge_a_multi_verse_gage_pair_into_one_row(db):
+    rows = await db.get_cross_references("John 6:51")
+    assert [(r["target"], r.get("targets")) for r in rows] == [
+        ("Rev.2.17", ["Rev.2.17"]),
+        ("Jhn.6.35", None),
+        ("Rev.19.11", ["Rev.19.11", "Rev.19.13", "Rev.19.17", "Rev.19.18", "Rev.19.21"]),
+    ]
+    output = await call("get_cross_references", reference="John 6:51")
+    assert "_3 reference(s) returned (cap limit=4;" in output
+    assert "- Rev 19:11, 13, 17–18, 21  *(looser)* — Eat the flesh\n" in output
+    assert output.count("Eat the flesh") == 1
+    assert "- Rev 2:17  *(tighter)* — Hidden manna\n" in output
+
+
+async def test_cross_references_merge_the_reverse_direction_too(db):
+    output = await call("get_cross_references", reference="Revelation 19:13")
+    assert "- Jhn 6:51–53  *(looser)* — Eat the flesh\n" in output
+    assert "_1 reference(s) returned" in output
+
+
+def test_xref_target_ranges_cross_chapters_and_fall_back_on_mixed_books():
+    fmt = server._format_xref_targets
+    assert fmt(["Rev.19.21", "Rev.20.1", "Rev.20.2", "Rev.20.4"]) == "Rev 19:21; 20:1–2, 4"
+    assert fmt(["Rev.21.6"]) == "Rev 21:6"
+    assert fmt(["Jhn.1.1", "Rev.1.1"]) == "Jhn 1:1, Rev 1:1"
+
+
 async def test_cross_references_suppress_tier_one_on_a_signal_rich_verse(db):
     output = await call("get_cross_references", reference="John 3:16", limit=20)
     targets = _xref_targets(output)

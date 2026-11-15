@@ -439,6 +439,46 @@ def _lxx_row(row: dict) -> dict:
 def _group_key(row: dict) -> str:
     return row["canonical_reference"] or f"LXX-only {row['edition_reference']}"
 
+
+def _verse_order(usfm: str) -> tuple[str, int, int]:
+    """Sort key for 'Rev.19.11': chapter and verse compared as numbers."""
+    book, _, rest = usfm.partition(".")
+    chapter, _, verse = rest.partition(".")
+    try:
+        return (book, int(chapter), int(verse))
+    except ValueError:
+        return (book, 0, 0)
+
+
+def _merge_gage_ranges(rows: list[dict]) -> list[dict]:
+    """Fold a Gage pair's per-verse rows back into one row.
+
+    The ingest expands a spreadsheet pair such as John 6:51–53 ↔ Rev 19:11–21
+    into one row per verse, all with the same note, so a single pair could
+    fill every slot of the default limit. Rows of one pair share a note and a
+    relevance; they are merged into the first (highest-ranked) of them, whose
+    `targets` lists every verse in order and whose `target` is the first.
+    Rows keep their ranked order otherwise.
+    """
+    merged: list[dict] = []
+    by_pair: dict[tuple[str, int], dict] = {}
+    for row in rows:
+        if row.get("type") != "gage" or not row.get("note"):
+            merged.append(row)
+            continue
+        key = (row["note"], row["relevance"])
+        first = by_pair.get(key)
+        if first is None:
+            row = {**row, "targets": [row["target"]]}
+            by_pair[key] = row
+            merged.append(row)
+        else:
+            first["targets"].append(row["target"])
+    for row in by_pair.values():
+        row["targets"].sort(key=_verse_order)
+        row["target"] = row["targets"][0]
+    return merged
+
 _FTS_OPERATORS = {"AND", "OR", "NOT", "NEAR"}
 
 
@@ -1416,6 +1456,11 @@ class StudyBibleDB:
         50–99→6, 20–49→5, 10–19→3, 5–9→2, else→1). Ties broken by TSK vote
         count when the same pair also appears in TSK.
 
+        A Gage pair that spans several verses is stored as one row per verse
+        (all carrying the same note). Those rows come back as ONE row: `target`
+        is its first verse and `targets` lists every verse in order, so one
+        pair takes one slot of `limit` instead of all of them.
+
         Adaptive return-volume policy: tier 1 rows are SUPPRESSED by default
         when the verse has at least 3 tier-2-or-better rows — so signal-rich
         verses return up to `limit` strong refs and signal-poor verses return only what
@@ -1530,9 +1575,11 @@ class StudyBibleDB:
                 COALESCE(t.tsk_votes, 0) DESC,
                 CASE r.type WHEN 'ch' THEN 4 WHEN 'gage' THEN 3 WHEN 'burnett' THEN 2 ELSE 1 END DESC,
                 r.target
-            LIMIT ?
         """
-        rows = await self._fetchall(sql, (normalized, normalized, limit))
+        # No SQL LIMIT: Gage rows must be merged before the cap is applied, and
+        # no verse has more than ~100 cross-reference rows in all.
+        rows = await self._fetchall(sql, (normalized, normalized))
+        rows = _merge_gage_ranges(rows)[:limit]
 
         # Tier-1 suppression: when the user hasn't asked for raw TSK
         # (via source_filter='tsk') and hasn't set their own floor (via

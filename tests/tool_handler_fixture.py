@@ -151,6 +151,23 @@ CROSS_REFERENCES = [
     # Ruth 1:1 is signal-poor: only tier-1 rows, which are kept.
     ("Rut.1.1", "Jdg.21.25", "tsk", 4, None),
     ("Rut.1.1", "Gen.12.10", "tsk", 2, None),
+    # John 6:51 holds one looser Gage pair spanning Rev 19:11, 13, 17–18, 21.
+    # The ingest stores it as one row per verse with a shared note; it must
+    # come back as one row, not fill the default cap. Order after merging:
+    # Rev 2:17 (gage tighter, score 7), John 6:35 (tsk 30, score 5), the
+    # Rev 19 pair (score 3), then Exod 16:15 (tsk 8, tier 1, suppressed).
+    ("Jhn.6.51", "Rev.19.21", "gage", 1, "Eat the flesh"),
+    ("Jhn.6.51", "Rev.19.11", "gage", 1, "Eat the flesh"),
+    ("Jhn.6.51", "Exo.16.15", "tsk", 8, None),
+    ("Jhn.6.51", "Rev.19.18", "gage", 1, "Eat the flesh"),
+    ("Jhn.6.51", "Rev.2.17", "gage", 3, "Hidden manna"),
+    ("Jhn.6.51", "Rev.19.13", "gage", 1, "Eat the flesh"),
+    ("Jhn.6.51", "Jhn.6.35", "tsk", 30, None),
+    ("Jhn.6.51", "Rev.19.17", "gage", 1, "Eat the flesh"),
+    # The ingest is bidirectional: from Rev 19:13 the same pair spans John 6:51–53.
+    ("Rev.19.13", "Jhn.6.53", "gage", 1, "Eat the flesh"),
+    ("Rev.19.13", "Jhn.6.51", "gage", 1, "Eat the flesh"),
+    ("Rev.19.13", "Jhn.6.52", "gage", 1, "Eat the flesh"),
 ]
 
 THEMATIC_REFERENCES = [
