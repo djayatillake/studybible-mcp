@@ -474,8 +474,9 @@ dataset:
     (2026) found no same-position, mirror (chiastic) or two-sided-scroll
     structure across the two books. Cite a pair as a verbal or typological
     echo, never as evidence that John and Revelation form one scroll or
-    chiasm. The `note` field carries the thematic tags, commentary and
-    attribution (Bradley vs Gage). A pair spanning several verses is one row.
+    chiasm. The `note` quotes each side's key words (long passages
+    excerpted), then commentary and attribution (Bradley vs Gage). A
+    multi-verse pair is one row.
 
   Burnett (single-paper argued chain):
     All Burnett rows are at relevance=5 by convention — they're explicit

@@ -212,12 +212,116 @@ _LEGEND_NOTES = (
 )
 
 
+# Columns B and D quote each side of a pair. Often the quote is a few words
+# that pinpoint the echo; sometimes it is the whole passage pasted in (up to
+# ~900 characters a side), and the note then repeats both passages, which the
+# reader can look up. A side longer than NOTE_SIDE_BUDGET keeps only the
+# sentences that share the most words with the other side and the commentary,
+# the words the pairing rests on.
+NOTE_SIDE_BUDGET = 160
+_JOIN = " … "
+_STOPWORDS = frozenset("""
+    about after again all also and any anyone are because been before being but came
+    can come comes could did does done each even every everyone for from had has have
+    her herself him himself his into its itself just let like man may men more most
+    myself not one our ourselves out over own said say shall she should some than that
+    the their them themselves then there these they this those through tell truly under
+    unto upon very was went were what when where which while who whom will with would
+    yourself yourselves you your
+""".split())
+_SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+|(?<=[.!?][”\"’])\s+")
+_ELLIPSIS = re.compile(r"\s*(?:\.{2,}|…)\s*")
+
+
+def _cue_words(text: str) -> set[str]:
+    """Content words of a text, lower-cased, with a plural 's' dropped."""
+    return {
+        word[:-1] if len(word) > 4 and word.endswith("s") else word
+        for word in re.findall(r"[a-z]+", text.lower())
+        if len(word) > 2 and word not in _STOPWORDS
+    }
+
+
+def _sentences(text: str) -> list[str]:
+    """Split at sentence ends and at the quoter's own ellipses."""
+    return [
+        sentence.strip()
+        for chunk in _ELLIPSIS.split(text)
+        for sentence in _SENTENCE_BREAK.split(chunk)
+        if sentence.strip()
+    ]
+
+
+def _best_window(sentence: str, cues: set[str], budget: int) -> tuple[str, bool, bool]:
+    """The run of whole words, within budget, holding the most cue words.
+
+    Returns the run and whether it starts and ends inside the sentence. The
+    earliest run wins a tie.
+    """
+    words = list(re.finditer(r"\S+", sentence))
+    best: tuple[int, int, int] | None = None
+    for i, first in enumerate(words):
+        j = i
+        while j + 1 < len(words) and words[j + 1].end() - first.start() <= budget:
+            j += 1
+        if words[j].end() - first.start() > budget:
+            continue
+        score = len(_cue_words(sentence[first.start():words[j].end()]) & cues)
+        if best is None or score > best[0]:
+            best = (score, i, j)
+    if best is None:
+        return sentence[:budget], False, True
+    _, i, j = best
+    window = sentence[words[i].start():words[j].end()].rstrip(",;:")
+    return window, i > 0, j < len(words) - 1
+
+
+def excerpt_side(text: str, cues: set[str], budget: int = NOTE_SIDE_BUDGET) -> str:
+    """A quote of at most `budget` characters (plus ellipses) from one side.
+
+    A quote within budget is returned unchanged. A longer one keeps its
+    best-scoring sentence (by words shared with `cues`); if that sentence is
+    itself over budget, the run of its words that holds the most shared words.
+    Then the next-best sentences that still fit are added, in their original
+    order, with " … " marking every gap.
+    """
+    if len(text) <= budget:
+        return text
+    sentences = _sentences(" ".join(text.split())) or [text]
+    scores = [len(_cue_words(sentence) & cues) for sentence in sentences]
+    ranked = sorted((i for i, score in enumerate(scores) if score),
+                    key=lambda i: (-scores[i], i)) or [0]
+    top = ranked[0]
+    if len(sentences[top]) <= budget:
+        picked = {top: sentences[top]}
+        cut_start = cut_end = False
+    else:
+        window, cut_start, cut_end = _best_window(sentences[top], cues, budget)
+        picked = {top: window}
+    used = len(picked[top])
+    for i in ranked[1:]:
+        if used + len(_JOIN) + len(sentences[i]) <= budget:
+            picked[i] = sentences[i]
+            used += len(_JOIN) + len(sentences[i])
+    order = sorted(picked)
+    quote = _JOIN.join(picked[i] for i in order)
+    if order[0] > 0 or (order[0] == top and cut_start):
+        quote = "… " + quote
+    if order[-1] < len(sentences) - 1 or (order[-1] == top and cut_end):
+        quote += " …"
+    return quote
+
+
 def gage_note(p: dict) -> str:
     parts = []
-    if p["theme_a"] or p["theme_c"]:
-        parts.append(f"{p['theme_a']} ⟷ {p['theme_c']}".strip(" ⟷"))
     c = p["commentary"]
-    if c and not any(legend in c for legend in _LEGEND_NOTES):
+    if c and any(legend in c for legend in _LEGEND_NOTES):
+        c = ""
+    if p["theme_a"] or p["theme_c"]:
+        side_a = excerpt_side(p["theme_a"], _cue_words(p["theme_c"]) | _cue_words(c))
+        side_c = excerpt_side(p["theme_c"], _cue_words(p["theme_a"]) | _cue_words(c))
+        parts.append(f"{side_a} ⟷ {side_c}".strip(" ⟷"))
+    if c:
         if len(c) > 220:
             c = c[:217] + "..."
         parts.append(c)
@@ -403,6 +507,26 @@ BURNETT_THEOLOGY = [
 # =============================================================================
 # Insertion
 # =============================================================================
+def gage_rows(gage_pairs: list[dict]) -> tuple[list[tuple[str, str, int, str]], int]:
+    """(source, target, relevance, note) for each pair in both directions.
+
+    The first pair to claim a (source, target) wins; returns the rows and the
+    number of repeats dropped. scripts/repair_gage_notes.py builds its patch
+    from the same rows.
+    """
+    rows: list[tuple[str, str, int, str]] = []
+    skipped_dupe = 0
+    seen: set[tuple[str, str]] = set()
+    for p in gage_pairs:
+        for src, tgt in ((p["source"], p["target"]), (p["target"], p["source"])):
+            if (src, tgt) in seen:
+                skipped_dupe += 1
+                continue
+            seen.add((src, tgt))
+            rows.append((src, tgt, gage_relevance(p["tier"]), gage_note(p)))
+    return rows, skipped_dupe
+
+
 def insert_xrefs(conn: sqlite3.Connection, gage_pairs: list[dict]):
     cur = conn.cursor()
     print("\nClearing existing rows where type IN ('gage','burnett')...")
@@ -411,26 +535,16 @@ def insert_xrefs(conn: sqlite3.Connection, gage_pairs: list[dict]):
 
     # Bradley/Gage — bidirectional
     print(f"\nInserting Bradley/Gage typology pairs ({len(gage_pairs)} forward × 2 = {2*len(gage_pairs)} rows)...")
-    inserted = 0
-    skipped_dupe = 0
-    seen: set[tuple[str, str]] = set()
-    for p in gage_pairs:
-        for src, tgt in ((p["source"], p["target"]), (p["target"], p["source"])):
-            key = (src, tgt)
-            if key in seen:
-                skipped_dupe += 1
-                continue
-            seen.add(key)
-            cur.execute(
-                "INSERT INTO cross_references (source, target, type, note, relevance) VALUES (?,?,?,?,?)",
-                (src, tgt, "gage", gage_note(p), gage_relevance(p["tier"])),
-            )
-            inserted += 1
-    print(f"  inserted {inserted} gage rows ({skipped_dupe} duplicates collapsed)")
+    rows, skipped_dupe = gage_rows(gage_pairs)
+    cur.executemany(
+        "INSERT INTO cross_references (source, target, type, relevance, note) VALUES (?,?,'gage',?,?)",
+        rows,
+    )
+    print(f"  inserted {len(rows)} gage rows ({skipped_dupe} duplicates collapsed)")
 
     # Burnett — bidirectional
     print(f"\nInserting Burnett pairs ({len(BURNETT_PAIRS)} forward × 2 = {2*len(BURNETT_PAIRS)} rows)...")
-    seen.clear()
+    seen: set[tuple[str, str]] = set()
     inserted = 0
     skipped_dupe = 0
     for src, tgt, note in BURNETT_PAIRS:
