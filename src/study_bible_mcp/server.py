@@ -1105,6 +1105,35 @@ def _format_xref_target(raw: str) -> str:
     return raw
 
 
+def _format_xref_targets(raws: list[str]) -> str:
+    """Pretty-print a run of verses in one book, in order, as a compact range.
+
+    ['Rev.19.11', 'Rev.19.13', 'Rev.19.17', 'Rev.19.18', 'Rev.20.1']
+    → 'Rev 19:11, 13, 17–18; 20:1'
+    """
+    parsed = [raw.split(".") for raw in raws]
+    well_formed = all(len(p) == 3 and p[1].isdigit() and p[2].isdigit() for p in parsed)
+    if len(raws) == 1 or not well_formed or len({p[0] for p in parsed}) > 1:
+        return ", ".join(_format_xref_target(raw) for raw in raws)
+
+    chapters: list[tuple[int, list[int]]] = []
+    for _, chapter, verse in parsed:
+        if not chapters or chapters[-1][0] != int(chapter):
+            chapters.append((int(chapter), []))
+        chapters[-1][1].append(int(verse))
+
+    def runs(verses: list[int]) -> str:
+        spans: list[list[int]] = []
+        for v in verses:
+            if spans and v == spans[-1][1] + 1:
+                spans[-1][1] = v
+            else:
+                spans.append([v, v])
+        return ", ".join(f"{a}–{b}" if b > a else f"{a}" for a, b in spans)
+
+    return f"{parsed[0][0]} " + "; ".join(f"{ch}:{runs(vs)}" for ch, vs in chapters)
+
+
 @returns_input_errors
 async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]:
     """Handle get_cross_references tool - find related passages."""
@@ -1176,7 +1205,8 @@ async def handle_get_cross_references(args: dict[str, Any]) -> list[TextContent]
                 rel = ref.get("relevance", 0)
                 tier_tag = "tighter" if rel >= 3 else "looser"
                 note = ref.get("note") or ""
-                result += f"- {_format_xref_target(ref['target'])}  *({tier_tag})*"
+                targets = ref.get("targets") or [ref["target"]]
+                result += f"- {_format_xref_targets(targets)}  *({tier_tag})*"
                 if note:
                     result += f" — {note}"
                 result += "\n"
